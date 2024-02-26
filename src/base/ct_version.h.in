@@ -1,0 +1,11 @@
+#ifndef _CT_VERSION_H
+#define _CT_VERSION_H
+
+#define __coter_version_string__   "@PROJECT_VERSION@"
+#define __coter_version_major__    @PROJECT_VERSION_MAJOR@
+#define __coter_version_minor__    @PROJECT_VERSION_MINOR@
+#define __coter_version_patch__    @PROJECT_VERSION_PATCH@
+#define __coter_version_tweak__    @PROJECT_VERSION_TWEAK@
+#define __coter_version_debug__    @BUILD_VERSION_DEBUG@
+
+#endif  // _CT_VERSION_H

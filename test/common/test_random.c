@@ -1,0 +1,248 @@
+/**
+ * @brief
+ * @author tayne3@dingtalk.com
+ * @date 2023.11.30
+ */
+#include <stdio.h>
+
+#include "common/ct_random.h"
+#include "ctunit.h"
+#include "sys/ct_thread.h"
+
+static inline void test_random_bool(uint64_t test_number);
+static inline void test_random_uint8(uint64_t test_number);
+static inline void test_random_uint16(uint64_t test_number);
+static inline void test_random_uint32(uint64_t test_number);
+static inline void test_random_uint64(uint64_t test_number);
+static inline void test_random_float(uint64_t test_number);
+static inline void test_random_double(uint64_t test_number);
+
+int main(void)
+{
+	test_random_bool(10000);
+	test_random_uint8(10000);
+	test_random_uint16(10000);
+	test_random_uint32(10000);
+	test_random_uint64(10000);
+	test_random_float(10000);
+	test_random_double(10000);
+
+	ctunit_pass();
+}
+
+static inline void test_random_bool(uint64_t test_number)
+{
+	// 初始化随机数生成器
+	ct_random_buf_t state;
+	ct_random_init(state);
+
+	// 定义统计数组，用于记录每个随机数的出现次数
+	int count[2] = {0};
+
+	bool random_num = 0;
+	for (register uint64_t i = 0; i < 2 * test_number;) {
+		for (size_t n = 0; n < test_number; n++, i++) {
+			random_num = ct_random_bool(state);
+			ctunit_assert_uint8(random_num, 2, CTUnit_Less);
+			count[random_num]++;
+		}
+		ct_thread_msleep(5);
+		// sched_yield();
+	}
+
+	// 检查随机数的分布是否均匀
+	bool isok = true;
+	for (size_t i = 0; i < 2; i++) {
+		if (count[i] < test_number * 0.8 || count[i] > test_number * 1.2) {
+			isok = false;
+			break;
+		}
+	}
+	// 输出测试结果
+	ctunit_assert_true(isok);
+}
+
+static inline void test_random_uint8(uint64_t test_number)
+{
+	// 初始化随机数生成器
+	ct_random_buf_t state;
+	ct_random_init(state);
+
+	// 定义统计数组,用于记录每个随机数的出现次数
+	int count[100] = {0};
+
+	uint8_t random_num = 0;
+	for (register uint64_t i = 0; i < 100 * test_number;) {
+		for (size_t n = 0; n < 50 * test_number; n++, i++) {
+			random_num = ct_random_uint8(state, 0, 100);
+			ctunit_assert_uint8(random_num, 100, CTUnit_Less);
+			count[random_num]++;
+		}
+		ct_thread_msleep(5);
+	}
+
+	// 检查随机数的分布是否均匀
+	bool isok = true;
+	for (size_t i = 0; i < 100; i++) {
+		if (count[i] < test_number * 0.8 || count[i] > test_number * 1.2) {
+			isok = false;
+			break;
+		}
+	}
+	// 输出测试结果
+	ctunit_assert_true(isok);
+}
+
+static inline void test_random_uint16(uint64_t test_number)
+{
+	// 初始化随机数生成器
+	ct_random_buf_t state;
+	ct_random_init(state);
+
+	// 定义统计数组,用于记录每个随机数的出现次数
+	int count[100] = {0};
+
+	uint16_t random_num = 0;
+	for (register uint64_t i = 0; i < 100 * test_number;) {
+		for (size_t n = 0; n < 50 * test_number; n++, i++) {
+			random_num = ct_random_uint16(state, 0, 100);
+			ctunit_assert_uint16(random_num, 100, CTUnit_Less);
+			count[random_num]++;
+		}
+	}
+
+	// 检查随机数的分布是否均匀
+	bool isok = true;
+	for (size_t i = 0; i < 100; i++) {
+		if (count[i] < test_number * 0.8 || count[i] > test_number * 1.2) {
+			isok = false;
+			break;
+		}
+	}
+	// 输出测试结果
+	ctunit_assert_true(isok);
+}
+
+static inline void test_random_uint32(uint64_t test_number)
+{
+	// 初始化随机数生成器
+	ct_random_buf_t state;
+	ct_random_init(state);
+
+	// 定义统计数组,用于记录每个随机数的出现次数
+	int count[100] = {0};
+
+	uint32_t random_num = 0;
+	for (register uint64_t i = 0; i < 100 * test_number;) {
+		for (size_t n = 0; n < 50 * test_number; n++, i++) {
+			random_num = ct_random_uint32(state, 0, 100);
+			ctunit_assert_uint32(random_num, 100, CTUnit_Less);
+			count[random_num]++;
+		}
+		ct_thread_msleep(5);
+	}
+
+	// 检查随机数的分布是否均匀
+	bool isok = true;
+	for (size_t i = 0; i < 100; i++) {
+		if (count[i] < test_number * 0.8 || count[i] > test_number * 1.2) {
+			isok = false;
+			break;
+		}
+	}
+	// 输出测试结果
+	ctunit_assert_true(isok);
+}
+
+static inline void test_random_uint64(uint64_t test_number)
+{
+	// 初始化随机数生成器
+	ct_random_buf_t state;
+	ct_random_init(state);
+
+	// 定义统计数组,用于记录每个随机数的出现次数
+	uint64_t count[100] = {0};
+
+	uint64_t random_num = 0;
+	for (register uint64_t i = 0; i < 100 * test_number;) {
+		for (size_t n = 0; n < 50 * test_number; n++, i++) {
+			random_num = ct_random_uint64(state, 0, 100);
+			ctunit_assert_uint64(random_num, 100, CTUnit_Less);
+			count[random_num]++;
+		}
+		ct_thread_msleep(5);
+	}
+
+	// 检查随机数的分布是否均匀
+	bool isok = true;
+	for (size_t i = 0; i < 100; i++) {
+		if (count[i] < test_number * 0.8 || count[i] > test_number * 1.2) {
+			isok = false;
+			break;
+		}
+	}
+
+	// 输出测试结果
+	ctunit_assert_true(isok);
+}
+
+static inline void test_random_float(uint64_t test_number)
+{
+	// 初始化随机数生成器
+	ct_random_buf_t state;
+	ct_random_init(state);
+
+	// 定义统计数组,用于记录每个随机数落在的区间
+	int count[100] = {0};
+
+	int random_num = 0;
+	for (register uint64_t i = 0; i < 100 * test_number;) {
+		for (size_t n = 0; n < 50 * test_number; n++, i++) {
+			random_num = (int)(ct_random_float(state, 0.0f, 1.0f) * 100);
+			count[random_num]++;
+		}
+		ct_thread_msleep(5);
+	}
+
+	// 检查随机数的分布是否均匀
+	bool isok = true;
+	for (size_t i = 0; i < 100; i++) {
+		if (count[i] < test_number * 0.8 || count[i] > test_number * 1.2) {
+			isok = false;
+			break;
+		}
+	}
+
+	// 输出测试结果
+	ctunit_assert_true(isok);
+}
+
+static inline void test_random_double(uint64_t test_number)
+{
+	// 初始化随机数生成器
+	ct_random_buf_t state;
+	ct_random_init(state);
+
+	// 定义统计数组,用于记录每个随机数落在的区间
+	int count[100] = {0};
+
+	int random_num = 0;
+	for (register uint64_t i = 0; i < 100 * test_number;) {
+		for (size_t n = 0; n < 50 * test_number; n++, i++) {
+			random_num = (int)(ct_random_double(state, 0.0, 1.0) * 100);
+			count[random_num]++;
+		}
+		ct_thread_msleep(5);
+	}
+
+	// 检查随机数的分布是否均匀
+	bool isok = true;
+	for (size_t i = 0; i < 100; i++) {
+		if (count[i] < test_number * 0.8 || count[i] > test_number * 1.2) {
+			isok = false;
+			break;
+		}
+	}
+	// 输出测试结果
+	ctunit_assert_true(isok);
+}
