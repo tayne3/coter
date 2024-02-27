@@ -25,7 +25,7 @@
  * @param isclear 是否清空文件
  * @return true 打开成功, false 打开失败
  */
-static inline bool ct_log_storage_file_open(ct_log_storage_t *self, bool isclear);
+static inline bool ct_log_storage_file_open(ct_log_storage_buf_t self, bool isclear);
 
 /**
  * @brief 切换到下一个日志文件
@@ -33,27 +33,27 @@ static inline bool ct_log_storage_file_open(ct_log_storage_t *self, bool isclear
  * @return true 切换成功, false 切换失败
  * @note 如果当前文件大小已经达到限制，则会自动切换到下一个日志文件
  */
-static inline bool ct_log_storage_next(ct_log_storage_t *self);
+static inline bool ct_log_storage_next(ct_log_storage_buf_t self);
 
 /**
  * @brief 查询指定日志文件大小
  * @param self 日志存储结构体指针
  * @return size_t 指定日志文件大小
  */
-static inline size_t ct_log_storage_file_size_find(ct_log_storage_t *self);
+static inline size_t ct_log_storage_file_size_find(ct_log_storage_buf_t self);
 
 /**
  * @brief 根据配置的日志文件名，查找修改时间最晚的文件序号
  * @param self 日志存储结构体指针
  * @note 如果找不到任何日志文件，则文件序号为0
  */
-static inline void ct_log_storage_file_index_update(ct_log_storage_t *self);
+static inline void ct_log_storage_file_index_update(ct_log_storage_buf_t self);
 
 /**
  * @brief 文件序号加一
  * @param self 日志存储结构体指针
  */
-static inline void ct_log_storage_file_index_inc(ct_log_storage_t *self);
+static inline void ct_log_storage_file_index_inc(ct_log_storage_buf_t self);
 
 /**
  * @brief 写入日志存储
@@ -62,7 +62,7 @@ static inline void ct_log_storage_file_index_inc(ct_log_storage_t *self);
  * @param size 日志缓存大小
  * @note 如果缓存区已满，则会自动切换到下一个日志文件
  */
-static inline size_t ct_log_storage_write(ct_log_storage_t *self, char *cache, size_t size);
+static inline size_t ct_log_storage_write(ct_log_storage_buf_t self, char *cache, size_t size);
 
 /**
  * @brief 强制写入日志存储
@@ -72,7 +72,7 @@ static inline size_t ct_log_storage_write(ct_log_storage_t *self, char *cache, s
  * @note 如果缓存区已满，则会自动切换到下一个日志文件
  * @note 如果写入失败，则会尝试重新打开日志文件
  */
-static inline void ct_log_storage_force_write(ct_log_storage_t *self, char *cache, size_t size);
+static inline void ct_log_storage_force_write(ct_log_storage_buf_t self, char *cache, size_t size);
 
 /**
  * @brief 获取日志文件名
@@ -101,7 +101,7 @@ static inline bool ct_log_file_permission_set(const char *filename, mode_t perm)
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
-void ct_log_storage_start(ct_log_storage_t *self)
+void ct_log_storage_start(ct_log_storage_buf_t self)
 {
 	assert(self);
 	// 更新文件序号
@@ -117,7 +117,7 @@ void ct_log_storage_start(ct_log_storage_t *self)
 	}
 }
 
-void ct_log_storage_close(ct_log_storage_t *self)
+void ct_log_storage_close(ct_log_storage_buf_t self)
 {
 	assert(self);
 	// 关闭文件
@@ -128,29 +128,31 @@ void ct_log_storage_close(ct_log_storage_t *self)
 	}
 }
 
-void ct_log_storage_lock(ct_log_storage_t *self)
+void ct_log_storage_lock(ct_log_storage_buf_t self)
 {
 	assert(self);
 	ct_mutex_lock(self->mutex);
 }
 
-void ct_log_storage_unlock(ct_log_storage_t *self)
+void ct_log_storage_unlock(ct_log_storage_buf_t self)
 {
+	assert(self);
 	ct_mutex_unlock(self->mutex);
 }
 
-bool ct_log_storage_isvalid(ct_log_storage_t *self)
+bool ct_log_storage_isvalid(ct_log_storage_buf_t self)
 {
+	assert(self);
 	return self != ct_nullptr && self->_file != ct_nullptr;
 }
 
-void ct_log_storage_flush(ct_log_storage_t *self)
+void ct_log_storage_flush(ct_log_storage_buf_t self)
 {
 	assert(self);
 	fflush(self->_file);
 }
 
-void ct_log_storage_push(ct_log_storage_t *self, char *cache, size_t size)
+void ct_log_storage_push(ct_log_storage_buf_t self, char *cache, size_t size)
 {
 	assert(self);
 	// 缓冲区为空
@@ -177,7 +179,7 @@ void ct_log_storage_push(ct_log_storage_t *self, char *cache, size_t size)
 
 // -------------------------[STATIC DEFINITION]-------------------------
 
-static inline bool ct_log_storage_file_open(ct_log_storage_t *self, bool isclear)
+static inline bool ct_log_storage_file_open(ct_log_storage_buf_t self, bool isclear)
 {
 	// 构建文件名的缓冲区
 	char filename[256];
@@ -210,13 +212,11 @@ static inline bool ct_log_storage_file_open(ct_log_storage_t *self, bool isclear
 		}
 	}
 	// 设置缓冲区
-	if (self->buffer_max > 0) {
-		setvbuf(self->_file, ct_nullptr, _IOFBF, self->buffer_max);
-	}
+	setvbuf(self->_file, ct_nullptr, _IOFBF, self->buffer_max);
 	return true;
 }
 
-static inline bool ct_log_storage_next(ct_log_storage_t *self)
+static inline bool ct_log_storage_next(ct_log_storage_buf_t self)
 {
 	// 关闭文件
 	ct_log_storage_close(self);
@@ -226,7 +226,7 @@ static inline bool ct_log_storage_next(ct_log_storage_t *self)
 	return ct_log_storage_file_open(self, true);
 }
 
-static inline size_t ct_log_storage_file_size_find(ct_log_storage_t *self)
+static inline size_t ct_log_storage_file_size_find(ct_log_storage_buf_t self)
 {
 	// 构建文件名的缓冲区
 	char filename[256];
@@ -240,7 +240,7 @@ static inline size_t ct_log_storage_file_size_find(ct_log_storage_t *self)
 	return (size_t)st.st_size;
 }
 
-static inline void ct_log_storage_file_index_update(ct_log_storage_t *self)
+static inline void ct_log_storage_file_index_update(ct_log_storage_buf_t self)
 {
 	// 初始化最晚修改时间和对应的文件名
 	struct stat curr_st;
@@ -272,19 +272,20 @@ static inline void ct_log_storage_file_index_update(ct_log_storage_t *self)
 	self->_file_index = last_index;
 }
 
-static inline void ct_log_storage_file_index_inc(ct_log_storage_t *self)
+static inline void ct_log_storage_file_index_inc(ct_log_storage_buf_t self)
 {
 	self->_file_index = self->_file_index + 1 >= self->file_number ? 0 : self->_file_index + 1;
 }
 
-static inline size_t ct_log_storage_write(ct_log_storage_t *self, char *cache, size_t size)
+static inline size_t ct_log_storage_write(ct_log_storage_buf_t self, char *cache, size_t size)
 {
-	return fwrite(cache, sizeof(char), size, self->_file);
+	return fwrite(cache, size, sizeof(char), self->_file);
 }
 
-static inline void ct_log_storage_force_write(ct_log_storage_t *self, char *cache, size_t size)
+static inline void ct_log_storage_force_write(ct_log_storage_buf_t self, char *cache, size_t size)
 {
 	ct_log_storage_write(self, cache, size);
+	ct_log_storage_flush(self);
 }
 
 static inline void ct_log_filename_get(const char *prefix, int idx, char *buffer, size_t max)

@@ -57,8 +57,8 @@ static inline void test_msgqueue(size_t data_size, size_t buffer_size)
 	{
 		bool isok = false;
 
-		ct_thread_buf_t th;
-		isok = ct_thread_create(th, test_task_enqueue, msgqueue);
+		ct_thread_t thread;
+		isok = ct_thread_create(&thread, test_task_enqueue, msgqueue);
 		ctunit_assert_true(isok);
 
 		int item = 0;
@@ -72,7 +72,7 @@ static inline void test_msgqueue(size_t data_size, size_t buffer_size)
 			ct_thread_msleep(10);
 		}
 
-		isok = ct_thread_join(th, ct_nullptr);
+		isok = ct_thread_join(thread, ct_nullptr);
 		ctunit_assert_true(isok);
 
 		ctunit_assert_true(ct_msgqueue_isempty(msgqueue));

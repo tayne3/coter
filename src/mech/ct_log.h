@@ -7,10 +7,11 @@
  * @example
  * 简单使用日志的示例代码:
  * @code
- *	#include "system/log.h"
+ *	#include "mech/ct_log.h"
  *
  * 	void example(void)
  * 	{
+ * 		cvarbase("hello world" STR_NEWLINE);
  * 		cdebug("hello world" STR_NEWLINE);
  * 		ctrace("hello world" STR_NEWLINE);
  * 		cwarning("hello world" STR_NEWLINE);
@@ -21,10 +22,8 @@
  * 	int main(void)
  * 	{
  * 		static ct_log_storage_t cls = CTLOG_STORAGE_INIT("example", 2, 2 * 1024 * 1024, 1 * 1024);
- * 		ct_log_config_set(CTLOG_TYPE_DEFAULT, true, "warng", ct_nullptr, &cls);
- * 		ct_log_config_set(CTLOG_TYPE_DEFAULT, true, "error", ct_nullptr, &cls);
- * 		ct_log_config_set(CTLOG_TYPE_DEFAULT, true, "fatal", ct_nullptr, &cls);
- *		ct_log_set_level(CTLOG_TYPE_DEFAULT );
+ * 		ct_log_config_set(CTLOG_TYPE_DEFAULT, true, ct_nullptr, &cls);
+ *		ct_log_set_level(CTLogLevel_Debug);
  *
  * 		example();
  *
@@ -114,15 +113,6 @@ enum ct_log_level {
 # define cerror_hex(__array, __length, ...)         ct_log_msg_hex(CTLOG_TYPE_DEFAULT, CTLogLevel_Error, __array, __length, STR_NULL __VA_ARGS__)
 # define cfata_hex(__array, __length, ...)          ct_log_msg_hex(CTLOG_TYPE_DEFAULT, CTLogLevel_Fatal, __array, __length, STR_NULL __VA_ARGS__)
 
-// 断言
-// # if __coter_version_debug__
-// # 	define ct_assert(x)                        	do { if (!(x)) { cfatal("[assert] assertion failed: `%s`.", #x); ct_log_flush(); raise(SIGABRT); } } while(0)
-// # else
-// # 	define ct_assert(x)
-// # endif
-
-// 未知错误
-// # define cerror_unknown(_title)                 	cerror(_title " Program encountered an unknown error." STR_NEWLINE)
 // clang-format on
 
 /**
@@ -183,12 +173,6 @@ void ct_log_center_set_level(int level);
  * @param is_asyn 是否异步输出
  */
 void ct_log_center_set_asyn(bool is_asyn);
-
-/**
- * @brief 日志中枢-异常处理
- * @param _signal 信号值
- */
-void ct_log_center_exception_handler(int _signal);
 
 #ifdef __cplusplus
 }

@@ -70,16 +70,16 @@ bool ct_thread_create(ct_thread_buf_t self, ct_thread_routine_t routine, void *a
 	pthread_attr_setschedparam(attr, &param);
 
 	// 创建线程
-	ret = pthread_create(&self->_t, attr, routine, arg);
+	ret = pthread_create(self, attr, routine, arg);
 	pthread_attr_destroy(attr);
 
 	return ret == 0;
 }
 
-bool ct_thread_join(ct_thread_buf_t self, void **ret)
+bool ct_thread_join(ct_thread_t self, void **ret)
 {
 	assert(self);
-	return 0 == pthread_join(self->_t, ret);
+	return 0 == pthread_join(self, ret);
 }
 
 void ct_thread_exit(void *ret)
@@ -87,16 +87,16 @@ void ct_thread_exit(void *ret)
 	pthread_exit(ret);
 }
 
-bool ct_thread_detach(ct_thread_buf_t self)
+bool ct_thread_detach(ct_thread_t self)
 {
 	assert(self);
-	return 0 == pthread_detach(self->_t);
+	return 0 == pthread_detach(self);
 }
 
-bool ct_thread_cancel(ct_thread_buf_t self)
+bool ct_thread_cancel(ct_thread_t self)
 {
 	assert(self);
-	return 0 == pthread_cancel(self->_t);
+	return 0 == pthread_cancel(self);
 }
 
 bool ct_thread_usleep(uint_t us)
@@ -112,6 +112,11 @@ bool ct_thread_msleep(uint_t ms)
 bool ct_thread_sleep(uint_t sec)
 {
 	return 0 == sleep(sec);
+}
+
+ct_thread_t ct_thread_tid(void)
+{
+	return (ct_thread_t){pthread_self()};
 }
 
 // -------------------------[STATIC DEFINITION]-------------------------

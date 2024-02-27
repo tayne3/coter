@@ -38,7 +38,7 @@ typedef struct ct_event_control {
 #define CT_EVENT_CONTROL_INITIALIZER                                                                           \
 	{                                                                                                          \
 		.ids = CT_EVENT_IDS_INITIALIZER, .mutex = {CT_MUTEX_INITIALIZATION}, .cond = {CT_COND_INITIALIZATION}, \
-		.args = {CT_ANY_INITIALIZER},                                                                         \
+		.args = {CT_ANY_INIT_INVALID},                                                                         \
 	}
 // 事件-空
 #define CT_EVENT_CONTROL_NULL (ct_event_control_t) CT_EVENT_CONTROL_INITIALIZER

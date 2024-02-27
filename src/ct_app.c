@@ -6,6 +6,8 @@
 #include "ct_app.h"
 
 #include <assert.h>
+#include <execinfo.h>
+#include <setjmp.h>
 #include <signal.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -25,24 +27,26 @@
 
 #define STR_CURRTITLE "[ct_app]"
 
-// 调度间隔
-#define CT_APP_SCHEDULE_INTERVAL 10
-
 /**
  * @brief coter 应用实例
  */
 static struct ct_app {
-	bool            running;   // 是否运行中
 	int             abnormal;  // 异常标志
 	ct_thpool_ptr_t thpool;    // 全局线程池
+	ct_thread_t     tid;       // 主线程ID
+	jmp_buf         jmpbuf;    // 上下文信息
 } app[1] = {{
-	.running  = false,
 	.abnormal = 0,
 	.thpool   = ct_nullptr,
+	.tid      = 0,
 }};
 
 // 初始化异常处理
 static __ct_force_inline void ct_app_exception_init(void);
+// 打印堆栈信息
+static inline void ct_app_program_backtrace(void);
+// 输出堆栈信息
+static inline void ct_app_exception_handler(int _signal);
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
@@ -57,44 +61,46 @@ ct_app_ptr_t ct_app_create(void)
 
 int ct_app_exec(ct_app_ptr_t self)
 {
-	self->running = true;
+#define CT_APP_SCHEDULE_INTERVAL 10         // 调度间隔
+	self->tid      = ct_thread_tid();       // 当前线程ID
+	self->abnormal = setjmp(self->jmpbuf);  // 记录上下文信息
 	for (; !self->abnormal;) {
 		ct_log_center_schedule();                    // 执行日志调度
 		ct_timer_center_schedule();                  // 执行定时器调度
 		ct_evmsg_center_schedule();                  // 执行事件消息调度
 		ct_thread_msleep(CT_APP_SCHEDULE_INTERVAL);  // 调度间隔
 	}
-	self->running = false;
-	cfatal(STR_CURRTITLE " application exit(%d)." STR_NEWLINE, self->abnormal);
-	ct_log_flush();                   // 刷新日志缓冲区，确保所有日志都被写入
+	self->tid = 0;                    // 重置线程ID
+	ct_log_flush();                   // 刷新日志缓冲区
 	ct_thpool_destroy(self->thpool);  // 销毁线程池
-	if (self->abnormal < 128) {
-		raise(self->abnormal);  // 如果异常标志小于128，则通过raise函数发送信号
+	if (self->abnormal > 0 && self->abnormal < SIGRTMAX) {
+		raise(self->abnormal);  // 如果异常标志小于 SIGRTMAX，则调用 raise 发送信号
 	}
 	return self->abnormal;
 }
 
 void ct_app_exit(int status)
 {
-	// 日志异常处理
-	if (status < 128) {
-		ct_log_center_exception_handler(status);
+	// 重置所有信号处理函数为默认行为
+	signal(SIGINT, SIG_DFL);
+	signal(SIGILL, SIG_DFL);
+	signal(SIGFPE, SIG_DFL);
+	signal(SIGSEGV, SIG_DFL);
+	signal(SIGTERM, SIG_DFL);
+	signal(SIGABRT, SIG_DFL);
+	signal(SIGQUIT, SIG_DFL);
+	signal(SIGBUS, SIG_DFL);
+	// 检查是否在运行中
+	if (!app->tid) {
+		ct_log_flush();  // 刷新日志缓冲区
+		exit(status);    // 直接退出程序
+	}
+	// 如果当前线程是主线程, 则跳转到记录的位置
+	if (ct_thread_tid() == app->tid) {
+		longjmp(app->jmpbuf, status);
 	}
 	// 设置异常标志
 	app->abnormal = status;
-	// 重置所有信号处理函数为默认行为
-	signal(SIGSEGV, SIG_DFL);
-	signal(SIGABRT, SIG_DFL);
-	signal(SIGINT, SIG_DFL);
-	signal(SIGQUIT, SIG_DFL);
-	signal(SIGFPE, SIG_DFL);
-	signal(SIGTERM, SIG_DFL);
-	signal(SIGILL, SIG_DFL);
-	signal(SIGBUS, SIG_DFL);
-	// 检查是否在运行中
-	if (!app->running) {
-		exit(app->abnormal);
-	}
 	// 死循环，等待线程退出
 	ct_forever {
 		ct_thread_msleep(10000);
@@ -105,12 +111,82 @@ void ct_app_exit(int status)
 
 static inline void ct_app_exception_init(void)
 {
-	signal(SIGSEGV, ct_app_exit);
-	signal(SIGABRT, ct_app_exit);
-	signal(SIGINT, ct_app_exit);
-	signal(SIGQUIT, ct_app_exit);
-	signal(SIGFPE, ct_app_exit);
-	signal(SIGTERM, ct_app_exit);
-	signal(SIGILL, ct_app_exit);
-	signal(SIGBUS, ct_app_exit);
+	signal(SIGINT, ct_app_exception_handler);
+	signal(SIGILL, ct_app_exception_handler);
+	signal(SIGFPE, ct_app_exception_handler);
+	signal(SIGSEGV, ct_app_exception_handler);
+	signal(SIGTERM, ct_app_exception_handler);
+	signal(SIGABRT, ct_app_exception_handler);
+	signal(SIGQUIT, ct_app_exception_handler);
+	signal(SIGBUS, ct_app_exception_handler);
+}
+
+static inline void ct_app_program_backtrace(void)
+{
+#define BACKTRACE_SIZE 100
+	// 缓存区
+	void *buffer[BACKTRACE_SIZE];
+	// 获取函数调用堆栈信息
+	const int count = backtrace(buffer, BACKTRACE_SIZE);
+	// 获取堆栈信息对应的符号名称
+	char **symbols = backtrace_symbols(buffer, count);
+	if (!symbols) {
+		perror("backtrace symbols");
+		exit(EXIT_FAILURE);
+	}
+	// 打印堆栈信息
+	{
+		cfatal_n(STR_NEWLINE);
+		cfatal_n("[--] ---- backtrace start ---- " STR_NEWLINE);
+		for (int i = 0; i < count; i++) {
+			cfatal_n("[%02d] %s" STR_NEWLINE, i, symbols[i]);
+		}
+		cfatal_n("[--] ---- backtrace end ---- " STR_NEWLINE);
+	}
+	// 释放内存
+	free(symbols);
+}
+
+static inline void ct_app_exception_handler(int _signal)
+{
+	// 输出堆栈标志
+	bool is_backtrace = _signal > 0 && _signal < SIGRTMAX;
+	// 打印异常信息
+	switch (_signal) {
+		case SIGINT:  // 外部中断
+			cfatal(STR_CURRTITLE " Program interrupted." STR_NEWLINE);
+			is_backtrace = false;
+			break;
+		case SIGILL:  // 非法指令
+			cfatal(STR_CURRTITLE " Program illegal instruction." STR_NEWLINE);
+			break;
+		case SIGFPE:  // 浮点数异常
+			cfatal(STR_CURRTITLE " Floating point exception." STR_NEWLINE);
+			break;
+		case SIGSEGV:  // 非法内存访问
+			cfatal(STR_CURRTITLE " Segmentation fault." STR_NEWLINE);
+			break;
+		case SIGTERM:  // 终止请求
+			cfatal(STR_CURRTITLE " Program terminated." STR_NEWLINE);
+			break;
+		case SIGABRT:  // 异常终止
+			cfatal(STR_CURRTITLE " Abnormal termination." STR_NEWLINE);
+			break;
+		case SIGQUIT:  // 终止请求
+			cfatal(STR_CURRTITLE " Program quit." STR_NEWLINE);
+			is_backtrace = false;
+			break;
+		case SIGBUS:  // 非法地址
+			cfatal(STR_CURRTITLE " Bus error." STR_NEWLINE);
+			break;
+		default: break;
+	}
+	// 输出堆栈信息
+	if (is_backtrace) {
+		ct_app_program_backtrace();
+	}
+	// 清空日志缓冲区
+	ct_log_flush();
+	// 退出程序
+	ct_app_exit(_signal);
 }

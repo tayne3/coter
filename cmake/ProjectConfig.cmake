@@ -45,4 +45,4 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON) 	# 设置导出所有符号 (Windows)
 # 导入工具链
 include(ToolchainLinux)
 # 启用CCache
-# include(EnablingCCache)
+include(EnablingCCache)

@@ -14,12 +14,10 @@ extern "C" {
 
 #include "base/ct_types.h"
 
-// 线程对象
-typedef struct ct_thread {
-	pthread_t _t;
-} ct_thread_t, ct_thread_buf_t[1];
+/// 线程对象
+typedef pthread_t ct_thread_t, ct_thread_buf_t[1];
 
-// 线程入口函数
+/// 线程入口函数
 typedef void* (*ct_thread_routine_t)(void*);
 
 /**
@@ -37,7 +35,7 @@ bool ct_thread_create(ct_thread_buf_t self, ct_thread_routine_t routine, void* a
  * @param ret 执行结果
  * @return 成功返回true; 失败返回false
  */
-bool ct_thread_join(ct_thread_buf_t self, void** ret);
+bool ct_thread_join(ct_thread_t self, void** ret);
 
 /**
  * @brief 线程退出
@@ -51,14 +49,14 @@ void ct_thread_exit(void* ret);
  * @param self 线程对象
  * @return 成功返回true; 失败返回false
  */
-bool ct_thread_detach(ct_thread_buf_t self);
+bool ct_thread_detach(ct_thread_t self);
 
 /**
  * @brief 取消线程
  * @param self 线程对象
  * @return 成功返回true; 失败返回false
  */
-bool ct_thread_cancel(ct_thread_buf_t self);
+bool ct_thread_cancel(ct_thread_t self);
 
 /**
  * @brief 线程睡眠 (微秒)
@@ -80,6 +78,12 @@ bool ct_thread_msleep(uint_t ms);
  * @return 成功返回true; 失败返回false
  */
 bool ct_thread_sleep(uint_t sec);
+
+/**
+ * @brief 获取当前线程ID
+ * @return 返回当前线程ID
+ */
+ct_thread_t ct_thread_tid(void);
 
 #ifdef __cplusplus
 }

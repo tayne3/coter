@@ -53,13 +53,13 @@ static inline void *test_call(void *arg)
 
 static inline void test_once(void)
 {
-	ct_thread_buf_t threads[TEST_THREAD_MAX];
+	ct_thread_t threads[TEST_THREAD_MAX];
 
 	// 创建线程
 	for (size_t i = 0; i < ct_arrsize(threads); i++) {
 		start_flag = false;
 		// 创建线程
-		ct_thread_create(threads[i], test_call, ct_nullptr);
+		ct_thread_create(&threads[i], test_call, ct_nullptr);
 		// 等待启动完毕
 		ct_forever {
 			if (start_flag) {

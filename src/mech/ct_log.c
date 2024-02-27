@@ -42,8 +42,6 @@ static struct ct_log_center_setting {
 	.msg_schedule = ct_log_msg_schedule,
 }};
 
-static inline void program_backtrace(void);
-
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
 void ct_log_msg_debug(int type, int level, const char *file, const char *func, int line, const char *format, ...)
@@ -165,75 +163,4 @@ void ct_log_center_set_asyn(bool is_asyn)
 	}
 }
 
-void ct_log_center_exception_handler(int _signal)
-{
-	bool is_backtrace = true;
-	// 打印异常信息
-	switch (_signal) {
-		case SIGSEGV:  // 非法内存访问
-			// cfatal_n("Segmentation fault" STR_NEWLINE);
-			break;
-		case SIGABRT:  // 异常终止
-			// cfatal_n("Abnormal termination" STR_NEWLINE);
-			break;
-		case SIGINT:  // 外部中断
-			// cfatal_n("Program interrupted" STR_NEWLINE);
-			// is_backtrace = false;
-			break;
-		case SIGQUIT:  // 终止请求
-			// cfatal_n("Program quit" STR_NEWLINE);
-			// is_backtrace = false;
-			break;
-		case SIGFPE:  // 浮点数异常
-			// cfatal_n("Floating point exception" STR_NEWLINE);
-			break;
-		case SIGTERM:  // 终止请求
-			// cfatal_n("Program terminated" STR_NEWLINE);
-			break;
-		case SIGILL:  // 非法指令
-			// cfatal_n("Program illegal instruction" STR_NEWLINE);
-			break;
-		case SIGBUS:  // 非法地址
-			// cfatal_n("Bus error" STR_NEWLINE);
-			break;
-		default: break;
-	}
-
-	// 清空日志缓冲区
-	setting->msg_flush();
-	// 输出堆栈信息
-	if (is_backtrace) {
-		program_backtrace();
-	}
-}
-
 // -------------------------[STATIC DEFINITION]-------------------------
-
-#define BACKTRACE_SIZE 100
-
-static inline void program_backtrace(void)
-{
-	// 缓存区
-	void *buffer[BACKTRACE_SIZE];
-	// 获取函数调用堆栈信息
-	const int count = backtrace(buffer, BACKTRACE_SIZE);
-
-	// 获取堆栈信息对应的符号名称
-	char **symbols = backtrace_symbols(buffer, count);
-	if (!symbols) {
-		perror("backtrace symbols");
-		exit(EXIT_FAILURE);
-	}
-
-	// 打印堆栈信息
-	{
-		fprintf(stderr, STR_NEWLINE);
-		fprintf(stderr, "[--] ---- backtrace start ---- " STR_NEWLINE);
-		for (int i = 0; i < count; i++) {
-			fprintf(stderr, "[%02d] %s" STR_NEWLINE, i, symbols[i]);
-		}
-		fprintf(stderr, "[--] ---- backtrace end ---- " STR_NEWLINE);
-	}
-	// 释放内存
-	free(symbols);
-}

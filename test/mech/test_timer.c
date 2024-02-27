@@ -24,8 +24,8 @@ int main(void)
 {
 	ct_app_create();
 	// 创建线程
-	ct_thread_buf_t threads[1];
-	ct_thread_create(threads[0], test_timer_exec, ct_nullptr);
+	ct_thread_t threads[1];
+	ct_thread_create(threads, test_timer_exec, ct_nullptr);
 
 	test_timer_1();
 

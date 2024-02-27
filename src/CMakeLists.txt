@@ -26,7 +26,7 @@ add_library(coter::obj ALIAS coter_obj)
 # 设置头文件查找路径
 target_include_directories(coter_obj PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 # 链接库文件
-target_link_libraries(coter_obj pthread rt)
+target_link_libraries(coter_obj PUBLIC pthread rt)
 
 # 编译动态库
 if(COTER_BUILD_SHARED)

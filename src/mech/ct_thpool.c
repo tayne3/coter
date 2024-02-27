@@ -129,20 +129,20 @@ void ct_thpool_destroy(ct_thpool_ptr_t self)
 	{
 		// 取消所有线程
 		ct_list_foreach_entry_safe (unit, self->regular_list, ct_thpool_unit_t, list) {
-			ct_thread_cancel(unit->thread);
+			ct_thread_cancel(*unit->thread);
 		}
 		ct_list_foreach_entry_safe (unit, self->resident_list, ct_thpool_unit_t, list) {
-			ct_thread_cancel(unit->thread);
+			ct_thread_cancel(*unit->thread);
 		}
 
 		// 等待所有线程退出
 		ct_list_foreach_entry_safe (unit, self->regular_list, ct_thpool_unit_t, list) {
-			ct_thread_join(unit->thread, ct_nullptr);
+			ct_thread_join(*unit->thread, ct_nullptr);
 			ct_list_remove(unit->list);
 			ct_mempool_free(ct_nullptr, unit);
 		}
 		ct_list_foreach_entry_safe (unit, self->resident_list, ct_thpool_unit_t, list) {
-			ct_thread_join(unit->thread, ct_nullptr);
+			ct_thread_join(*unit->thread, ct_nullptr);
 			ct_list_remove(unit->list);
 			ct_mempool_free(ct_nullptr, unit);
 		}

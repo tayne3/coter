@@ -81,7 +81,7 @@ static inline void test_spinlock_test(void)
 	}
 
 	for (size_t i = 0; i < TEST_THREAD_NUMBER; i++) {
-		ct_thread_join(&threads[i], ct_nullptr);
+		ct_thread_join(threads[i], ct_nullptr);
 	}
 
 	for (size_t i = 0; i < TEST_THREAD_NUMBER; i++) {
@@ -105,7 +105,7 @@ static inline void test_spinlock_1(size_t thread_number, const size_t number)
 		// 初始化锁
 		ct_spinlock_init(&spinlock);
 
-		for (size_t i = 0; i < ct_arrsize(threads); i++) {
+		for (size_t i = 0; i < thread_number; i++) {
 			start_flag = false;
 
 			// 创建线程
@@ -127,8 +127,8 @@ static inline void test_spinlock_1(size_t thread_number, const size_t number)
 		ct_mutex_unlock(start_mutex);
 
 		// 等待线程结束
-		for (size_t i = 0; i < ct_arrsize(threads); i++) {
-			ct_thread_join(&threads[i], ct_nullptr);
+		for (size_t i = 0; i < thread_number; i++) {
+			ct_thread_join(threads[i], ct_nullptr);
 			ct_thread_usleep(10);
 		}
 
@@ -151,7 +151,7 @@ static inline void test_spinlock_1(size_t thread_number, const size_t number)
 		// 初始化锁
 		ct_mutex_init(&mutex);
 
-		for (size_t i = 0; i < ct_arrsize(threads); i++) {
+		for (size_t i = 0; i < thread_number; i++) {
 			start_flag = false;
 
 			// 创建线程
@@ -177,7 +177,7 @@ static inline void test_spinlock_1(size_t thread_number, const size_t number)
 
 		// 等待线程结束
 		for (size_t i = 0; i < ct_arrsize(threads); i++) {
-			ct_thread_join(&threads[i], ct_nullptr);
+			ct_thread_join(threads[i], ct_nullptr);
 			ct_thread_usleep(10);
 		}
 

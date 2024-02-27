@@ -27,7 +27,7 @@ typedef struct ct_log_storage {
 	FILE          *_file;        // 文件描述符
 	int            _file_index;  // 文件索引号
 	ct_mutex_buf_t mutex;        // 互斥锁
-} ct_log_storage_t;
+} ct_log_storage_t, ct_log_storage_buf_t[1];
 
 #define CTLOG_STORAGE_INIT(_file_name, _file_number, _file_max, _buffer_max)                                     \
 	{                                                                                                            \
@@ -39,25 +39,25 @@ typedef struct ct_log_storage {
  * @brief 启动日志存储
  * @param self 日志存储结构体指针
  */
-void ct_log_storage_start(ct_log_storage_t *self);
+void ct_log_storage_start(ct_log_storage_buf_t self);
 
 /**
  * @brief 关闭日志文件
  * @param self 日志存储结构体指针
  */
-void ct_log_storage_close(ct_log_storage_t *self);
+void ct_log_storage_close(ct_log_storage_buf_t self);
 
 /**
  * @brief 锁定日志存储
  * @param self 日志存储结构体指针
  */
-void ct_log_storage_lock(ct_log_storage_t *self);
+void ct_log_storage_lock(ct_log_storage_buf_t self);
 
 /**
  * @brief 解锁日志存储
  * @param self 日志存储结构体指针
  */
-void ct_log_storage_unlock(ct_log_storage_t *self);
+void ct_log_storage_unlock(ct_log_storage_buf_t self);
 
 /**
  * @brief 判断日志存储是否有效
@@ -65,13 +65,13 @@ void ct_log_storage_unlock(ct_log_storage_t *self);
  * @return true 有效
  * @return false 无效
  */
-bool ct_log_storage_isvalid(ct_log_storage_t *self);
+bool ct_log_storage_isvalid(ct_log_storage_buf_t self);
 
 /**
  * @brief 刷新日志存储
  * @param self 日志存储结构体指针
  */
-void ct_log_storage_flush(ct_log_storage_t *self);
+void ct_log_storage_flush(ct_log_storage_buf_t self);
 
 /**
  * @brief 推送日志到存储
@@ -79,7 +79,7 @@ void ct_log_storage_flush(ct_log_storage_t *self);
  * @param cache 日志缓存
  * @param size 日志缓存大小
  */
-void ct_log_storage_push(ct_log_storage_t *self, char *cache, size_t size);
+void ct_log_storage_push(ct_log_storage_buf_t self, char *cache, size_t size);
 
 #ifdef __cplusplus
 }

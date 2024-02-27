@@ -70,8 +70,8 @@ static inline void test_1(void)
 	}
 
 	for (size_t i = 0; i < TEST_THREAD_NUMBER; i++) {
-		ct_thread_join(&rthreads[i], ct_nullptr);
-		ct_thread_join(&wthreads[i], ct_nullptr);
+		ct_thread_join(rthreads[i], ct_nullptr);
+		ct_thread_join(wthreads[i], ct_nullptr);
 	}
 
 	for (size_t i = 0; i < TEST_THREAD_NUMBER; i++) {

@@ -51,7 +51,7 @@ int main(void)
 
 	// 等待线程结束
 	for (size_t i = 0; i < TEST_THREAD_NUMBER; i++) {
-		ct_thread_join(threads[i], ct_nullptr);
+		ct_thread_join(*threads[i], ct_nullptr);
 	}
 
 	for (size_t id = 0; id < TEST_THREAD_NUMBER; id++) {

@@ -71,4 +71,9 @@ int ct_sysinfo_cpu_cores(void)
 	return cores;
 }
 
+pid_t ct_sysinfo_process_id(void)
+{
+	return getpid();
+}
+
 // -------------------------[STATIC DEFINITION]-------------------------

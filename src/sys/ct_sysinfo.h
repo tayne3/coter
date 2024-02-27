@@ -10,6 +10,8 @@
 extern "C" {
 #endif
 
+#include <signal.h>
+
 #include "base/ct_types.h"
 
 /**
@@ -25,6 +27,12 @@ bool ct_sysinfo_process_name(char* name, size_t max);
  * @return 返回可用处理器的数量
  */
 int ct_sysinfo_cpu_cores(void);
+
+/**
+ * @brief 获取当前进程ID
+ * @return 返回当前进程ID
+ */
+pid_t ct_sysinfo_process_id(void);
 
 #ifdef __cplusplus
 }
