@@ -135,7 +135,7 @@ int ct_strncasecmp(const char *l, const char *r, size_t n) __ct_func_throw __ct_
  * @param __format 格式化字符串
  * @return 格式化后的字符串的长度
  */
-size_t ct_sprintf(char *__restrict __s, const char *__restrict __format, ...) __ct_func_throw;
+size_t ct_sprintf(char *__ct_restrict __s, const char *__ct_restrict __format, ...) __ct_func_throw;
 
 /**
  * @brief 格式化输出字符串
@@ -145,7 +145,7 @@ size_t ct_sprintf(char *__restrict __s, const char *__restrict __format, ...) __
  * @param ... 可变参数
  * @return 输出的实际字符数(不包含字符串结束符)。如果缓冲区长度不足,输出的字符串会被截断,且返回输出需要的总长度。
  */
-size_t ct_snprintf(char *__restrict __s, size_t __maxlen, const char *__restrict __format, ...) __ct_func_throw
+size_t ct_snprintf(char *__ct_restrict __s, size_t __maxlen, const char *__ct_restrict __format, ...) __ct_func_throw
 	__ct_attribute__((__format__(__printf__, 3, 4)));
 
 static inline const char *__ct_filename(const char *x)
