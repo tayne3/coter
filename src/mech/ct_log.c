@@ -98,6 +98,7 @@ void ct_log_msg_basic(int type, int level, const char *format, ...)
 		va_end(args);
 	}
 
+	assert(setting->msg_push);
 	setting->msg_push(msg);
 }
 
@@ -129,11 +130,13 @@ void ct_log_msg_hex(int type, int level, const uint8_t *array, int length, const
 
 void ct_log_flush(void)
 {
+	assert(setting->msg_flush);
 	setting->msg_flush();
 }
 
 void ct_log_center_schedule(void)
 {
+	assert(setting->msg_schedule);
 	setting->msg_schedule();
 }
 

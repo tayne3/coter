@@ -62,7 +62,7 @@ ct_app_ptr_t ct_app_create(void)
 int ct_app_exec(ct_app_ptr_t self)
 {
 #define CT_APP_SCHEDULE_INTERVAL 10         // 调度间隔
-	self->tid      = ct_thread_tid();       // 当前线程ID
+	self->tid      = ct_thread_tid();       // 记录主线程ID
 	self->abnormal = setjmp(self->jmpbuf);  // 记录上下文信息
 	for (; !self->abnormal;) {
 		ct_log_center_schedule();                    // 执行日志调度
@@ -70,7 +70,7 @@ int ct_app_exec(ct_app_ptr_t self)
 		ct_evmsg_center_schedule();                  // 执行事件消息调度
 		ct_thread_msleep(CT_APP_SCHEDULE_INTERVAL);  // 调度间隔
 	}
-	self->tid = 0;                    // 重置线程ID
+	self->tid = 0;                    // 重置主线程ID
 	ct_log_flush();                   // 刷新日志缓冲区
 	ct_thpool_destroy(self->thpool);  // 销毁线程池
 	if (self->abnormal > 0 && self->abnormal < SIGRTMAX) {
@@ -82,14 +82,23 @@ int ct_app_exec(ct_app_ptr_t self)
 void ct_app_exit(int status)
 {
 	// 重置所有信号处理函数为默认行为
+	signal(SIGHUP, SIG_DFL);
 	signal(SIGINT, SIG_DFL);
-	signal(SIGILL, SIG_DFL);
-	signal(SIGFPE, SIG_DFL);
-	signal(SIGSEGV, SIG_DFL);
-	signal(SIGTERM, SIG_DFL);
-	signal(SIGABRT, SIG_DFL);
 	signal(SIGQUIT, SIG_DFL);
+	signal(SIGILL, SIG_DFL);
+	signal(SIGTRAP, SIG_DFL);
+	signal(SIGABRT, SIG_DFL);
 	signal(SIGBUS, SIG_DFL);
+	signal(SIGFPE, SIG_DFL);
+	signal(SIGUSR1, SIG_DFL);
+	signal(SIGSEGV, SIG_DFL);
+	signal(SIGUSR2, SIG_DFL);
+	signal(SIGPIPE, SIG_DFL);
+	signal(SIGALRM, SIG_DFL);
+	signal(SIGTERM, SIG_DFL);
+#ifdef SIGSTKFLT
+	signal(SIGSTKFLT, SIG_DFL);
+#endif
 	// 检查是否在运行中
 	if (!app->tid) {
 		ct_log_flush();  // 刷新日志缓冲区
@@ -111,14 +120,23 @@ void ct_app_exit(int status)
 
 static inline void ct_app_exception_init(void)
 {
+	signal(SIGHUP, ct_app_exception_handler);
 	signal(SIGINT, ct_app_exception_handler);
-	signal(SIGILL, ct_app_exception_handler);
-	signal(SIGFPE, ct_app_exception_handler);
-	signal(SIGSEGV, ct_app_exception_handler);
-	signal(SIGTERM, ct_app_exception_handler);
-	signal(SIGABRT, ct_app_exception_handler);
 	signal(SIGQUIT, ct_app_exception_handler);
+	signal(SIGILL, ct_app_exception_handler);
+	signal(SIGTRAP, ct_app_exception_handler);
+	signal(SIGABRT, ct_app_exception_handler);
 	signal(SIGBUS, ct_app_exception_handler);
+	signal(SIGFPE, ct_app_exception_handler);
+	signal(SIGUSR1, ct_app_exception_handler);
+	signal(SIGSEGV, ct_app_exception_handler);
+	signal(SIGUSR2, ct_app_exception_handler);
+	signal(SIGPIPE, ct_app_exception_handler);
+	signal(SIGALRM, ct_app_exception_handler);
+	signal(SIGTERM, ct_app_exception_handler);
+#ifdef SIGSTKFLT
+	signal(SIGSTKFLT, ct_app_exception_handler);
+#endif
 }
 
 static inline void ct_app_program_backtrace(void)
@@ -149,41 +167,36 @@ static inline void ct_app_program_backtrace(void)
 
 static inline void ct_app_exception_handler(int _signal)
 {
-	// 输出堆栈标志
-	bool is_backtrace = _signal > 0 && _signal < SIGRTMAX;
-	// 打印异常信息
-	switch (_signal) {
-		case SIGINT:  // 外部中断
-			cfatal(STR_CURRTITLE " Program interrupted." STR_NEWLINE);
-			is_backtrace = false;
-			break;
-		case SIGILL:  // 非法指令
-			cfatal(STR_CURRTITLE " Program illegal instruction." STR_NEWLINE);
-			break;
-		case SIGFPE:  // 浮点数异常
-			cfatal(STR_CURRTITLE " Floating point exception." STR_NEWLINE);
-			break;
-		case SIGSEGV:  // 非法内存访问
-			cfatal(STR_CURRTITLE " Segmentation fault." STR_NEWLINE);
-			break;
-		case SIGTERM:  // 终止请求
-			cfatal(STR_CURRTITLE " Program terminated." STR_NEWLINE);
-			break;
-		case SIGABRT:  // 异常终止
-			cfatal(STR_CURRTITLE " Abnormal termination." STR_NEWLINE);
-			break;
-		case SIGQUIT:  // 终止请求
-			cfatal(STR_CURRTITLE " Program quit." STR_NEWLINE);
-			is_backtrace = false;
-			break;
-		case SIGBUS:  // 非法地址
-			cfatal(STR_CURRTITLE " Bus error." STR_NEWLINE);
-			break;
-		default: break;
-	}
-	// 输出堆栈信息
-	if (is_backtrace) {
-		ct_app_program_backtrace();
+	if (_signal > 0 && _signal < SIGRTMAX) {
+		// 输出堆栈标志
+		bool is_backtrace = true;
+		// 打印异常信息
+		switch (_signal) {
+			case SIGHUP:
+				cfatal(STR_CURRTITLE " Terminal line hangup." STR_NEWLINE);
+				is_backtrace = false;
+				break;
+			case SIGINT:
+				cfatal(STR_CURRTITLE " Interrupt program." STR_NEWLINE);
+				is_backtrace = false;
+				break;
+			case SIGQUIT:
+				cfatal(STR_CURRTITLE " Quit program." STR_NEWLINE);
+				is_backtrace = false;
+				break;
+			case SIGILL: cfatal(STR_CURRTITLE " Illegal instruction." STR_NEWLINE); break;
+			case SIGTRAP: cfatal(STR_CURRTITLE " Trace trap." STR_NEWLINE); break;
+			case SIGABRT: cfatal(STR_CURRTITLE " Abort program." STR_NEWLINE); break;
+			case SIGBUS: cfatal(STR_CURRTITLE " Bus error." STR_NEWLINE); break;
+			case SIGFPE: cfatal(STR_CURRTITLE " Floating point exception." STR_NEWLINE); break;
+			case SIGSEGV: cfatal(STR_CURRTITLE " Segmentation fault." STR_NEWLINE); break;
+			case SIGTERM: cfatal(STR_CURRTITLE " Termination request." STR_NEWLINE); break;
+			default: cfatal(STR_CURRTITLE " Unknown signal %d." STR_NEWLINE, _signal);
+		}
+		// 输出堆栈信息
+		if (is_backtrace) {
+			ct_app_program_backtrace();
+		}
 	}
 	// 清空日志缓冲区
 	ct_log_flush();
