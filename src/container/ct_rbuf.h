@@ -34,11 +34,12 @@ typedef struct ct_rbuf {
 		._all = (void *)__buffer, ._byte = __byte, ._max = __max, ._head = 0, ._tail = 0, ._size = 0, \
 	}
 
-#define ct_rbuf_max(self)     ((self)->_max)                   // 获取 环形缓冲区 最大容量
-#define ct_rbuf_size(self)    ((self)->_size)                  // 获取 环形缓冲区 大小
-#define ct_rbuf_isempty(self) ((self)->_size == 0)             // 判断 环形缓冲区 是否为空
-#define ct_rbuf_isfull(self)  ((self)->_size == (self)->_max)  // 判断 环形缓冲区 是否已满
-#define ct_rbuf_clear(self)   ((self)->_size = (self)->_head = (self)->_tail = 0)  // 清空 环形缓冲区 所有元素
+#define ct_rbuf_max(self)       ((self)->_max)                   // 获取 环形缓冲区 最大容量
+#define ct_rbuf_size(self)      ((self)->_size)                  // 获取 环形缓冲区 大小
+#define ct_rbuf_isempty(self)   ((self)->_size == 0)             // 判断 环形缓冲区 是否为空
+#define ct_rbuf_isfull(self)    ((self)->_size == (self)->_max)  // 判断 环形缓冲区 是否已满
+#define ct_rbuf_available(self) ((self)->_max - (self)->_size)   // 获取 环形缓冲区 可用空间
+#define ct_rbuf_clear(self)     ((self)->_size = (self)->_head = (self)->_tail = 0)  // 清空 环形缓冲区 所有元素
 
 /**
  * @brief 初始化环形缓冲区

@@ -159,4 +159,4 @@ void ct_event_ids_remove(ct_event_ids_t *ids, ct_event_id_t value);
 #ifdef __cplusplus
 }
 #endif
-#endif  // _CT_EVENT_H
+#endif

@@ -53,7 +53,7 @@ enum ct_log_level {
 
 #define CTLOG_LEVEL_MIN        0
 #define CTLOG_LEVEL_MAX        6
-#define CTLOG_LEVEL_ISVALID(x) ((uint_t)(x) < CTLOG_LEVEL_MAX)
+#define CTLOG_LEVEL_ISVALID(x) (((uint_t)(x)) < CTLOG_LEVEL_MAX)
 #define CTLOG_LEVEL_ISABNOR(x) ((x) >= CTLogLevel_Error)
 #define CTLOG_LEVEL_ISFATAL(x) ((x) == CTLogLevel_Fatal)
 
@@ -62,11 +62,11 @@ enum ct_log_level {
 // 1-63 为用户自定义类型
 
 #define CTLOG_TYPE_DEFAULT    0
-#define CTLOG_TYPE_FIXED      1
+#define CTLOG_TYPE_USER       1
 #define CTLOG_TYPE_MIN        0
 #define CTLOG_TYPE_MAX        64
-#define CTLOG_TYPE_ISVALID(x) ((uint_t)(x) < CTLOG_TYPE_MAX)
-#define CTLOG_TYPE_ISUSER(x)  (CTLOG_TYPE_ISVALID(x) && (x) >= CTLOG_TYPE_FIXED)
+#define CTLOG_TYPE_ISVALID(x) (((uint_t)(x)) < CTLOG_TYPE_MAX)
+#define CTLOG_TYPE_ISUSER(x)  (CTLOG_TYPE_ISVALID(x) && (x) >= CTLOG_TYPE_USER)
 
 // clang-format off
 // 日志输出宏

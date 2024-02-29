@@ -6,15 +6,17 @@
  */
 #include "ct_msgqueue.h"
 
-#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-#include "sys/ct_thread.h"
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
 #define STR_CURRTITLE "[ct_msgqueue]"
+
+#include <assert.h>
+#include <stdio.h>
+
+#include "sys/ct_thread.h"
 
 #define ct_msgqueue_lock(self)   ct_mutex_lock(self->mutex)
 #define ct_msgqueue_unlock(self) ct_mutex_unlock(self->mutex)
@@ -23,7 +25,6 @@
 
 void ct_msgqueue_init(ct_msgqueue_buf_t self, void *buffer, size_t byte, size_t max)
 {
-	assert(self);
 	// 初始化消息队列
 	ct_queue_init(self->queue, buffer, byte, max);
 	// 初始化互斥锁
@@ -37,7 +38,6 @@ void ct_msgqueue_init(ct_msgqueue_buf_t self, void *buffer, size_t byte, size_t 
 
 void ct_msgqueue_destroy(ct_msgqueue_buf_t self)
 {
-	assert(self);
 	// 锁住消息队列
 	ct_msgqueue_lock(self);
 	// 设置关闭状态
@@ -55,7 +55,6 @@ void ct_msgqueue_destroy(ct_msgqueue_buf_t self)
 
 bool ct_msgqueue_isempty(ct_msgqueue_buf_t self)
 {
-	assert(self);
 	ct_msgqueue_lock(self);
 	const bool ret = ct_queue_isempty(self->queue);
 	ct_msgqueue_unlock(self);
@@ -64,7 +63,6 @@ bool ct_msgqueue_isempty(ct_msgqueue_buf_t self)
 
 bool ct_msgqueue_isfull(ct_msgqueue_buf_t self)
 {
-	assert(self);
 	ct_msgqueue_lock(self);
 	const bool ret = ct_queue_isfull(self->queue);
 	ct_msgqueue_unlock(self);
@@ -73,7 +71,6 @@ bool ct_msgqueue_isfull(ct_msgqueue_buf_t self)
 
 bool ct_msgqueue_isshut(ct_msgqueue_buf_t self)
 {
-	assert(self);
 	ct_msgqueue_lock(self);
 	const bool ret = self->is_shut;
 	ct_msgqueue_unlock(self);
@@ -82,7 +79,6 @@ bool ct_msgqueue_isshut(ct_msgqueue_buf_t self)
 
 bool ct_msgqueue_enqueue(ct_msgqueue_buf_t self, const void *item)
 {
-	assert(self);
 	if (self->is_shut) {
 		return false;
 	}
@@ -102,7 +98,6 @@ bool ct_msgqueue_enqueue(ct_msgqueue_buf_t self, const void *item)
 
 bool ct_msgqueue_dequeue(ct_msgqueue_buf_t self, void *item)
 {
-	assert(self);
 	if (self->is_shut) {
 		return false;
 	}
@@ -122,7 +117,6 @@ bool ct_msgqueue_dequeue(ct_msgqueue_buf_t self, void *item)
 
 bool ct_msgqueue_try_enqueue(ct_msgqueue_buf_t self, const void *item)
 {
-	assert(self);
 	if (self->is_shut) {
 		return false;
 	}
@@ -139,7 +133,6 @@ bool ct_msgqueue_try_enqueue(ct_msgqueue_buf_t self, const void *item)
 
 bool ct_msgqueue_try_dequeue(ct_msgqueue_buf_t self, void *item)
 {
-	assert(self);
 	if (self->is_shut) {
 		return false;
 	}
