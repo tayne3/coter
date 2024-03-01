@@ -18,10 +18,15 @@ extern "C" {
  */
 typedef struct ct_evmsg_msg {
 	uint8_t type;  // 事件类型
-	uint8_t id;	   // 事件ID
-	size_t	size;  // 事件数据大小
+	uint8_t id;    // 事件ID
+	size_t  size;  // 事件数据大小
 	void   *data;  // 事件数据
 } ct_evmsg_msg_t, ct_evmsg_msg_buf_t[1];
+
+#define CT_EVMSG_MSG_INIT(_type, _id, _data, _size)            \
+	{                                                          \
+		.type = _type, .id = _id, .size = _size, .data = _data \
+	}
 
 /**
  * @brief 消息处理函数类型

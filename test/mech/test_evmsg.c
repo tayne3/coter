@@ -86,7 +86,7 @@ static inline void *test_evmsg_publish(void *arg)
 	const uint8_t id = (uint8_t)(uint64_t)arg;
 
 	// 模拟事件数据
-	ct_evmsg_msg_buf_t msg = {{.type = 1, .id = id, .data = ct_nullptr, .size = 0}};
+	ct_evmsg_msg_buf_t msg = {CT_EVMSG_MSG_INIT(1, id, ct_nullptr, 0)};
 	// 发布事件
 	for (size_t i = 0; i < TEST_DATA_NUMBER; i++) {
 		msg->data = &i;

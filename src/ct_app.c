@@ -27,6 +27,11 @@
 
 #define STR_CURRTITLE "[ct_app]"
 
+// 异常处理函数类型
+typedef void (*ct_app_exception_handler_t)(int);
+// 检查是否是系统信号
+#define CT_APP_IS_SIGNAL(_signal) (_signal > 0 && _signal < SIGRTMAX)
+
 /**
  * @brief coter 应用实例
  */
@@ -42,17 +47,33 @@ static struct ct_app {
 }};
 
 // 初始化异常处理
-static __ct_force_inline void ct_app_exception_init(void);
+static __ct_force_inline void ct_app_exception_init(ct_app_exception_handler_t handler);
 // 打印堆栈信息
-static inline void ct_app_program_backtrace(void);
+static __ct_force_inline void ct_app_program_backtrace(void);
 // 输出堆栈信息
 static inline void ct_app_exception_handler(int _signal);
+
+#define ct_app_start()                                                             \
+	do {                                                                           \
+		char ctm_str[22];                                                          \
+		ct_current_datetime_string("%Y.%m.%d-%H:%M:%S", ctm_str, sizeof(ctm_str)); \
+		ctrace(STR_CURRTITLE " application start at '%s'." STR_NEWLINE, ctm_str);  \
+	} while (0)
+
+#define ct_app_end(code)                                                                            \
+	do {                                                                                            \
+		char ctm_str[22];                                                                           \
+		ct_current_datetime_string("%Y.%m.%d-%H:%M:%S", ctm_str, sizeof(ctm_str));                  \
+		cfatal(STR_CURRTITLE " application exit with code %d at '%s'." STR_NEWLINE, code, ctm_str); \
+		ct_log_flush();                                                                             \
+	} while (0)
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
 ct_app_ptr_t ct_app_create(void)
 {
-	ct_app_exception_init();                        // 初始化异常处理机制
+	ct_app_start();                                   // 输出启动信息
+	ct_app_exception_init(ct_app_exception_handler);  // 初始化异常处理函数
 	app->thpool = ct_thpool_global_create(16, 50);  // 创建全局线程池，参数分别为线程池大小和工作队列大小
 	ct_timer_center_init();                         // 初始化定时器中枢
 	ct_evmsg_center_init();                         // 初始化事件消息中枢
@@ -70,39 +91,25 @@ int ct_app_exec(ct_app_ptr_t self)
 		ct_evmsg_center_schedule();                  // 执行事件消息调度
 		ct_thread_msleep(CT_APP_SCHEDULE_INTERVAL);  // 调度间隔
 	}
-	self->tid = 0;                    // 重置主线程ID
-	ct_log_flush();                   // 刷新日志缓冲区
-	ct_thpool_destroy(self->thpool);  // 销毁线程池
-	if (self->abnormal > 0 && self->abnormal < SIGRTMAX) {
-		raise(self->abnormal);  // 如果异常标志小于 SIGRTMAX，则调用 raise 发送信号
+	self->tid = 0;                   // 重置主线程ID
+	ct_app_end(self->abnormal);      // 输出结束信息
+	ct_log_flush();                  // 刷新日志缓冲区
+	ct_app_exception_init(SIG_DFL);  // 重置异常处理函数
+	if (CT_APP_IS_SIGNAL(self->abnormal)) {
+		raise(self->abnormal);  // 如果为系统信号，则调用 raise 发送信号
+	} else {
+		ct_thpool_destroy(self->thpool);  // 销毁线程池
 	}
 	return self->abnormal;
 }
 
 void ct_app_exit(int status)
 {
-	// 重置所有信号处理函数为默认行为
-	signal(SIGHUP, SIG_DFL);
-	signal(SIGINT, SIG_DFL);
-	signal(SIGQUIT, SIG_DFL);
-	signal(SIGILL, SIG_DFL);
-	signal(SIGTRAP, SIG_DFL);
-	signal(SIGABRT, SIG_DFL);
-	signal(SIGBUS, SIG_DFL);
-	signal(SIGFPE, SIG_DFL);
-	signal(SIGUSR1, SIG_DFL);
-	signal(SIGSEGV, SIG_DFL);
-	signal(SIGUSR2, SIG_DFL);
-	signal(SIGPIPE, SIG_DFL);
-	signal(SIGALRM, SIG_DFL);
-	signal(SIGTERM, SIG_DFL);
-#ifdef SIGSTKFLT
-	signal(SIGSTKFLT, SIG_DFL);
-#endif
 	// 检查是否在运行中
 	if (!app->tid) {
-		ct_log_flush();  // 刷新日志缓冲区
-		exit(status);    // 直接退出程序
+		ct_app_end(status);  // 输出结束信息
+		ct_log_flush();      // 刷新日志缓冲区
+		exit(status);        // 直接退出程序
 	}
 	// 如果当前线程是主线程, 则跳转到记录的位置
 	if (ct_thread_tid() == app->tid) {
@@ -110,32 +117,32 @@ void ct_app_exit(int status)
 	}
 	// 设置异常标志
 	app->abnormal = status;
-	// 死循环，等待线程退出
+	// 死循环，等待主线程退出
 	ct_forever {
-		ct_thread_msleep(10000);
+		ct_thread_msleep(100);
 	}
 }
 
 // -------------------------[STATIC DEFINITION]-------------------------
 
-static inline void ct_app_exception_init(void)
+static inline void ct_app_exception_init(ct_app_exception_handler_t handler)
 {
-	signal(SIGHUP, ct_app_exception_handler);
-	signal(SIGINT, ct_app_exception_handler);
-	signal(SIGQUIT, ct_app_exception_handler);
-	signal(SIGILL, ct_app_exception_handler);
-	signal(SIGTRAP, ct_app_exception_handler);
-	signal(SIGABRT, ct_app_exception_handler);
-	signal(SIGBUS, ct_app_exception_handler);
-	signal(SIGFPE, ct_app_exception_handler);
-	signal(SIGUSR1, ct_app_exception_handler);
-	signal(SIGSEGV, ct_app_exception_handler);
-	signal(SIGUSR2, ct_app_exception_handler);
-	signal(SIGPIPE, ct_app_exception_handler);
-	signal(SIGALRM, ct_app_exception_handler);
-	signal(SIGTERM, ct_app_exception_handler);
+	signal(SIGHUP, handler);
+	signal(SIGINT, handler);
+	signal(SIGQUIT, handler);
+	signal(SIGILL, handler);
+	signal(SIGTRAP, handler);
+	signal(SIGABRT, handler);
+	signal(SIGBUS, handler);
+	signal(SIGFPE, handler);
+	signal(SIGUSR1, handler);
+	signal(SIGSEGV, handler);
+	signal(SIGUSR2, handler);
+	signal(SIGPIPE, handler);
+	signal(SIGALRM, handler);
+	signal(SIGTERM, handler);
 #ifdef SIGSTKFLT
-	signal(SIGSTKFLT, ct_app_exception_handler);
+	signal(SIGSTKFLT, handler);
 #endif
 }
 
@@ -154,7 +161,6 @@ static inline void ct_app_program_backtrace(void)
 	}
 	// 打印堆栈信息
 	{
-		cfatal_n(STR_NEWLINE);
 		cfatal_n("[--] ---- backtrace start ---- " STR_NEWLINE);
 		for (int i = 0; i < count; i++) {
 			cfatal_n("[%02d] %s" STR_NEWLINE, i, symbols[i]);
@@ -167,7 +173,17 @@ static inline void ct_app_program_backtrace(void)
 
 static inline void ct_app_exception_handler(int _signal)
 {
-	if (_signal > 0 && _signal < SIGRTMAX) {
+	// 避免多线程同时出错时, 异常处理函数被调用多次
+	{
+		static ct_mutex_buf_t mutex = {CT_MUTEX_INITIALIZATION};
+		if (!ct_mutex_try_lock(mutex)) {
+			ct_forever {
+				ct_thread_msleep(100);
+			}
+		}
+	}
+	// 检查是否是系统信号
+	if (CT_APP_IS_SIGNAL(_signal)) {
 		// 输出堆栈标志
 		bool is_backtrace = true;
 		// 打印异常信息
@@ -191,15 +207,26 @@ static inline void ct_app_exception_handler(int _signal)
 			case SIGFPE: cfatal(STR_CURRTITLE " Floating point exception." STR_NEWLINE); break;
 			case SIGSEGV: cfatal(STR_CURRTITLE " Segmentation fault." STR_NEWLINE); break;
 			case SIGTERM: cfatal(STR_CURRTITLE " Termination request." STR_NEWLINE); break;
-			default: cfatal(STR_CURRTITLE " Unknown signal %d." STR_NEWLINE, _signal);
+			default: cfatal(STR_CURRTITLE " Unknown signal %d." STR_NEWLINE, _signal); break;
 		}
 		// 输出堆栈信息
 		if (is_backtrace) {
 			ct_app_program_backtrace();
 		}
 	}
-	// 清空日志缓冲区
-	ct_log_flush();
-	// 退出程序
-	ct_app_exit(_signal);
+	// 检查主线程是否在运行中
+	if (!app->tid) {
+		ct_log_flush();  // 刷新日志缓冲区
+		exit(_signal);   // 直接退出程序
+	}
+	// 如果当前线程是主线程, 则跳转到记录的位置
+	if (ct_thread_tid() == app->tid) {
+		longjmp(app->jmpbuf, _signal);
+	}
+	// 设置异常标志
+	app->abnormal = _signal;
+	// 死循环，等待主线程退出
+	ct_forever {
+		ct_thread_msleep(100);
+	}
 }

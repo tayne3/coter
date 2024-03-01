@@ -156,7 +156,8 @@ bool ct_syscmd_set_time(const ct_datetime_buf_t ctm)
 	char cmd[45];
 	ct_snprintf(cmd, sizeof(cmd), "date -s '%s' >/dev/null", str);
 
-	cdebug(STR_CURRTITLE " system time changed: %s(%zu) / %s(%zu)" STR_NEWLINE, str, strlen(str), cmd, strlen(cmd));
+	cdebug(STR_CURRTITLE " system time changed: %04d-%02d-%02d %02d:%02d:%02d" STR_NEWLINE, ctm->tm_year + 1900,
+		   ctm->tm_mon + 1, ctm->tm_mday, ctm->tm_hour, ctm->tm_min, ctm->tm_sec);
 
 	// 执行系统命令
 	if (!ct_syscmd_execute(cmd, false)) {
