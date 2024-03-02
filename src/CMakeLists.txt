@@ -24,7 +24,7 @@ else()
 	message(FATAL_ERROR "Unsupported build type: ${CMAKE_BUILD_TYPE}.")
 endif()
 # 生成调试标志头文件
-configure_file("${CMAKE_SOURCE_DIR}/src/base/ct_debug.h.in" "${CMAKE_SOURCE_DIR}/src/base/ct_debug.h" @ONLY)
+configure_file("base/ct_debug.h.in" "base/ct_debug.h" @ONLY)
 
 # 编译动态库
 if(COTER_BUILD_SHARED)
