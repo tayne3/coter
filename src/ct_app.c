@@ -15,7 +15,6 @@
 #include <string.h>
 
 #include "base/ct_platform.h"
-#include "base/ct_version.h"
 #include "mech/ct_evmsg.h"
 #include "mech/ct_log.h"
 #include "mech/ct_thpool.h"
