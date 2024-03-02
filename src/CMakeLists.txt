@@ -13,6 +13,16 @@ add_library(coter::obj ALIAS coter_obj)
 target_include_directories(coter_obj PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 # 链接库文件
 target_link_libraries(coter_obj PUBLIC pthread rt)
+# 添加宏定义
+if(("${CMAKE_BUILD_TYPE}" STREQUAL "Debug") # 用于调试目的，包含符号表和未优化的代码 (-O0 -g)
+	OR DEFINED("${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo")) # 包含优化的代码和符号表，用于在发生错误时进行调试 (-O2 -g -DNDEBUG)
+    target_compile_definitions(coter_obj PUBLIC __coter_version_debug__=1)
+elseif(("${CMAKE_BUILD_TYPE}" STREQUAL "Release") # 用于发布目的，包含优化的代码，并且通常不包含符号表 (-O3 -DNDEBUG)
+	OR("${CMAKE_BUILD_TYPE}" STREQUAL "MinSizeRel")) # 最小化二进制文件大小，启用优化并删除不必要的符号 (-Os -DNDEBUG)
+    target_compile_definitions(coter_obj PUBLIC __coter_version_debug__=0)
+else()
+	message(FATAL_ERROR "Unsupported build type: ${CMAKE_BUILD_TYPE}.")
+endif()
 
 # 编译动态库
 if(COTER_BUILD_SHARED)

@@ -19,6 +19,7 @@ typedef struct ct_app ct_app_t, *ct_app_ptr_t;
 
 // 断言
 #if __coter_version_debug__
+#warning "Missing macro definition"
 #define ct_assert(x)                                                                                                \
 	do {                                                                                                            \
 		if (!(x)) {                                                                                                 \
