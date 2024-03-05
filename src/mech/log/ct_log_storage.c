@@ -142,7 +142,6 @@ void ct_log_storage_unlock(ct_log_storage_buf_t self)
 
 bool ct_log_storage_isvalid(ct_log_storage_buf_t self)
 {
-	assert(self);
 	return self != ct_nullptr && self->_file != ct_nullptr;
 }
 
