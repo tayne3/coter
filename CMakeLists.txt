@@ -25,3 +25,4 @@ endif()
 if(COTER_BUILD_EXAMPLE)
     add_subdirectory(example)
 endif()
+

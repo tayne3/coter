@@ -28,8 +28,18 @@ void ct_once_exec(ct_once_buf_t self, void (*routine)(void))
 	if (ret) {
 		perror("pthread_once");
 	}
+#elif defined(CT_OS_WIN) || defined(CT_OS_CYGWIN)
+	if (InterlockedExchange(&self->initialized, 1) == 0) {
+		InitializeCriticalSection(&self->lock);
+		EnterCriticalSection(&self->lock);
+		routine();
+		LeaveCriticalSection(&self->lock);
+	} else {
+		while (InterlockedExchange(&self->initialized, 1) != 2) {
+			Sleep(0);
+		}
+	}
 #else
-
 #endif
 }
 

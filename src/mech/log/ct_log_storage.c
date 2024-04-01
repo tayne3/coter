@@ -65,16 +65,6 @@ static inline void ct_log_storage_file_index_inc(ct_log_storage_buf_t self);
 static inline size_t ct_log_storage_write(ct_log_storage_buf_t self, char *cache, size_t size);
 
 /**
- * @brief 强制写入日志存储
- * @param self 日志存储结构体指针
- * @param cache 日志缓存
- * @param size 日志缓存大小
- * @note 如果缓存区已满，则会自动切换到下一个日志文件
- * @note 如果写入失败，则会尝试重新打开日志文件
- */
-static inline void ct_log_storage_force_write(ct_log_storage_buf_t self, char *cache, size_t size);
-
-/**
  * @brief 获取日志文件名
  * @param buffer 存储日志文件名的缓存
  * @param max 缓存大小
@@ -154,25 +144,23 @@ void ct_log_storage_flush(ct_log_storage_buf_t self)
 void ct_log_storage_push(ct_log_storage_buf_t self, char *cache, size_t size)
 {
 	assert(self);
-	// 缓冲区为空
-	if (self->buffer_max == 0) {
-		ct_log_storage_force_write(self, cache, size);
-		return;
-	}
-
 	for (size_t available; size > 0;) {
 		available = self->file_size - (size_t)ftell(self->_file);
-
-		if (size >= available) {
-			ct_log_storage_write(self, cache, available);
-			size -= available;
-			cache += available;
-			ct_log_storage_next(self);
-			continue;
-		} else {
+		if (size < available) {
 			ct_log_storage_write(self, cache, size);
 			break;
 		}
+		ct_log_storage_write(self, cache, available);
+		size -= available;
+		cache += available;
+		if (!ct_log_storage_next(self)) {
+			return;
+		}
+	}
+
+	// 缓冲区为空
+	if (self->buffer_max == 0) {
+		ct_log_storage_flush(self);
 	}
 }
 
@@ -279,12 +267,6 @@ static inline void ct_log_storage_file_index_inc(ct_log_storage_buf_t self)
 static inline size_t ct_log_storage_write(ct_log_storage_buf_t self, char *cache, size_t size)
 {
 	return fwrite(cache, size, sizeof(char), self->_file);
-}
-
-static inline void ct_log_storage_force_write(ct_log_storage_buf_t self, char *cache, size_t size)
-{
-	ct_log_storage_write(self, cache, size);
-	ct_log_storage_flush(self);
 }
 
 static inline void ct_log_filename_get(const char *prefix, int idx, char *buffer, size_t max)

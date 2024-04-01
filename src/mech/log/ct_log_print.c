@@ -36,15 +36,15 @@
 #define CTLOG_B_CYAN    "46;"
 #define CTLOG_B_WHITE   "47;"
 // 输出日志字体样式
-#define CLOG_S_RESET     "0m"
-#define CLOG_S_BOLD      "1m"
-#define CLOG_S_DIM       "2m"
-#define CLOG_S_ITALIC    "3m"
-#define CLOG_S_UNDERLINE "4m"
-#define CLOG_S_BLINK     "5m"
-#define CLOG_S_REVERSE   "7m"
-#define CLOG_S_HIDDEN    "8m"
-#define CLOG_S_STRIKE    "9m"
+#define CTLOG_S_RESET     "0m"
+#define CTLOG_S_BOLD      "1m"
+#define CTLOG_S_DIM       "2m"
+#define CTLOG_S_ITALIC    "3m"
+#define CTLOG_S_UNDERLINE "4m"
+#define CTLOG_S_BLINK     "5m"
+#define CTLOG_S_REVERSE   "7m"
+#define CTLOG_S_HIDDEN    "8m"
+#define CTLOG_S_STRIKE    "9m"
 // 输出日志默认颜色定义: [front color] + [background color] + [show style]
 #ifndef CTLOG_COLOR_VBASE
 #define CTLOG_COLOR_VBASE CTLOG_F_CYAN CTLOG_B_NULL "2;4m"
@@ -110,7 +110,7 @@ size_t ct_log_print_tips(bool is_print, int level, int id, char *cache, size_t m
 			case CTLogLevel_VarBase:  // 变量信息
 				fprintf(stdout, CTLOG_FORMAT_VBASE, cache);
 				break;
-			case CTLogLevel_Debug:    // 调试信息
+			case CTLogLevel_Debug:  // 调试信息
 				fprintf(stdout, CTLOG_FORMAT_DEBUG, cache);
 				break;
 			case CTLogLevel_Trace:  // 一般信息

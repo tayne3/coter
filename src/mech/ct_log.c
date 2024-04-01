@@ -7,7 +7,6 @@
 #include "ct_log.h"
 
 #include <assert.h>
-#include <execinfo.h>
 #include <signal.h>
 #include <stdarg.h>
 #include <stdio.h>

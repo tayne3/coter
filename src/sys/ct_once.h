@@ -16,6 +16,8 @@ extern "C" {
 #include <stdatomic.h>
 #elif defined(CT_OS_LINUX) && defined(__GNUC__)
 #include <pthread.h>
+#elif defined(CT_OS_WINDOWS) || defined(CT_OS_CYGWIN)
+#include <windows.h>
 #else
 #error "Unsupported compilation environment"
 #endif
@@ -29,12 +31,21 @@ typedef struct ct_once {
 	atomic_flag _g[1];  // C11 标准下的原子标志位
 #elif defined(CT_OS_LINUX) && defined(__GNUC__)
 	pthread_once_t _g[1];  // pthread 库的 once 控制变量
+#elif defined(CT_OS_WIN) || defined(CT_OS_CYGWIN)
+	volatile LONG initialized;
+	CRITICAL_SECTION lock;
 #endif
 } ct_once_t, ct_once_buf_t[1];
 
 // clang-format off
 // 初始化 (为了线程安全，只提供静态初始化)
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
 #define CT_ONCE_INITIALIZATION {{0}}
+#elif defined(CT_OS_LINUX) && defined(__GNUC__)
+#define CT_ONCE_INITIALIZATION {{0}}
+#elif defined(CT_OS_WIN) || defined(CT_OS_CYGWIN)
+#define CT_ONCE_INITIALIZATION {0, {0}}
+#endif
 // clang-format on
 
 /**

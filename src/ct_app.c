@@ -6,13 +6,20 @@
 #include "ct_app.h"
 
 #include <assert.h>
-#include <execinfo.h>
 #include <setjmp.h>
 #include <signal.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#if defined(CT_OS_LINUX)
+#include <execinfo.h>
+#elif defined(CT_OS_WIN)
+#include <windows.h>
+#include <dbghelp.h>
+#pragma comment(lib, "dbghelp.lib")
+#endif
 
 #include "base/ct_platform.h"
 #include "mech/ct_evmsg.h"
@@ -148,6 +155,7 @@ static inline void ct_app_exception_init(ct_app_exception_handler_t handler)
 static inline void ct_app_program_backtrace(void)
 {
 #define BACKTRACE_SIZE 100
+#if defined(CT_OS_LINUX)
 	// 缓存区
 	void *buffer[BACKTRACE_SIZE];
 	// 获取函数调用堆栈信息
@@ -168,6 +176,40 @@ static inline void ct_app_program_backtrace(void)
 	}
 	// 释放内存
 	free(symbols);
+#elif defined(CT_OS_WIN)
+	// 用于存储堆栈信息的缓冲区
+	void* backtrace[BACKTRACE_SIZE];
+	// 获取堆栈信息
+	HANDLE process = GetCurrentProcess();
+	HANDLE thread = GetCurrentThread();
+	CONTEXT context;
+	RtlCaptureContext(&context);
+	DWORD capturedFrames = CaptureStackBackTrace(0, BACKTRACE_SIZE, backtrace, NULL);
+
+	// 初始化符号处理
+	SymInitialize(process, NULL, TRUE);
+
+	// 输出堆栈信息
+	cfatal_n("[--] ---- backtrace start ---- " STR_NEWLINE);
+	for (DWORD i = 0; i < capturedFrames; i++) {
+		DWORD64 offset = 0;
+		char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(TCHAR)];
+		PSYMBOL_INFO symbol = (PSYMBOL_INFO)buffer;
+		symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+		symbol->MaxNameLen = MAX_SYM_NAME;
+
+		if (SymFromAddr(process, (DWORD64)backtrace[i], &offset, symbol)) {
+			cfatal_n("[%02d] %s+0x%llX" STR_NEWLINE, i, symbol->Name, offset);
+		} else {
+			cfatal_n("[%02d] 0x%p" STR_NEWLINE, i, backtrace[i]);
+		}
+	}
+	cfatal_n("[--] ---- backtrace end ---- " STR_NEWLINE);
+
+	// 清理符号处理
+	SymCleanup(process);
+#else
+#endif
 }
 
 static inline void ct_app_exception_handler(int _signal)
