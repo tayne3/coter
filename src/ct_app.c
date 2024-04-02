@@ -16,8 +16,8 @@
 #if defined(CT_OS_LINUX)
 #include <execinfo.h>
 #elif defined(CT_OS_WIN)
-#include <windows.h>
 #include <dbghelp.h>
+#include <windows.h>
 #pragma comment(lib, "dbghelp.lib")
 #endif
 
@@ -180,8 +180,8 @@ static inline void ct_app_program_backtrace(void)
 	// 用于存储堆栈信息的缓冲区
 	void* backtrace[BACKTRACE_SIZE];
 	// 获取堆栈信息
-	HANDLE process = GetCurrentProcess();
-	HANDLE thread = GetCurrentThread();
+	HANDLE  process = GetCurrentProcess();
+	HANDLE  thread  = GetCurrentThread();
 	CONTEXT context;
 	RtlCaptureContext(&context);
 	DWORD capturedFrames = CaptureStackBackTrace(0, BACKTRACE_SIZE, backtrace, NULL);
@@ -192,11 +192,11 @@ static inline void ct_app_program_backtrace(void)
 	// 输出堆栈信息
 	cfatal_n("[--] ---- backtrace start ---- " STR_NEWLINE);
 	for (DWORD i = 0; i < capturedFrames; i++) {
-		DWORD64 offset = 0;
-		char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(TCHAR)];
-		PSYMBOL_INFO symbol = (PSYMBOL_INFO)buffer;
+		DWORD64      offset = 0;
+		char         buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(TCHAR)];
+		PSYMBOL_INFO symbol  = (PSYMBOL_INFO)buffer;
 		symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
-		symbol->MaxNameLen = MAX_SYM_NAME;
+		symbol->MaxNameLen   = MAX_SYM_NAME;
 
 		if (SymFromAddr(process, (DWORD64)backtrace[i], &offset, symbol)) {
 			cfatal_n("[%02d] %s+0x%llX" STR_NEWLINE, i, symbol->Name, offset);

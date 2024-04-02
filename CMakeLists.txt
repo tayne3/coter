@@ -12,6 +12,7 @@ project(${PROJECT_NAME}
     LANGUAGES C
 )
 include(ProjectConfig)
+include(ProjectFunctions)
 
 # 导入子文件夹
 add_subdirectory(src)
