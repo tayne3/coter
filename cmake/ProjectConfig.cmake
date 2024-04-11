@@ -51,6 +51,3 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON) 							# 设置导出所有符号 (Wind
 include(ToolchainLinux)
 # 启用CCache
 include(EnablingCCache)
-
-# 生成版本头文件
-configure_file("${CMAKE_SOURCE_DIR}/src/base/ct_version.h.in" "${CMAKE_SOURCE_DIR}/src/base/ct_version.h" @ONLY)

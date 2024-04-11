@@ -9,7 +9,6 @@
 extern "C" {
 #endif
 
-#include "base/ct_debug.h"
 #include "base/ct_types.h"
 #include "base/ct_version.h"
 
