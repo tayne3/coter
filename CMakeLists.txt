@@ -1,20 +1,14 @@
 
-# 设置cmake最低版本号
 cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
-# 导入配置
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
-include(ProjectBasic)
+project(coter VERSION 0.1.1.9 LANGUAGES C)
 
-# 设置项目信息
-project(${PROJECT_NAME}
-    VERSION ${BUILD_VERSION}
-    LANGUAGES C
-)
+list(INSERT CMAKE_MODULE_PATH 0 "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(ProjectConfig)
 include(ProjectFunctions)
+include(ToolchainLinux)
+include(EnablingCCache)
 
-# 导入子文件夹
 add_subdirectory(src)
 add_subdirectory(sub)
 

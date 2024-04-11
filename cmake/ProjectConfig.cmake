@@ -22,10 +22,13 @@ else()
 	message(FATAL_ERROR "Unsupported build type: ${CMAKE_BUILD_TYPE}.")
 endif()
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-	string(APPEND INSTALL_DIR "-win32")
-elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+# 根据系统不同
+if(WIN32)
+	string(APPEND INSTALL_DIR "-windows")
+elseif(UNIX AND NOT APPLE)
 	string(APPEND INSTALL_DIR "-linux")
+else()
+	message(FATAL_ERROR "Unsupported system: ${CMAKE_SYSTEM_NAME}.")
 endif()
 
 include(GNUInstallDirs)

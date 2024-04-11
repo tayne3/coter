@@ -1,8 +1,6 @@
 
-# 设置程序名
-set(TARGET_NAME coter_obj)
-# 创建编译目标
-project_add_library(TARGET_NAME OBJECT)
+# 创建库目标
+project_add_library(coter_obj OBJECT)
 # 添加别名
 add_library(coter::obj ALIAS coter_obj)
 # 设置头文件查找路径
