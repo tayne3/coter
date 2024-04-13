@@ -1,7 +1,7 @@
 
 # 是否编译示例与测试程序
-option(COTER_BUILD_EXAMPLE "build example program" ON)
-option(COTER_BUILD_TEST "build test program" ON)
+option(COTER_BUILD_EXAMPLE "build example program" OFF)
+option(COTER_BUILD_TEST "build test program" OFF)
 # 是否编译动态库和静态库
 option(COTER_BUILD_SHARED "build shared library" ON)
 option(COTER_BUILD_STATIC "build static library" OFF)
