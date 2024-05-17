@@ -74,7 +74,7 @@ void ct_heap_up(ct_heap_buf_t self, size_t i);
 /// 向下调整堆
 void ct_heap_down(ct_heap_buf_t self, size_t i);
 /// 重新排序
-void ct_heap_reorder(ct_heap_t* heap);
+void ct_heap_reorder(ct_heap_buf_t self);
 /// 插入元素
 void ct_heap_insert(ct_heap_buf_t self, ct_any_t data);
 /// 移除堆顶元素

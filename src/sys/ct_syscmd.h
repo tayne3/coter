@@ -81,10 +81,10 @@ bool ct_syscmd_file_read(const char *path, char *buffer, size_t offset, size_t m
 
 /**
  * @brief 设置系统时间
- * @param ctm 时间结构体指针
+ * @param cdt 时间结构体指针
  * @return 设置成功返回true; 设置失败返回false
  */
-bool ct_syscmd_set_time(const ct_datetime_buf_t ctm);
+bool ct_syscmd_set_time(const ct_datetime_buf_t cdt);
 
 #ifdef __cplusplus
 }

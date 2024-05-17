@@ -147,17 +147,18 @@ bool ct_syscmd_file_read(const char *path, char *buffer, size_t offset, size_t m
 	return true;
 }
 
-bool ct_syscmd_set_time(const ct_datetime_buf_t ctm)
+bool ct_syscmd_set_time(const ct_datetime_buf_t cdt)
 {
 	// 转换为字符串格式
 	char str[22];
-	ct_datetime_to_string(str, sizeof(str), "%Y-%m-%d %H:%M:%S", ctm);
+	ct_datetime_to_string(str, sizeof(str), "%Y-%m-%d %H:%M:%S", cdt);
+	
 	// 构建设置系统时间的命令
 	char cmd[45];
 	ct_snprintf(cmd, sizeof(cmd), "date -s '%s' >/dev/null", str);
 
-	cdebug(STR_CURRTITLE " system time changed: %04d-%02d-%02d %02d:%02d:%02d" STR_NEWLINE, ctm->tm_year + 1900,
-		   ctm->tm_mon + 1, ctm->tm_mday, ctm->tm_hour, ctm->tm_min, ctm->tm_sec);
+	cdebug(STR_CURRTITLE " system time changed: %04d-%02d-%02d %02d:%02d:%02d" STR_NEWLINE, cdt->tm_year + 1900,
+		   cdt->tm_mon + 1, cdt->tm_mday, cdt->tm_hour, cdt->tm_min, cdt->tm_sec);
 
 	// 执行系统命令
 	if (!ct_syscmd_execute(cmd, false)) {

@@ -63,11 +63,11 @@ void ct_heap_down(ct_heap_buf_t self, size_t i)
 	}
 }
 
-void ct_heap_reorder(ct_heap_t* heap)
+void ct_heap_reorder(ct_heap_buf_t self)
 {
 	// 自底向上构建堆
-	for (size_t i = heap->_size / 2; i > 0; i--) {
-		ct_heap_down(heap, i);
+	for (size_t i = self->_size / 2; i > 0; i--) {
+		ct_heap_down(self, i);
 	}
 }
 

@@ -158,26 +158,30 @@
 #	warning "duplicate definition"
 # else
 # 	if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
-#		define __ct_func__       __func__
-#		define __ct_file__       __FILE__
-#		define __ct_line__       __LINE__
+#		define __ct_func__		__func__
+#		define __ct_file__		__FILE__
+#		define __ct_line__		__LINE__
 # 	elif defined(__GNUC__)
-#		define __ct_func__       __FUNCTION__
-#		define __ct_file__       __FILE__
-#		define __ct_line__       __LINE__
+#		define __ct_func__		__FUNCTION__
+#		define __ct_file__		__FILE__
+#		define __ct_line__		__LINE__
 # 	elif defined(_MSC_VER)
-#		define __ct_func__       __FUNCTION__
-#		define __ct_file__       __FILE__
-#		define __ct_line__       __LINE__
+#		define __ct_func__		__FUNCTION__
+#		define __ct_file__		__FILE__
+#		define __ct_line__		__LINE__
 # 	elif defined(__TINYC__)
-#		define __ct_func__       __func__
-#		define __ct_file__       __FILE__
-#		define __ct_line__       __LINE__
+#		define __ct_func__		__func__
+#		define __ct_file__		__FILE__
+#		define __ct_line__		__LINE__
 # 	else
-#		define __ct_func__       "(nil)"
-#		define __ct_file__       "(nil)"
-#		define __ct_line__       0
+#		define __ct_func__		"(nil)"
+#		define __ct_file__		"(nil)"
+#		define __ct_line__		0
 # 	endif
+# endif
+
+# ifndef __GNUC_PREREQ
+# 	define __GNUC_PREREQ(a, b)	0
 # endif
 
 // force inline
@@ -185,11 +189,11 @@
 #	warning "duplicate definition"
 # else
 #	if defined(_MSC_VER)
-#		define __ct_force_inline	__forceinline
-#	elif defined(__GNUC__) && __GNUC_PREREQ (3,2)
-#   	define __ct_force_inline	__always_inline
+#		define __ct_force_inline		__forceinline
+#	elif __GNUC_PREREQ (3,2)
+#   	define __ct_force_inline		__always_inline
 #	else
-#    	define __ct_force_inline	inline
+#    	define __ct_force_inline		inline
 #	endif
 # endif
 
@@ -208,113 +212,103 @@
 # endif
 
 // 标记函数不会抛出异常
-# if defined(__GNUC__) && !defined __cplusplus && __GNUC_PREREQ (3,3)
+# if !defined __cplusplus && __GNUC_PREREQ (3,3)
 #   define __ct_func_throw 				__THROW
 # else
 #   define __ct_func_throw
 # endif
 // 标记函数可能引发异常
-// # if defined(__GNUC__) && !defined __cplusplus &&__GNUC_PREREQ (2,8)
-// #   define __ct_func_thrownl 			__THROWNL
-// # else
-// #   define __ct_func_thrownl
-// # endif
-# if defined(__GNUC__) && !defined __cplusplus &&__GNUC_PREREQ (2,8)
-#   define __ct_func_thrownl 			
+# if !defined __cplusplus  && __GNUC_PREREQ (2,8)
+#   define __ct_func_thrownl 			__THROWNL
 # else
 #   define __ct_func_thrownl
 # endif
 // 标记函数分配内存
-# if defined(__GNUC__) && __GNUC_PREREQ (2,96)
+# if __GNUC_PREREQ(2,96) 
 #   define __ct_func_malloc__ 			__attribute_malloc__
 # else
 #   define __ct_func_malloc__
 # endif
 // 标记函数参数为可变长度
-# if defined(__GNUC__) && __GNUC_PREREQ (4,3)
+# if __GNUC_PREREQ (4,3) 
 #   define __ct_func_alloc_size__(...)	__attribute_alloc_size__ (__VA_ARGS__)
 # else
 #   define __ct_func_alloc_size__(...)
 # endif
 // 标记纯函数 (在相同的输入下，总是返回相同的输出，且不会产生任何副作用)
-#if defined(__GNUC__) && __GNUC_PREREQ (2,96)
-# define __ct_func_pure__ 				__attribute_pure__
-#else
+#if __GNUC_PREREQ (2,96)
+#   define __ct_func_pure__ 			__attribute_pure__
+# else
 # define __ct_func_pure__
 #endif
 // 标记常量函数
-# if defined(__GNUC__) && __GNUC_PREREQ (2,5)
+# if __GNUC_PREREQ (2,5) 
 #   define __ct_func_const__ 			__attribute_const__
 # else
 #   define __ct_func_const__
 # endif
 // 即使某个函数或变量没有被使用, 也不要将其优化掉
-# if defined(__GNUC__) && __GNUC_PREREQ (3,1)
+# if __GNUC_PREREQ (3,1)
 #   define __ct_func_used__ 			__attribute_used__
 # else
 #   define __ct_func_used__
 # endif
 // 标记函数不内联
-# if defined(__GNUC__) && __GNUC_PREREQ (3,1)
+# if __GNUC_PREREQ (3,1)
 #   define __ct_func_noinline__ 		__attribute_noinline__
 # else
 #   define __ct_func_noinline__
 # endif
 // 标记函数已弃用
-# if defined(__GNUC__) && __GNUC_PREREQ (3,2)
+# if __GNUC_PREREQ (3,2)
 #   define __ct_func_deprecated__		__attribute_deprecated__
 # else 
 #   define __ct_func_deprecated__
 # endif
 // 标记函数已弃用, 并指定打印的消息
-// # if defined(__GNUC__) && __GNUC_PREREQ (3,2)
-// # 	if __GNUC_PREREQ (4,5)
-// #   	define __ct_func_deprecated_msg__(msg)	__attribute_deprecated_msg__(msg)
-// #	elif defined(__glibc_clang_has_extension) && __glibc_clang_has_extension (__attribute_deprecated_with_message__)
-// #   	define __ct_func_deprecated_msg__(msg)	__attribute_deprecated_msg__(msg)
-// # 	else
-// #   	define __ct_func_deprecated_msg__(msg)	__attribute_deprecated__
-// # 	endif 
-// # else
-// #   define __ct_func_deprecated_msg__(msg)
-// # endif
-# if defined(__GNUC__) && __GNUC_PREREQ (3,2)
-# 	define __ct_func_deprecated_msg__(msg)	__attribute_deprecated__
+# if __GNUC_PREREQ (3,2) 
+# 	if __GNUC_PREREQ (4,5)
+#   	define __ct_func_deprecated_msg__(msg)	__attribute_deprecated_msg__(msg)
+#	elif defined(__glibc_clang_has_extension) && __glibc_clang_has_extension (__attribute_deprecated_with_message__)
+#   	define __ct_func_deprecated_msg__(msg)	__attribute_deprecated_msg__(msg)
+# 	else
+#   	define __ct_func_deprecated_msg__(msg)	__attribute_deprecated__
+# 	endif
 # else
 #   define __ct_func_deprecated_msg__(msg)
 # endif
 // 指定 format 参数
-# if defined(__GNUC__) && __GNUC_PREREQ (2,8)
+# if __GNUC_PREREQ (2,8)
 #   define __ct_format_arg__(x)			__attribute_format_arg__(x)
 # else 
 #   define __ct_format_arg__(x)
 # endif
 // 标记非空参数
-# if defined(__GNUC__) && __GNUC_PREREQ (3,3)
+# if __GNUC_PREREQ (3,3)
 #   define __ct_nonnull(...)			__nonnull((__VA_ARGS__))
 # else
 #   define __ct_nonnull(...)
 # endif
 // 标记函数返回值会被使用
-# if defined(__GNUC__) && __GNUC_PREREQ (3,4)
+# if __GNUC_PREREQ (3,4)  
 #   define __ct_func_wur__ 				__attribute_warn_unused_result__
 # else
 #   define __ct_func_wur__
 # endif
 // 将错误消息与调用点的源位置相关联, 而不是与函数内的源位置相关联
-# if defined(__GNUC__) && __GNUC_PREREQ (4,3)
+# if __GNUC_PREREQ (4,3) 
 #   define __ct_func_artificial__		__attribute_artificial__
 # else
 #   define __ct_func_artificial__
 # endif
 // restrict
-# if defined(__GNUC__) && __GNUC_PREREQ (4,3)
-#	define __ct_restrict				__restrict
+# if __GNUC_PREREQ (4,3)
+#   define __ct_restrict				__restrict
 # else
 #   define __ct_restrict
 # endif
 // 标记函数不返回
-# if defined(__GNUC__) && __GNUC_PREREQ (2,8) && defined(_Noreturn)
+# if __GNUC_PREREQ (2,8) && defined(_Noreturn)
 #   define __ct_func_noreturn 			_Noreturn
 # else
 #   define __ct_func_noreturn
