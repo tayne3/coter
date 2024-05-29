@@ -1,7 +1,7 @@
 
 cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
-project(coter VERSION 0.1.1.13 LANGUAGES C)
+project(coter VERSION 0.1.1.14 LANGUAGES C)
 
 list(INSERT CMAKE_MODULE_PATH 0 "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(ProjectConfig)

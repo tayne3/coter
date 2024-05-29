@@ -188,6 +188,14 @@
 # 	define __glibc_clang_has_extension(...)	0
 # endif
 
+# ifndef __THROW
+# 	define __THROW
+# endif
+
+# ifndef __THROWNL
+# 	define __THROWNL
+# endif
+
 // force inline
 # if defined(__ct_force_inline)
 #	warning "duplicate definition"
