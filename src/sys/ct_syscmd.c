@@ -104,8 +104,16 @@ bool ct_syscmd_folder_recursive_create(const char *path)
 	return 0;
 }
 
+bool ct_syscmd_file_isexist(const char *path)
+{
+	assert(path);
+	struct stat st;
+	return stat(path, &st) == 0 && S_ISREG(st.st_mode);
+}
+
 bool ct_syscmd_file_size(const char *path, size_t *size)
 {
+	assert(path);
 	FILE *pf = fopen(path, "rb");
 	if (!pf) {
 		return false;
@@ -126,6 +134,7 @@ bool ct_syscmd_file_size(const char *path, size_t *size)
 
 bool ct_syscmd_file_read(const char *path, char *buffer, size_t offset, size_t max, size_t *size)
 {
+	assert(path);
 	FILE *pf = fopen(path, "rb");
 	if (!pf) {
 		cerror(STR_CURRTITLE " open file %s failed, %s" STR_NEWLINE, path, strerror(errno));

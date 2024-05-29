@@ -61,6 +61,13 @@ bool ct_syscmd_folder_create(const char *path);
 bool ct_syscmd_folder_recursive_create(const char *path);
 
 /**
+ * @brief 判断文件是否存在
+ * @param path 文件路径
+ * @return 文件存在返回true，否则返回false
+ */
+bool ct_syscmd_file_isexist(const char *path);
+
+/**
  * @brief 获取文件大小
  * @param path 文件路径
  * @param size 指向存储文件大小的变量的指针

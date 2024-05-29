@@ -184,10 +184,10 @@ static inline void ct_app_program_backtrace(void)
 	HANDLE  thread  = GetCurrentThread();
 	CONTEXT context;
 	RtlCaptureContext(&context);
-	DWORD capturedFrames = CaptureStackBackTrace(0, BACKTRACE_SIZE, backtrace, NULL);
+	DWORD capturedFrames = CaptureStackBackTrace(0, BACKTRACE_SIZE, backtrace, ct_nullptr);
 
 	// 初始化符号处理
-	SymInitialize(process, NULL, TRUE);
+	SymInitialize(process, ct_nullptr, TRUE);
 
 	// 输出堆栈信息
 	cfatal_n("[--] ---- backtrace start ---- " STR_NEWLINE);
