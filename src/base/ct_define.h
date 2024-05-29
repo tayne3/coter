@@ -184,6 +184,10 @@
 # 	define __GNUC_PREREQ(a, b)	0
 # endif
 
+# ifndef __glibc_clang_has_extension
+# 	define __glibc_clang_has_extension(...)	0
+# endif
+
 // force inline
 # if defined(__ct_force_inline)
 #	warning "duplicate definition"
@@ -269,7 +273,7 @@
 # if __GNUC_PREREQ (3,2) 
 # 	if __GNUC_PREREQ (4,5)
 #   	define __ct_func_deprecated_msg__(msg)	__attribute_deprecated_msg__(msg)
-#	elif defined(__glibc_clang_has_extension) && __glibc_clang_has_extension (__attribute_deprecated_with_message__)
+#	elif __glibc_clang_has_extension (__attribute_deprecated_with_message__)
 #   	define __ct_func_deprecated_msg__(msg)	__attribute_deprecated_msg__(msg)
 # 	else
 #   	define __ct_func_deprecated_msg__(msg)	__attribute_deprecated__
