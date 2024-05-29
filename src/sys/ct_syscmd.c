@@ -132,6 +132,33 @@ bool ct_syscmd_file_size(const char *path, size_t *size)
 	return true;
 }
 
+bool ct_syscmd_file_copy(const char *src, const char *dest)
+{
+	FILE *src_file = fopen(src, "rb");
+	if (src_file == ct_nullptr) {
+		return false;
+	}
+
+	FILE *dest_file = fopen(dest, "wb");
+	if (dest_file == ct_nullptr) {
+		fclose(src_file);
+		return false;
+	}
+
+	char buffer[1024];
+	for (size_t bytes_read; (bytes_read = fread(buffer, 1, sizeof(buffer), src_file)) > 0;) {
+		if (fwrite(buffer, 1, bytes_read, dest_file) != bytes_read) {
+			fclose(src_file);
+			fclose(dest_file);
+			return false;
+		}
+	}
+
+	fclose(src_file);
+	fclose(dest_file);
+	return true;
+}
+
 bool ct_syscmd_file_read(const char *path, char *buffer, size_t offset, size_t max, size_t *size)
 {
 	assert(path);
@@ -161,7 +188,7 @@ bool ct_syscmd_set_time(const ct_datetime_buf_t cdt)
 	// 转换为字符串格式
 	char str[22];
 	ct_datetime_to_string(str, sizeof(str), "%Y-%m-%d %H:%M:%S", cdt);
-	
+
 	// 构建设置系统时间的命令
 	char cmd[45];
 	ct_snprintf(cmd, sizeof(cmd), "date -s '%s' >/dev/null", str);

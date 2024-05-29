@@ -76,6 +76,14 @@ bool ct_syscmd_file_isexist(const char *path);
 bool ct_syscmd_file_size(const char *path, size_t *size);
 
 /**
+ * @brief 文件拷贝
+ * @param src 源文件路径
+ * @param dest 目标文件路径
+ * @return 拷贝成功返回true，否则返回false
+ */
+bool ct_syscmd_file_copy(const char *src, const char *dest);
+
+/**
  * @brief 读取文件内容
  * @param path 文件路径
  * @param buffer 存储文件内容的缓冲区
