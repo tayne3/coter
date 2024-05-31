@@ -79,10 +79,10 @@ bool ct_msgqueue_isshut(ct_msgqueue_buf_t self)
 
 bool ct_msgqueue_enqueue(ct_msgqueue_buf_t self, const void *item)
 {
+	ct_msgqueue_lock(self);
 	if (self->is_shut) {
 		return false;
 	}
-	ct_msgqueue_lock(self);
 	for (; ct_queue_isfull(self->queue);) {
 		ct_cond_wait(self->not_full, self->mutex);
 		if (self->is_shut) {
@@ -98,10 +98,10 @@ bool ct_msgqueue_enqueue(ct_msgqueue_buf_t self, const void *item)
 
 bool ct_msgqueue_dequeue(ct_msgqueue_buf_t self, void *item)
 {
+	ct_msgqueue_lock(self);
 	if (self->is_shut) {
 		return false;
 	}
-	ct_msgqueue_lock(self);
 	for (; ct_queue_isempty(self->queue);) {
 		ct_cond_wait(self->not_empty, self->mutex);
 		if (self->is_shut) {
@@ -117,10 +117,10 @@ bool ct_msgqueue_dequeue(ct_msgqueue_buf_t self, void *item)
 
 bool ct_msgqueue_try_enqueue(ct_msgqueue_buf_t self, const void *item)
 {
+	ct_msgqueue_lock(self);
 	if (self->is_shut) {
 		return false;
 	}
-	ct_msgqueue_lock(self);
 	if (ct_queue_isfull(self->queue)) {
 		ct_msgqueue_unlock(self);
 		return false;
@@ -133,10 +133,10 @@ bool ct_msgqueue_try_enqueue(ct_msgqueue_buf_t self, const void *item)
 
 bool ct_msgqueue_try_dequeue(ct_msgqueue_buf_t self, void *item)
 {
+	ct_msgqueue_lock(self);
 	if (self->is_shut) {
 		return false;
 	}
-	ct_msgqueue_lock(self);
 	if (ct_queue_isempty(self->queue)) {
 		ct_msgqueue_unlock(self);
 		return false;

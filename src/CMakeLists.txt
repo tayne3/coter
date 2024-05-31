@@ -4,7 +4,7 @@ project_add_library(coter_obj OBJECT)
 # 添加别名
 add_library(coter::obj ALIAS coter_obj)
 # 设置头文件查找路径
-target_include_directories(coter_obj PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(coter_obj PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 # 链接库文件
 target_link_libraries(coter_obj PUBLIC pthread rt)
 
@@ -19,13 +19,20 @@ else()
 	message(FATAL_ERROR "Unsupported build type: ${CMAKE_BUILD_TYPE}.")
 endif()
 # 生成版本信息头文件
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/base/ct_version.h.in" "${CMAKE_CURRENT_SOURCE_DIR}/base/ct_version.h" @ONLY)
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/base/ct_version.h.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/base/ct_version.h"
+    @ONLY
+)
+
+# 打印版本号
+message(STATUS "Coter version: ${PROJECT_VERSION}")
 
 # 编译动态库
 if(COTER_BUILD_SHARED)
     add_library(coter_shared SHARED $<TARGET_OBJECTS:coter_obj>)
     add_library(coter::shared ALIAS coter_shared)
-    target_include_directories(coter_shared PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+    target_include_directories(coter_shared PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
     set_target_properties(coter_shared PROPERTIES OUTPUT_NAME coter)
     project_install_target(coter_shared)
     message(STATUS "Coter build shared library: ON")
@@ -37,7 +44,7 @@ endif()
 if(COTER_BUILD_STATIC)
     add_library(coter_static STATIC $<TARGET_OBJECTS:coter_obj>)
     add_library(coter::static ALIAS coter_static)
-    target_include_directories(coter_static PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+    target_include_directories(coter_static PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
     set_target_properties(coter_static PROPERTIES OUTPUT_NAME coter)
     project_install_target(coter_static)
     message(STATUS "Coter build static library: ON")

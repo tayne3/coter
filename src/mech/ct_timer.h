@@ -24,12 +24,12 @@ typedef ct_timestamp_t (*ct_timer_caculate_t)(const ct_datetime_buf_t param, con
 /**
  * @brief 定时器管理初始化
  */
-void ct_timer_center_init(void) __ct_func_throw;
+void ct_timer_manager_init(void);
 
 /**
  * @brief 定时器调度
  */
-void ct_timer_center_schedule(void);
+void ct_timer_manager_schedule(void);
 
 /**
  * @brief 启动定时器 (一次性定时器)

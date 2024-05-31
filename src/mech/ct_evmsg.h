@@ -11,7 +11,6 @@ extern "C" {
 #endif
 
 #include "base/ct_types.h"
-#include "sys/ct_mutex.h"
 
 /**
  * @brief 事件消息

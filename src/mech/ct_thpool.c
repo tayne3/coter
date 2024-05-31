@@ -121,8 +121,6 @@ void ct_thpool_destroy(ct_thpool_ptr_t self)
 
 	// 销毁消息队列
 	ct_msgqueue_destroy(self->job_queue);
-	// 释放缓冲区内存
-	ct_mempool_free(ct_nullptr, self->job_buffer);
 
 	// 锁定互斥锁
 	ct_mutex_lock(self->mutex);
@@ -151,6 +149,8 @@ void ct_thpool_destroy(ct_thpool_ptr_t self)
 	ct_mutex_unlock(self->mutex);
 	ct_mutex_destroy(self->mutex);
 
+	// 释放缓冲区内存
+	ct_mempool_free(ct_nullptr, self->job_buffer);
 	// 释放线程池内存
 	ct_mempool_free(ct_nullptr, self);
 }

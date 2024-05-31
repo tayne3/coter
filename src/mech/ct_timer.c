@@ -16,7 +16,7 @@
 #include "container/ct_list.h"
 #include "mech/ct_log.h"
 #include "mech/ct_thpool.h"
-#include "sys/ct_rwlock.h"
+#include "sys/ct_mutex.h"
 #include "sys/ct_thread.h"
 
 // -------------------------[STATIC DECLARATION]-------------------------
@@ -25,10 +25,10 @@
 
 // 定时器-类型
 enum ct_timer_type {
-	CT_TIMER_TYPE_INVALID = 0,  // 无效定时器
-	CT_TIMER_TYPE_SIMPLE,       // 简单定时器
-	CT_TIMER_TYPE_PRECISION,    // 精确定时器
-	CT_TIMER_TYPE_COMPLEX,      // 复杂定时器
+	CTTimer_TypeInvalid = 0,  // 无效定时器
+	CTTimer_TypeSimple,       // 简单定时器
+	CTTimer_TypePrecise,      // 精确定时器
+	CTTimer_TypeComplex,      // 复杂定时器
 };
 
 // 简单定时器-私有数据
@@ -43,9 +43,9 @@ typedef struct ct_timer_simple {
 	}
 
 // 精确定时器-私有数据
-typedef struct ct_timer_precision {
+typedef struct ct_timer_precise {
 	ct_timespec_t interval;  // 间隔
-} ct_timer_precision_t;
+} ct_timer_precise_t;
 
 // 精确定时器-私有数据 初始化
 #define CT_TIMER_PRECISION_INITIALIZATION       \
@@ -67,9 +67,9 @@ typedef struct ct_timer_complex {
 
 // 定时器-私有数据
 typedef union ct_timer_private {
-	ct_timer_simple_t    simple;
-	ct_timer_precision_t precision;
-	ct_timer_complex_t   complex;
+	ct_timer_simple_t  simple;
+	ct_timer_precise_t precise;
+	ct_timer_complex_t complex;
 } ct_timer_private_t;
 
 /**
@@ -94,49 +94,60 @@ typedef struct ct_timer {
 #define CT_TIMER_ID_RESET(self)  ((self)->id &= 0x00000000FFFFFFFF)
 
 /**
- * @brief 定时器中枢
- * @param idle_list 可用链表
- * @param id_count id计数 (用于生成定时器自增id)
- * @param mutex 读写锁
- * @param timer_buffer 缓存数组
- * @param heap_buffer 缓存数组
- * @param heap 最小堆
- * @param timer_null 空定时器
- * @param time_current 当前时间 (秒级时间戳)
- * @param time_different 绝对时间和相对时间的差值
- * @param correct_count 用于检查系统时间是否发生变化的计数器
- * @param is_busy 是否正在处理定时器
+ * @struct ct_timer_manager
+ * @brief 定时器管理器
+ * @var idle_list 可用链表
+ * @var id_count id计数 (用于生成定时器自增id)
+ * @var lock 线程锁
+ * @var timer_buffer 缓存数组
+ * @var heap_buffer 缓存数组
+ * @var heap 最小堆
+ * @var timer_null 空定时器
+ * @var time_current 当前时间 (秒级时间戳)
+ * @var time_real 绝对时间
+ * @var time_different 绝对时间和相对时间的差值
+ * @var is_busy 是否忙碌
+ * @var is_correct 是否修正
+ *
+ * @note
+ * 为了节省资源, 定时器管理器的异步任务并不常驻,
+ * 当触发调度时, 会检查系统时间是否发生改变,
+ * 若系统时间发生改变, 则会修改修正状态, 添加修正所有定时器触发时间的异步任务,
+ * 然后尝试获取一个待触发的定时器, 获取成功的话, 则会添加一个处理触发定时器的异步任务。
+ *
+ * 注意, 在定时器机制中, 最多存在一个异步任务, 当存在异步任务时, 忙碌状态为真。
  */
-static struct ct_timer_center {
-	ct_list_buf_t   idle_list;                   // 可用链表
-	ct_timer_id_t   id_count;                    // ID计数
-	ct_rwlock_buf_t rwlock;                      // 读写锁
-	ct_timer_buf_t  timer_buffer[CT_TIMER_MAX];  // 定时器缓存数组
-	ct_any_t        heap_buffer[CT_TIMER_MAX];   // 最小堆缓存数组
-	ct_heap_buf_t   heap;                        // 最小堆
-	ct_timer_buf_t  timer_null;                  // 空定时器
-	ct_timespec_t   time_current;                // 当前时间
-	ct_timespec_t   time_different;              // 绝对时间和相对时间的差值
-	size_t          correct_count;               // 用于检查系统时间是否发生变化的计数器
-	bool            is_busy;                     // 是否正在处理定时器
-} center[1];
+static struct ct_timer_manager {
+	ct_list_buf_t  idle_list;                   // 可用链表
+	ct_timer_id_t  id_count;                    // ID计数
+	ct_mutex_buf_t lock;                        // 线程锁
+	ct_timer_buf_t timer_buffer[CT_TIMER_MAX];  // 定时器缓存数组
+	ct_any_t       heap_buffer[CT_TIMER_MAX];   // 最小堆缓存数组
+	ct_heap_buf_t  heap;                        // 最小堆
+	ct_timer_buf_t timer_null;                  // 空定时器
+	ct_timespec_t  time_current;                // 当前时间
+	ct_timespec_t  time_different;              // 绝对时间和相对时间的差值
+	ct_timespec_t  time_change;                 // 两次时间差的差值
+	ct_timestamp_t time_check;                  // 下次检查时间
+	bool           is_busy;                     // 是否忙碌
+	bool           is_correct;                  // 是否修正
+} mgr[1];
 
-#define CT_TIMER_NULL            (center->timer_null)    // 空定时器
-#define CT_TIMER_SIMPLE(self)    (&(self)->d.simple)     // 获取私有数据 (简单)
-#define CT_TIMER_PRECISION(self) (&(self)->d.precision)  // 获取私有数据 (精确)
-#define CT_TIMER_COMPLEX(self)   (&(self)->d.complex)    // 获取私有数据 (复杂)
+#define CT_TIMER_NULL          (mgr->timer_null)     // 空定时器
+#define CT_TIMER_SIMPLE(self)  (&(self)->d.simple)   // 获取私有数据 (简单)
+#define CT_TIMER_PRECISE(self) (&(self)->d.precise)  // 获取私有数据 (精确)
+#define CT_TIMER_COMPLEX(self) (&(self)->d.complex)  // 获取私有数据 (复杂)
 
-#define ct_timer_center_rlock()   ct_rwlock_rlock(center->rwlock)   // 读锁定
-#define ct_timer_center_wlock()   ct_rwlock_wlock(center->rwlock)   // 写锁定
-#define ct_timer_center_unlock()  ct_rwlock_unlock(center->rwlock)  // 解锁
-#define ct_timer_center_isempty() ct_heap_isempty(center->heap)     // 是否为空
-#define ct_timer_center_isfull()  ct_heap_isfull(center->heap)      // 是否已满
-#define ct_timer_center_max()     ct_heap_max(center->heap)         // 获取定时器最大容量
-#define ct_timer_center_size()    ct_heap_size(center->heap)        // 获取定时器总数
-#define ct_timer_center_reorder() ct_heap_reorder(center->heap)     // 重新排序
+#define mgr_lock()    ct_mutex_lock(mgr->lock)    // 锁定
+#define mgr_unlock()  ct_mutex_unlock(mgr->lock)  // 解锁
+#define mgr_isempty() ct_heap_isempty(mgr->heap)  // 是否为空
+#define mgr_isfull()  ct_heap_isfull(mgr->heap)   // 是否已满
+#define mgr_max()     ct_heap_max(mgr->heap)      // 获取定时器最大容量
+#define mgr_size()    ct_heap_size(mgr->heap)     // 获取定时器总数
+#define mgr_reorder() ct_heap_reorder(mgr->heap)  // 重新排序
 
-#define ct_timer_center_first()      ct_any_value_pointer(ct_heap_first(center->heap))  // 获取首个定时器
-#define ct_timer_center_first_take() ct_any_value_pointer(ct_heap_take(center->heap))  // 获取并移除首个定时器
+#define mgr_first()      ct_any_value_pointer(ct_heap_first(mgr->heap))  // 获取首个定时器
+#define mgr_first_take() ct_any_value_pointer(ct_heap_take(mgr->heap))   // 获取并移除首个定时器
 
 // =========================================================
 // 无需加锁操作的方法 (Methods without locking)
@@ -150,33 +161,37 @@ static inline void ct_timer_init(ct_timer_t *self, uint32_t idx);
 static inline bool ct_timer_isnull(ct_timer_t *self);
 // 默认-计算下次触发时间的时间戳函数
 static inline ct_timestamp_t ct_timer_caculate_default(const ct_datetime_buf_t param, const ct_datetime_buf_t curr);
-// 检查系统时间是否发生变化, 如果发生变化, 则重新计算所有定时器的触发时间
-static inline void ct_timer_center_correct(void);
 
 // =========================================================
 // 使用加锁操作的方法 (Methods with locking)
 // =========================================================
 
 // 创建定时器
-static inline ct_timer_id_t ct_timer_center_create_simple(const ct_timer_simple_t *d, bool isnow, bool is_loop,
-														  ct_timer_callback_t callback, ct_any_t arg);
+static inline ct_timer_id_t mgr_create_simple(const ct_timer_simple_t *d, bool isnow, bool is_loop,
+											  ct_timer_callback_t callback, ct_any_t arg);
 // 创建定时器
-static inline ct_timer_id_t ct_timer_center_create_precision(const ct_timer_precision_t *d, bool isnow, bool is_loop,
-															 ct_timer_callback_t callback, ct_any_t arg);
+static inline ct_timer_id_t mgr_create_precision(const ct_timer_precise_t *d, bool isnow, bool is_loop,
+												 ct_timer_callback_t callback, ct_any_t arg);
 // 创建定时器
-static inline ct_timer_id_t ct_timer_center_create_complex(const ct_timer_complex_t *d, bool is_loop,
-														   ct_timer_callback_t callback, ct_any_t arg);
+static inline ct_timer_id_t mgr_create_complex(const ct_timer_complex_t *d, bool is_loop, ct_timer_callback_t callback,
+											   ct_any_t arg);
 // 删除定时器
-static inline void ct_timer_center_remove(ct_timer_id_t id);
-// 定时器重新计算触发时间
-static inline void ct_timer_center_trigger_reset(ct_timespec_t time_current, ct_timespec_t diff);
-// 定时器中枢回调函数
-static inline void ct_timer_center_callback(void *arg);
+static inline void mgr_remove(ct_timer_id_t id);
+// 检查系统时间是否发生变化, 如果发生变化, 则重新计算所有定时器的触发时间
+static inline void mgr_correct_check(void);
+// 定时器触发执行回调函数
+static inline void mgr_trigger_callback(void *arg);
+// 定时器重新计算触发时间回调函数
+static inline void mgr_correct_callback(void *arg);
+// 定时器执行回调函数
+static inline void mgr_timer_callback(void *arg);
 
 // =========================================================
 // 需要加锁操作的方法 (Methods requiring locking)
 // =========================================================
 
+// 获取一个待触发的定时器 (如果没有待触发的定时器, 则返回空)
+static inline ct_timer_t *mgr_take_trigger_timer(void);
 // 生成唯一的定时器id
 static inline ct_timer_id_t ct_timer_generate_id(ct_timer_t *self);
 // 获取定时器 (此函数永远不返回空指针)
@@ -198,99 +213,107 @@ static inline bool ct_timer_trigger_refresh(ct_timer_t *self);
 // 定时器是否触发
 static inline bool ct_timer_istrigger(ct_timer_t *self);
 // 获取当前时间 (秒级时间戳)
-static inline ct_timestamp_t ct_timer_center_current_timestamp_get(void);
+static inline ct_timestamp_t mgr_current_timestamp_get(void);
 // 获取当前时间 (精确时间)
-static inline ct_timespec_t ct_timer_center_current_timespec_get(void);
+static inline ct_timespec_t mgr_current_timespec_get(void);
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
-void ct_timer_center_init(void)
+void ct_timer_manager_init(void)
 {
-	// 初始化互斥锁
-	ct_rwlock_init(center->rwlock);
+	// 初始化线程锁
+	ct_mutex_init(mgr->lock);
 	// 初始化空定时器
 	ct_timer_init(CT_TIMER_NULL, 0);
 	// 初始化最小堆
-	ct_heap_init(center->heap, center->heap_buffer, CT_TIMER_MAX, ct_timer_sorting);
+	ct_heap_init(mgr->heap, mgr->heap_buffer, CT_TIMER_MAX, ct_timer_sorting);
 	// 初始化可用定时器链表
-	ct_list_init(center->idle_list);
+	ct_list_init(mgr->idle_list);
 
 	// 初始化所有定时器, 并将所有定时器添加到可用链表中
 	{
 		ct_timer_t *it;
 		for (size_t i = 0; i < CT_TIMER_MAX; i++) {
-			it = center->timer_buffer[i];
+			it = mgr->timer_buffer[i];
 			// 初始化定时器
 			ct_timer_init(it, i);
 			// 将定时器添加可用链表中
 			ct_list_init(it->list);
-			ct_list_append(center->idle_list, it->list);
+			ct_list_append(mgr->idle_list, it->list);
 		}
 	}
 
 	{
 		// 获取当前时间
-		center->time_current = ct_current_timespec();
+		mgr->time_current = ct_current_timespec();
 		// 获取绝对时间
 		const ct_timespec_t timereal = ct_current_realtime();
 		// 当前系统时间和当前绝对时间的时间差
-		center->time_different = ct_timespec_calculate_diff(&center->time_current, &timereal);
+		mgr->time_different = ct_timespec_calculate_diff(&mgr->time_current, &timereal);
 	}
 
-	center->is_busy       = false;
-	center->correct_count = 0;
-	center->id_count      = 0;
-	center->time_current  = ct_current_timespec();
+	mgr->id_count   = 0;
+	mgr->is_busy    = false;
+	mgr->is_correct = false;
+
+	{
+		// 获取当前时间
+		mgr->time_current = ct_current_timespec();
+		// 设置检查时间
+		mgr->time_check = ct_timespec_to_timestamp(&mgr->time_current);
+		// 获取绝对时间
+		const ct_timespec_t time_real = ct_current_realtime();
+		// 当前系统时间和当前绝对时间的时间差
+		mgr->time_different = ct_timespec_calculate_diff(&mgr->time_current, &time_real);
+	}
 }
 
-void ct_timer_center_schedule(void)
+void ct_timer_manager_schedule(void)
 {
 	// 检查系统时间是否发生变化, 如果发生变化, 则重新计算所有定时器的触发时间
-	ct_timer_center_correct();
+	mgr_correct_check();
+
+	// 上锁
+	mgr_lock();
 
 	// 检查是否忙碌
-	if (center->is_busy) {
+	if (mgr->is_busy) {
+		mgr_unlock();
 		return;
 	}
 
-	ct_timer_center_wlock();
-	if (ct_timer_center_isempty()) {
-		ct_timer_center_unlock();
+	// 获取一个待触发的定时器
+	ct_timer_t *const it = mgr_take_trigger_timer();
+	if (ct_timer_isnull(it)) {
+		mgr_unlock();
 		return;
 	}
-	// 获取堆顶元素
-	// 由于最小堆中各个定时器是按照触发时间排序的,
-	// 故如果这个定时器没到触发时间,则后面的定时器全部都不会触发
-	ct_timer_t *const it = ct_timer_center_first();
-	ct_timer_center_unlock();
-	// 判断是否触发定时器
-	if (!ct_timer_istrigger(it)) {
-		return;
-	}
-	// 设置忙碌状态
-	center->is_busy = true;
+
+	mgr->is_busy = true;
+	mgr_unlock();
+
 	// 添加异步工作
-	ct_thpool_add_job(ct_nullptr, ct_timer_center_callback, it);
+	ct_thpool_add_job(ct_nullptr, mgr_trigger_callback, it);
 }
 
 ct_timer_id_t ct_timer_start_oneoff(ct_timestamp_t interval, ct_timer_callback_t callback, ct_any_t arg)
 {
 	const ct_timer_simple_t d = {.interval = interval};
-	return ct_timer_center_create_simple(&d, false, false, callback, arg);
+	return mgr_create_simple(&d, false, false, callback, arg);
 }
 
 ct_timer_id_t ct_timer_start_precision(uint64_t interval, bool isnow, bool is_loop, ct_timer_callback_t callback,
 									   ct_any_t arg)
 {
-	const ct_timer_precision_t d = {
+	const ct_timer_precise_t d = {
 		.interval = (ct_timespec_t){.tv_sec = interval / 1000, .tv_nsec = (interval % 1000) * 1000000}};
-	return ct_timer_center_create_precision(&d, isnow, is_loop, callback, arg);
+	return mgr_create_precision(&d, isnow, is_loop, callback, arg);
 }
 
 ct_timer_id_t ct_timer_start_periodic(ct_timestamp_t interval, bool isnow, ct_timer_callback_t callback, ct_any_t arg)
 {
 	const ct_timer_simple_t d = {.interval = interval};
-	return ct_timer_center_create_simple(&d, isnow, true, callback, arg);
+	return mgr_create_simple(&d, isnow, true, callback, arg);
 }
 
 ct_timer_id_t ct_timer_start_schedule(ct_datetime_t datetime, ct_timer_callback_t callback, ct_any_t arg)
@@ -299,14 +322,14 @@ ct_timer_id_t ct_timer_start_schedule(ct_datetime_t datetime, ct_timer_callback_
 		.param    = datetime,
 		.caculate = ct_timer_caculate_default,
 	};
-	return ct_timer_center_create_complex(&d, false, callback, arg);
+	return mgr_create_complex(&d, false, callback, arg);
 }
 
 ct_timer_id_t ct_timer_start_custom(ct_datetime_t param, ct_timer_caculate_t caculate, bool is_loop,
 									ct_timer_callback_t callback, ct_any_t arg)
 {
 	if (!callback) {
-		cerror(STR_CURRTITLE " start timer failed, callback is null." STR_NEWLINE);
+		fprintf(stderr, STR_CURRTITLE " start timer failed, callback is null." STR_NEWLINE);
 		return CT_TIMER_ID_NULL;
 	}
 
@@ -314,12 +337,12 @@ ct_timer_id_t ct_timer_start_custom(ct_datetime_t param, ct_timer_caculate_t cac
 		.param    = param,
 		.caculate = caculate,
 	};
-	return ct_timer_center_create_complex(&d, is_loop, callback, arg);
+	return mgr_create_complex(&d, is_loop, callback, arg);
 }
 
 void ct_timer_stop(ct_timer_id_t id)
 {
-	ct_timer_center_remove(id);
+	mgr_remove(id);
 }
 
 // -------------------------[STATIC DEFINITION]-------------------------
@@ -334,7 +357,7 @@ static inline bool ct_timer_sorting(const ct_any_buf_t a, const ct_any_buf_t b)
 static inline void ct_timer_init(ct_timer_t *self, uint32_t idx)
 {
 	self->id          = idx + 1;
-	self->type        = CT_TIMER_TYPE_INVALID;
+	self->type        = CTTimer_TypeInvalid;
 	self->is_active   = false;
 	self->callback    = ct_nullptr;
 	*self->arg        = ct_any_null;
@@ -355,43 +378,21 @@ static inline ct_timestamp_t ct_timer_caculate_default(const ct_datetime_buf_t p
 	return curr_timestamp >= param_timestamp ? 0 : param_timestamp;
 }
 
-static inline void ct_timer_center_correct(void)
+static inline ct_timer_id_t mgr_create_simple(const ct_timer_simple_t *d, bool isnow, bool is_loop,
+											  ct_timer_callback_t callback, ct_any_t arg)
 {
-	// 更新当前时间
-	center->time_current = ct_current_timespec();
-	// 每隔 100 * 调度间隔 就检查一次系统时间是否发生变化
-	if (++center->correct_count >= 100) {
-		// 重置计数器
-		center->correct_count = 0;
-		// 获取绝对时间
-		const ct_timespec_t time_real = ct_current_realtime();
-		// 当前系统时间和当前绝对时间的时间差
-		const ct_timespec_t time_diff = ct_timespec_calculate_diff(&center->time_current, &time_real);
-		// 上次时间差与当前时间差的时间差
-		const ct_timespec_t time_tmp = ct_timespec_calculate_diff(&time_diff, &center->time_different);
-		// 两次时间差的时间差超过1秒时, 视为系统时间发生变化, 重新刷新所有定时器的触发时间
-		if (labs(ct_timespec_to_timestamp(&time_tmp)) > 1) {
-			ct_timer_center_trigger_reset(center->time_current, time_tmp);
-			center->time_different = time_diff;
-		}
-	}
-}
-
-static inline ct_timer_id_t ct_timer_center_create_simple(const ct_timer_simple_t *d, bool isnow, bool is_loop,
-														  ct_timer_callback_t callback, ct_any_t arg)
-{
-	ct_timer_center_wlock();
+	mgr_lock();
 	// 获取空闲定时器
 	ct_timer_t *self = ct_timer_idle_get();
 	if (ct_timer_isnull(self)) {
-		ct_timer_center_unlock();
+		mgr_unlock();
 		return CT_TIMER_ID_NULL;
 	}
 	// 生成定时器id
 	const ct_timer_id_t id = ct_timer_generate_id(self);
 	// 设置参数
 	{
-		self->type     = CT_TIMER_TYPE_SIMPLE;
+		self->type     = CTTimer_TypeSimple;
 		self->is_loop  = is_loop;
 		self->callback = callback;
 		*self->arg     = arg;
@@ -410,25 +411,25 @@ static inline ct_timer_id_t ct_timer_center_create_simple(const ct_timer_simple_
 		// 添加定时器
 		ct_timer_add(self);
 	}
-	ct_timer_center_unlock();
+	mgr_unlock();
 	return id;
 }
 
-static inline ct_timer_id_t ct_timer_center_create_precision(const ct_timer_precision_t *d, bool isnow, bool is_loop,
-															 ct_timer_callback_t callback, ct_any_t arg)
+static inline ct_timer_id_t mgr_create_precision(const ct_timer_precise_t *d, bool isnow, bool is_loop,
+												 ct_timer_callback_t callback, ct_any_t arg)
 {
-	ct_timer_center_wlock();
+	mgr_lock();
 	// 获取空闲定时器
 	ct_timer_t *self = ct_timer_idle_get();
 	if (ct_timer_isnull(self)) {
-		ct_timer_center_unlock();
+		mgr_unlock();
 		return CT_TIMER_ID_NULL;
 	}
 	// 生成定时器id
 	const ct_timer_id_t id = ct_timer_generate_id(self);
 	// 设置参数
 	{
-		self->type     = CT_TIMER_TYPE_PRECISION;
+		self->type     = CTTimer_TypePrecise;
 		self->is_loop  = is_loop;
 		self->callback = callback;
 		*self->arg     = arg;
@@ -436,36 +437,36 @@ static inline ct_timer_id_t ct_timer_center_create_precision(const ct_timer_prec
 	// 是否立即执行
 	if (isnow) {
 		// 设置间隔
-		self->d.precision.interval = CT_TIMESPEC_NULL;
+		self->d.precise.interval = CT_TIMESPEC_NULL;
 		// 添加定时器
 		ct_timer_add(self);
 		// 设置间隔
-		self->d.precision.interval = d->interval;
+		self->d.precise.interval = d->interval;
 	} else {
 		// 设置间隔
-		self->d.precision.interval = d->interval;
+		self->d.precise.interval = d->interval;
 		// 添加定时器
 		ct_timer_add(self);
 	}
-	ct_timer_center_unlock();
+	mgr_unlock();
 	return id;
 }
 
-static inline ct_timer_id_t ct_timer_center_create_complex(const ct_timer_complex_t *d, bool is_loop,
-														   ct_timer_callback_t callback, ct_any_t arg)
+static inline ct_timer_id_t mgr_create_complex(const ct_timer_complex_t *d, bool is_loop, ct_timer_callback_t callback,
+											   ct_any_t arg)
 {
-	ct_timer_center_wlock();
+	mgr_lock();
 	// 获取空闲定时器
 	ct_timer_t *self = ct_timer_idle_get();
 	if (ct_timer_isnull(self)) {
-		ct_timer_center_unlock();
+		mgr_unlock();
 		return CT_TIMER_ID_NULL;
 	}
 	// 生成定时器id
 	const ct_timer_id_t id = ct_timer_generate_id(self);
 	// 设置参数
 	{
-		self->type               = CT_TIMER_TYPE_COMPLEX;
+		self->type               = CTTimer_TypeComplex;
 		self->is_loop            = is_loop;
 		self->callback           = callback;
 		*self->arg               = arg;
@@ -474,16 +475,16 @@ static inline ct_timer_id_t ct_timer_center_create_complex(const ct_timer_comple
 	}
 	// 添加定时器
 	ct_timer_add(self);
-	ct_timer_center_unlock();
+	mgr_unlock();
 	return id;
 }
 
-static inline void ct_timer_center_remove(ct_timer_id_t id)
+static inline void mgr_remove(ct_timer_id_t id)
 {
-	ct_timer_center_rlock();
+	mgr_lock();
 	// 根据id查找定时器
 	ct_timer_t *self = ct_timer_get(id);
-	ct_timer_center_unlock();
+	mgr_unlock();
 
 	if (!ct_timer_isnull(self)) {
 		// 置为非激活状态
@@ -496,21 +497,104 @@ static inline void ct_timer_center_remove(ct_timer_id_t id)
 	}
 }
 
-void ct_timer_center_trigger_reset(ct_timespec_t time_current, ct_timespec_t diff)
+static inline void mgr_correct_check(void)
 {
-	ct_timer_center_wlock();
+	// 更新当前时间
+	mgr->time_current = ct_current_timespec();
+
+	// 是否达到最后检查时间
+	if (mgr->time_check > ct_timespec_to_timestamp(&mgr->time_current)) {
+		return;
+	}
+
+	// 获取绝对时间
+	const ct_timespec_t time_real = ct_current_realtime();
+	// 当前系统时间和当前绝对时间的时间差
+	const ct_timespec_t time_diff = ct_timespec_calculate_diff(&mgr->time_current, &time_real);
+	// 上次时间差与当前时间差的时间差
+	const ct_timespec_t time_change = ct_timespec_calculate_diff(&time_diff, &mgr->time_different);
+
+	// 两次时间差的时间差超过1秒时, 视为系统时间发生变化, 重新刷新所有定时器的触发时间
+	if (labs(ct_timespec_to_timestamp(&time_change)) <= 1) {
+		mgr->time_check = ct_timespec_to_timestamp(&mgr->time_current) + 1;
+		return;
+	}
+
+	mgr_lock();
+	if (mgr->is_correct) {
+		mgr_unlock();
+		return;
+	}
+	// 设置修正状态
+	mgr->is_correct = true;
+	// 更新时间差
+	mgr->time_different = time_diff;
+	// 更新时间变更值
+	mgr->time_change = time_change;
+	// 重置计数器
+	mgr->time_check = ct_timespec_to_timestamp(&mgr->time_current) + 1;
+	// 检查是否忙碌
+	if (mgr->is_busy) {
+		mgr_unlock();
+		return;
+	}
+	// 设置忙碌状态
+	mgr->is_busy = true;
+	mgr_unlock();
+
+	// 添加异步工作
+	ct_thpool_add_job(ct_nullptr, mgr_correct_callback, ct_nullptr);
+}
+
+static inline void mgr_trigger_callback(void *arg)
+{
+	assert(arg);
+	ct_timer_t *it = (ct_timer_t *)arg;
+
+	// 不断取出定时器并处理, 直到不存在定时器或者存在定时器不触发时停止
+	ct_forever {
+		if (it->is_active) {
+			// 添加异步工作
+			ct_thpool_add_job(ct_nullptr, mgr_timer_callback, it);
+		}
+
+		mgr_lock();
+		// 是否需要执行修正
+		if (mgr->is_correct) {
+			mgr_unlock();
+			// 添加异步工作
+			ct_thpool_add_job(ct_nullptr, mgr_correct_callback, ct_nullptr);
+			return;
+		}
+
+		// 获取一个待触发的定时器
+		it = mgr_take_trigger_timer();
+		if (ct_timer_isnull(it)) {
+			mgr->is_busy = false;
+			mgr_unlock();
+			return;
+		}
+
+		mgr_unlock();
+		ct_thread_msleep(5);
+	}
+}
+
+void mgr_correct_callback(void *arg)
+{
+	mgr_lock();
 	// 获取定时器数量
-	const size_t size = ct_timer_center_size();
+	const size_t size = mgr_size();
 	if (!size) {
-		ct_timer_center_unlock();
+		mgr_unlock();
 		return;
 	}
 	// 取出所有定时器
 	ct_timer_t *tmp[size];
 	for (size_t i = 0; i < size; i++) {
-		tmp[i] = ct_timer_center_first_take();
+		tmp[i] = mgr_first_take();
 	}
-	ct_timer_center_unlock();
+	mgr_unlock();
 
 	// 重新计算所有定时器的触发时间
 	ct_timer_t *it = ct_nullptr;
@@ -519,73 +603,69 @@ void ct_timer_center_trigger_reset(ct_timespec_t time_current, ct_timespec_t dif
 		it = tmp[i];
 		// 计算触发时间
 		switch (it->type) {
-			case CT_TIMER_TYPE_SIMPLE:
-			case CT_TIMER_TYPE_PRECISION: {
-				it->trigger_new = ct_timespec_calculate_sum(&it->trigger_new, &diff);
+			case CTTimer_TypeSimple:
+			case CTTimer_TypePrecise: {
+				it->trigger_new = ct_timespec_calculate_sum(&it->trigger_new, &mgr->time_change);
 			} break;
-			case CT_TIMER_TYPE_COMPLEX: {
+			case CTTimer_TypeComplex: {
 				if (!CT_TIMER_COMPLEX(it)->caculate) {
-					cerror(STR_CURRTITLE " timer error, caculate function not found. " STR_NEWLINE);
+					fprintf(stderr, STR_CURRTITLE " timer error, caculate function not found. " STR_NEWLINE);
 					continue;
 				}
-				const ct_datetime_t  current_datetime = ct_timespec_to_datetime(&time_current);
+				const ct_datetime_t  current_datetime = ct_timespec_to_datetime(&mgr->time_current);
 				const ct_timestamp_t timestamp =
 					CT_TIMER_COMPLEX(it)->caculate(&CT_TIMER_COMPLEX(it)->param, &current_datetime);
 				it->trigger_new = ct_timestamp_to_timespec(timestamp);
 			} break;
 			default: continue;
 		}
-		ct_timer_center_wlock();
+		mgr_lock();
 		// 插入元素
 		ct_timer_insert(it);
-		ct_timer_center_unlock();
+		mgr_unlock();
 	}
+
+	mgr_lock();
+	// 重置修正状态
+	mgr->is_correct = false;
+	// 重置忙碌状态
+	mgr->is_busy = false;
+	mgr_unlock();
+	return;
+	ct_unused(arg);
 }
 
-static inline void ct_timer_center_callback(void *arg)
+static inline void mgr_timer_callback(void *arg)
 {
 	assert(arg);
 	ct_timer_t *it = (ct_timer_t *)arg;
-	// 不断取出定时器并处理, 直到不存在定时器或者存在定时器不触发时停止
-	ct_forever {
-		if (it->is_active) {
-			// 执行定时器回调
-			it->callback(it->id, it->arg);
-		}
+	it->callback(it->id, it->arg);
 
-		{
-			ct_timer_center_wlock();
-			// 移除堆顶元素
-			ct_heap_remove(center->heap);
-			// 重新添加定时器
-			ct_timer_refresh(it);
-			// 是否存在定时器
-			if (ct_timer_center_isempty()) {
-				ct_timer_center_unlock();
-				break;
-			}
-			// 获取堆顶元素
-			// 由于最小堆中各个定时器是按照触发时间排序的,
-			// 故如果这个定时器没到触发时间,则后面的定时器全部都不会触发
-			it = ct_timer_center_first();
-			ct_timer_center_unlock();
-		}
+	mgr_lock();
+	ct_timer_refresh(it);  // 重新添加定时器
+	mgr_unlock();
+}
 
-		// 判断是否触发定时器
-		if (!ct_timer_istrigger(it)) {
-			break;
-		}
+static inline ct_timer_t *mgr_take_trigger_timer(void)
+{
+	ct_timer_t *const it = mgr_first();
+	if (it == ct_nullptr || !ct_timer_istrigger(it)) {
+		return CT_TIMER_NULL;
 	}
-	// 重置忙碌状态
-	center->is_busy = false;
+
+	// 移除堆顶元素
+	ct_heap_remove(mgr->heap);
+	return it;
 }
 
 static inline ct_timer_id_t ct_timer_generate_id(ct_timer_t *self)
 {
-	if (++center->id_count >= INT32_MAX) {
-		center->id_count = 0;
+	if (mgr->id_count < INT32_MAX) {
+		mgr->id_count++;
+	} else {
+		mgr->id_count = 0;
 	}
-	return self->id = ((ct_timer_id_t)center->id_count << 32) | (self->id & 0x00000000FFFFFFFF);
+	return self->id = ((ct_timer_id_t)mgr->id_count << 32) | (self->id & 0x00000000FFFFFFFF);
 }
 
 static inline ct_timer_t *ct_timer_get(ct_timer_id_t id)
@@ -597,8 +677,8 @@ static inline ct_timer_t *ct_timer_get(ct_timer_id_t id)
 	}
 
 	const size_t idx = CT_TIMER_ID_TO_INDEX(id);
-	if (idx < ct_timer_center_max()) {
-		ct_timer_t *it = center->timer_buffer[idx];
+	if (idx < mgr_max()) {
+		ct_timer_t *it = mgr->timer_buffer[idx];
 		if (it->id == id) {
 			return it;
 		}
@@ -611,17 +691,17 @@ static inline ct_timer_t *ct_timer_get(ct_timer_id_t id)
 static inline ct_timer_t *ct_timer_idle_get(void)
 {
 	// 判断启用数量是否达到上限
-	if (ct_timer_center_isfull()) {
+	if (mgr_isfull()) {
 		cwarning(STR_CURRTITLE " find idle timer error, timer is full." STR_NEWLINE);
 		return CT_TIMER_ID_NULL;
 	}
 	// 检查可用链表是否为空
-	if (ct_list_isempty(center->idle_list)) {
+	if (ct_list_isempty(mgr->idle_list)) {
 		cwarning(STR_CURRTITLE " find idle timer error, unknown error." STR_NEWLINE);
 		return CT_TIMER_ID_NULL;
 	}
 	// 取出第一个可用定时器
-	ct_lists_t *it = ct_list_first(center->idle_list);
+	ct_lists_t *it = ct_list_first(mgr->idle_list);
 	return ct_list_entry(it, ct_timer_t, list);
 }
 
@@ -641,7 +721,7 @@ static inline void ct_timer_add(ct_timer_t *self)
 
 static inline void ct_timer_insert(ct_timer_t *self)
 {
-	ct_heap_insert(center->heap, CT_ANY_POINTER(self));
+	ct_heap_insert(mgr->heap, CT_ANY_POINTER(self));
 }
 
 static inline void ct_timer_close(ct_timer_t *self)
@@ -649,7 +729,7 @@ static inline void ct_timer_close(ct_timer_t *self)
 	// 重置定时器ID
 	CT_TIMER_ID_RESET(self);
 	// 插入到可用链表
-	ct_list_append(center->idle_list, self->list);
+	ct_list_append(mgr->idle_list, self->list);
 }
 
 static inline void ct_timer_refresh(ct_timer_t *self)
@@ -668,7 +748,7 @@ static inline void ct_timer_refresh(ct_timer_t *self)
 			break;
 		}
 		// 检查触发时间是否小于当前时间
-		if (ct_timespec_compare(&self->trigger_new, &center->time_current) <= CTCompare_ResultEqual) {
+		if (ct_timespec_compare(&self->trigger_new, &mgr->time_current) <= CTCompare_ResultEqual) {
 			break;
 		}
 		// 插入元素
@@ -682,19 +762,19 @@ static inline ct_timespec_t ct_timer_trigger_caculate(ct_timer_t *self)
 {
 	ct_timespec_t result = CT_TIMESPEC_INITIALIZATION;
 	switch (self->type) {
-		case CT_TIMER_TYPE_SIMPLE: {
-			result = ct_timer_center_current_timespec_get();
+		case CTTimer_TypeSimple: {
+			result = mgr_current_timespec_get();
 			result.tv_sec += CT_TIMER_SIMPLE(self)->interval;
 			return result;
 		}
-		case CT_TIMER_TYPE_PRECISION: {
-			result = ct_timer_center_current_timespec_get();
-			result = ct_timespec_calculate_sum(&result, &CT_TIMER_PRECISION(self)->interval);
+		case CTTimer_TypePrecise: {
+			result = mgr_current_timespec_get();
+			result = ct_timespec_calculate_sum(&result, &CT_TIMER_PRECISE(self)->interval);
 			return result;
 		}
-		case CT_TIMER_TYPE_COMPLEX: {
+		case CTTimer_TypeComplex: {
 			ct_datetime_t current_datetime;
-			ct_datetime_from_timestamp(&current_datetime, ct_timer_center_current_timestamp_get());
+			ct_datetime_from_timestamp(&current_datetime, mgr_current_timestamp_get());
 			result.tv_sec = CT_TIMER_COMPLEX(self)->caculate(&CT_TIMER_COMPLEX(self)->param, &current_datetime);
 			return result;
 		}
@@ -711,15 +791,15 @@ static inline bool ct_timer_trigger_refresh(ct_timer_t *self)
 static inline bool ct_timer_istrigger(ct_timer_t *self)
 {
 	return !ct_timespec_isnull(&self->trigger_new) &&
-		   ct_timespec_compare(&self->trigger_new, &center->time_current) <= CTCompare_ResultEqual;
+		   ct_timespec_compare(&self->trigger_new, &mgr->time_current) <= CTCompare_ResultEqual;
 }
 
-static inline ct_timestamp_t ct_timer_center_current_timestamp_get(void)
+static inline ct_timestamp_t mgr_current_timestamp_get(void)
 {
-	return center->time_current.tv_sec;
+	return mgr->time_current.tv_sec;
 }
 
-static inline ct_timespec_t ct_timer_center_current_timespec_get(void)
+static inline ct_timespec_t mgr_current_timespec_get(void)
 {
-	return center->time_current;
+	return mgr->time_current;
 }
