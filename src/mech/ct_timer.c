@@ -127,7 +127,7 @@ static struct ct_timer_manager {
 	ct_timer_buf_t timer_null;                  // 空定时器
 	ct_timespec_t  time_current;                // 当前时间
 	ct_timespec_t  time_different;              // 绝对时间和相对时间的差值
-	ct_timespec_t  timer_expect;                // 修正参考时间
+	ct_timespec_t  time_expect;                 // 修正参考时间
 	ct_timespec_t  time_change;                 // 两次时间差的差值
 	uint8_t        correct_count;               // 修正检查计数
 	bool           is_busy;                     // 是否忙碌
@@ -528,10 +528,10 @@ static inline void mgr_correct_check(void)
 		mgr_unlock();
 		return;
 	}
-	// 更新修正参考时间
-	mgr->timer_expect = ct_timespec_calculate_sum(&mgr->time_current, &mgr->time_change);
 	// 设置修正状态
 	mgr->is_correct = true;
+	// 更新修正参考时间
+	mgr->time_expect = ct_timespec_calculate_sum(&time_real, &mgr->time_different);
 	// 更新时间差
 	mgr->time_different = time_diff;
 	// 更新时间变更值
@@ -606,10 +606,19 @@ void mgr_correct_callback(void *arg)
 		it = tmp[i];
 		// 计算触发时间
 		switch (it->type) {
-			case CTTimer_TypeSimple:
+			case CTTimer_TypeSimple: {
+				const ct_timespec_t time_diff = ct_timespec_calculate_diff(&it->trigger_new, &mgr->time_current);
+				if (ct_timespec_to_timestamp(&time_diff) > CT_TIMER_SIMPLE(it)->interval) {
+					const ct_timespec_t diff = ct_timespec_calculate_diff(&it->trigger_new, &mgr->time_expect);
+					it->trigger_new          = ct_timespec_calculate_sum(&mgr->time_current, &diff);
+				}
+			} break;
 			case CTTimer_TypePrecise: {
-				const ct_timespec_t diff = ct_timespec_calculate_diff(&mgr->timer_expect, &it->trigger_new);
-				it->trigger_new          = ct_timespec_calculate_sum(&it->trigger_new, &diff);
+				const ct_timespec_t time_diff = ct_timespec_calculate_diff(&it->trigger_new, &mgr->time_current);
+				if (ct_timespec_compare(&time_diff, &CT_TIMER_PRECISE(it)->interval) > 0) {
+					const ct_timespec_t diff = ct_timespec_calculate_diff(&it->trigger_new, &mgr->time_expect);
+					it->trigger_new          = ct_timespec_calculate_sum(&mgr->time_current, &diff);
+				}
 			} break;
 			case CTTimer_TypeComplex: {
 				if (!CT_TIMER_COMPLEX(it)->caculate) {
