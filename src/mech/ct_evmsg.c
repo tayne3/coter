@@ -45,13 +45,14 @@ typedef struct ct_evmsg_subscriber {
 /// 消息处理函数
 bool ct_evmsg_handler(ct_evmsg_msg_buf_t msg, void *userdata);
 
-static struct ct_evmsg_center {
+// 事件消息管理器
+static struct ct_evmsg_mgr {
 	bool                  is_busy;                           // 是否正在处理事件消息
 	ct_list_buf_t         subscriber_list[CTEvMsgType_Max];  // 订阅者链表
 	ct_msgqueue_buf_t     msgqueue;                          // 事件消息队列
 	ct_evmsg_subscriber_t subscriber_itself;                 // 事件中枢自身订阅者
 	ct_evmsg_msg_buf_t    msg;                               // 正在处理的事件消息
-} center[1] = {{
+} mgr[1] = {{
 	.is_busy = false,
 	.subscriber_itself =
 		{
@@ -66,33 +67,32 @@ static inline void ct_evmsg_callback(void *arg);
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
-void ct_evmsg_center_init(void)
+void ct_evmsg_mgr_init(void)
 {
 	// 事件消息缓冲区
 	static ct_evmsg_msg_t ct_evmsg_msg_buffer[CTEVMSG_MSG_MAX];
 	// 初始化事件消息
-	ct_msgqueue_init(center->msgqueue, ct_evmsg_msg_buffer, sizeof(ct_evmsg_msg_t), CTEVMSG_MSG_MAX);
+	ct_msgqueue_init(mgr->msgqueue, ct_evmsg_msg_buffer, sizeof(ct_evmsg_msg_t), CTEVMSG_MSG_MAX);
 	// 初始化订阅者链表
 	for (size_t i = 0; i < CTEvMsgType_Max; i++) {
-		ct_list_init(center->subscriber_list[i]);
+		ct_list_init(mgr->subscriber_list[i]);
 	}
 
-	ct_list_init(center->subscriber_itself.list);
-	ct_list_append(center->subscriber_list[CTEvMsgType_Itself], center->subscriber_itself.list);
+	ct_list_init(mgr->subscriber_itself.list);
+	ct_list_append(mgr->subscriber_list[CTEvMsgType_Itself], mgr->subscriber_itself.list);
 }
 
-void ct_evmsg_center_destroy(void)
+void ct_evmsg_mgr_destroy(void)
 {
 	// 等待事件消息处理完成
-	for (; center->is_busy;) {
+	for (; mgr->is_busy;) {
 		ct_thread_msleep(10);
 	}
 
 	for (size_t i = 0; i < CTEvMsgType_Max; i++) {
 		// 遍历所有订阅者
-		ct_list_foreach_entry_safe(subscriber, center->subscriber_list[i], ct_evmsg_subscriber_t, list)
-		{
-			if (subscriber == &center->subscriber_itself) {
+		ct_list_foreach_entry_safe (subscriber, mgr->subscriber_list[i], ct_evmsg_subscriber_t, list) {
+			if (subscriber == &mgr->subscriber_itself) {
 				continue;
 			}
 			ct_list_remove(subscriber->list);
@@ -101,18 +101,18 @@ void ct_evmsg_center_destroy(void)
 	}
 }
 
-void ct_evmsg_center_schedule(void)
+void ct_evmsg_mgr_schedule(void)
 {
 	// 检查是否忙碌
-	if (center->is_busy) {
+	if (mgr->is_busy) {
 		return;
 	}
 	// 取出事件消息, 失败则退出
-	if (!ct_msgqueue_try_dequeue(center->msgqueue, center->msg)) {
+	if (!ct_msgqueue_try_dequeue(mgr->msgqueue, mgr->msg)) {
 		return;
 	}
 	// 设置忙碌状态
-	center->is_busy = true;
+	mgr->is_busy = true;
 	// 添加异步工作
 	ct_thpool_add_job(ct_nullptr, ct_evmsg_callback, ct_nullptr);
 }
@@ -153,7 +153,7 @@ void ct_evmsg_publish(ct_evmsg_msg_buf_t msg)
 		msg->data = data;
 	}
 
-	ct_msgqueue_enqueue(center->msgqueue, msg);
+	ct_msgqueue_enqueue(mgr->msgqueue, msg);
 }
 
 // -------------------------[STATIC DEFINITION]-------------------------
@@ -168,7 +168,7 @@ bool ct_evmsg_handler(ct_evmsg_msg_buf_t msg, void *userdata)
 			assert(it);
 			memcpy(it, subscriber, sizeof(ct_evmsg_subscriber_t));
 			ct_list_init(it->list);
-			ct_list_append(center->subscriber_list[subscriber->type], it->list);
+			ct_list_append(mgr->subscriber_list[subscriber->type], it->list);
 		} break;
 		case EvMsgID_None:
 		default: break;
@@ -183,30 +183,29 @@ static inline void ct_evmsg_callback(void *arg)
 	// 不断取出事件消息并处理
 	ct_forever {
 		// 遍历所有订阅者
-		ct_list_foreach_entry(subscriber, center->subscriber_list[center->msg->type], ct_evmsg_subscriber_t, list)
-		{
+		ct_list_foreach_entry (subscriber, mgr->subscriber_list[mgr->msg->type], ct_evmsg_subscriber_t, list) {
 			assert(subscriber);
 			// 跳过事件类型不匹配的订阅者
-			if (subscriber->type != center->msg->type) {
+			if (subscriber->type != mgr->msg->type) {
 				continue;
 			}
 			// 执行处理
-			if (subscriber->handler(center->msg, subscriber->userdata)) {
+			if (subscriber->handler(mgr->msg, subscriber->userdata)) {
 				break;
 			}
 		}
 		// 释放处理内存
-		if (center->msg->size > 0 && center->msg->data) {
-			free(center->msg->data);
+		if (mgr->msg->size > 0 && mgr->msg->data) {
+			free(mgr->msg->data);
 		}
 		// 取出下一条事件消息, 失败则退出循环
-		if (!ct_msgqueue_try_dequeue(center->msgqueue, center->msg)) {
+		if (!ct_msgqueue_try_dequeue(mgr->msgqueue, mgr->msg)) {
 			break;
 		}
 	}
 
 	// 重置忙碌状态
-	center->is_busy = false;
+	mgr->is_busy = false;
 	return;
 	ct_unused(arg);
 }

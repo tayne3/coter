@@ -40,13 +40,13 @@ int main(void)
 	{
 		for (size_t count = 0; count < TEST_THREAD_NUMBER;) {
 			for (size_t n = 0; n < 1000 && count < TEST_THREAD_NUMBER; n++) {
-				ct_evmsg_center_schedule();
+				ct_evmsg_mgr_schedule();
 				for (count = 0; count < TEST_THREAD_NUMBER && is_exit[count]; count++) {}
 			}
 			ct_thread_msleep(5);
 		}
-		ct_evmsg_center_schedule();
-		ct_evmsg_center_destroy();
+		ct_evmsg_mgr_schedule();
+		ct_evmsg_mgr_destroy();
 	}
 
 	// 等待线程结束

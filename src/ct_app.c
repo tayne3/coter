@@ -82,8 +82,8 @@ ct_app_ptr_t ct_app_create(void)
 	ct_app_start();                                   // 输出启动信息
 	ct_app_exception_init(ct_app_exception_handler);  // 初始化异常处理函数
 	app->thpool = ct_thpool_global_create(16, 50);    // 创建全局线程池
-	ct_timer_manager_init();                          // 初始化定时器中枢
-	ct_evmsg_center_init();                           // 初始化事件消息中枢
+	ct_timer_mgr_init();                              // 初始化定时器中枢
+	ct_evmsg_mgr_init();                              // 初始化事件消息中枢
 	return app;
 }
 
@@ -93,9 +93,9 @@ int ct_app_exec(ct_app_ptr_t self)
 	self->tid      = ct_thread_tid();       // 记录主线程ID
 	self->abnormal = setjmp(self->jmpbuf);  // 记录上下文信息
 	for (; !self->abnormal;) {
-		ct_log_center_schedule();                    // 执行日志调度
-		ct_timer_manager_schedule();                 // 执行定时器调度
-		ct_evmsg_center_schedule();                  // 执行事件消息调度
+		ct_log_mgr_schedule();                       // 执行日志调度
+		ct_timer_mgr_schedule();                     // 执行定时器调度
+		ct_evmsg_mgr_schedule();                     // 执行事件消息调度
 		ct_thread_msleep(CT_APP_SCHEDULE_INTERVAL);  // 调度间隔
 	}
 	self->tid = 0;                   // 重置主线程ID

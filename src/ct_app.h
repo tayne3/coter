@@ -11,6 +11,7 @@ extern "C" {
 
 #include "base/ct_types.h"
 #include "base/ct_version.h"
+#include "prefix/ct_assert.h"
 
 /**
  * @brief coter 应用实例
@@ -18,32 +19,11 @@ extern "C" {
 typedef struct ct_app ct_app_t, *ct_app_ptr_t;
 
 // 断言
-#ifndef __coter_version_debug__
-#warning "Missing macro definition"
-#define ct_assert(x)                                                                                                \
-	do {                                                                                                            \
-		if (!(x)) {                                                                                                 \
-			cfatal(STR_CURRTITLE " assert failed: `%s`, at %d of `%s`." STR_NEWLINE, #x, __ct_line__, __ct_func__); \
-			ct_app_exit(SIGABRT);                                                                                   \
-		}                                                                                                           \
-	} while (0)
-#elif __coter_version_debug__
-#define ct_assert(x)                                                                                                \
-	do {                                                                                                            \
-		if (!(x)) {                                                                                                 \
-			cfatal(STR_CURRTITLE " assert failed: `%s`, at %d of `%s`." STR_NEWLINE, #x, __ct_line__, __ct_func__); \
-			ct_app_exit(SIGABRT);                                                                                   \
-		}                                                                                                           \
-	} while (0)
+#if __coter_version_debug__
+#define ct_assert(__x) __ct_assert_impl(!!(__x), #__x, CT_CONTEXT_CURR)
 #else
 #define ct_assert(x)
 #endif
-
-// 未知错误
-#define cerror_unknown()                                                                                          \
-	do {                                                                                                          \
-		cfatal(STR_CURRTITLE " an unknown error occurred, at %d of `%s`." STR_NEWLINE, __ct_line__, __ct_func__); \
-	} while (0)
 
 /**
  * @brief 创建应用实例

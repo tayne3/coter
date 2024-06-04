@@ -27,13 +27,14 @@ typedef void (*ct_log_msg_push_t)(ct_log_msg_buf_t msg);
 typedef void (*ct_log_msg_flush_t)(void);
 typedef void (*ct_log_msg_schedule_t)(void);
 
-static struct ct_log_center_setting {
+// 日志管理器
+static struct ct_log_manager {
 	int                   level;         // 日志级别 (默认: CTLogLevel_Warning)
 	bool                  is_asyn;       // 是否异步输出日志 (默认: false)
 	ct_log_msg_push_t     msg_push;      // 日志输出函数
 	ct_log_msg_flush_t    msg_flush;     // 日志缓冲区刷新函数
 	ct_log_msg_schedule_t msg_schedule;  // 日志调度函数
-} setting[1] = {{
+} mgr[1] = {{
 	.level        = CTLogLevel_Warning,
 	.is_asyn      = false,
 	.msg_push     = ct_log_msg_push,
@@ -46,7 +47,7 @@ static struct ct_log_center_setting {
 void ct_log_msg_debug(int type, int level, const char *file, const char *func, int line, const char *format, ...)
 {
 	assert(CTLOG_LEVEL_ISVALID(level) && CTLOG_TYPE_ISVALID(type));
-	if (level < ct_log_center_get_level()) {
+	if (level < ct_log_mgr_get_level()) {
 		return;
 	}
 
@@ -69,13 +70,13 @@ void ct_log_msg_debug(int type, int level, const char *file, const char *func, i
 		va_end(args);
 	}
 
-	setting->msg_push(msg);
+	mgr->msg_push(msg);
 }
 
 void ct_log_msg_basic(int type, int level, const char *format, ...)
 {
 	assert(CTLOG_LEVEL_ISVALID(level) && CTLOG_TYPE_ISVALID(type));
-	if (level < ct_log_center_get_level()) {
+	if (level < ct_log_mgr_get_level()) {
 		return;
 	}
 
@@ -97,8 +98,8 @@ void ct_log_msg_basic(int type, int level, const char *format, ...)
 		va_end(args);
 	}
 
-	assert(setting->msg_push);
-	setting->msg_push(msg);
+	assert(mgr->msg_push);
+	mgr->msg_push(msg);
 }
 
 void ct_log_msg_hex(int type, int level, const uint8_t *array, int length, const char *format, ...)
@@ -129,38 +130,38 @@ void ct_log_msg_hex(int type, int level, const uint8_t *array, int length, const
 
 void ct_log_flush(void)
 {
-	assert(setting->msg_flush);
-	setting->msg_flush();
+	assert(mgr->msg_flush);
+	mgr->msg_flush();
 }
 
-void ct_log_center_schedule(void)
+void ct_log_mgr_schedule(void)
 {
-	assert(setting->msg_schedule);
-	setting->msg_schedule();
+	assert(mgr->msg_schedule);
+	mgr->msg_schedule();
 }
 
-int ct_log_center_get_level(void)
+int ct_log_mgr_get_level(void)
 {
-	return setting->level;
+	return mgr->level;
 }
 
-void ct_log_center_set_level(int level)
+void ct_log_mgr_set_level(int level)
 {
-	setting->level = CTLOG_LEVEL_ISVALID(level) ? level : CTLogLevel_Warning;
+	mgr->level = CTLOG_LEVEL_ISVALID(level) ? level : CTLogLevel_Warning;
 }
 
-void ct_log_center_set_asyn(bool is_asyn)
+void ct_log_mgr_set_asyn(bool is_asyn)
 {
-	setting->is_asyn = is_asyn;
+	mgr->is_asyn = is_asyn;
 	if (is_asyn) {
-		setting->msg_push     = ct_log_msg_push_asyn;
-		setting->msg_flush    = ct_log_msg_flush_asyn;
-		setting->msg_schedule = ct_log_msg_schedule_asyn;
+		mgr->msg_push     = ct_log_msg_push_asyn;
+		mgr->msg_flush    = ct_log_msg_flush_asyn;
+		mgr->msg_schedule = ct_log_msg_schedule_asyn;
 		ct_log_msg_flush();
 	} else {
-		setting->msg_push     = ct_log_msg_push;
-		setting->msg_flush    = ct_log_msg_flush;
-		setting->msg_schedule = ct_log_msg_schedule;
+		mgr->msg_push     = ct_log_msg_push;
+		mgr->msg_flush    = ct_log_msg_flush;
+		mgr->msg_schedule = ct_log_msg_schedule;
 		ct_log_msg_flush_asyn();
 	}
 }

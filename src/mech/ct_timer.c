@@ -127,8 +127,9 @@ static struct ct_timer_manager {
 	ct_timer_buf_t timer_null;                  // 空定时器
 	ct_timespec_t  time_current;                // 当前时间
 	ct_timespec_t  time_different;              // 绝对时间和相对时间的差值
+	ct_timespec_t  timer_expect;                // 修正参考时间
 	ct_timespec_t  time_change;                 // 两次时间差的差值
-	ct_timestamp_t time_check;                  // 下次检查时间
+	uint8_t        correct_count;               // 修正检查计数
 	bool           is_busy;                     // 是否忙碌
 	bool           is_correct;                  // 是否修正
 } mgr[1];
@@ -219,7 +220,7 @@ static inline ct_timespec_t mgr_current_timespec_get(void);
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
-void ct_timer_manager_init(void)
+void ct_timer_mgr_init(void)
 {
 	// 初始化线程锁
 	ct_mutex_init(mgr->lock);
@@ -259,8 +260,8 @@ void ct_timer_manager_init(void)
 	{
 		// 获取当前时间
 		mgr->time_current = ct_current_timespec();
-		// 设置检查时间
-		mgr->time_check = ct_timespec_to_timestamp(&mgr->time_current);
+		// 设置修正检查计数
+		mgr->correct_count = 0;
 		// 获取绝对时间
 		const ct_timespec_t time_real = ct_current_realtime();
 		// 当前系统时间和当前绝对时间的时间差
@@ -268,7 +269,7 @@ void ct_timer_manager_init(void)
 	}
 }
 
-void ct_timer_manager_schedule(void)
+void ct_timer_mgr_schedule(void)
 {
 	// 检查系统时间是否发生变化, 如果发生变化, 则重新计算所有定时器的触发时间
 	mgr_correct_check();
@@ -503,8 +504,11 @@ static inline void mgr_correct_check(void)
 	mgr->time_current = ct_current_timespec();
 
 	// 是否达到最后检查时间
-	if (mgr->time_check > ct_timespec_to_timestamp(&mgr->time_current)) {
+	if (mgr->correct_count < 100) {
+		mgr->correct_count++;
 		return;
+	} else {
+		mgr->correct_count = 0;
 	}
 
 	// 获取绝对时间
@@ -516,7 +520,6 @@ static inline void mgr_correct_check(void)
 
 	// 两次时间差的时间差超过1秒时, 视为系统时间发生变化, 重新刷新所有定时器的触发时间
 	if (labs(ct_timespec_to_timestamp(&time_change)) <= 1) {
-		mgr->time_check = ct_timespec_to_timestamp(&mgr->time_current) + 1;
 		return;
 	}
 
@@ -525,14 +528,14 @@ static inline void mgr_correct_check(void)
 		mgr_unlock();
 		return;
 	}
+	// 更新修正参考时间
+	mgr->timer_expect = ct_timespec_calculate_sum(&mgr->time_current, &mgr->time_change);
 	// 设置修正状态
 	mgr->is_correct = true;
 	// 更新时间差
 	mgr->time_different = time_diff;
 	// 更新时间变更值
 	mgr->time_change = time_change;
-	// 重置计数器
-	mgr->time_check = ct_timespec_to_timestamp(&mgr->time_current) + 1;
 	// 检查是否忙碌
 	if (mgr->is_busy) {
 		mgr_unlock();
@@ -605,7 +608,8 @@ void mgr_correct_callback(void *arg)
 		switch (it->type) {
 			case CTTimer_TypeSimple:
 			case CTTimer_TypePrecise: {
-				it->trigger_new = ct_timespec_calculate_sum(&it->trigger_new, &mgr->time_change);
+				const ct_timespec_t diff = ct_timespec_calculate_diff(&mgr->timer_expect, &it->trigger_new);
+				it->trigger_new          = ct_timespec_calculate_sum(&it->trigger_new, &diff);
 			} break;
 			case CTTimer_TypeComplex: {
 				if (!CT_TIMER_COMPLEX(it)->caculate) {

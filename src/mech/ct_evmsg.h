@@ -38,17 +38,17 @@ typedef bool (*ct_evmsg_handler_t)(ct_evmsg_msg_buf_t msg, void *userdata);
 /**
  * @brief 初始化事件消息中枢
  */
-void ct_evmsg_center_init(void) __ct_func_throw;
+void ct_evmsg_mgr_init(void) __ct_func_throw;
 
 /**
  * @brief 销毁事件消息中枢
  */
-void ct_evmsg_center_destroy(void);
+void ct_evmsg_mgr_destroy(void);
 
 /**
  * @brief 执行事件消息中枢任务
  */
-void ct_evmsg_center_schedule(void);
+void ct_evmsg_mgr_schedule(void);
 
 /**
  * @brief 订阅特定类型的事件

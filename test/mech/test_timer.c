@@ -38,7 +38,7 @@ int main(void)
 static inline void *test_timer_exec(void *arg)
 {
 	for (; !test_isexit;) {
-		ct_timer_manager_schedule();
+		ct_timer_mgr_schedule();
 		ct_thread_msleep(10);
 	}
 	ct_thread_exit(ct_nullptr);

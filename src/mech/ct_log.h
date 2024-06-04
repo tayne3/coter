@@ -113,6 +113,12 @@ enum ct_log_level {
 # define cerror_hex(__array, __length, ...)         ct_log_msg_hex(CTLOG_TYPE_DEFAULT, CTLogLevel_Error, __array, __length, STR_NULL __VA_ARGS__)
 # define cfata_hex(__array, __length, ...)          ct_log_msg_hex(CTLOG_TYPE_DEFAULT, CTLogLevel_Fatal, __array, __length, STR_NULL __VA_ARGS__)
 
+// 未知错误
+#define cerror_unknown()                                                                                          \
+	do {                                                                                                          \
+		cfatal(STR_CURRTITLE " an unknown error occurred, at %d of `%s`." STR_NEWLINE, __ct_line__, __ct_func__); \
+	} while (0)
+
 // clang-format on
 
 /**
@@ -154,25 +160,25 @@ void ct_log_flush(void);
 /**
  * @brief 日志中枢-调度
  */
-void ct_log_center_schedule(void);
+void ct_log_mgr_schedule(void);
 
 /**
  * @brief 日志中枢-获取日志输出等级
  * @return 日志输出等级
  */
-int ct_log_center_get_level(void);
+int ct_log_mgr_get_level(void);
 
 /**
  * @brief 日志中枢-设置日志输出等级
  * @param level 日志输出等级
  */
-void ct_log_center_set_level(int level);
+void ct_log_mgr_set_level(int level);
 
 /**
  * @brief 日志中枢-设置日志异步输出
  * @param is_asyn 是否异步输出
  */
-void ct_log_center_set_asyn(bool is_asyn);
+void ct_log_mgr_set_asyn(bool is_asyn);
 
 #ifdef __cplusplus
 }
