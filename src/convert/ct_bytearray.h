@@ -11,6 +11,7 @@ extern "C" {
 #endif
 
 #include "base/ct_types.h"
+#include "base/ct_endian.h"
 
 // -------------------------[GLOBAL DECLARATION]-------------------------
 

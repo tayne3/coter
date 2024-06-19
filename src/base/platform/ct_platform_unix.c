@@ -1,50 +1,36 @@
 /**
- * @file ct_platform.c
+ * @file ct_platform_unix.c
  * @brief 封装后的的跨平台的标准库函数
  * @author tayne3@dingtalk.com
  * @date 2024.2.20
  */
-#include "ct_platform.h"
+#include "ct_platform_unix.h"
 
-#include <assert.h>
+#ifndef _MSC_VER
+#include <pthread.h>
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <assert.h>
+
+#include "base/ct_assert.h"
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
-#define STR_CURRTITLE "[ct_platform]"
+#define STR_CURRTITLE "[ct_platform_unix]"
 
 // 获取字符串中的结束位置
 static __ct_force_inline char *ct_strend(char *str);
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
-const char *ct_strchr(const char *__s, int __c)
-{
-	assert(__s);
-	return strchr(__s, __c);
-}
-
-const char *ct_strrchr(const char *__s, int __c)
-{
-	assert(__s);
-	return strrchr(__s, __c);
-}
-
-const char *ct_strstr(const char *__haystack, const char *__needle)
-{
-	assert(__haystack);
-	assert(__needle);
-	return strstr(__haystack, __needle);
-}
-
 char *ct_strcat(char *__dest, const char *__src)
 {
-	assert(__dest);
-	assert(__src);
+	ct_assert(__dest);
+	ct_assert(__src);
 
 	{
 		char *p = ct_strend(__dest);
@@ -59,9 +45,11 @@ char *ct_strcat(char *__dest, const char *__src)
 
 char *ct_strncat(char *__dest, const char *__src, size_t __n)
 {
-	assert(__dest);
-	assert(__src);
-	assert(__n);
+	ct_assert(__dest);
+	ct_assert(__src);
+	ct_assert(__n);
+
+    assert(__n);
 
 	{
 		char *p = ct_strend(__dest);
@@ -73,16 +61,10 @@ char *ct_strncat(char *__dest, const char *__src, size_t __n)
 	return __dest;
 }
 
-size_t ct_strlen(const char *__s)
-{
-	assert(__s);
-	return strlen(__s);
-}
-
 char *ct_strcpy(char *__dest, const char *__src)
 {
-	assert(__dest);
-	assert(__src);
+	ct_assert(__dest);
+	ct_assert(__src);
 
 	{
 		char *p = __dest;
@@ -98,9 +80,9 @@ char *ct_strcpy(char *__dest, const char *__src)
 
 char *ct_strncpy(char *__dest, const char *__src, size_t __n)
 {
-	assert(__dest);
-	assert(__src);
-	assert(__n);
+	ct_assert(__dest);
+	ct_assert(__src);
+	ct_assert(__n);
 
 	{
 		char *p = __dest;
@@ -227,17 +209,13 @@ int ct_strncasecmp(const char *l, const char *r, size_t n)
 
 size_t ct_sprintf(char *__s, const char *__format, ...)
 {
-	assert(__s);
-	assert(__format);
+	ct_assert(__s);
+	ct_assert(__format);
 	int ret;
 	{
 		va_list args;
 		va_start(args, __format);
-#ifdef CT_OS_WIN
-		ret = vsprintf_s(__s, _TRUNCATE, __format, args);
-#else
 		ret = vsprintf(__s, __format, args);
-#endif
 		va_end(args);
 	}
 	return (size_t)ret;
@@ -245,23 +223,24 @@ size_t ct_sprintf(char *__s, const char *__format, ...)
 
 size_t ct_snprintf(char *__s, size_t __maxlen, const char *__format, ...)
 {
-	assert(__s);
-	assert(__format);
+	ct_assert(__s);
+	ct_assert(__format);
 	int ret;
 	{
 		va_list args;
 		va_start(args, __format);
-#ifdef CT_OS_WIN
-		ret = _vsnprintf_s(__s, __maxlen, _TRUNCATE, __format, args);
-		if (ret == -1) {
-			ret = _vscprintf(__format, args);
-		}
-#else
 		ret = vsnprintf(__s, __maxlen, __format, args);
-#endif
 		va_end(args);
 	}
 	return (size_t)ret;
+}
+
+void ct_nsleep(int ns)
+{
+	struct timespec lSpec;
+	lSpec.tv_sec  = 0;
+	lSpec.tv_nsec = 1000 * ns;
+	nanosleep(&lSpec, NULL);
 }
 
 // -------------------------[STATIC DEFINITION]-------------------------
@@ -271,3 +250,5 @@ static __ct_force_inline char *ct_strend(char *str)
 	for (; *str; str++) {}
 	return str;
 }
+
+#endif  // _MSC_VER

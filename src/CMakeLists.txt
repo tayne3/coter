@@ -1,13 +1,4 @@
 
-# 创建库目标
-project_add_library(coter_obj OBJECT)
-# 添加别名
-add_library(coter::obj ALIAS coter_obj)
-# 设置头文件查找路径
-target_include_directories(coter_obj PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
-# 链接库文件
-target_link_libraries(coter_obj PUBLIC pthread rt)
-
 # 根据编译类型不同
 if(("${CMAKE_BUILD_TYPE}" STREQUAL "Debug") # 用于调试目的，包含符号表和未优化的代码 (-O0 -g)
 	OR DEFINED("${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo")) # 包含优化的代码和符号表，用于在发生错误时进行调试 (-O2 -g -DNDEBUG)
@@ -27,6 +18,15 @@ configure_file(
 
 # 打印版本号
 message(STATUS "Coter version: ${PROJECT_VERSION}")
+
+# 创建库目标
+project_add_library(coter_obj OBJECT)
+# 添加别名
+add_library(coter::obj ALIAS coter_obj)
+# 设置头文件查找路径
+target_include_directories(coter_obj PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
+# 链接库文件
+target_link_libraries(coter_obj PUBLIC pthread rt)
 
 # 编译动态库
 if(COTER_BUILD_SHARED)

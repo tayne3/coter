@@ -182,11 +182,7 @@ typedef uint64_t                ct_uint64_t;
 # ifdef CT_PRId64
 #   warning "duplicate definition"
 # else
-# 	if CT_WORDSIZE == 64
-#		define CT_PRId64 PRIi64
-# 	else
-#		define CT_PRId64 PRIi32
-# 	endif
+#	define CT_PRId64 PRIi64
 # endif
 
 # ifdef CT_PRIi
@@ -212,11 +208,7 @@ typedef uint64_t                ct_uint64_t;
 # ifdef CT_PRIi64
 #   warning "duplicate definition"
 # else
-# 	if CT_WORDSIZE == 64
-#		define CT_PRIi64 PRIi64
-# 	else
-#		define CT_PRIi64 PRIi32
-# 	endif
+#	define CT_PRIi64 PRIi64
 # endif
 
 # ifdef CT_PRIo
@@ -242,11 +234,7 @@ typedef uint64_t                ct_uint64_t;
 # ifdef CT_PRIo64
 #   warning "duplicate definition"
 # else
-# 	if CT_WORDSIZE == 64
-#		define CT_PRIo64 PRIo64
-# 	else
-#		define CT_PRIo64 PRIo32
-# 	endif
+#	define CT_PRIo64 PRIo64
 # endif
 
 # ifdef CT_PRIu
@@ -272,11 +260,7 @@ typedef uint64_t                ct_uint64_t;
 # ifdef CT_PRIu64
 #   warning "duplicate definition"
 # else
-# 	if CT_WORDSIZE == 64
-#		define CT_PRIu64 PRIu64
-# 	else
-#		define CT_PRIu64 PRIu32
-# 	endif
+#	define CT_PRIu64 PRIu64
 # endif
 
 # ifdef CT_PRIx
@@ -302,11 +286,7 @@ typedef uint64_t                ct_uint64_t;
 # ifdef CT_PRIx64
 #   warning "duplicate definition"
 # else
-# 	if CT_WORDSIZE == 64
-#		define CT_PRIx64 PRIx64
-# 	else
-#		define CT_PRIx64 PRIx32
-# 	endif
+#	define CT_PRIx64 PRIx64
 # endif
 
 # ifdef CT_PRIX
@@ -332,11 +312,7 @@ typedef uint64_t                ct_uint64_t;
 # ifdef CT_PRIX64
 #   warning "duplicate definition"
 # else
-# 	if CT_WORDSIZE == 64
-#		define CT_PRIX64 PRIX64
-# 	else
-#		define CT_PRIX64 PRIX32
-# 	endif
+#	define CT_PRIX64 PRIX64
 # endif
 
 # ifdef CT_SCNd
@@ -362,11 +338,7 @@ typedef uint64_t                ct_uint64_t;
 # ifdef CT_SCNd64
 #   warning "duplicate definition"
 # else
-# 	if CT_WORDSIZE == 64
-#		define CT_SCNd64 PRIi64
-# 	else
-#		define CT_SCNd64 PRIi32
-# 	endif
+#	define CT_SCNd64 PRIi64
 # endif
 
 # ifdef CT_SCNi
@@ -392,11 +364,7 @@ typedef uint64_t                ct_uint64_t;
 # ifdef CT_SCNi64
 #   warning "duplicate definition"
 # else
-# 	if CT_WORDSIZE == 64
-#		define CT_SCNi64 PRIi64
-# 	else
-#		define CT_SCNi64 PRIi32
-# 	endif
+#	define CT_SCNi64 PRIi64
 # endif
 
 # ifdef CT_SCNo
@@ -422,11 +390,7 @@ typedef uint64_t                ct_uint64_t;
 # ifdef CT_SCNo64
 #   warning "duplicate definition"
 # else
-# 	if CT_WORDSIZE == 64
-#		define CT_SCNo64 PRIo64
-# 	else
-#		define CT_SCNo64 PRIo32
-# 	endif
+#	define CT_SCNo64 PRIo64
 # endif
 
 # ifdef CT_SCNu
@@ -452,11 +416,7 @@ typedef uint64_t                ct_uint64_t;
 # ifdef CT_SCNu64
 #   warning "duplicate definition"
 # else
-# 	if CT_WORDSIZE == 64
-#		define CT_SCNu64 PRIu64
-# 	else
-#		define CT_SCNu64 PRIu32
-# 	endif
+#	define CT_SCNu64 PRIu64
 # endif
 
 # ifdef CT_SCNx
@@ -482,11 +442,7 @@ typedef uint64_t                ct_uint64_t;
 # ifdef CT_SCNx64
 #   warning "duplicate definition"
 # else
-# 	if CT_WORDSIZE == 64
-#		define CT_SCNx64 PRIx64
-# 	else
-#		define CT_SCNx64 PRIx32
-# 	endif
+#	define CT_SCNx64 PRIx64
 # endif
 
 # ifdef CT_SCNX
@@ -512,11 +468,7 @@ typedef uint64_t                ct_uint64_t;
 # ifdef CT_SCNX64
 #   warning "duplicate definition"
 # else
-# 	if CT_WORDSIZE == 64
-#		define CT_SCNX64 PRIX64
-# 	else
-#		define CT_SCNX64 PRIX32
-# 	endif
+#	define CT_SCNX64 PRIX64
 # endif
 
 // comparison results: greater than, less than, and equal to
@@ -569,56 +521,7 @@ typedef uint8_t ct_compare_flag_t;
 #   define CTCompare_Unequal      0x06
 # endif
 
-// byte endian
-typedef bool ct_endian_t;
-# ifdef CTEndian_Little
-#   warning "duplicate definition"
-# else
-#   define CTEndian_Little  false
-# endif
-# ifdef CTEndian_Big
-#   warning "duplicate definition"
-# else
-#   define CTEndian_Big     true
-# endif
-# ifdef CTEndian_Network
-#   warning "duplicate definition"
-# else
-#   define CTEndian_Network CTEndian_Big
-# endif
-# ifdef CTEndian_System
-#   warning "duplicate definition"
-# else
-#   if (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__) || defined(__LITTLE_ENDIAN__) ||     \
-       (defined(__BYTE_ORDER) && __BYTE_ORDER == __LITTLE_ENDIAN) || defined(__ARMEL__) || defined(__THUMBEL__) || \
-        defined(__AARCH64EL__) || defined(_MIPSEL) || defined(__MIPSEL) || defined(__MIPSEL__)
-#       define CTEndian_System CTEndian_Little
-#   elif (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__) || defined(__BIG_ENDIAN__) ||         \
-         (defined(__BYTE_ORDER) && __BYTE_ORDER == __BIG_ENDIAN) || defined(__ARMEB__) || defined(__THUMBEB__) ||  \
-          defined(__AARCH64EB__) || defined(_MIBSEB) || defined(__MIBSEB) || defined(__MIBSEB__)
-#       define CTEndian_System CTEndian_Big
-#   else
-#       define CTEndian_System ((*(unsigned char *)&(unsigned int){1}) == 0)
-#   endif
-# endif
 // clang-format on
-
-/// context information
-typedef struct ct_context {
-	const char *file;
-	const char *func;
-	int         line;
-} ct_context_t, ct_context_buf_t[1];
-
-#define CT_CONTEXT_INIT(_file, _func, _line)               \
-	{                                                      \
-		.file = (_file), .func = (_func), .line = (_line), \
-	}
-
-#define CT_CONTEXT_CURR ((ct_context_t)CT_CONTEXT_INIT(__ct_file__, __ct_func__, __ct_line__))
-
-#define CT_CONTEXT_ISVALID(_ctx) ((_ctx)->line > 0)
-
 #ifdef __cplusplus
 }
 #endif

@@ -12,6 +12,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+#include "base/ct_version.h"
+
 // clang-format off
 
 // build platform
@@ -153,11 +155,23 @@
 # define ct_toupper(c)  toupper(c)   // 将给定小写字母转换为大写
 # define ct_toascii(c)  toascii(c)   // 将给定字符转换为ASCII字符
 
+# ifndef __GNUC_PREREQ
+# 	define __GNUC_PREREQ(a, b)	0
+# endif
+
+# ifndef __glibc_clang_has_extension
+# 	define __glibc_clang_has_extension(...)	0
+# endif
+
 // current function name, file name, and line number
 # if defined(__ct_func__) || defined(__ct_file__) || defined(__ct_line__)
 #	warning "duplicate definition"
 # else
-# 	if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
+# 	if defined __cplusplus ? __GNUC_PREREQ (2, 6) : __GNUC_PREREQ (2, 4)
+#   	define __ct_func__		__extension__ __PRETTY_FUNCTION__
+#		define __ct_file__		__FILE__
+#		define __ct_line__		__LINE__
+# 	elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 #		define __ct_func__		__func__
 #		define __ct_file__		__FILE__
 #		define __ct_line__		__LINE__
@@ -178,14 +192,6 @@
 #		define __ct_file__		"(nil)"
 #		define __ct_line__		0
 # 	endif
-# endif
-
-# ifndef __GNUC_PREREQ
-# 	define __GNUC_PREREQ(a, b)	0
-# endif
-
-# ifndef __glibc_clang_has_extension
-# 	define __glibc_clang_has_extension(...)	0
 # endif
 
 # ifndef __THROW

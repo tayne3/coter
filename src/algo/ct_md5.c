@@ -18,6 +18,8 @@
 
 #include <string.h>
 
+#include "base/ct_endian.h"
+
 // -------------------------[STATIC DECLARATION]-------------------------
 
 #define STR_CURRTITLE "[ct_md5]"

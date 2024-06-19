@@ -10,20 +10,11 @@ extern "C" {
 #endif
 
 #include "base/ct_types.h"
-#include "base/ct_version.h"
-#include "prefix/ct_assert.h"
 
 /**
  * @brief coter 应用实例
  */
 typedef struct ct_app ct_app_t, *ct_app_ptr_t;
-
-// 断言
-#if __coter_version_debug__
-#define ct_assert(__x) __ct_assert_impl(!!(__x), #__x, CT_CONTEXT_CURR)
-#else
-#define ct_assert(x)
-#endif
 
 /**
  * @brief 创建应用实例

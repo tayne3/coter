@@ -10,7 +10,7 @@
 extern "C" {
 #endif
 
-#include "base/ct_types.h"
+#include "base/ct_context.h"
 #include "ct_log_control.h"
 
 #define CTLOG_BUFFER_MAX 1024  // 日志消息缓冲区长度

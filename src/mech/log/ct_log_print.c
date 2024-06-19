@@ -79,8 +79,6 @@
 
 //
 static inline const char *ct_log_basename(const char *path);
-//
-static inline const char *ct_log_level_string(int level);
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
@@ -93,6 +91,7 @@ size_t ct_log_print_text(int level, char *cache, size_t size)
 size_t ct_log_print_tips(bool is_print, int level, int id, char *cache, size_t max, ct_context_buf_t ctx)
 {
 	assert(cache && ctx);
+	assert(CTLOG_LEVEL_ISVALID(level));
 	// 日期时间字符串缓存区
 	char datetime[18];
 	// 获取当前日期时间字符串
@@ -101,7 +100,8 @@ size_t ct_log_print_tips(bool is_print, int level, int id, char *cache, size_t m
 		ct_datetime_to_string(datetime, 18, "%y.%m.%d-%H:%M:%S", &current_datetime);
 	}
 	// 填充
-	int size = ct_snprintf(cache, max, CTLOG_FORMAT_TIPS, ct_log_level_string(level), id, datetime,
+	const char *level_list[] = {"VBASE", "DEBUG", "TRACE", "WARNG", "ERROR", "FATAL"};
+	int size = ct_snprintf(cache, max, CTLOG_FORMAT_TIPS, level_list[level], id, datetime,
 						   ct_log_basename(ctx->file), ctx->func, ctx->line);
 
 	if (is_print) {
@@ -141,11 +141,4 @@ static inline const char *ct_log_basename(const char *path)
 {
 	const char *filename = strrchr(path, STR_SEPARATOR);
 	return filename ? filename + 1 : path;
-}
-
-static inline const char *ct_log_level_string(int level)
-{
-	assert(CTLOG_LEVEL_ISVALID(level));
-	const char *list[] = {"VBASE", "DEBUG", "TRACE", "WARNG", "ERROR", "FATAL"};
-	return list[level];
 }

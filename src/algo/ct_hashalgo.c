@@ -8,6 +8,7 @@
 
 #include <assert.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "convert/ct_bytearray.h"
 
@@ -197,7 +198,8 @@ uint64_t ct_hashalgo_siphash_64(const char *data, size_t size, const uint8_t sip
 			case 6: pt[5] = m[5];  // fall through
 			case 5: pt[4] = m[4];  // fall through
 			case 4: {
-				*((uint32_t *)&pt[0]) = *((uint32_t *)&m[0]);
+				// *((uint32_t *)&pt[0]) = *((uint32_t *)&m[0]);
+				memcpy(&pt[0], &m[0], sizeof(uint32_t));
 			} break;
 			case 3: pt[2] = m[2];  // fall through
 			case 2: pt[1] = m[1];  // fall through
