@@ -35,8 +35,10 @@ void ct_msgqueue_init(ct_msgqueue_buf_t self, void *buffer, size_t byte, size_t 
 	self->is_shut = false;
 }
 
-void ct_msgqueue_destroy(ct_msgqueue_buf_t self) {
-	assert(!self->is_shut);
+void ct_msgqueue_close(ct_msgqueue_buf_t self) {
+	if (self->is_shut) {
+		return;
+	}
 
 	ct_msgqueue_lock(self);
 	self->is_shut = true;
@@ -48,7 +50,13 @@ void ct_msgqueue_destroy(ct_msgqueue_buf_t self) {
 		ct_msgqueue_lock(self);
 		is_empty = ct_queue_isempty(self->queue);
 		ct_msgqueue_unlock(self);
-		sched_yield();
+		ct_msleep(10);
+	}
+}
+
+void ct_msgqueue_destroy(ct_msgqueue_buf_t self) {
+	if (!self->is_shut) {
+		ct_msgqueue_close(self);
 	}
 
 	// 销毁条件变量
@@ -74,43 +82,12 @@ bool ct_msgqueue_isfull(ct_msgqueue_buf_t self) {
 	return is_full;
 }
 
-// bool ct_msgqueue_isshut(ct_msgqueue_buf_t self) {
-// 	if (self->is_shut) {
-// 		return true;
-// 	}
-// 	ct_msgqueue_lock(self);
-// 	const bool ret = self->is_shut;
-// 	ct_msgqueue_unlock(self);
-// 	return ret;
-// }
-
 bool ct_msgqueue_enqueue(ct_msgqueue_buf_t self, const void *item) {
-	assert(!self->is_shut);
-
-	// struct timespec ts;
-	// int             rc;
+	if (self->is_shut) {
+		return false;
+	}
 
 	ct_msgqueue_lock(self);
-
-	// for (; ct_queue_isfull(self->queue);) {
-	// 	if (gettimeofday(&ts, NULL) == -1) {
-	// 		ct_msgqueue_unlock(self);
-	// 		return false;
-	// 	}
-	// 	ts.tv_sec += TIMEOUT_SEC;
-
-	// 	rc = pthread_cond_timedwait(self->not_full, self->mutex, &ts);
-	// 	if (rc != 0 && rc != ETIMEDOUT) {
-	// 		ct_msgqueue_unlock(self);
-	// 		return false;
-	// 	}
-
-	// 	if (self->is_shut) {
-	// 		ct_msgqueue_unlock(self);
-	// 		return false;
-	// 	}
-	// }
-
 	for (; ct_queue_isfull(self->queue);) {
 		if (pthread_cond_wait(self->not_full, self->mutex) != 0) {
 			ct_msgqueue_unlock(self);
@@ -129,31 +106,11 @@ bool ct_msgqueue_enqueue(ct_msgqueue_buf_t self, const void *item) {
 }
 
 bool ct_msgqueue_dequeue(ct_msgqueue_buf_t self, void *item) {
-	assert(!self->is_shut);
-	// struct timespec ts;
-	// int             rc;
+	if (self->is_shut) {
+		return false;
+	}
 
 	ct_msgqueue_lock(self);
-
-	// for (; ct_queue_isempty(self->queue);) {
-	// 	if (gettimeofday(&ts, NULL) == -1) {
-	// 		ct_msgqueue_unlock(self);
-	// 		return false;
-	// 	}
-	// 	ts.tv_sec += TIMEOUT_SEC;
-
-	// 	rc = pthread_cond_timedwait(self->not_empty, self->mutex, &ts);
-	// 	if (rc != 0 && rc != ETIMEDOUT) {
-	// 		ct_msgqueue_unlock(self);
-	// 		return false;
-	// 	}
-
-	// 	if (self->is_shut) {
-	// 		ct_msgqueue_unlock(self);
-	// 		return false;
-	// 	}
-	// }
-
 	for (; ct_queue_isempty(self->queue);) {
 		if (pthread_cond_wait(self->not_empty, self->mutex) != 0) {
 			ct_msgqueue_unlock(self);
@@ -172,7 +129,10 @@ bool ct_msgqueue_dequeue(ct_msgqueue_buf_t self, void *item) {
 }
 
 bool ct_msgqueue_try_enqueue(ct_msgqueue_buf_t self, const void *item) {
-	assert(!self->is_shut);
+	if (self->is_shut) {
+		return false;
+	}
+
 	ct_msgqueue_lock(self);
 	if (self->is_shut) {
 		ct_msgqueue_unlock(self);
@@ -189,7 +149,10 @@ bool ct_msgqueue_try_enqueue(ct_msgqueue_buf_t self, const void *item) {
 }
 
 bool ct_msgqueue_try_dequeue(ct_msgqueue_buf_t self, void *item) {
-	assert(!self->is_shut);
+	if (self->is_shut) {
+		return false;
+	}
+
 	ct_msgqueue_lock(self);
 	if (self->is_shut) {
 		ct_msgqueue_unlock(self);

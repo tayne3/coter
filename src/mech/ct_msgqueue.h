@@ -38,6 +38,12 @@ typedef struct ct_msgqueue {
 COTER_API void ct_msgqueue_init(ct_msgqueue_buf_t self, void *buffer, size_t byte, size_t max);
 
 /**
+ * @brief 关闭消息队列
+ * @param self 消息队列
+ */
+COTER_API void ct_msgqueue_close(ct_msgqueue_buf_t self);
+
+/**
  * @brief 销毁消息队列
  * @param self 消息队列
  */
@@ -56,13 +62,6 @@ COTER_API bool ct_msgqueue_isempty(ct_msgqueue_buf_t self);
  * @return 如果消息队列已满则返回true，否则返回false
  */
 COTER_API bool ct_msgqueue_isfull(ct_msgqueue_buf_t self);
-
-// /**
-//  * @brief 判断消息队列是否已关闭
-//  * @param self 消息队列
-//  * @return 如果消息队列已关闭则返回true，否则返回false
-//  */
-// COTER_API bool ct_msgqueue_isshut(ct_msgqueue_buf_t self);
 
 /**
  * @brief 将事件消息入队 (阻塞)

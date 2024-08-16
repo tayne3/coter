@@ -104,7 +104,7 @@ ct_jobpool_ptr_t ct_jobpool_create(size_t thread_max, size_t job_max) {
 
 	// 启动线程
 	for (size_t i = 0; i < thread_max; i++) {
-		unit = (unit_t*)calloc(1, sizeof(unit_t));
+		unit = (unit_t*)malloc(sizeof(unit_t));
 		assert(unit);
 
 		unit->thpool = self;
@@ -145,8 +145,8 @@ void ct_jobpool_destroy(ct_jobpool_ptr_t self) {
 	assert(self);
 	assert(self->job_buffer);
 
-	// 销毁消息队列
-	ct_msgqueue_destroy(self->job_queue);
+	// 关闭消息队列
+	ct_msgqueue_close(self->job_queue);
 	// 上锁
 	pthread_mutex_lock(self->regular_mutex);
 
@@ -168,6 +168,8 @@ void ct_jobpool_destroy(ct_jobpool_ptr_t self) {
 	pthread_mutex_unlock(self->regular_mutex);
 	// 销毁互斥锁
 	pthread_mutex_destroy(self->regular_mutex);
+	// 销毁消息队列
+	ct_msgqueue_destroy(self->job_queue);
 
 	// 释放缓冲区内存
 	free(self->job_buffer);
@@ -191,6 +193,7 @@ void ct_jobpool_add(ct_jobpool_ptr_t self, ct_jobpool_routine_t routine, void* a
 static inline void* ct_jobpool_thread_do_regular(void* arg) {
 	unit_t* unit = (unit_t*)arg;
 
+
 	ct_forever {
 		if (!ct_msgqueue_dequeue(unit->thpool->job_queue, unit->job)) {
 			break;  // 等待工作, 获取失败的话则代表任务池已经关闭
@@ -201,6 +204,7 @@ static inline void* ct_jobpool_thread_do_regular(void* arg) {
 		PAUSE();  // 避免独占CPU
 	}
 
+	ctrace_n("[%p] pthread exit %d\n", pthread_self(), __ct_line__);
 	pthread_exit(ct_nullptr);	// 退出线程
 	return ct_nullptr;
 }

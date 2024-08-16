@@ -344,6 +344,7 @@ _Pvt_Extensions
 .exec.sh
 .gdb.sh
 .test.sh
+.test.bat
 
 # User Directory
 .discard/

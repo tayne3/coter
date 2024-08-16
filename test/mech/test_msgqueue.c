@@ -121,6 +121,8 @@ static inline void test_msgqueue(size_t data_size, size_t buffer_size) {
 		ctunit_assert_false(ct_msgqueue_isfull(msgqueue));
 	}
 
+	// 关闭队列
+	ct_msgqueue_close(msgqueue);
 	// 销毁队列
 	ct_msgqueue_destroy(msgqueue);
 

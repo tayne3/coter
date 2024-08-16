@@ -25,22 +25,17 @@ static inline void test_jobpool_add(size_t data_count, size_t task_count, size_t
 int main(void) {
 	pthread_mutex_init(test_mutex, NULL);
 
-	uint64_t start = gettimeofday_us();
+	test_jobpool_add(10, 1, 10);
+	ctunit_trace("Finish! test_jobpool_add(10, 1, 10);\n");
 
-	test_jobpool_add(1000, 2, 10);
-	ctunit_trace("Finish! test_jobpool_add(50, 1, 5);\n");
+	test_jobpool_add(10, 10, 1);
+	ctunit_trace("Finish! test_jobpool_add(10, 10, 1);\n");
 
-	uint64_t end = gettimeofday_us();
-	ctunit_trace("Test time consuming = %lluus\n", end - start);
+	test_jobpool_add(500, 10, 50);
+	ctunit_trace("Finish! test_jobpool_add(5000, 10, 50);\n");
 
-	// test_jobpool_add(10, 1, 10);
-	// ctunit_trace("Finish! test_jobpool_add(10, 1, 10);\n");
-
-	// test_jobpool_add(10, 10, 1);
-	// ctunit_trace("Finish! test_jobpool_add(10, 10, 1);\n");
-
-	// test_jobpool_add(5000, 10, 50);
-	// ctunit_trace("Finish! test_jobpool_add(5000, 10, 50);\n");
+	test_jobpool_add(5000, 100, 50);
+	ctunit_trace("Finish! test_jobpool_add(5000, 10, 50);\n");
 
 	pthread_mutex_destroy(test_mutex);
 
@@ -77,7 +72,6 @@ static inline void test_jobpool_add(size_t data_count, size_t task_count, size_t
 
 	for (size_t i = 0; i < test_data_size; i++) {
 		ct_jobpool_add(pool, test_job_run, (void *)(uint64_t)i);
-		// sched_yield();
 	}
 
 	// 等待结束 (最多等待 5s)
