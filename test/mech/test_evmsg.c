@@ -21,7 +21,7 @@ static bool test_result[TEST_THREAD_NUMBER][TEST_DATA_NUMBER] = {{0}};
 static bool is_exit[TEST_THREAD_NUMBER]                       = {0};
 
 // 模拟事件处理函数
-static inline bool test_evmsg_handler(ct_evmsg_msg_t *msg, void *userdata);
+static inline bool test_evmsg_handler(ct_evmsg_t *msg, void *userdata);
 // 测试事件发布
 static inline void *test_evmsg_publish(void *arg);
 
@@ -41,18 +41,17 @@ int main(void) {
 	}
 
 	// 调度事件管理
-	{
-		size_t count = 0;
-		for (size_t n = 0; n < 1000 && count < TEST_THREAD_NUMBER; n++) {
-			ct_msleep(10);
-			ct_evmsg_mgr_schedule();  // 事件消息中枢调度
-			if (is_exit[count]) {
-				count++;
+	for (size_t count = 0, n = 0; n < 1000; n++) {
+		ct_msleep(10);
+		ct_evmsg_schedule();  // 事件消息调度
+		if (is_exit[count]) {
+			if (++count == TEST_THREAD_NUMBER) {
+				break;
 			}
 		}
-		ct_evmsg_mgr_schedule();  // 事件消息中枢调度
-		ct_evmsg_mgr_destroy();   // 销毁事件消息中枢
 	}
+	ct_evmsg_schedule();     // 事件消息中枢调度
+	ct_evmsg_mgr_destroy();  // 销毁事件消息中枢
 
 	// 等待线程结束
 	for (size_t i = 0; i < TEST_THREAD_NUMBER; i++) {
@@ -73,7 +72,7 @@ int main(void) {
 	ctunit_pass();
 }
 
-static inline bool test_evmsg_handler(ct_evmsg_msg_t *msg, void *userdata) {
+static inline bool test_evmsg_handler(ct_evmsg_t *msg, void *userdata) {
 	ctunit_assert_not_null(msg);
 	ctunit_assert_not_null(msg->data);
 	ctunit_assert_uint8(msg->id, 0, CTUnit_GreaterEqual);
@@ -93,13 +92,13 @@ static inline void *test_evmsg_publish(void *arg) {
 	const uint8_t id = (uint8_t)(uint64_t)arg;
 
 	// 模拟事件数据
-	ct_evmsg_msg_buf_t msg = {CT_EVMSG_MSG_INIT(1, id, ct_nullptr, 0)};
+	ct_evmsg_t msg = CT_EVMSG_MSG_INIT(1, id, ct_nullptr, 0);
 
 	// 发布事件
 	for (size_t i = 0; i < TEST_DATA_NUMBER; i++) {
-		msg->data = &i;
-		msg->size = sizeof(size_t);
-		ct_evmsg_publish(msg);
+		msg.data = &i;
+		msg.size = sizeof(size_t);
+		ct_evmsg_publish(&msg);
 		sched_yield();
 	}
 

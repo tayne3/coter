@@ -109,7 +109,7 @@ int ct_app_exec(ct_app_ptr_t self) {
 		}
 
 		ct_log_mgr_schedule();    // 执行日志调度
-		ct_evmsg_mgr_schedule();  // 执行事件消息调度
+		ct_evmsg_schedule();  // 执行事件消息调度
 		ct_msleep(10);            // 调度间隔 (10ms)
 
 		// ct_timer_mgr_schedule(); // 执行定时器调度

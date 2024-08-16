@@ -42,7 +42,7 @@ typedef struct ct_evmsg_subscriber {
 } ct_evmsg_subscriber_t;
 
 /// 消息处理函数
-bool ct_evmsg_handler(ct_evmsg_msg_buf_t msg, void *userdata);
+bool ct_evmsg_handler(ct_evmsg_buf_t msg, void *userdata);
 
 // 事件消息管理器
 static struct ct_evmsg_mgr {
@@ -50,7 +50,7 @@ static struct ct_evmsg_mgr {
 	ct_list_buf_t         subscriber_list[CTEvMsgType_Max];  // 订阅者链表
 	ct_msgqueue_buf_t     msgqueue;                          // 事件消息队列
 	ct_evmsg_subscriber_t subscriber_itself;                 // 事件中枢自身订阅者
-	ct_evmsg_msg_buf_t    msg;                               // 正在处理的事件消息
+	ct_evmsg_buf_t        msg;                               // 正在处理的事件消息
 } mgr[1] = {{
 	.is_busy = false,
 	.subscriber_itself =
@@ -68,9 +68,9 @@ static inline void ct_evmsg_callback(void *arg);
 
 void ct_evmsg_mgr_init(void) {
 	// 事件消息缓冲区
-	static ct_evmsg_msg_t ct_evmsg_msg_buffer[CTEVMSG_MSG_MAX];
+	static ct_evmsg_t ct_evmsg_msg_buffer[CTEVMSG_MSG_MAX];
 	// 初始化事件消息
-	ct_msgqueue_init(mgr->msgqueue, ct_evmsg_msg_buffer, sizeof(ct_evmsg_msg_t), CTEVMSG_MSG_MAX);
+	ct_msgqueue_init(mgr->msgqueue, ct_evmsg_msg_buffer, sizeof(ct_evmsg_t), CTEVMSG_MSG_MAX);
 	// 初始化订阅者链表
 	for (size_t i = 0; i < CTEvMsgType_Max; i++) {
 		ct_list_init(mgr->subscriber_list[i]);
@@ -100,7 +100,15 @@ void ct_evmsg_mgr_destroy(void) {
 	}
 }
 
-void ct_evmsg_mgr_schedule(void) {
+void ct_evmsg_init(ct_evmsg_buf_t msg, uint8_t type, uint8_t id, void *data, size_t size) {
+	assert(msg);
+	msg->type = type;
+	msg->id   = id;
+	msg->data = data;
+	msg->size = size;
+}
+
+void ct_evmsg_schedule(void) {
 	// 检查是否忙碌
 	if (mgr->is_busy) {
 		return;
@@ -125,7 +133,7 @@ void ct_evmsg_subscribe(uint8_t type, ct_evmsg_handler_t handler, void *userdata
 	subscriber->userdata = userdata;
 	subscriber->type     = type;
 
-	ct_evmsg_msg_t msg = {
+	ct_evmsg_t msg = {
 		.type = CTEvMsgType_Itself,
 		.id   = EvMsgID_AddSubscriber,
 		.data = subscriber,
@@ -135,7 +143,7 @@ void ct_evmsg_subscribe(uint8_t type, ct_evmsg_handler_t handler, void *userdata
 	ct_msgqueue_enqueue(mgr->msgqueue, &msg);
 }
 
-void ct_evmsg_publish(ct_evmsg_msg_buf_t msg) {
+void ct_evmsg_publish(ct_evmsg_buf_t msg) {
 	assert(msg);
 	assert(msg->type != CTEvMsgType_Itself);
 	if (!CTEVMSGTYPE_ISVALID(msg->type)) {
@@ -157,7 +165,7 @@ void ct_evmsg_publish(ct_evmsg_msg_buf_t msg) {
 
 // -------------------------[STATIC DEFINITION]-------------------------
 
-bool ct_evmsg_handler(ct_evmsg_msg_buf_t msg, void *userdata) {
+bool ct_evmsg_handler(ct_evmsg_buf_t msg, void *userdata) {
 	assert(msg);
 	switch (msg->id) {
 		case EvMsgID_AddSubscriber: {
