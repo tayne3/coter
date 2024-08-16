@@ -37,24 +37,24 @@ static inline int gettimeofday(struct timeval *tv, struct timezone *tz) {
 // 时间戳类型
 typedef time_t ct_time_t;
 // 64位时间戳类型
-typedef int64_t ct_time64_t;
+typedef uint64_t ct_time64_t;
 
 // get milliseconds since system start (if available).
-COTER_API unsigned int gettick_ms(void);
+COTER_API ct_time64_t gettick_ms(void);
 // get time in milliseconds.
-static inline unsigned long long gettimeofday_ms(void) {
+static inline ct_time64_t gettimeofday_ms(void) {
     struct timeval tv;
     gettimeofday(&tv, NULL);
-    return tv.tv_sec * (unsigned long long)1000 + tv.tv_usec/1000;
+    return tv.tv_sec * (ct_time64_t)1000 + tv.tv_usec/1000;
 }
 // get time in microseconds.
-static inline unsigned long long gettimeofday_us(void) {
+static inline ct_time64_t gettimeofday_us(void) {
     struct timeval tv;
     gettimeofday(&tv, NULL);
-    return tv.tv_sec * (unsigned long long)1000000 + tv.tv_usec;
+    return tv.tv_sec * (ct_time64_t)1000000 + tv.tv_usec;
 }
 // get high-resolution time in microseconds.
-COTER_API unsigned long long gethrtime_us(void);
+COTER_API ct_time64_t gethrtime_us(void);
 
 // 获取当前秒级时间戳 (自纪元时间)
 #define ct_current_second() time(NULL)

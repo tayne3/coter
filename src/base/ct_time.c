@@ -33,21 +33,21 @@ static const char *ct_strptime(const char *buf, const char *format, ct_tm_buf_t 
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
-unsigned int gettick_ms(void) {
+ct_time64_t gettick_ms(void) {
 #ifdef CT_OS_WIN
-	return GetTickCount();
+	return GetTickCount64();
 #elif HAVE_CLOCK_GETTIME
 	struct timespec ts;
 	clock_gettime(CLOCK_MONOTONIC, &ts);
-	return ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
+	return (ct_time64_t)ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
 #else
 	struct timeval tv;
 	gettimeofday(&tv, NULL);
-	return tv.tv_sec * 1000 + tv.tv_usec / 1000;
+	return (ct_time64_t)tv.tv_sec * 1000 + tv.tv_usec / 1000;
 #endif
 }
 
-unsigned long long gethrtime_us(void) {
+ct_time64_t gethrtime_us(void) {
 #ifdef CT_OS_WIN
 	static LONGLONG s_freq = 0;
 	if (s_freq == 0) {
@@ -58,7 +58,7 @@ unsigned long long gethrtime_us(void) {
 	if (s_freq != 0) {
 		LARGE_INTEGER count;
 		QueryPerformanceCounter(&count);
-		return (unsigned long long)(count.QuadPart / (double)s_freq * 1000000);
+		return (ct_time64_t)(count.QuadPart / (double)s_freq * 1000000);
 	}
 	return 0;
 #elif defined(CT_OS_SOLARIS)
@@ -66,11 +66,11 @@ unsigned long long gethrtime_us(void) {
 #elif HAVE_CLOCK_GETTIME
 	struct timespec ts;
 	clock_gettime(CLOCK_MONOTONIC, &ts);
-	return ts.tv_sec * (unsigned long long)1000000 + ts.tv_nsec / 1000;
+	return ts.tv_sec * (ct_time64_t)1000000 + ts.tv_nsec / 1000;
 #else
 	struct timeval tv;
 	gettimeofday(&tv, NULL);
-	return tv.tv_sec * (unsigned long long)1000000 + tv.tv_usec;
+	return tv.tv_sec * (ct_time64_t)1000000 + tv.tv_usec;
 #endif
 }
 
