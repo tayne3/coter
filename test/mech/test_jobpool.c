@@ -1,6 +1,6 @@
 /**
- * @file test_thpool.c
- * @brief 线程池测试
+ * @file test_jobpool.c
+ * @brief 任务池测试
  * @author tayne3@dingtalk.com
  * @date 2023.12.03
  */
@@ -9,7 +9,7 @@
 #include "base/ct_platform.h"
 #include "base/ct_time.h"
 #include "ctunit.h"
-#include "mech/ct_thpool.h"
+#include "mech/ct_jobpool.h"
 
 #define TEST_DATA_MAX 10000
 
@@ -20,19 +20,27 @@ static pthread_mutex_t test_mutex[1];
 
 static inline void test_data_reset(void);
 static inline void test_job_run(void *arg);
-static inline void test_thpool_add(size_t data_count);
+static inline void test_jobpool_add(size_t data_count, size_t task_count, size_t job_count);
 
 int main(void) {
 	pthread_mutex_init(test_mutex, NULL);
 
-	test_thpool_add(1);
-	ctunit_trace("Finish! test_thpool_add(1);\n");
+	uint64_t start = gettimeofday_us();
 
-	test_thpool_add(10);
-	ctunit_trace("Finish! test_thpool_add(10);\n");
+	test_jobpool_add(1000, 2, 10);
+	ctunit_trace("Finish! test_jobpool_add(50, 1, 5);\n");
 
-	test_thpool_add(100);
-	ctunit_trace("Finish! test_thpool_add(100);\n");
+	uint64_t end = gettimeofday_us();
+	ctunit_trace("Test time consuming = %lluus\n", end - start);
+
+	// test_jobpool_add(10, 1, 10);
+	// ctunit_trace("Finish! test_jobpool_add(10, 1, 10);\n");
+
+	// test_jobpool_add(10, 10, 1);
+	// ctunit_trace("Finish! test_jobpool_add(10, 10, 1);\n");
+
+	// test_jobpool_add(5000, 10, 50);
+	// ctunit_trace("Finish! test_jobpool_add(5000, 10, 50);\n");
 
 	pthread_mutex_destroy(test_mutex);
 
@@ -54,21 +62,21 @@ static inline void test_job_run(void *arg) {
 	pthread_mutex_unlock(test_mutex);
 }
 
-static inline void test_thpool_add(size_t data_count) {
+static inline void test_jobpool_add(size_t data_count, size_t task_count, size_t job_count) {
 	ctunit_assert_uint32(data_count, 0, CTUnit_Greater);
 	ctunit_assert_uint32(data_count, TEST_DATA_MAX, CTUnit_LessEqual);
+	ctunit_assert_uint32(task_count, 0, CTUnit_Greater);
+	ctunit_assert_uint32(job_count, 0, CTUnit_Greater);
 
 	test_data_size = data_count;
 	test_data_reset();
 	test_end_number = 0;
 
-	ct_thpool_ptr_t pool = ct_thpool_create(NULL);
+	ct_jobpool_ptr_t pool = ct_jobpool_create(task_count, job_count);
 	ctunit_assert_not_null(pool);
 
-	int ret = 0;
 	for (size_t i = 0; i < test_data_size; i++) {
-		ret = ct_thpool_add(pool, NULL, test_job_run, (void *)(uint64_t)i);
-		ctunit_assert_ret(ret, "i = %zu/%zu", i, test_data_size);
+		ct_jobpool_add(pool, test_job_run, (void *)(uint64_t)i);
 		// sched_yield();
 	}
 
@@ -86,7 +94,7 @@ static inline void test_thpool_add(size_t data_count) {
 		}
 	}
 
-	ct_thpool_destroy(pool);
+	ct_jobpool_destroy(pool);
 
 	ctunit_assert_uint32(test_end_number, test_data_size, CTUnit_Equal);
 }

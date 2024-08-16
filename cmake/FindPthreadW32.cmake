@@ -12,6 +12,10 @@
 #
 # ==============================================================================
 
+include(CheckIncludeFile)
+include(CheckCSourceCompiles)
+include(CMakePushCheckState)
+
 if(NOT WIN32)
     set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
     find_package(Threads REQUIRED)
@@ -20,60 +24,20 @@ if(NOT WIN32)
         add_library(pthread INTERFACE)
         target_link_libraries(pthread INTERFACE ${CMAKE_THREAD_LIBS_INIT})
         add_library(pthread::pthread ALIAS pthread)
+        message(STATUS "CMAKE_USE_PTHREADS_INIT: ${CMAKE_USE_PTHREADS_INIT}")
     else()
         message(FATAL_ERROR "Could not find pthread library. See README.Win32 for more information.")
     endif()
-
-# # 设置优先使用PTHREAD线程库
-# set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
-
-# # 查找线程库
-# find_package(Threads QUIET)
-
-
-# find_library(PTHREAD_LIBRARY pthread)
-
-# find_library(PTHREAD_LIBRARY NAMES pthread pthreads pthreadGC2 pthreadVC2)
-# message(STATUS "PTHREAD_LIBRARY: ${PTHREAD_LIBRARY}")
-
-
-    # message(STATUS "CMAKE_THREAD_LIBS_INIT: ${CMAKE_THREAD_LIBS_INIT}")
-
-    # if(CMAKE_THREAD_LIBS_INIT MATCHES "-lpthread")
-    #     add_library(pthread INTERFACE)
-    #     target_link_libraries(pthread INTERFACE ${CMAKE_THREAD_LIBS_INIT})
-    #     add_library(pthread::pthread ALIAS pthread)
-    # else()
-    #     message(FATAL_ERROR "Could not find pthread library. See README.Win32 for more information.")
-    # endif()
-    
-    
-    # add_library(pthread::pthread INTERFACE IMPORTED)
-    # set_property(TARGET pthread::pthread PROPERTY INTERFACE_COMPILE_OPTIONS "${CMAKE_THREAD_LIBS_INIT}")
-
-    # add_library(pthread::pthread INTERFACE IMPORTED)
-    # if(CMAKE_THREAD_LIBS_INIT)
-    #     set_property(TARGET pthread::pthread PROPERTY INTERFACE_LINK_LIBRARIES "${CMAKE_THREAD_LIBS_INIT}")
-    # endif()
-    # set_property(TARGET pthread::pthread PROPERTY INTERFACE_COMPILE_OPTIONS "${CMAKE_THREAD_LIBS_INIT}")
-
-    # message(STATUS "CMAKE_THREAD_LIBS_INIT: ${CMAKE_THREAD_LIBS_INIT}")
-    # message(STATUS "CMAKE_USE_PTHREADS_INIT: ${CMAKE_USE_PTHREADS_INIT}")
-    
-    # add_library(pthread::pthread UNKNOWN IMPORTED)
-    # set_target_properties(pthread::pthread PROPERTIES
-    #     IMPORTED_LOCATION "${PTHREAD_LIBRARY}"
-    # )
-    # message(STATUS "PTHREAD_LIBRARY: ${PTHREAD_LIBRARY}")
     return()
 endif()
 
 # 是否原生支持pthread
+include(CheckLibraryExists)
 check_library_exists(pthread pthread_rwlock_init "" HAVE_PTHREAD)
 if(HAVE_PTHREAD)
+    message(STATUS "HAVE_PTHREAD: ${HAVE_PTHREAD}")
     return()
 endif()
-
 
 #
 # Find the header file
@@ -105,6 +69,7 @@ else()
         message(FATAL_ERROR "Structured Exception Handling is only allowed for MSVC")
     endif()
 endif()
+
 if(MSVC)
     set(PTHREADS_NAMES
         pthreadV${PTHREADS_EXCEPTION_SCHEME}2
@@ -122,11 +87,6 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 4)
 elseif(CMAKE_SIZEOF_VOID_P EQUAL 8)
     set(PTHREADS_SUBDIR "/x64")
 endif()
-
-# message(STATUS "PTHREADS_EXCEPTION_SCHEME: ${PTHREADS_EXCEPTION_SCHEME}")
-# message(STATUS "PTHREADS_ROOT: ${PTHREADS_ROOT}")
-# message(STATUS "PTHREADS_SUBDIR: ${PTHREADS_SUBDIR}")
-# message(STATUS "PTHREADS_NAMES: ${PTHREADS_NAMES}")
 
 find_library(PTHREADS_LIBRARY
     NAMES ${PTHREADS_NAMES}
@@ -159,6 +119,7 @@ find_file(PTHREADS_DLL
 )
 
 # 查找包处理标准参数
+include(FindPackageHandleStandardArgs) 
 find_package_handle_standard_args(PTHREADS DEFAULT_MSG PTHREADS_LIBRARY PTHREADS_INCLUDE_DIR)
 
 # message(STATUS "PTHREADS_FOUND: ${PTHREADS_FOUND}")
@@ -169,7 +130,8 @@ if(PTHREADS_FOUND)
 
     # Avoid redefinition of struct timespec
     if(MSVC)
-        CHECK_STRUCT_HAS_MEMBER("struct timespec" tv_sec time.h HAVE_STRUCT_TIMESPEC LANGUAGE C)
+        include(CheckStructHasMember)
+        check_struct_has_member("struct timespec" tv_sec time.h HAVE_STRUCT_TIMESPEC LANGUAGE C)
 
         if(HAVE_STRUCT_TIMESPEC)
             set(PTHREADS_DEFINITIONS "${PTHREADS_DEFINITIONS} -DHAVE_STRUCT_TIMESPEC")

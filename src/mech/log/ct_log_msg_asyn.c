@@ -16,7 +16,7 @@
 #include "ct_log_print.h"
 #include "ct_log_storage.h"
 #include "mech/ct_msgqueue.h"
-#include "mech/ct_thpool.h"
+#include "mech/ct_jobpool.h"
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
@@ -70,7 +70,7 @@ void ct_log_msg_schedule_asyn(void)
 	// 设置忙碌状态
 	center->is_busy = true;
 	// 添加异步工作
-	ct_thpool_add_job(ct_nullptr, ct_log_msg_asyn_callback, center->msg);
+	ct_jobpool_add(ct_nullptr, ct_log_msg_asyn_callback, center->msg);
 }
 
 // -------------------------[STATIC DEFINITION]-------------------------

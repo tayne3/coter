@@ -16,7 +16,7 @@
 #include "container/ct_heap.h"
 #include "container/ct_list.h"
 #include "ct_msgqueue.h"
-#include "mech/ct_thpool.h"
+#include "mech/ct_jobpool.h"
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
@@ -112,7 +112,7 @@ void ct_evmsg_mgr_schedule(void) {
 	// 设置忙碌状态
 	mgr->is_busy = true;
 	// 添加异步工作
-	ct_thpool_add_job(ct_nullptr, ct_evmsg_callback, ct_nullptr);
+	ct_jobpool_add(ct_nullptr, ct_evmsg_callback, ct_nullptr);
 }
 
 void ct_evmsg_subscribe(uint8_t type, ct_evmsg_handler_t handler, void *userdata) {

@@ -25,7 +25,7 @@ typedef struct ct_thpool* ct_thpool_ptr_t;
  * @param attr 线程属性 (NULL 则使用默认属性)
  * @return 返回新创建的线程池指针，如果创建失败则返回空指针
  */
-COTER_API ct_thpool_ptr_t ct_thpool_create(size_t thread_max, size_t job_max, pthread_attr_t* attr) __ct_func_throw;
+COTER_API ct_thpool_ptr_t ct_thpool_create(pthread_attr_t* attr) __ct_func_throw;
 
 /**
  * @brief 创建全局线程池
@@ -35,7 +35,7 @@ COTER_API ct_thpool_ptr_t ct_thpool_create(size_t thread_max, size_t job_max, pt
  * @return 返回全局线程池指针，如果创建失败则返回空指针, 如果全局线程池已存在则返回全局线程池
  * @note 为保证线程安全, 当前函数只建议在主线程调用
  */
-COTER_API ct_thpool_ptr_t ct_thpool_global_create(size_t thread_max, size_t job_max, pthread_attr_t* attr) __ct_func_throw;
+COTER_API ct_thpool_ptr_t ct_thpool_global(pthread_attr_t* attr) __ct_func_throw;
 
 /**
  * @brief 销毁线程池
@@ -45,15 +45,6 @@ COTER_API ct_thpool_ptr_t ct_thpool_global_create(size_t thread_max, size_t job_
 COTER_API void ct_thpool_destroy(ct_thpool_ptr_t self);
 
 /**
- * @brief 向线程池中添加一个工作
- *
- * @param self 线程池指针, 为空则添加到全局线程池
- * @param routine 执行函数
- * @param arg 执行参数
- */
-COTER_API void ct_thpool_add_job(ct_thpool_ptr_t self, ct_thpool_routine_t routine, void* arg);
-
-/**
  * @brief 向线程池中添加一个常驻工作
  *
  * @param self 线程池指针，如果为空指针则添加到全局线程池
@@ -61,7 +52,7 @@ COTER_API void ct_thpool_add_job(ct_thpool_ptr_t self, ct_thpool_routine_t routi
  * @param arg 执行参数
  * @return 返回 0 表示成功，否则表示失败
  */
-COTER_API int ct_thpool_add_task(ct_thpool_ptr_t self, ct_thpool_routine_t routine, void* arg);
+COTER_API int ct_thpool_add(ct_thpool_ptr_t self, pthread_attr_t* attr, ct_thpool_routine_t routine, void* arg);
 
 #ifdef __cplusplus
 }

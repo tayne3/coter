@@ -11,7 +11,7 @@
 #include "ct_app.h"
 #include "ctunit.h"
 #include "mech/ct_evmsg.h"
-#include "mech/ct_thpool.h"
+#include "mech/ct_jobpool.h"
 #include "sched.h"
 
 #define TEST_THREAD_NUMBER 3
@@ -29,7 +29,7 @@ int main(void) {
 	pthread_t threads[TEST_THREAD_NUMBER];
 
 	// 创建线程池
-	ct_thpool_ptr_t thpool = ct_thpool_global_create(16, 50, NULL);
+	ct_jobpool_ptr_t jobpool = ct_jobpool_global(16, 50);
 	// 初始化事件消息中枢
 	ct_evmsg_mgr_init();
 	// 订阅事件
@@ -68,7 +68,7 @@ int main(void) {
 	}
 
 	// 销毁线程池
-	// ct_thpool_destroy(thpool);
+	// ct_jobpool_destroy(jobpool);
 
 	ctunit_pass();
 }

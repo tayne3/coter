@@ -27,6 +27,7 @@
 #include "base/ct_platform.h"
 #include "base/ct_time.h"
 #include "mech/ct_evmsg.h"
+#include "mech/ct_jobpool.h"
 #include "mech/ct_log.h"
 #include "mech/ct_msgqueue.h"
 #include "mech/ct_thpool.h"
@@ -55,6 +56,7 @@ static struct ct_app {
 	ct_msgqueue_buf_t exitMQ;      // 异常退出队列
 	ct_time64_t       timecurr;    // 当前调度时间
 	ct_thpool_ptr_t   thpool;      // 全局线程池
+	ct_jobpool_ptr_t  jobpool;     // 全局任务池
 } app[1] = {{
 	.tid    = 0,
 	.thpool = ct_nullptr,
@@ -77,7 +79,8 @@ ct_app_ptr_t ct_app_create(void) {
 	ct_welcome();                                                        // 输出启动信息
 	ct_exception_init();                                                 // 初始化异常处理函数
 	ct_msgqueue_init(app->exitMQ, app->exitBuf, sizeof(ct_excep_t), 1);  // 初始化异常退出队列
-	app->thpool = ct_thpool_global_create(16, 50, NULL);                 // 创建全局线程池
+	app->thpool  = ct_thpool_global(NULL);                               // 创建全局线程池
+	app->jobpool = ct_jobpool_global(16, 50);                            // 创建全局任务池
 	ct_evmsg_mgr_init();                                                 // 初始化事件消息中枢
 	return app;
 
@@ -121,6 +124,7 @@ int ct_app_exec(ct_app_ptr_t self) {
 	// 	raise(self->abnormal);  // 如果为系统信号，则调用 raise 发送信号
 	// } else {
 	// 	ct_thpool_destroy(self->thpool);  // 销毁线程池
+	// 	ct_jobpool_destroy(self->jobpool);  // 销毁任务池
 	// }
 	// return self->abnormal;
 
@@ -139,7 +143,7 @@ void ct_app_exit(int code, const char* msg) {
 		ct_msgqueue_enqueue(app->exitMQ, &excep);
 	}
 	// 如果当前线程是主线程, 则跳转到记录的位置
-	//if (pthread_self() == app->tid) {
+	// if (pthread_self() == app->tid) {
 	//	longjmp(app->jmp, EXIT_FAILURE);
 	//}
 	if (pthread_equal(pthread_self(), app->tid)) {
