@@ -16,15 +16,13 @@
 static bool            test_data[TEST_DATA_MAX] = {0};
 static size_t          test_data_size           = 0;
 static size_t          test_end_number          = 0;
-static pthread_mutex_t test_mutex[1];
+static pthread_mutex_t test_mutex[1]            = {PTHREAD_MUTEX_INITIALIZER};
 
 static inline void test_data_reset(void);
 static inline void test_job_run(void *arg);
 static inline void test_jobpool_add(size_t data_count, size_t task_count, size_t job_count);
 
 int main(void) {
-	pthread_mutex_init(test_mutex, NULL);
-
 	test_jobpool_add(10, 1, 10);
 	ctunit_trace("Finish! test_jobpool_add(10, 1, 10);\n");
 

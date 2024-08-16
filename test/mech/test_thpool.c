@@ -16,15 +16,13 @@
 static bool            test_data[TEST_DATA_MAX] = {0};
 static size_t          test_data_size           = 0;
 static size_t          test_end_number          = 0;
-static pthread_mutex_t test_mutex[1];
+static pthread_mutex_t test_mutex[1]            = {PTHREAD_MUTEX_INITIALIZER};
 
 static inline void test_data_reset(void);
 static inline void test_job_run(void *arg);
 static inline void test_thpool_add(size_t data_count);
 
 int main(void) {
-	pthread_mutex_init(test_mutex, NULL);
-
 	test_thpool_add(1);
 	ctunit_trace("Finish! test_thpool_add(1);\n");
 
