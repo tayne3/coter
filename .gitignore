@@ -338,3 +338,16 @@ _Pvt_Extensions
 *.rpt
 *.SearchResults
 *.WK3
+
+# User Shell Script
+.transfer.sh
+.exec.sh
+.gdb.sh
+.test.sh
+
+# User Directory
+.discard/
+
+# Doxyfile configure file
+Doxyfile
+ProjectInfo
