@@ -10,8 +10,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "mech/ct_mempool.h"
-
 // -------------------------[STATIC DECLARATION]-------------------------
 
 #define STR_CURRTITLE "[ct_vector]"
@@ -42,7 +40,7 @@ void ct_vector_destroy(ct_vector_buf_t self)
 	assert(self);
 
 	if (self->_all) {
-		ct_mempool_free(ct_nullptr, self->_all);
+		free(self->_all);
 		self->_all = ct_nullptr;
 	}
 	self->_byte = self->_max = self->_size = 0;

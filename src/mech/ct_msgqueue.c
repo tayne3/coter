@@ -6,119 +6,188 @@
  */
 #include "ct_msgqueue.h"
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "base/ct_time.h"
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
 #define STR_CURRTITLE "[ct_msgqueue]"
 
-#include <assert.h>
-#include <stdio.h>
+#define TIMEOUT_SEC 5  // 5 seconds timeout
 
-#include "sys/ct_thread.h"
-
-#define ct_msgqueue_lock(self)   ct_mutex_lock(self->mutex)
-#define ct_msgqueue_unlock(self) ct_mutex_unlock(self->mutex)
+#define ct_msgqueue_lock(self)   pthread_mutex_lock(self->mutex)
+#define ct_msgqueue_unlock(self) pthread_mutex_unlock(self->mutex)
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
-void ct_msgqueue_init(ct_msgqueue_buf_t self, void *buffer, size_t byte, size_t max)
-{
+void ct_msgqueue_init(ct_msgqueue_buf_t self, void *buffer, size_t byte, size_t max) {
 	// 初始化消息队列
 	ct_queue_init(self->queue, buffer, byte, max);
 	// 初始化互斥锁
-	ct_mutex_init(self->mutex);
+	pthread_mutex_init(self->mutex, NULL);
 	// 初始化条件变量
-	ct_cond_init(self->not_empty);
-	ct_cond_init(self->not_full);
+	pthread_cond_init(self->not_empty, NULL);
+	pthread_cond_init(self->not_full, NULL);
 	// 设置关闭状态
 	self->is_shut = false;
 }
 
-void ct_msgqueue_destroy(ct_msgqueue_buf_t self)
-{
-	// 锁住消息队列
+void ct_msgqueue_destroy(ct_msgqueue_buf_t self) {
 	ct_msgqueue_lock(self);
-	// 设置关闭状态
 	self->is_shut = true;
-	// 唤醒所有等待线程
-	ct_cond_notify_all(self->not_empty);
-	ct_cond_notify_all(self->not_full);
+	pthread_cond_broadcast(self->not_empty);
+	pthread_cond_broadcast(self->not_full);
+	ct_msgqueue_unlock(self);
+
+	for (;;) {
+		ct_msgqueue_lock(self);
+		if (ct_queue_isempty(self->queue)) {
+			break;
+		} else {
+			ct_msgqueue_unlock(self);
+		}
+		ct_msleep(100);
+	}
+
 	// 销毁条件变量
-	ct_cond_destroy(self->not_empty);
-	ct_cond_destroy(self->not_full);
+	pthread_cond_destroy(self->not_full);
+	pthread_cond_destroy(self->not_empty);
 	// 销毁互斥锁
 	ct_msgqueue_unlock(self);
-	ct_mutex_destroy(self->mutex);
+	pthread_mutex_destroy(self->mutex);
 }
 
-bool ct_msgqueue_isempty(ct_msgqueue_buf_t self)
-{
+bool ct_msgqueue_isempty(ct_msgqueue_buf_t self) {
+	if (self->is_shut) {
+		return false;
+	}
 	ct_msgqueue_lock(self);
 	const bool ret = ct_queue_isempty(self->queue);
 	ct_msgqueue_unlock(self);
 	return ret;
 }
 
-bool ct_msgqueue_isfull(ct_msgqueue_buf_t self)
-{
+bool ct_msgqueue_isfull(ct_msgqueue_buf_t self) {
+	if (self->is_shut) {
+		return false;
+	}
 	ct_msgqueue_lock(self);
 	const bool ret = ct_queue_isfull(self->queue);
 	ct_msgqueue_unlock(self);
 	return ret;
 }
 
-bool ct_msgqueue_isshut(ct_msgqueue_buf_t self)
-{
-	ct_msgqueue_lock(self);
-	const bool ret = self->is_shut;
-	ct_msgqueue_unlock(self);
-	return ret;
-}
+// bool ct_msgqueue_isshut(ct_msgqueue_buf_t self) {
+// 	if (self->is_shut) {
+// 		return true;
+// 	}
+// 	ct_msgqueue_lock(self);
+// 	const bool ret = self->is_shut;
+// 	ct_msgqueue_unlock(self);
+// 	return ret;
+// }
 
-bool ct_msgqueue_enqueue(ct_msgqueue_buf_t self, const void *item)
-{
-	ct_msgqueue_lock(self);
+bool ct_msgqueue_enqueue(ct_msgqueue_buf_t self, const void *item) {
 	if (self->is_shut) {
 		return false;
 	}
+
+	// struct timespec ts;
+	// int             rc;
+
+	ct_msgqueue_lock(self);
+
+	// for (; ct_queue_isfull(self->queue);) {
+	// 	if (gettimeofday(&ts, NULL) == -1) {
+	// 		ct_msgqueue_unlock(self);
+	// 		return false;
+	// 	}
+	// 	ts.tv_sec += TIMEOUT_SEC;
+
+	// 	rc = pthread_cond_timedwait(self->not_full, self->mutex, &ts);
+	// 	if (rc != 0 && rc != ETIMEDOUT) {
+	// 		ct_msgqueue_unlock(self);
+	// 		return false;
+	// 	}
+
+	// 	if (self->is_shut) {
+	// 		ct_msgqueue_unlock(self);
+	// 		return false;
+	// 	}
+	// }
+
 	for (; ct_queue_isfull(self->queue);) {
-		ct_cond_wait(self->not_full, self->mutex);
+		if (pthread_cond_wait(self->not_full, self->mutex) != 0) {
+			ct_msgqueue_unlock(self);
+			return false;
+		}
 		if (self->is_shut) {
 			ct_msgqueue_unlock(self);
 			return false;
 		}
 	}
+
 	ct_queue_enqueue(self->queue, item);
-	ct_cond_notify_one(self->not_empty);
+	pthread_cond_signal(self->not_empty);
 	ct_msgqueue_unlock(self);
 	return true;
 }
 
-bool ct_msgqueue_dequeue(ct_msgqueue_buf_t self, void *item)
-{
-	ct_msgqueue_lock(self);
+bool ct_msgqueue_dequeue(ct_msgqueue_buf_t self, void *item) {
 	if (self->is_shut) {
 		return false;
 	}
+	// struct timespec ts;
+	// int             rc;
+
+	ct_msgqueue_lock(self);
+
+	// for (; ct_queue_isempty(self->queue);) {
+	// 	if (gettimeofday(&ts, NULL) == -1) {
+	// 		ct_msgqueue_unlock(self);
+	// 		return false;
+	// 	}
+	// 	ts.tv_sec += TIMEOUT_SEC;
+
+	// 	rc = pthread_cond_timedwait(self->not_empty, self->mutex, &ts);
+	// 	if (rc != 0 && rc != ETIMEDOUT) {
+	// 		ct_msgqueue_unlock(self);
+	// 		return false;
+	// 	}
+
+	// 	if (self->is_shut) {
+	// 		ct_msgqueue_unlock(self);
+	// 		return false;
+	// 	}
+	// }
+
 	for (; ct_queue_isempty(self->queue);) {
-		ct_cond_wait(self->not_empty, self->mutex);
+		if (pthread_cond_wait(self->not_empty, self->mutex) != 0) {
+			ct_msgqueue_unlock(self);
+			return false;
+		}
 		if (self->is_shut) {
 			ct_msgqueue_unlock(self);
 			return false;
 		}
 	}
+
 	ct_queue_dequeue(self->queue, item);
-	ct_cond_notify_one(self->not_full);
+	pthread_cond_signal(self->not_full);
 	ct_msgqueue_unlock(self);
 	return true;
 }
 
-bool ct_msgqueue_try_enqueue(ct_msgqueue_buf_t self, const void *item)
-{
+bool ct_msgqueue_try_enqueue(ct_msgqueue_buf_t self, const void *item) {
+	if (self->is_shut) {
+		return false;
+	}
 	ct_msgqueue_lock(self);
 	if (self->is_shut) {
+		ct_msgqueue_unlock(self);
 		return false;
 	}
 	if (ct_queue_isfull(self->queue)) {
@@ -126,15 +195,18 @@ bool ct_msgqueue_try_enqueue(ct_msgqueue_buf_t self, const void *item)
 		return false;
 	}
 	ct_queue_enqueue(self->queue, item);
-	ct_cond_notify_one(self->not_empty);
+	pthread_cond_signal(self->not_empty);
 	ct_msgqueue_unlock(self);
 	return true;
 }
 
-bool ct_msgqueue_try_dequeue(ct_msgqueue_buf_t self, void *item)
-{
+bool ct_msgqueue_try_dequeue(ct_msgqueue_buf_t self, void *item) {
+	if (self->is_shut) {
+		return false;
+	}
 	ct_msgqueue_lock(self);
 	if (self->is_shut) {
+		ct_msgqueue_unlock(self);
 		return false;
 	}
 	if (ct_queue_isempty(self->queue)) {
@@ -142,7 +214,7 @@ bool ct_msgqueue_try_dequeue(ct_msgqueue_buf_t self, void *item)
 		return false;
 	}
 	ct_queue_dequeue(self->queue, item);
-	ct_cond_notify_one(self->not_full);
+	pthread_cond_signal(self->not_full);
 	ct_msgqueue_unlock(self);
 	return true;
 }

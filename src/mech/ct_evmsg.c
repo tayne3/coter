@@ -12,12 +12,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "base/ct_platform.h"
 #include "container/ct_heap.h"
 #include "container/ct_list.h"
 #include "ct_msgqueue.h"
-#include "mech/ct_mempool.h"
 #include "mech/ct_thpool.h"
-#include "sys/ct_thread.h"
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
@@ -36,10 +35,10 @@ enum ct_evmsg_id {
 
 /// 订阅者
 typedef struct ct_evmsg_subscriber {
-	ct_list_buf_t      list;
-	ct_evmsg_handler_t handler;
-	void              *userdata;
-	uint8_t            type;
+	ct_list_buf_t      list;      // 链表
+	ct_evmsg_handler_t handler;   // 处理函数
+	void              *userdata;  // 用户数据
+	uint8_t            type;      // 事件类型
 } ct_evmsg_subscriber_t;
 
 /// 消息处理函数
@@ -67,8 +66,7 @@ static inline void ct_evmsg_callback(void *arg);
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
-void ct_evmsg_mgr_init(void)
-{
+void ct_evmsg_mgr_init(void) {
 	// 事件消息缓冲区
 	static ct_evmsg_msg_t ct_evmsg_msg_buffer[CTEVMSG_MSG_MAX];
 	// 初始化事件消息
@@ -78,15 +76,16 @@ void ct_evmsg_mgr_init(void)
 		ct_list_init(mgr->subscriber_list[i]);
 	}
 
+	// 初始化自身订阅者
 	ct_list_init(mgr->subscriber_itself.list);
+	// 添加自身订阅者
 	ct_list_append(mgr->subscriber_list[CTEvMsgType_Itself], mgr->subscriber_itself.list);
 }
 
-void ct_evmsg_mgr_destroy(void)
-{
+void ct_evmsg_mgr_destroy(void) {
 	// 等待事件消息处理完成
 	for (; mgr->is_busy;) {
-		ct_thread_msleep(10);
+		ct_msleep(10);
 	}
 
 	for (size_t i = 0; i < CTEvMsgType_Max; i++) {
@@ -101,8 +100,7 @@ void ct_evmsg_mgr_destroy(void)
 	}
 }
 
-void ct_evmsg_mgr_schedule(void)
-{
+void ct_evmsg_mgr_schedule(void) {
 	// 检查是否忙碌
 	if (mgr->is_busy) {
 		return;
@@ -117,28 +115,29 @@ void ct_evmsg_mgr_schedule(void)
 	ct_thpool_add_job(ct_nullptr, ct_evmsg_callback, ct_nullptr);
 }
 
-void ct_evmsg_subscribe(uint8_t type, ct_evmsg_handler_t handler, void *userdata)
-{
+void ct_evmsg_subscribe(uint8_t type, ct_evmsg_handler_t handler, void *userdata) {
 	assert(handler);
 
-	ct_evmsg_subscriber_t subscriber = {
-		.handler  = handler,
-		.userdata = userdata,
-		.type     = type,
-	};
+	ct_evmsg_subscriber_t *subscriber = malloc(sizeof(ct_evmsg_subscriber_t));
+	assert(subscriber);
+
+	subscriber->handler  = handler;
+	subscriber->userdata = userdata;
+	subscriber->type     = type;
 
 	ct_evmsg_msg_t msg = {
 		.type = CTEvMsgType_Itself,
 		.id   = EvMsgID_AddSubscriber,
-		.data = &subscriber,
+		.data = subscriber,
 		.size = sizeof(ct_evmsg_subscriber_t),
 	};
 
-	ct_evmsg_publish(&msg);
+	ct_msgqueue_enqueue(mgr->msgqueue, &msg);
 }
 
-void ct_evmsg_publish(ct_evmsg_msg_buf_t msg)
-{
+void ct_evmsg_publish(ct_evmsg_msg_buf_t msg) {
+	assert(msg);
+	assert(msg->type != CTEvMsgType_Itself);
 	if (!CTEVMSGTYPE_ISVALID(msg->type)) {
 		return;
 	}
@@ -146,7 +145,7 @@ void ct_evmsg_publish(ct_evmsg_msg_buf_t msg)
 	if (msg->size > 0) {
 		assert(msg->data);
 
-		void *data = ct_mempool_malloc(ct_nullptr, msg->size);
+		void *data = malloc(msg->size);
 		assert(data);
 
 		memcpy(data, msg->data, msg->size);
@@ -158,13 +157,12 @@ void ct_evmsg_publish(ct_evmsg_msg_buf_t msg)
 
 // -------------------------[STATIC DEFINITION]-------------------------
 
-bool ct_evmsg_handler(ct_evmsg_msg_buf_t msg, void *userdata)
-{
+bool ct_evmsg_handler(ct_evmsg_msg_buf_t msg, void *userdata) {
+	assert(msg);
 	switch (msg->id) {
 		case EvMsgID_AddSubscriber: {
 			ct_evmsg_subscriber_t *subscriber = (ct_evmsg_subscriber_t *)msg->data;
-			ct_evmsg_subscriber_t *it =
-				(ct_evmsg_subscriber_t *)ct_mempool_malloc(ct_nullptr, sizeof(ct_evmsg_subscriber_t));
+			ct_evmsg_subscriber_t *it         = (ct_evmsg_subscriber_t *)malloc(sizeof(ct_evmsg_subscriber_t));
 			assert(it);
 			memcpy(it, subscriber, sizeof(ct_evmsg_subscriber_t));
 			ct_list_init(it->list);
@@ -178,17 +176,18 @@ bool ct_evmsg_handler(ct_evmsg_msg_buf_t msg, void *userdata)
 	ct_unused(userdata);
 }
 
-static inline void ct_evmsg_callback(void *arg)
-{
+static inline void ct_evmsg_callback(void *arg) {
 	// 不断取出事件消息并处理
 	ct_forever {
 		// 遍历所有订阅者
 		ct_list_foreach_entry (subscriber, mgr->subscriber_list[mgr->msg->type], ct_evmsg_subscriber_t, list) {
 			assert(subscriber);
+
 			// 跳过事件类型不匹配的订阅者
 			if (subscriber->type != mgr->msg->type) {
 				continue;
 			}
+
 			// 执行处理
 			if (subscriber->handler(mgr->msg, subscriber->userdata)) {
 				break;

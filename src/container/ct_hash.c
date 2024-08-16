@@ -24,8 +24,7 @@
 #include <string.h>
 
 #include "algo/ct_hashalgo.h"
-#include "base/ct_types.h"
-#include "mech/ct_mempool.h"
+#include "base/ct_platform.h"
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
@@ -74,7 +73,7 @@ void ct_hash_init_s(ct_hash_buf_t self, size_t max, bool allow_resize, ct_any_me
 	}
 
 	// 申请内存
-	self->all = (ct_hash_pair_t **)ct_mempool_calloc(ct_nullptr, max, sizeof(ct_hash_pair_t *));
+	self->all = (ct_hash_pair_t **)calloc(max, sizeof(ct_hash_pair_t *));
 	assert(self->all);
 
 	self->methods      = methods;
@@ -91,7 +90,7 @@ void ct_hash_destroy(ct_hash_buf_t self)
 	ct_hash_clear(self);
 	// 释放内存
 	if (self->all) {
-		ct_mempool_free(ct_nullptr, self->all);
+		free(self->all);
 		self->all = ct_nullptr;
 	}
 }
@@ -185,23 +184,14 @@ bool ct_hash_insert(ct_hash_buf_t self, const char *key, ct_any_t value)
 		if (it->key_hash != key_hash || key_length != it->key_length || strncmp(key, it->key, key_length) != 0) {
 			continue;
 		}
-		if (self->methods.update) {
-			self->methods.update(it->value, &value);
-		} else {
-			ct_any_methods_default.update(it->value, &value);
-		}
+		ct_any_update(&self->methods, it->value, &value);
 		return true;
 	}
 
 	ct_hash_pair_t *new_pair = (ct_hash_pair_t *)malloc(sizeof(ct_hash_pair_t) + key_length);
 	assert(new_pair);
 
-	if (self->methods.ctor) {
-		self->methods.ctor(new_pair->value, &value);
-	} else {
-		ct_any_methods_default.ctor(new_pair->value, &value);
-	}
-
+	ct_any_ctor(&self->methods, new_pair->value, &value);
 	strncpy(new_pair->key, key, key_length + 1);
 	new_pair->key_length           = key_length;
 	new_pair->key_hash             = key_hash;
@@ -242,13 +232,9 @@ bool ct_hash_remove(ct_hash_buf_t self, const char *key)
 			} else {
 				CT_HASH_DATA(self, hash_index) = it->next;
 			}
-			if (self->methods.dtor) {
-				self->methods.dtor(it->value);
-			} else {
-				ct_any_methods_default.dtor(it->value);
-			}
+			ct_any_dtor(&self->methods, it->value);
 			self->size--;
-			ct_mempool_free(ct_nullptr, it);
+			free(it);
 			return true;
 		}
 
@@ -275,13 +261,9 @@ void ct_hash_clear(ct_hash_buf_t self)
 			if (pos) {
 				pos = pos->next;
 			}
-			if (self->methods.dtor) {
-				self->methods.dtor(it->value);
-			} else {
-				ct_any_methods_default.dtor(it->value);
-			}
+			ct_any_dtor(&self->methods, it->value);
 			self->size--;
-			ct_mempool_free(ct_nullptr, it);
+			free(it);
 		}
 	}
 }
@@ -407,7 +389,7 @@ static inline bool ct_hash_resize(ct_hash_buf_t self, size_t max)
 	{
 		ct_hash_pair_t **new_all;
 
-		new_all = (ct_hash_pair_t **)ct_mempool_calloc(ct_nullptr, max, sizeof(ct_hash_pair_t *));
+		new_all = (ct_hash_pair_t **)calloc(max, sizeof(ct_hash_pair_t *));
 		if (!new_all) {
 			return false;
 		}
@@ -440,6 +422,6 @@ static inline bool ct_hash_resize(ct_hash_buf_t self, size_t max)
 	}
 
 	// 释放旧的哈希表
-	ct_mempool_free(ct_nullptr, old_all);
+	free(old_all);
 	return true;
 }

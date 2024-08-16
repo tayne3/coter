@@ -1,5 +1,6 @@
 /**
- * @brief
+ * @file test_rbuf.c
+ * @brief 环形缓冲区测试
  * @author tayne3@dingtalk.com
  * @date 2024.2.10
  */
@@ -29,21 +30,32 @@ static inline void test_gets_remove(void);
 // 测试 分段获取操作
 static inline void test_items(void);
 
-int main(void)
-{
+int main(void) {
 	test_init();
+	ctunit_trace("Finish! test_init();\n");
+
 	test_put_take();
+	ctunit_trace("Finish! test_put_take();\n");
+
 	test_clear();
+	ctunit_trace("Finish! test_clear();\n");
+
 	test_full_empty();
+	ctunit_trace("Finish! test_full_empty();\n");
+
 	test_puts_takes();
+	ctunit_trace("Finish! test_puts_takes();\n");
+
 	test_gets_remove();
+	ctunit_trace("Finish! test_gets_remove();\n");
+
 	test_items();
+	ctunit_trace("Finish! test_items();\n");
 
 	ctunit_pass();
 }
 
-static inline void test_init(void)
-{
+static inline void test_init(void) {
 	ct_rbuf_init(rbuf, test_buf, sizeof(char), TEST_BUF_SIZE);
 	ctunit_assert_uint32(ct_rbuf_max(rbuf), TEST_BUF_SIZE, CTUnit_Equal);
 	ctunit_assert_uint32(ct_rbuf_size(rbuf), 0, CTUnit_Equal);
@@ -51,8 +63,7 @@ static inline void test_init(void)
 	ctunit_assert_false(ct_rbuf_isfull(rbuf));
 }
 
-static inline void test_put_take(void)
-{
+static inline void test_put_take(void) {
 	ctunit_assert_true(ct_rbuf_isempty(rbuf));
 	ct_rbuf_clear(rbuf);
 
@@ -88,8 +99,7 @@ static inline void test_put_take(void)
 	}
 }
 
-static inline void test_clear(void)
-{
+static inline void test_clear(void) {
 	ctunit_assert_true(ct_rbuf_isempty(rbuf));
 	ct_rbuf_clear(rbuf);
 
@@ -102,8 +112,7 @@ static inline void test_clear(void)
 	ctunit_assert_true(ct_rbuf_isempty(rbuf));
 }
 
-static inline void test_full_empty(void)
-{
+static inline void test_full_empty(void) {
 	ctunit_assert_true(ct_rbuf_isempty(rbuf));
 	ct_rbuf_clear(rbuf);
 
@@ -119,8 +128,7 @@ static inline void test_full_empty(void)
 	ctunit_assert_true(ct_rbuf_isempty(rbuf));
 }
 
-static inline void test_puts_takes(void)
-{
+static inline void test_puts_takes(void) {
 	ctunit_assert_true(ct_rbuf_isempty(rbuf));
 	ct_rbuf_clear(rbuf);
 
@@ -145,8 +153,7 @@ static inline void test_puts_takes(void)
 	ct_rbuf_clear(rbuf);
 }
 
-static inline void test_gets_remove(void)
-{
+static inline void test_gets_remove(void) {
 	ctunit_assert_true(ct_rbuf_isempty(rbuf));
 	ct_rbuf_clear(rbuf);
 
@@ -205,8 +212,7 @@ static inline void test_gets_remove(void)
 	ct_rbuf_clear(rbuf);
 }
 
-static inline void test_items(void)
-{
+static inline void test_items(void) {
 	ctunit_assert_true(ct_rbuf_isempty(rbuf));
 	ct_rbuf_clear(rbuf);
 

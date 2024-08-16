@@ -21,7 +21,7 @@
 #define CT_RBUF_INDEX_INC(self, x) ((x) + 1 >= (self)->_max ? 0 : (x) + 1)           // 环形缓冲区-索引 递增
 #define CT_RBUF_INDEX_DEC(self, x) ((x) == 0 ? (self)->_max - 1 : (x)-1)             // 环形缓冲区-索引 递减
 #define CT_RBUF_INDEX_CAL(self, x) ((x) >= (self)->_max ? (x) % (self)->_max : (x))  // 环形缓冲区-索引 计算实际值
-#define CT_RBUF_ITEM(self, idx)    (&(self)->_all[(idx) * (self)->_byte])            // 环形缓冲区-数据
+#define CT_RBUF_DATA(self, index)  (&(self)->_all[(index) * (self)->_byte])          // 环形缓冲区-数据
 
 /**
  * @brief 环形缓冲区-遍历
@@ -37,8 +37,7 @@
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
-void ct_rbuf_init(ct_rbuf_buf_t self, void *buffer, size_t byte, size_t max)
-{
+void ct_rbuf_init(ct_rbuf_buf_t self, void *buffer, size_t byte, size_t max) {
 	assert(self);
 	assert(buffer);
 	assert(byte);
@@ -50,8 +49,7 @@ void ct_rbuf_init(ct_rbuf_buf_t self, void *buffer, size_t byte, size_t max)
 	ct_rbuf_clear(self);
 }
 
-bool ct_rbuf_put(ct_rbuf_buf_t self, const void *item)
-{
+bool ct_rbuf_put(ct_rbuf_buf_t self, const void *item) {
 	assert(self);
 	assert(self->_byte);
 	assert(item);
@@ -59,15 +57,16 @@ bool ct_rbuf_put(ct_rbuf_buf_t self, const void *item)
 	if (ct_rbuf_isfull(self)) {
 		return false;
 	}
-	memcpy(CT_RBUF_ITEM(self, self->_tail), item, self->_byte);
+	if (item) {
+		memcpy(CT_RBUF_DATA(self, self->_tail), item, self->_byte);
+	}
 
 	self->_tail = CT_RBUF_INDEX_INC(self, self->_tail);
 	self->_size++;
 	return true;
 }
 
-bool ct_rbuf_take(ct_rbuf_buf_t self, void *item)
-{
+bool ct_rbuf_take(ct_rbuf_buf_t self, void *item) {
 	assert(self);
 	assert(self->_byte);
 	assert(item);
@@ -75,15 +74,16 @@ bool ct_rbuf_take(ct_rbuf_buf_t self, void *item)
 	if (ct_rbuf_isempty(self)) {
 		return false;
 	}
-	memcpy(item, CT_RBUF_ITEM(self, self->_head), self->_byte);
+	if (item) {
+		memcpy(item, CT_RBUF_DATA(self, self->_head), self->_byte);
+	}
 
 	self->_head = CT_RBUF_INDEX_INC(self, self->_head);
 	self->_size--;
 	return true;
 }
 
-size_t ct_rbuf_puts(ct_rbuf_buf_t self, const void *items, size_t size)
-{
+size_t ct_rbuf_puts(ct_rbuf_buf_t self, const void *items, size_t size) {
 	assert(self);
 	assert(self->_byte);
 	assert(items);
@@ -98,12 +98,12 @@ size_t ct_rbuf_puts(ct_rbuf_buf_t self, const void *items, size_t size)
 	}
 
 	if (self->_tail + size <= self->_max) {
-		memcpy(CT_RBUF_ITEM(self, self->_tail), items, size * self->_byte);
+		memcpy(CT_RBUF_DATA(self, self->_tail), items, size * self->_byte);
 		self->_tail += size;
 	} else {
 		const size_t first = self->_max - self->_tail;
-		memcpy(CT_RBUF_ITEM(self, self->_tail), items, first * self->_byte);
-		memcpy(self->_all, ((char(*)[self->_byte])items)[first], (size - first) * self->_byte);
+		memcpy(CT_RBUF_DATA(self, self->_tail), items, first * self->_byte);
+		memcpy(self->_all, &((const char *)items)[first * self->_byte], (size - first) * self->_byte);
 		self->_tail = (size - first);
 	}
 
@@ -111,8 +111,7 @@ size_t ct_rbuf_puts(ct_rbuf_buf_t self, const void *items, size_t size)
 	return size;
 }
 
-size_t ct_rbuf_takes(ct_rbuf_buf_t self, void *items, size_t size)
-{
+size_t ct_rbuf_takes(ct_rbuf_buf_t self, void *items, size_t size) {
 	assert(self);
 	assert(self->_byte);
 	assert(items);
@@ -127,12 +126,12 @@ size_t ct_rbuf_takes(ct_rbuf_buf_t self, void *items, size_t size)
 	}
 
 	if (self->_head + size <= self->_max) {
-		memcpy(items, CT_RBUF_ITEM(self, self->_head), size * self->_byte);
+		memcpy(items, CT_RBUF_DATA(self, self->_head), size * self->_byte);
 		self->_head += size;
 	} else {
 		const size_t first = self->_max - self->_head;
-		memcpy(items, CT_RBUF_ITEM(self, self->_head), first * self->_byte);
-		memcpy(((char(*)[self->_byte])items)[first], self->_all, (size - first) * self->_byte);
+		memcpy(items, CT_RBUF_DATA(self, self->_head), first * self->_byte);
+		memcpy(&((char *)items)[first * self->_byte], self->_all, (size - first) * self->_byte);
 		self->_head = (size - first);
 	}
 
@@ -140,8 +139,7 @@ size_t ct_rbuf_takes(ct_rbuf_buf_t self, void *items, size_t size)
 	return size;
 }
 
-size_t ct_rbuf_gets(ct_rbuf_buf_t self, void *items, size_t size)
-{
+size_t ct_rbuf_gets(ct_rbuf_buf_t self, void *items, size_t size) {
 	assert(self);
 	assert(self->_byte);
 	assert(items);
@@ -156,18 +154,17 @@ size_t ct_rbuf_gets(ct_rbuf_buf_t self, void *items, size_t size)
 	}
 
 	if (self->_head + size <= self->_max) {
-		memcpy(items, CT_RBUF_ITEM(self, self->_head), size * self->_byte);
+		memcpy(items, CT_RBUF_DATA(self, self->_head), size * self->_byte);
 	} else {
 		const size_t first = self->_max - self->_head;
-		memcpy(items, CT_RBUF_ITEM(self, self->_head), first * self->_byte);
-		memcpy(((char(*)[self->_byte])items)[first], self->_all, (size - first) * self->_byte);
+		memcpy(items, CT_RBUF_DATA(self, self->_head), first * self->_byte);
+		memcpy(&((char *)items)[first * self->_byte], self->_all, (size - first) * self->_byte);
 	}
 
 	return size;
 }
 
-size_t ct_rbuf_remove(ct_rbuf_buf_t self, size_t size)
-{
+size_t ct_rbuf_remove(ct_rbuf_buf_t self, size_t size) {
 	assert(self);
 	assert(self->_byte);
 
@@ -179,8 +176,7 @@ size_t ct_rbuf_remove(ct_rbuf_buf_t self, size_t size)
 	return size;
 }
 
-void *ct_rbuf_items(const ct_rbuf_buf_t self, size_t offset, size_t size[1])
-{
+void *ct_rbuf_items(const ct_rbuf_buf_t self, size_t offset, size_t size[1]) {
 	assert(self);
 	assert(self->_byte);
 
@@ -198,13 +194,13 @@ void *ct_rbuf_items(const ct_rbuf_buf_t self, size_t offset, size_t size[1])
 				*size = self->_size;
 			}
 		}
-		return CT_RBUF_ITEM(self, self->_head + offset);
+		return CT_RBUF_DATA(self, self->_head + offset);
 	} else {
 		if (size) {
 			*size = self->_size - offset;
 		}
 		const size_t first = self->_max - self->_head;
-		return CT_RBUF_ITEM(self, offset - first);
+		return CT_RBUF_DATA(self, offset - first);
 	}
 }
 

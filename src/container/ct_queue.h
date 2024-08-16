@@ -13,7 +13,7 @@
 extern "C" {
 #endif
 
-#include "base/ct_types.h"
+#include "base/ct_platform.h"
 
 /**
  * @brief 队列结构体
@@ -26,12 +26,6 @@ typedef struct ct_queue {
 	size_t _tail;  // 尾元素索引
 	size_t _size;  // 元素数量
 } ct_queue_t, ct_queue_buf_t[1];
-
-// 初始化
-#define CT_QUEUE_INIT(__buffer, __byte, __max)                                                       \
-	{                                                                                                \
-		._all = (void*)__buffer, ._byte = __byte, ._max = __max, ._head = 0, ._tail = 0, ._size = 0, \
-	}
 
 #define ct_queue_max(self)     ((self)->_max)                                       // 获取 队列 最大容量
 #define ct_queue_size(self)    ((self)->_size)                                      // 获取 队列 大小
@@ -46,7 +40,7 @@ typedef struct ct_queue {
  * @param byte 单个元素字节大小
  * @param max 缓冲区大小
  */
-void ct_queue_init(ct_queue_buf_t self, void* buffer, size_t byte, size_t max);
+COTER_API void ct_queue_init(ct_queue_buf_t self, void* buffer, size_t byte, size_t max);
 
 /**
  * @brief 将元素添加到队列的末尾。
@@ -54,7 +48,7 @@ void ct_queue_init(ct_queue_buf_t self, void* buffer, size_t byte, size_t max);
  * @param item 要添加的元素
  * @return 队列状态
  */
-bool ct_queue_enqueue(ct_queue_buf_t self, const void* item);
+COTER_API bool ct_queue_enqueue(ct_queue_buf_t self, const void* item);
 
 /**
  * @brief 移除并返回队列的第一个元素
@@ -62,7 +56,7 @@ bool ct_queue_enqueue(ct_queue_buf_t self, const void* item);
  * @param item 用于存储元素的指针
  * @return 成功返回 true，失败返回 false
  */
-bool ct_queue_dequeue(ct_queue_buf_t self, void* item);
+COTER_API bool ct_queue_dequeue(ct_queue_buf_t self, void* item);
 
 /**
  * @brief 返回队列的首元素,但不会移除它
@@ -70,7 +64,7 @@ bool ct_queue_dequeue(ct_queue_buf_t self, void* item);
  * @param item 用于存储元素的指针
  * @return 成功返回 true，失败返回 false
  */
-bool ct_queue_head(ct_queue_buf_t self, void* item);
+COTER_API bool ct_queue_head(ct_queue_buf_t self, void* item);
 
 #ifdef __cplusplus
 }

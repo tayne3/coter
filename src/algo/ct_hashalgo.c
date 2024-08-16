@@ -10,16 +10,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "convert/ct_bytearray.h"
-
 // -------------------------[STATIC DECLARATION]-------------------------
 
 #define STR_CURRTITLE "[ct_hashalgo]"
 
+static inline uint64_t hg_to_uint64s(const uint8_t *array, ct_endian_t endian);
+
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
-uint32_t ct_hashalgo_times33(const char *data, size_t size)
-{
+uint32_t ct_hashalgo_times33(const char *data, size_t size) {
 	assert(data);
 	register uint32_t hash = 5381U;
 
@@ -30,8 +29,7 @@ uint32_t ct_hashalgo_times33(const char *data, size_t size)
 	return hash;
 }
 
-uint32_t ct_hashalgo_bkdr(const char *data, size_t size)
-{
+uint32_t ct_hashalgo_bkdr(const char *data, size_t size) {
 	assert(data);
 	register uint32_t hash = 0U;
 
@@ -42,8 +40,7 @@ uint32_t ct_hashalgo_bkdr(const char *data, size_t size)
 	return hash;
 }
 
-uint32_t ct_hashalgo_pjw(const char *data, size_t size)
-{
+uint32_t ct_hashalgo_pjw(const char *data, size_t size) {
 	assert(data);
 	uint32_t val = 0U, tmp;
 
@@ -56,8 +53,7 @@ uint32_t ct_hashalgo_pjw(const char *data, size_t size)
 	return val;
 }
 
-uint32_t ct_hashalgo_murmurhash2(const char *data, size_t size)
-{
+uint32_t ct_hashalgo_murmurhash2(const char *data, size_t size) {
 	assert(data);
 	uint32_t k, h = 0 ^ size;
 
@@ -91,8 +87,7 @@ uint32_t ct_hashalgo_murmurhash2(const char *data, size_t size)
 	return h;
 }
 
-uint64_t ct_hashalgo_murmurhash2_64(const char *data, size_t size, uint64_t seed)
-{
+uint64_t ct_hashalgo_murmurhash2_64(const char *data, size_t size, uint64_t seed) {
 	assert(data);
 	const uint64_t m = 0xc6a4a7935bd1e995ULL;
 	const int      r = 47;
@@ -136,8 +131,7 @@ uint64_t ct_hashalgo_murmurhash2_64(const char *data, size_t size, uint64_t seed
 	return h;
 }
 
-uint64_t ct_hashalgo_siphash_64(const char *data, size_t size, const uint8_t siphash_keys[16])
-{
+uint64_t ct_hashalgo_siphash_64(const char *data, size_t size, const uint8_t siphash_keys[16]) {
 	assert(data);
 #define ROTATE(x, b) (uint64_t)(((x) << (b)) | ((x) >> (64 - (b))))
 
@@ -164,8 +158,8 @@ uint64_t ct_hashalgo_siphash_64(const char *data, size_t size, const uint8_t sip
 
 	{
 		const uint64_t *_key = (uint64_t *)siphash_keys;
-		const uint64_t  k0   = ct_bytearray_to_uint64s((const uint8_t *)&_key[0], CTEndian_Little);
-		const uint64_t  k1   = ct_bytearray_to_uint64s((const uint8_t *)&_key[1], CTEndian_Little);
+		const uint64_t  k0   = hg_to_uint64s((const uint8_t *)&_key[0], CTEndian_Little);
+		const uint64_t  k1   = hg_to_uint64s((const uint8_t *)&_key[1], CTEndian_Little);
 
 		v0 ^= k0;
 		v1 ^= k1;
@@ -179,7 +173,7 @@ uint64_t ct_hashalgo_siphash_64(const char *data, size_t size, const uint8_t sip
 	{
 		uint64_t mi;
 		for (; size >= 8;) {
-			mi = ct_bytearray_to_uint64s((const uint8_t *)in, CTEndian_Little);
+			mi = hg_to_uint64s((const uint8_t *)in, CTEndian_Little);
 			in += 1;
 			size -= 8;
 			v3 ^= mi;
@@ -206,7 +200,7 @@ uint64_t ct_hashalgo_siphash_64(const char *data, size_t size, const uint8_t sip
 			case 1: pt[0] = m[0];  // fall through
 		}
 
-		b |= ct_bytearray_to_uint64s((const uint8_t *)&t, CTEndian_Little);
+		b |= hg_to_uint64s((const uint8_t *)&t, CTEndian_Little);
 	}
 
 	v3 ^= b;
@@ -219,3 +213,16 @@ uint64_t ct_hashalgo_siphash_64(const char *data, size_t size, const uint8_t sip
 }
 
 // -------------------------[STATIC DEFINITION]-------------------------
+
+static inline uint64_t hg_to_uint64s(const uint8_t *array, ct_endian_t endian) {
+	assert(array);
+	if (endian == CTEndian_System) {
+		return (uint64_t)array[0] | ((uint64_t)array[1] << 8) | ((uint64_t)array[2] << 16) |
+			   ((uint64_t)array[3] << 24) | ((uint64_t)array[4] << 32) | ((uint64_t)array[5] << 40) |
+			   ((uint64_t)array[6] << 48) | ((uint64_t)array[7] << 56);
+	} else {
+		return (uint64_t)array[7] | ((uint64_t)array[6] << 8) | ((uint64_t)array[5] << 16) |
+			   ((uint64_t)array[4] << 24) | ((uint64_t)array[3] << 32) | ((uint64_t)array[2] << 40) |
+			   ((uint64_t)array[1] << 48) | ((uint64_t)array[0] << 56);
+	}
+}

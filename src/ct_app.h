@@ -9,7 +9,7 @@
 extern "C" {
 #endif
 
-#include "base/ct_types.h"
+#include "base/ct_platform.h"
 
 /**
  * @brief coter 应用实例
@@ -20,20 +20,21 @@ typedef struct ct_app ct_app_t, *ct_app_ptr_t;
  * @brief 创建应用实例
  * @return ct_app_ptr_t 返回应用实例的指针
  */
-ct_app_ptr_t ct_app_create(void);
+COTER_API ct_app_ptr_t ct_app_create(void);
 
 /**
  * @brief 执行应用逻辑
  * @param self 应用实例的指针
  * @return int 返回异常标志的值
  */
-int ct_app_exec(ct_app_ptr_t self);
+COTER_API int ct_app_exec(ct_app_ptr_t self);
 
 /**
  * @brief 应用退出处理
- * @param status 退出状态码
+ * @param code 退出状态码
+ * @param msg 退出消息
  */
-void ct_app_exit(int status);
+COTER_API void ct_app_exit(int code, const char* msg);
 
 #ifdef __cplusplus
 }

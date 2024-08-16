@@ -1,5 +1,6 @@
 /**
- * @brief
+ * @file test_stack.c
+ * @brief 栈测试
  * @author tayne3@dingtalk.com
  * @date 2023.11.30
  */
@@ -11,22 +12,25 @@ static inline int test_stack_push(void);
 static inline int test_stack_pop(void);
 static inline int test_stack_top(void);
 
-int main(int argc, char** argv)
-{
+int main(void) {
 	test_stack_init();
+	ctunit_trace("Finish! test_stack_init();\n");
+
 	test_stack_push();
+	ctunit_trace("Finish! test_stack_push();\n");
+
 	test_stack_pop();
+	ctunit_trace("Finish! test_stack_pop();\n");
+
 	test_stack_top();
+	ctunit_trace("Finish! test_stack_top();\n");
 
 	ctunit_pass();
-	ct_unused(argc);
-	ct_unused(argv);
 }
 
-static inline int test_stack_init(void)
-{
+static inline int test_stack_init(void) {
 	ct_stack_t   stack;
-	ct_any_t   buffer[1000];
+	ct_any_t     buffer[1000];
 	const size_t max = ct_arrsize(buffer);
 
 	{
@@ -45,10 +49,9 @@ static inline int test_stack_init(void)
 	return 0;
 }
 
-static inline int test_stack_push(void)
-{
+static inline int test_stack_push(void) {
 	ct_stack_t   stack;
-	ct_any_t   buffer[777];
+	ct_any_t     buffer[777];
 	const size_t max = ct_arrsize(buffer);
 
 	// 初始化队列
@@ -79,10 +82,9 @@ static inline int test_stack_push(void)
 	return 0;
 }
 
-static inline int test_stack_pop(void)
-{
+static inline int test_stack_pop(void) {
 	ct_stack_t   stack;
-	ct_any_t   buffer[777];
+	ct_any_t     buffer[777];
 	const size_t max = ct_arrsize(buffer);
 
 	// 初始化队列
@@ -96,7 +98,7 @@ static inline int test_stack_pop(void)
 	}
 
 	{
-		size_t     i    = 0;
+		size_t   i    = 0;
 		ct_any_t item = CT_ANY_INIT_INVALID;
 		for (i = 1; i <= max; i++) {
 			ct_stack_pop(&stack, &item);
@@ -122,10 +124,9 @@ static inline int test_stack_pop(void)
 	return 0;
 }
 
-static inline int test_stack_top(void)
-{
+static inline int test_stack_top(void) {
 	ct_stack_t   stack;
-	ct_any_t   buffer[777];
+	ct_any_t     buffer[777];
 	const size_t max = ct_arrsize(buffer);
 
 	// 初始化队列
@@ -139,7 +140,7 @@ static inline int test_stack_top(void)
 	}
 
 	{
-		size_t     i         = 0;
+		size_t   i         = 0;
 		ct_any_t item_prev = CT_ANY_INIT_INVALID;
 		ct_any_t item      = CT_ANY_INIT_INVALID;
 		ct_any_t item_next = CT_ANY_INIT_INVALID;

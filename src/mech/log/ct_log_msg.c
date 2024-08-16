@@ -31,8 +31,7 @@ static inline void ct_log_msg_debug_handle(ct_log_msg_buf_t msg);
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
-void ct_log_msg_push(ct_log_msg_buf_t msg)
-{
+void ct_log_msg_push(ct_log_msg_buf_t msg) {
 	// 处理日志消息
 	if (CT_CONTEXT_ISVALID(msg->context)) {
 		ct_log_msg_debug_handle(msg);
@@ -41,8 +40,7 @@ void ct_log_msg_push(ct_log_msg_buf_t msg)
 	}
 }
 
-void ct_log_msg_flush(void)
-{
+void ct_log_msg_flush(void) {
 	ct_log_control_t *self = ct_nullptr;
 
 	for (size_t i = CTLOG_TYPE_MIN; i < CTLOG_TYPE_MAX; i++) {
@@ -57,15 +55,13 @@ void ct_log_msg_flush(void)
 	}
 }
 
-void ct_log_msg_schedule(void)
-{
+void ct_log_msg_schedule(void) {
 	return;
 }
 
 // -------------------------[STATIC DEFINITION]-------------------------
 
-static inline void ct_log_msg_basic_handle(ct_log_msg_buf_t msg)
-{
+static inline void ct_log_msg_basic_handle(ct_log_msg_buf_t msg) {
 	ct_log_control_t *const self = msg->control;
 
 	// 打印
@@ -97,8 +93,7 @@ static inline void ct_log_msg_basic_handle(ct_log_msg_buf_t msg)
 	}
 }
 
-static inline void ct_log_msg_debug_handle(ct_log_msg_buf_t msg)
-{
+static inline void ct_log_msg_debug_handle(ct_log_msg_buf_t msg) {
 	ct_log_control_t *const self = msg->control;
 
 	// 上下文信息缓冲区

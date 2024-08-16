@@ -1,5 +1,6 @@
 /**
- * @brief
+ * @file test_vector.c
+ * @brief 向量测试
  * @author tayne3@dingtalk.com
  * @date 2023.12.15
  */
@@ -11,17 +12,20 @@ static inline void test_vector_resize(void);
 static inline void test_vector_get(void);
 static inline void test_vector_at(void);
 
-int main(void)
-{
+int main(void) {
 	test_vector_resize();
+	ctunit_trace("Finish! test_vector_resize();\n");
+
 	test_vector_get();
+	ctunit_trace("Finish! test_vector_get();\n");
+
 	test_vector_at();
+	ctunit_trace("Finish! test_vector_at();\n");
 
 	ctunit_pass();
 }
 
-static inline void test_vector_resize(void)
-{
+static inline void test_vector_resize(void) {
 	ct_vector_buf_t vec;
 	ct_vector_init(vec, sizeof(int), 10);
 	ctunit_assert_uint32(ct_vector_size(vec), 10, CTUnit_Equal);
@@ -40,8 +44,7 @@ static inline void test_vector_resize(void)
 	ct_vector_destroy(vec);
 }
 
-static inline void test_vector_get(void)
-{
+static inline void test_vector_get(void) {
 	ct_vector_buf_t vec;
 	ct_vector_init(vec, sizeof(int), 1);
 	ctunit_assert_uint32(ct_vector_size(vec), 1, CTUnit_Equal);
@@ -79,8 +82,7 @@ static inline void test_vector_get(void)
 	ct_vector_destroy(vec);
 }
 
-static inline void test_vector_at(void)
-{
+static inline void test_vector_at(void) {
 	ct_vector_buf_t vec;
 	ct_vector_init(vec, sizeof(int), 1);
 	ctunit_assert_uint32(ct_vector_size(vec), 1, CTUnit_Equal);
@@ -100,7 +102,7 @@ static inline void test_vector_at(void)
 	{
 		int *it = ct_nullptr;
 		for (size_t i = 0; i < ct_vector_size(vec); i++) {
-			it	= ct_vector_at(vec, i);
+			it  = ct_vector_at(vec, i);
 			*it = i + 1;
 		}
 	}

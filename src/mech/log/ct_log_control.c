@@ -11,7 +11,6 @@
 #include <stdlib.h>
 
 #include "../ct_log.h"
-#include "mech/ct_mempool.h"
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
@@ -53,7 +52,7 @@ ct_log_control_t *ct_log_control_ask(int type)
 	}
 
 	// 申请空间
-	self = ct_log_control_all[type] = (ct_log_control_t *)ct_mempool_malloc(ct_nullptr, sizeof(ct_log_control_t));
+	self = ct_log_control_all[type] = (ct_log_control_t *)malloc(sizeof(ct_log_control_t));
 	if (self) {
 		// 重置参数
 		ct_log_config_default(self, type);
@@ -74,7 +73,7 @@ void ct_log_control_close(int type)
 
 	ct_log_control_t *self = ct_log_control_all[type];
 	if (self) {
-		ct_mempool_free(ct_nullptr, self);
+		free(self);
 		ct_log_control_all[type] = ct_nullptr;
 	}
 }

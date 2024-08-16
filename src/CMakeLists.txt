@@ -1,32 +1,55 @@
 
-# 根据编译类型不同
-if(("${CMAKE_BUILD_TYPE}" STREQUAL "Debug") # 用于调试目的，包含符号表和未优化的代码 (-O0 -g)
-	OR DEFINED("${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo")) # 包含优化的代码和符号表，用于在发生错误时进行调试 (-O2 -g -DNDEBUG)
-    set(BUILD_VERSION_DEBUG 1)
-elseif(("${CMAKE_BUILD_TYPE}" STREQUAL "Release") # 用于发布目的，包含优化的代码，并且通常不包含符号表 (-O3 -DNDEBUG)
-	OR ("${CMAKE_BUILD_TYPE}" STREQUAL "MinSizeRel")) # 最小化二进制文件大小，启用优化并删除不必要的符号 (-Os -DNDEBUG)
-    set(BUILD_VERSION_DEBUG 0)
-else()
-	message(FATAL_ERROR "Unsupported build type: ${CMAKE_BUILD_TYPE}.")
-endif()
-# 生成版本信息头文件
+# see configure
+# Checks for header files
+project_check_header("stdbool.h")
+project_check_header("stdint.h")
+project_check_header("stdatomic.h")
+project_check_header("sys/types.h")
+project_check_header("sys/stat.h")
+project_check_header("sys/time.h")
+project_check_header("fcntl.h")
+project_check_header("pthread.h")
+project_check_header("endian.h")
+project_check_header("sys/endian.h")
+
+project_check_function("gettid" "unistd.h")
+project_check_function("strlcpy" "string.h")
+project_check_function("strlcat" "string.h")
+project_check_function("clock_gettime" "time.h")
+project_check_function("gettimeofday" "sys/time.h")
+project_check_function("sem_timedwait" "semaphore.h")
+project_check_function("pipe" "unistd.h")
+project_check_function("socketpair" "sys/socket.h")
+project_check_function("eventfd" "sys/eventfd.h")
+project_check_function("setproctitle" "unistd.h")
+
+# project_check_function("pthread_spin_lock" "pthread.h")
+# project_check_function("pthread_mutex_timedlock" "pthread.h")
+
+# 生成配置信息头文件
 configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/base/ct_version.h.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/base/ct_version.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/base/prefix/ct_config.h.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/base/prefix/ct_config.h"
     @ONLY
 )
 
 # 打印版本号
 message(STATUS "Coter version: ${PROJECT_VERSION}")
 
+# 收集当前目录及其子目录中的源文件
+project_list_sources(files)
 # 创建库目标
-project_add_library(coter_obj OBJECT)
+add_library(coter_obj OBJECT ${files})
 # 添加别名
 add_library(coter::obj ALIAS coter_obj)
 # 设置头文件查找路径
 target_include_directories(coter_obj PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
-# 链接库文件
-target_link_libraries(coter_obj PUBLIC pthread rt)
+# 添加导出宏
+target_compile_definitions(coter_obj PRIVATE COTER_EXPORTS)
+# 链接库
+if(TARGET pthread::pthread)
+    target_link_libraries(coter_obj PUBLIC pthread::pthread)
+endif()
 
 # 编译动态库
 if(COTER_BUILD_SHARED)
@@ -34,7 +57,13 @@ if(COTER_BUILD_SHARED)
     add_library(coter::shared ALIAS coter_shared)
     target_include_directories(coter_shared PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
     set_target_properties(coter_shared PROPERTIES OUTPUT_NAME coter)
-    project_install_target(coter_shared)
+    target_compile_definitions(coter_shared PRIVATE COTER_EXPORTS)
+    if(TARGET pthread::pthread)
+        target_link_libraries(coter_shared PUBLIC pthread::pthread)
+    endif()
+    if(NOT TARGET coter::coter)
+        add_library(coter::coter ALIAS coter_shared)
+    endif()
     message(STATUS "Coter build shared library: ON")
 else()
     message(STATUS "Coter build shared library: OFF")
@@ -46,7 +75,13 @@ if(COTER_BUILD_STATIC)
     add_library(coter::static ALIAS coter_static)
     target_include_directories(coter_static PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
     set_target_properties(coter_static PROPERTIES OUTPUT_NAME coter)
-    project_install_target(coter_static)
+    target_compile_definitions(coter_static PRIVATE COTER_EXPORTS)
+    if(TARGET pthread::pthread)
+        target_link_libraries(coter_static PUBLIC pthread::pthread)
+    endif()
+    if(NOT TARGET coter::coter)
+        add_library(coter::coter ALIAS coter_static)
+    endif()
     message(STATUS "Coter build static library: ON")
 else()
     message(STATUS "Coter build static library: OFF")

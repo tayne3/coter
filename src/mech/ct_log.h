@@ -38,8 +38,7 @@
 extern "C" {
 #endif
 
-#include "base/ct_types.h"
-#include "base/ct_version.h"
+#include "base/ct_platform.h"
 
 // 日志级别
 enum ct_log_level {
@@ -53,7 +52,7 @@ enum ct_log_level {
 
 #define CTLOG_LEVEL_MIN        0
 #define CTLOG_LEVEL_MAX        6
-#define CTLOG_LEVEL_ISVALID(x) (((uint_t)(x)) < CTLOG_LEVEL_MAX)
+#define CTLOG_LEVEL_ISVALID(x) (((unsigned)(x)) < CTLOG_LEVEL_MAX)
 #define CTLOG_LEVEL_ISABNOR(x) ((x) >= CTLogLevel_Error)
 #define CTLOG_LEVEL_ISFATAL(x) ((x) == CTLogLevel_Fatal)
 
@@ -65,7 +64,7 @@ enum ct_log_level {
 #define CTLOG_TYPE_USER       1
 #define CTLOG_TYPE_MIN        0
 #define CTLOG_TYPE_MAX        64
-#define CTLOG_TYPE_ISVALID(x) (((uint_t)(x)) < CTLOG_TYPE_MAX)
+#define CTLOG_TYPE_ISVALID(x) (((unsigned)(x)) < CTLOG_TYPE_MAX)
 #define CTLOG_TYPE_ISUSER(x)  (CTLOG_TYPE_ISVALID(x) && (x) >= CTLOG_TYPE_USER)
 
 // clang-format off
@@ -91,15 +90,10 @@ enum ct_log_level {
 # define cerror_n(...)                    ct_log_msg_n(CTLOG_TYPE_DEFAULT, CTLogLevel_Error, __VA_ARGS__)
 # define cfatal_n(...)                    ct_log_msg_n(CTLOG_TYPE_DEFAULT, CTLogLevel_Fatal, __VA_ARGS__) 
 
-# ifndef __coter_version_debug__
-#   warning "Missing macro definition"
-#   define ct_log_msg ct_log_msg_d
+# ifdef NDEBUG
+#	define ct_log_msg ct_log_msg_n
 # else
-#   if __coter_version_debug__
-#       define ct_log_msg ct_log_msg_d
-#   else
-#       define ct_log_msg ct_log_msg_n
-#   endif
+#	define ct_log_msg ct_log_msg_d
 # endif
 
 # define ct_log_msg_d(__type, __level, ...)	ct_log_msg_debug(__type, __level, __ct_file__, __ct_func__, __ct_line__, __VA_ARGS__)
@@ -131,7 +125,7 @@ enum ct_log_level {
  * @param format 日志消息格式
  * @param ... 日志消息参数
  */
-void ct_log_msg_debug(int type, int level, const char *file, const char *func, int line, const char *format, ...);
+COTER_API void ct_log_msg_debug(int type, int level, const char *file, const char *func, int line, const char *format, ...);
 
 /**
  * @brief 普通日志消息
@@ -140,7 +134,7 @@ void ct_log_msg_debug(int type, int level, const char *file, const char *func, i
  * @param format 日志消息格式
  * @param ... 日志消息参数
  */
-void ct_log_msg_basic(int type, int level, const char *format, ...);
+COTER_API void ct_log_msg_basic(int type, int level, const char *format, ...);
 
 /**
  * @brief 以十六进制格式打印数组
@@ -150,35 +144,36 @@ void ct_log_msg_basic(int type, int level, const char *format, ...);
  * @param length 数组长度
  * @param format 输出格式
  */
-void ct_log_msg_hex(int type, int level, const uint8_t *array, int length, const char *format, ...);
+COTER_API void ct_log_msg_hex(int type, int level, const uint8_t *array, int length, const char *format, ...);
 
 /**
  * @brief 刷新日志缓冲区
  */
-void ct_log_flush(void);
+COTER_API void ct_log_flush(void);
 
 /**
  * @brief 日志中枢-调度
  */
-void ct_log_mgr_schedule(void);
+COTER_API void ct_log_mgr_schedule(void);
 
 /**
  * @brief 日志中枢-获取日志输出等级
  * @return 日志输出等级
  */
-int ct_log_mgr_get_level(void);
+COTER_API int ct_log_mgr_get_level(void);
 
 /**
  * @brief 日志中枢-设置日志输出等级
  * @param level 日志输出等级
  */
-void ct_log_mgr_set_level(int level);
+COTER_API void ct_log_mgr_set_level(int level);
 
 /**
  * @brief 日志中枢-设置日志异步输出
  * @param is_asyn 是否异步输出
+ * @note 由于该函数并非线程安全, 应在程序启动后单次调用
  */
-void ct_log_mgr_set_asyn(bool is_asyn);
+COTER_API void ct_log_mgr_set_asyn(bool is_asyn);
 
 #ifdef __cplusplus
 }

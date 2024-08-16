@@ -9,6 +9,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <time.h>
+#include <pthread.h>
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
@@ -34,10 +35,8 @@ static inline uint64_t ct_random_xoroshiro_next(ct_random_buf_t self);
 void ct_random_init(ct_random_buf_t self)
 {
 	assert(self);
-	struct timespec timespec;
-	clock_gettime(CLOCK_REALTIME, &timespec);
-	const uint64_t t = timespec.tv_nsec ^ timespec.tv_sec;
-	srand((uint_t)t);
+	const time_t t = time(NULL);
+	srand((unsigned)t);
 	self->_s[0] = t;
 	self->_s[1] = rand();
 }
@@ -123,14 +122,14 @@ int64_t ct_random_int64(ct_random_buf_t self, int64_t min, int64_t max)
 float ct_random_float(ct_random_buf_t self, float min, float max)
 {
 	assert(self);
-	float value = (float)ct_random_uint32(self, 0, UINT16_MAX) / (float)UINT16_MAX;
+	const float value = (float)ct_random_uint32(self, 0, UINT16_MAX) / (float)UINT16_MAX;
 	return min + value * (max - min);
 }
 
 double ct_random_double(ct_random_buf_t self, double min, double max)
 {
 	assert(self);
-	double value = (double)ct_random_xoroshiro_next(self) / (double)UINT64_MAX;
+	const double value = (double)ct_random_xoroshiro_next(self) / (double)UINT64_MAX;
 	return min + value * (max - min);
 }
 

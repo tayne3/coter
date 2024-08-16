@@ -14,7 +14,7 @@
 extern "C" {
 #endif
 
-#include "base/ct_types.h"
+#include "base/ct_platform.h"
 #include "common/ct_any.h"
 
 /**
@@ -44,7 +44,7 @@ typedef struct ct_stack {
  * @param buffer 缓冲区地址
  * @param max 缓冲区大小
  */
-void ct_stack_init(ct_stack_buf_t self, ct_any_t* buffer, size_t max);
+COTER_API void ct_stack_init(ct_stack_buf_t self, ct_any_t* buffer, size_t max);
 
 /**
  * @brief 将元素value推入栈顶
@@ -52,7 +52,7 @@ void ct_stack_init(ct_stack_buf_t self, ct_any_t* buffer, size_t max);
  * @param item 要添加的元素
  * @return 栈状态
  */
-bool ct_stack_push(ct_stack_buf_t self, ct_any_t item);
+COTER_API bool ct_stack_push(ct_stack_buf_t self, ct_any_t item);
 
 /**
  * @brief 弹出栈顶的元素
@@ -60,7 +60,7 @@ bool ct_stack_push(ct_stack_buf_t self, ct_any_t item);
  * @param item 用于存储元素的指针
  * @return 成功返回 true，失败返回 false
  */
-bool ct_stack_pop(ct_stack_buf_t self, ct_any_buf_t item);
+COTER_API bool ct_stack_pop(ct_stack_buf_t self, ct_any_buf_t item);
 
 /**
  * @brief 返回栈顶元素, 但不将其从栈中移除
@@ -68,7 +68,7 @@ bool ct_stack_pop(ct_stack_buf_t self, ct_any_buf_t item);
  * @param item 用于存储元素的指针
  * @return 成功返回 true，失败返回 false
  */
-bool ct_stack_top(ct_stack_buf_t self, ct_any_buf_t item);
+COTER_API bool ct_stack_top(ct_stack_buf_t self, ct_any_buf_t item);
 
 #ifdef __cplusplus
 }

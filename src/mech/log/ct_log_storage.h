@@ -12,27 +12,31 @@ extern "C" {
 
 #include <stdio.h>
 
-#include "base/ct_types.h"
-#include "sys/ct_mutex.h"
+#include "base/ct_platform.h"
 
 /**
  * @brief 日志存储配置
  * 该结构体用于配置日志存储的相关参数, 其中参数都是只读的,不允许在外部进行修改。
  */
 typedef struct ct_log_storage {
-	int            file_number;  // 日志文件数量
-	size_t         file_size;    // 日志文件最大大小
-	size_t         buffer_max;   // 缓冲区最大空间
-	const char    *file_name;    // 日志文件前缀
-	FILE          *_file;        // 文件描述符
-	int            _file_index;  // 文件索引号
-	ct_mutex_buf_t mutex;        // 互斥锁
+	int             file_number;  // 日志文件数量
+	size_t          file_size;    // 日志文件最大大小
+	size_t          buffer_max;   // 缓冲区最大空间
+	const char     *file_name;    // 日志文件前缀
+	FILE           *_file;        // 文件描述符
+	int             _file_index;  // 文件索引号
+	pthread_mutex_t mutex[1];     // 互斥锁
 } ct_log_storage_t, ct_log_storage_buf_t[1];
 
-#define CTLOG_STORAGE_INIT(_file_name, _file_number, _file_max, _buffer_max)                                     \
-	{                                                                                                            \
-		.file_number = _file_number, .file_size = _file_max, .buffer_max = _buffer_max, .file_name = _file_name, \
-		._file = ct_nullptr, ._file_index = 0, .mutex = {CT_MUTEX_INITIALIZATION},                               \
+#define CTLOG_STORAGE_INIT(_file_name, _file_number, _file_max, _buffer_max) \
+	{                                                                        \
+		.file_number = _file_number,                                         \
+		.file_size   = _file_max,                                            \
+		.buffer_max  = _buffer_max,                                          \
+		.file_name   = _file_name,                                           \
+		._file       = ct_nullptr,                                           \
+		._file_index = 0,                                                    \
+		.mutex       = {CT_MUTEX_INITIALIZATION},                            \
 	}
 
 /**

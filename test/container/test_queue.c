@@ -1,5 +1,6 @@
 /**
- * @brief
+ * @file test_queue.c
+ * @brief 队列测试
  * @author tayne3@dingtalk.com
  * @date 2023.11.30
  */
@@ -12,20 +13,25 @@ static inline int test_queue_enqueue(void);
 static inline int test_queue_dequeue(void);
 static inline int test_queue_head(void);
 
-int main(void)
-{
+int main(void) {
 	test_queue_init();
+	ctunit_trace("Finish! test_queue_init();\n");
+
 	test_queue_enqueue();
+	ctunit_trace("Finish! test_queue_enqueue();\n");
+
 	test_queue_dequeue();
+	ctunit_trace("Finish! test_queue_dequeue();\n");
+
 	test_queue_head();
+	ctunit_trace("Finish! test_queue_head();\n");
 
 	ctunit_pass();
 }
 
-static inline int test_queue_init(void)
-{
-	ct_queue_t	 queue;
-	uint32_t	 buffer[1000];
+static inline int test_queue_init(void) {
+	ct_queue_t   queue;
+	uint32_t     buffer[1000];
 	const size_t max = ct_arrsize(buffer);
 
 	{
@@ -44,10 +50,9 @@ static inline int test_queue_init(void)
 	return 0;
 }
 
-static inline int test_queue_enqueue(void)
-{
-	ct_queue_t	  queue;
-	int32_t		  buffer[777];
+static inline int test_queue_enqueue(void) {
+	ct_queue_t    queue;
+	int32_t       buffer[777];
 	const int32_t max = ct_arrsize(buffer);
 
 	// 初始化队列
@@ -78,10 +83,9 @@ static inline int test_queue_enqueue(void)
 	return 0;
 }
 
-static inline int test_queue_dequeue(void)
-{
-	ct_queue_t	   queue;
-	uint64_t	   buffer[777];
+static inline int test_queue_dequeue(void) {
+	ct_queue_t     queue;
+	uint64_t       buffer[777];
 	const uint64_t max = ct_arrsize(buffer);
 
 	// 初始化队列
@@ -128,10 +132,9 @@ static inline int test_queue_dequeue(void)
 	return 0;
 }
 
-static inline int test_queue_head(void)
-{
-	ct_queue_t	 queue;
-	int			 buffer[777];
+static inline int test_queue_head(void) {
+	ct_queue_t   queue;
+	int          buffer[777];
 	const size_t max = ct_arrsize(buffer);
 
 	// 初始化队列
@@ -145,9 +148,9 @@ static inline int test_queue_head(void)
 	}
 
 	{
-		size_t	 i		   = 0;
+		size_t i         = 0;
 		size_t item_prev = 0;
-		size_t item	   = 0;
+		size_t item      = 0;
 		size_t item_next = 0;
 
 		for (i = 1; i <= max; i++) {

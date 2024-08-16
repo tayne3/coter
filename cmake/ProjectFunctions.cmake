@@ -6,14 +6,31 @@ macro(project_get_dir_name Target)
     get_filename_component(${Target} "${CMAKE_CURRENT_SOURCE_DIR}" NAME)
 endmacro()
 
-# 收集源文件
-macro(project_collect_source_files Target)
-    file(GLOB_RECURSE files CONFIGURE_DEPENDS *.c *.cpp *.cc *.h *.hpp)
-    foreach(file_path ${files})
-        # 转为相对路径
-        string(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/" "" file_name ${file_path})
-        list(APPEND ${Target} ${file_name})
-    endforeach()
+# 检查头文件是否存在
+include(CheckIncludeFiles)
+macro(project_check_header header)
+    string(TOUPPER ${header} str1)
+    string(REGEX REPLACE "[/.]" "_" str2 ${str1})
+    set(str3 HAVE_${str2})
+    check_include_files(${header} ${str3})
+    if (${str3})
+        set(${str3} 1)
+    else()
+        set(${str3} 0)
+    endif()
+endmacro()
+
+# 检查函数是否存在
+include(CheckSymbolExists)
+macro(project_check_function function header)
+    string(TOUPPER ${function} str1)
+    set(str2 HAVE_${str1})
+    check_symbol_exists(${function} ${header} ${str2})
+    if (${str2})
+        set(${str2} 1)
+    else()
+        set(${str2} 0)
+    endif()
 endmacro()
 
 # 安装目标
@@ -26,21 +43,16 @@ macro(project_install_target Target)
     )
 endmacro()
 
-# 创建库目标
-# Target: 编译目标名
-# Type: 库的类型, [STATIC, SHARED, OBJECT]
-macro(project_add_library Target Type)
-    # 收集当前目录及其子目录中的源文件
-    project_collect_source_files(sources_files)
-    # 创建库目标
-    add_library(${Target} ${Type} ${sources_files})
+# 查找源文件
+macro(project_list_sources Target)
+    unset(tmp)
+    file(GLOB_RECURSE tmp *.c *.cpp *.cc *.h *.hpp)
+    list(APPEND ${Target} ${tmp})
 endmacro()
 
-# 创建可执行文件目标
-# Target: 编译目标名
-macro(project_add_executable Target)
-    # 收集当前目录及其子目录中的源文件
-    project_collect_source_files(sources_files)
-    # 创建可执行文件目标
-    add_executable(${Target} ${sources_files})
+# 查找源文件 (带依赖)
+macro(project_list_sources_with_depends Target)
+    unset(tmp)
+    file(GLOB_RECURSE tmp CONFIGURE_DEPENDS *.c *.cpp *.cc *.h *.hpp)
+    list(APPEND ${Target} ${tmp})
 endmacro()

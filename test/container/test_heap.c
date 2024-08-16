@@ -1,11 +1,14 @@
 /**
- * @brief
+ * @file test_heap.c
+ * @brief 堆测试
  * @author tayne3@dingtalk.com
  * @date 2023.11.30
  */
-#include "common/ct_random.h"
-#include "common/ct_time.h"
 #include "container/ct_heap.h"
+
+//#include "base/ct_time.h"
+
+#include "common/ct_random.h"
 #include "ctunit.h"
 
 static inline bool ct_heap_sort_func(const ct_any_buf_t a, const ct_any_buf_t b);
@@ -13,26 +16,26 @@ static inline int  test_heap_init(void);
 static inline int  test_heap_insert(void);
 static inline int  test_heap_remove(void);
 
-int main(int argc, char** argv)
-{
+int main(void) {
 	test_heap_init();
+	ctunit_trace("Finish! test_heap_init();\n");
+
 	test_heap_insert();
+	ctunit_trace("Finish! test_heap_insert();\n");
+
 	test_heap_remove();
+	ctunit_trace("Finish! test_heap_remove();\n");
 
 	ctunit_pass();
-	ct_unused(argc);
-	ct_unused(argv);
 }
 
-static inline bool ct_heap_sort_func(const ct_any_buf_t a, const ct_any_buf_t b)
-{
+static inline bool ct_heap_sort_func(const ct_any_buf_t a, const ct_any_buf_t b) {
 	return a->d->i <= b->d->i;
 }
 
-static inline int test_heap_init(void)
-{
+static inline int test_heap_init(void) {
 	ct_heap_t    heap;
-	ct_any_t   all[1000];
+	ct_any_t     all[1000];
 	const size_t max = ct_arrsize(all);
 
 	for (size_t i = 1; i <= max; i++) {
@@ -54,10 +57,9 @@ static inline int test_heap_init(void)
 	return 0;
 }
 
-static inline int test_heap_insert(void)
-{
+static inline int test_heap_insert(void) {
 	ct_heap_t    heap;
-	ct_any_t   all[10];
+	ct_any_t     all[10];
 	const size_t max = ct_arrsize(all);
 
 	// 初始化队列
@@ -89,10 +91,9 @@ static inline int test_heap_insert(void)
 	return 0;
 }
 
-static inline int test_heap_remove(void)
-{
+static inline int test_heap_remove(void) {
 	ct_heap_t    heap;
-	ct_any_t   all[10];
+	ct_any_t     all[10];
 	const size_t max = ct_arrsize(all);
 
 	// 初始化队列

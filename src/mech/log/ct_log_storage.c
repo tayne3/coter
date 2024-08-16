@@ -6,14 +6,7 @@
  */
 #include "ct_log_storage.h"
 
-#include <assert.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <sys/stat.h>
-#include <unistd.h>
 
 #include "base/ct_platform.h"
 
@@ -81,18 +74,17 @@ static inline void ct_log_filename_get(const char *prefix, int idx, char *buffer
  */
 static inline bool ct_log_file_isexist(const char *filename);
 
-/**
- * @brief 设置文件权限
- * @param filename 文件名
- * @param perm 权限
- * @return bool 是否设置成功
- */
-static inline bool ct_log_file_permission_set(const char *filename, mode_t perm);
+// /**
+//  * @brief 设置文件权限
+//  * @param filename 文件名
+//  * @param perm 权限
+//  * @return bool 是否设置成功
+//  */
+// static inline bool ct_log_file_permission_set(const char *filename, mode_t perm);
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
-void ct_log_storage_start(ct_log_storage_buf_t self)
-{
+void ct_log_storage_start(ct_log_storage_buf_t self) {
 	assert(self);
 	// 更新文件序号
 	ct_log_storage_file_index_update(self);
@@ -107,8 +99,7 @@ void ct_log_storage_start(ct_log_storage_buf_t self)
 	}
 }
 
-void ct_log_storage_close(ct_log_storage_buf_t self)
-{
+void ct_log_storage_close(ct_log_storage_buf_t self) {
 	assert(self);
 	// 关闭文件
 	if (self->_file) {
@@ -118,31 +109,26 @@ void ct_log_storage_close(ct_log_storage_buf_t self)
 	}
 }
 
-void ct_log_storage_lock(ct_log_storage_buf_t self)
-{
+void ct_log_storage_lock(ct_log_storage_buf_t self) {
 	assert(self);
-	ct_mutex_lock(self->mutex);
+	pthread_mutex_lock(self->mutex);
 }
 
-void ct_log_storage_unlock(ct_log_storage_buf_t self)
-{
+void ct_log_storage_unlock(ct_log_storage_buf_t self) {
 	assert(self);
-	ct_mutex_unlock(self->mutex);
+	pthread_mutex_unlock(self->mutex);
 }
 
-bool ct_log_storage_isvalid(ct_log_storage_buf_t self)
-{
+bool ct_log_storage_isvalid(ct_log_storage_buf_t self) {
 	return self != ct_nullptr && self->_file != ct_nullptr;
 }
 
-void ct_log_storage_flush(ct_log_storage_buf_t self)
-{
+void ct_log_storage_flush(ct_log_storage_buf_t self) {
 	assert(self);
 	fflush(self->_file);
 }
 
-void ct_log_storage_push(ct_log_storage_buf_t self, char *cache, size_t size)
-{
+void ct_log_storage_push(ct_log_storage_buf_t self, char *cache, size_t size) {
 	assert(self);
 	for (size_t available; size > 0;) {
 		available = self->file_size - (size_t)ftell(self->_file);
@@ -166,8 +152,7 @@ void ct_log_storage_push(ct_log_storage_buf_t self, char *cache, size_t size)
 
 // -------------------------[STATIC DEFINITION]-------------------------
 
-static inline bool ct_log_storage_file_open(ct_log_storage_buf_t self, bool isclear)
-{
+static inline bool ct_log_storage_file_open(ct_log_storage_buf_t self, bool isclear) {
 	// 构建文件名的缓冲区
 	char filename[256];
 	// 获取当前文件名
@@ -176,10 +161,15 @@ static inline bool ct_log_storage_file_open(ct_log_storage_buf_t self, bool iscl
 	self->_file = fopen(filename, isclear ? "w" : "a+");
 	if (!self->_file) {
 		if (ct_log_file_isexist(filename)) {
-			ct_log_file_permission_set(filename, 0644);
+			// ct_log_file_permission_set(filename, 0644);
+			if (chmod(filename, 0644) != 0) {
+				perror("chmod log directory error");
+				return false;
+			}
 		} else {
 			char dir[256];
-			strncpy(dir, filename, 256);
+			strncpy(dir, filename, 255);
+			dir[255] = '\0';
 
 			char *last_slash = strrchr(dir, '/');
 			if (last_slash != ct_nullptr) {
@@ -189,7 +179,10 @@ static inline bool ct_log_storage_file_open(ct_log_storage_buf_t self, bool iscl
 			// 目录不存在则创建
 			struct stat st;
 			if (stat(dir, &st) == -1) {
-				mkdir(dir, 0700);
+				if (ct_mkdir(dir) != 0) {
+					perror("mkdir log directory error");
+					return false;
+				}
 			}
 		}
 		self->_file = fopen(filename, isclear ? "w" : "a+");
@@ -203,8 +196,7 @@ static inline bool ct_log_storage_file_open(ct_log_storage_buf_t self, bool iscl
 	return true;
 }
 
-static inline bool ct_log_storage_next(ct_log_storage_buf_t self)
-{
+static inline bool ct_log_storage_next(ct_log_storage_buf_t self) {
 	// 关闭文件
 	ct_log_storage_close(self);
 	// 更新文件序号
@@ -213,8 +205,7 @@ static inline bool ct_log_storage_next(ct_log_storage_buf_t self)
 	return ct_log_storage_file_open(self, true);
 }
 
-static inline size_t ct_log_storage_file_size_find(ct_log_storage_buf_t self)
-{
+static inline size_t ct_log_storage_file_size_find(ct_log_storage_buf_t self) {
 	// 构建文件名的缓冲区
 	char filename[256];
 	// 获取当前文件名
@@ -227,8 +218,7 @@ static inline size_t ct_log_storage_file_size_find(ct_log_storage_buf_t self)
 	return (size_t)st.st_size;
 }
 
-static inline void ct_log_storage_file_index_update(ct_log_storage_buf_t self)
-{
+static inline void ct_log_storage_file_index_update(ct_log_storage_buf_t self) {
 	// 初始化最晚修改时间和对应的文件名
 	struct stat curr_st;
 	struct stat last_st;
@@ -259,45 +249,41 @@ static inline void ct_log_storage_file_index_update(ct_log_storage_buf_t self)
 	self->_file_index = last_index;
 }
 
-static inline void ct_log_storage_file_index_inc(ct_log_storage_buf_t self)
-{
+static inline void ct_log_storage_file_index_inc(ct_log_storage_buf_t self) {
 	self->_file_index = self->_file_index + 1 >= self->file_number ? 0 : self->_file_index + 1;
 }
 
-static inline size_t ct_log_storage_write(ct_log_storage_buf_t self, char *cache, size_t size)
-{
+static inline size_t ct_log_storage_write(ct_log_storage_buf_t self, char *cache, size_t size) {
 	return fwrite(cache, size, sizeof(char), self->_file);
 }
 
-static inline void ct_log_filename_get(const char *prefix, int idx, char *buffer, size_t max)
-{
+static inline void ct_log_filename_get(const char *prefix, int idx, char *buffer, size_t max) {
 	ct_snprintf(buffer, max, "%s.log%d", prefix, idx);
 }
 
-static inline bool ct_log_file_isexist(const char *filename)
-{
+static inline bool ct_log_file_isexist(const char *filename) {
 	return access(filename, F_OK) == 0;
 }
 
-static inline bool ct_log_file_permission_set(const char *filename, mode_t perm)
-{
-	struct stat st;
+// static inline bool ct_log_file_permission_set(const char *filename, mode_t perm)
+// {
+// 	struct stat st;
 
-	int ret = stat(filename, &st);
-	if (ret == -1) {
-		perror("stat");
-		return false;
-	}
+// 	int ret = stat(filename, &st);
+// 	if (ret == -1) {
+// 		perror("stat");
+// 		return false;
+// 	}
 
-	if (st.st_mode == perm) {
-		return true;
-	}
+// 	if (st.st_mode == perm) {
+// 		return true;
+// 	}
 
-	ret = chmod(filename, perm);
-	if (ret == -1) {
-		perror("chmod");
-		return false;
-	}
+// 	ret = chmod(filename, perm);
+// 	if (ret == -1) {
+// 		perror("chmod");
+// 		return false;
+// 	}
 
-	return true;
-}
+// 	return true;
+// }

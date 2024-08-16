@@ -10,8 +10,13 @@
 extern "C" {
 #endif
 
-#include "base/ct_types.h"
+#include "base/ct_platform.h"
 #include "ct_log_msg.h"
+
+/**
+ * @brief 初始化异步日志消息处理
+ */
+void ct_log_msg_init_asyn(void);
 
 /**
  * @brief 处理日志消息 (异步模式)

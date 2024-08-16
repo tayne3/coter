@@ -10,7 +10,7 @@
 extern "C" {
 #endif
 
-#include "base/ct_types.h"
+#include "base/ct_platform.h"
 #include "common/ct_any.h"
 
 /**
@@ -24,25 +24,25 @@ typedef struct ct_vector {
 } ct_vector_t, ct_vector_buf_t[1];
 
 /// 动态数组-初始化
-void ct_vector_init(ct_vector_buf_t self, size_t byte, size_t max);
+COTER_API void ct_vector_init(ct_vector_buf_t self, size_t byte, size_t max);
 
 /// 动态数组-销毁
-void ct_vector_destroy(ct_vector_buf_t self);
+COTER_API void ct_vector_destroy(ct_vector_buf_t self);
 
 /// 动态数组-元素数量
-size_t ct_vector_size(const ct_vector_buf_t self);
+COTER_API size_t ct_vector_size(const ct_vector_buf_t self);
 
 /// 动态数组-获取元素
-void* ct_vector_at(ct_vector_buf_t self, size_t idx);
+COTER_API void* ct_vector_at(ct_vector_buf_t self, size_t idx);
 
 /// 动态数组-获取元素 (常指针)
-const void* ct_vector_value(const ct_vector_buf_t self, size_t idx);
+COTER_API const void* ct_vector_value(const ct_vector_buf_t self, size_t idx);
 
 /// 动态数组-设置元素
-bool ct_vector_insert(ct_vector_buf_t self, size_t idx, const void* data);
+COTER_API bool ct_vector_insert(ct_vector_buf_t self, size_t idx, const void* data);
 
 /// 动态数组-调整大小
-bool ct_vector_resize(ct_vector_buf_t self, size_t size);
+COTER_API bool ct_vector_resize(ct_vector_buf_t self, size_t size);
 
 #ifdef __cplusplus
 }

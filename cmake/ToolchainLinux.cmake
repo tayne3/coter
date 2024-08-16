@@ -7,13 +7,13 @@ endif()
 add_compile_options(
     -Wall                               # 启用常见警告
     -Wextra                             # 启用额外警告
-#    -Wstrict-aliasing                   # 增强类型别名检查
+    -Wstrict-aliasing                   # 增强类型别名检查
 #    -Wconversion                        # 检查类型转换
 #    -Wsign-conversion                   # 检查符号转换
     -Wundef                             # 检查未定义宏
-#    -Wshadow                            # 检查变量遮蔽
+    -Wshadow                            # 检查变量遮蔽
 #    -Wcast-align                        # 检查指针对齐
-#    -Wstrict-prototypes                 # 检查函数原型
+    -Wstrict-prototypes                 # 检查函数原型
     -Wmissing-declarations              # 检查缺失声明
     -Wmissing-prototypes                # 检查缺少函数原型声明
     -Wstrict-overflow                   # 检查求值溢出

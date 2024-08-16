@@ -1,11 +1,9 @@
 /**
- * @brief
+ * @file test_hashalgo.c
+ * @brief Hash 算法测试
  * @author tayne3@dingtalk.com
  * @date 2023.12.28
  */
-#include <stdio.h>
-#include <string.h>
-
 #include "algo/ct_hashalgo.h"
 #include "ctunit.h"
 
@@ -13,15 +11,13 @@
 
 static inline int test_hash_siphash(void);
 
-int main(void)
-{
+int main(void) {
 	test_hash_siphash();
 
 	ctunit_pass();
 }
 
-static inline int test_hash_siphash(void)
-{
+static inline int test_hash_siphash(void) {
 	const uint64_t vectors[64] = {
 		0x726fdb47dd0e0e31ULL, 0x74f839c593dc67fdULL, 0x0d6c8009d9a94f5aULL, 0x85676696d7fb7e2dULL,
 		0xcf2794e0277187b7ULL, 0x18765564cd99a68dULL, 0xcbc9466e58fee3ceULL, 0xab0200f58b01d137ULL,
@@ -45,7 +41,7 @@ static inline int test_hash_siphash(void)
 		0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
 	};
 
-	char plaintext[64];
+	char plaintext[64] = {0};
 
 	for (size_t i = 0; i < 64; i++) {
 		plaintext[i] = (char)i;
@@ -54,7 +50,7 @@ static inline int test_hash_siphash(void)
 	for (size_t n = 0; n < TEST_HASH_NUMBER; n++) {
 		for (size_t i = 1; i < 64; i++) {
 			ctunit_assert_uint64(ct_hashalgo_siphash_64(plaintext, i, ct_hash_key), vectors[i], CTUnit_Equal,
-							 "n = %d, i = %d", n, i);
+								 "n = %d, i = %d", n, i);
 		}
 	}
 

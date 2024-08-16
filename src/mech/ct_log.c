@@ -12,7 +12,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
+
+//#include <unistd.h>
 
 #include "base/ct_platform.h"
 #include "log/ct_log_control.h"
@@ -29,13 +30,13 @@ typedef void (*ct_log_msg_schedule_t)(void);
 
 // 日志管理器
 static struct ct_log_manager {
-	int                   level;         // 日志级别 (默认: CTLogLevel_Warning)
+	int                   level;         // 日志级别 (默认: CTLogLevel_Trace)
 	bool                  is_asyn;       // 是否异步输出日志 (默认: false)
 	ct_log_msg_push_t     msg_push;      // 日志输出函数
 	ct_log_msg_flush_t    msg_flush;     // 日志缓冲区刷新函数
 	ct_log_msg_schedule_t msg_schedule;  // 日志调度函数
 } mgr[1] = {{
-	.level        = CTLogLevel_Warning,
+	.level        = CTLogLevel_Trace,
 	.is_asyn      = false,
 	.msg_push     = ct_log_msg_push,
 	.msg_flush    = ct_log_msg_flush,
@@ -152,17 +153,23 @@ void ct_log_mgr_set_level(int level)
 
 void ct_log_mgr_set_asyn(bool is_asyn)
 {
+	// 不允许重复切换同步/异步
+	if (mgr->is_asyn) {
+		fprintf(stderr, STR_CURRTITLE " already switch log sync/asyn mode is not allowed." STR_NEWLINE);
+		return;
+	}
+
 	mgr->is_asyn = is_asyn;
 	if (is_asyn) {
+		ct_log_msg_init_asyn();
+
 		mgr->msg_push     = ct_log_msg_push_asyn;
 		mgr->msg_flush    = ct_log_msg_flush_asyn;
 		mgr->msg_schedule = ct_log_msg_schedule_asyn;
-		ct_log_msg_flush();
 	} else {
 		mgr->msg_push     = ct_log_msg_push;
 		mgr->msg_flush    = ct_log_msg_flush;
 		mgr->msg_schedule = ct_log_msg_schedule;
-		ct_log_msg_flush_asyn();
 	}
 }
 

@@ -1,15 +1,14 @@
 /**
- * @brief
+ * @file test_hash.c
+ * @brief 哈希表测试
  * @author tayne3@dingtalk.com
  * @date 2023.11.30
  */
-#include <sched.h>
-#include <stdio.h>
-
 #include "base/ct_platform.h"
-#include "common/ct_time.h"
+#include "common/ct_any.h"
 #include "container/ct_hash.h"
 #include "ctunit.h"
+#include "sched.h"
 
 #define TEST_NUMBER 10000
 
@@ -18,15 +17,14 @@ static char test_values[TEST_NUMBER][64];
 
 static inline void test_hash_basic(void);
 
-int main(void)
-{
+int main(void) {
 	test_hash_basic();
+	ctunit_trace("Finish! test_hash_basic();\n");
 
 	ctunit_pass();
 }
 
-static inline void test_hash_basic(void)
-{
+static inline void test_hash_basic(void) {
 	ct_hash_buf_t chash;
 	ct_hash_init_s(chash, 1, true, ct_any_methods_default);
 
@@ -38,9 +36,9 @@ static inline void test_hash_basic(void)
 	ctunit_assert_false(ct_hash_remove(chash, ""));
 	ctunit_assert_false(ct_hash_value_r(chash, "", ct_nullptr));
 
-	for (register size_t i = 0; i < TEST_NUMBER; i++) {
-		ct_snprintf(test_keys[i], sizeof(test_keys[0]), "Key%03" PRIuPTR, i + 1);
-		ct_snprintf(test_values[i], sizeof(test_keys[0]), "Value%03" PRIuPTR, i + 1);
+	for (register int i = 0; i < TEST_NUMBER; i++) {
+		ct_snprintf(test_keys[i], sizeof(test_keys[0]), "Key%03d", i + 1);
+		ct_snprintf(test_values[i], sizeof(test_keys[0]), "Value%03d", i + 1);
 		sched_yield();
 	}
 

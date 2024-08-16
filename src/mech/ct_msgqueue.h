@@ -10,9 +10,8 @@
 extern "C" {
 #endif
 
+#include "base/ct_platform.h"
 #include "container/ct_queue.h"
-#include "sys/ct_cond.h"
-#include "sys/ct_mutex.h"
 
 /**
  * @brief 消息队列
@@ -22,19 +21,12 @@ extern "C" {
  * @param not_full 条件变量，表示队列非满
  */
 typedef struct ct_msgqueue {
-	ct_queue_buf_t queue;      // 队列
-	ct_mutex_buf_t mutex;      // 互斥锁
-	ct_cond_buf_t  not_empty;  // 条件变量，表示队列非空
-	ct_cond_buf_t  not_full;   // 条件变量，表示队列非满
-	bool           is_shut;    // 是否关闭
+	ct_queue_buf_t  queue;         // 队列
+	pthread_mutex_t mutex[1];      // 互斥锁
+	pthread_cond_t  not_empty[1];  // 条件变量，表示队列非空
+	pthread_cond_t  not_full[1];   // 条件变量，表示队列非满
+	bool            is_shut;       // 是否关闭
 } ct_msgqueue_t, ct_msgqueue_buf_t[1];
-
-// 初始化
-#define CT_MSGQUEUE_INIT(_buffer, _byte, _max)                                                         \
-	{                                                                                                  \
-		.queue = {CT_QUEUE_INIT(_buffer, _byte, _max)}, .mutex = {CT_MUTEX_INITIALIZATION},            \
-		.not_empty = {CT_COND_INITIALIZATION}, .not_full = {CT_COND_INITIALIZATION}, .is_shut = false, \
-	}
 
 /**
  * @brief 初始化消息队列
@@ -43,34 +35,34 @@ typedef struct ct_msgqueue {
  * @param byte 缓存区中每个元素的字节大小
  * @param max 缓存区中元素的最大数量
  */
-void ct_msgqueue_init(ct_msgqueue_buf_t self, void *buffer, size_t byte, size_t max);
+COTER_API void ct_msgqueue_init(ct_msgqueue_buf_t self, void *buffer, size_t byte, size_t max);
 
 /**
  * @brief 销毁消息队列
  * @param self 消息队列
  */
-void ct_msgqueue_destroy(ct_msgqueue_buf_t self);
+COTER_API void ct_msgqueue_destroy(ct_msgqueue_buf_t self);
 
 /**
  * @brief 判断消息队列是否为空
  * @param self 消息队列
  * @return 如果消息队列为空则返回true，否则返回false
  */
-bool ct_msgqueue_isempty(ct_msgqueue_buf_t self);
+COTER_API bool ct_msgqueue_isempty(ct_msgqueue_buf_t self);
 
 /**
  * @brief 判断消息队列是否已满
  * @param self 消息队列
  * @return 如果消息队列已满则返回true，否则返回false
  */
-bool ct_msgqueue_isfull(ct_msgqueue_buf_t self);
+COTER_API bool ct_msgqueue_isfull(ct_msgqueue_buf_t self);
 
-/**
- * @brief 判断消息队列是否已关闭
- * @param self 消息队列
- * @return 如果消息队列已关闭则返回true，否则返回false
- */
-bool ct_msgqueue_isshut(ct_msgqueue_buf_t self);
+// /**
+//  * @brief 判断消息队列是否已关闭
+//  * @param self 消息队列
+//  * @return 如果消息队列已关闭则返回true，否则返回false
+//  */
+// COTER_API bool ct_msgqueue_isshut(ct_msgqueue_buf_t self);
 
 /**
  * @brief 将事件消息入队 (阻塞)
@@ -78,7 +70,7 @@ bool ct_msgqueue_isshut(ct_msgqueue_buf_t self);
  * @param item 事件消息
  * @return 如果消息队列可用则返回true，否则返回false
  */
-bool ct_msgqueue_enqueue(ct_msgqueue_buf_t self, const void *item);
+COTER_API bool ct_msgqueue_enqueue(ct_msgqueue_buf_t self, const void *item);
 
 /**
  * @brief 将事件消息出队 (阻塞)
@@ -86,7 +78,7 @@ bool ct_msgqueue_enqueue(ct_msgqueue_buf_t self, const void *item);
  * @param item 事件消息
  * @return 如果消息队列可用则返回true，否则返回false
  */
-bool ct_msgqueue_dequeue(ct_msgqueue_buf_t self, void *item);
+COTER_API bool ct_msgqueue_dequeue(ct_msgqueue_buf_t self, void *item);
 
 /**
  * @brief 尝试将事件消息入队
@@ -94,7 +86,7 @@ bool ct_msgqueue_dequeue(ct_msgqueue_buf_t self, void *item);
  * @param item 事件消息
  * @return 如果入队成功，则返回true；否则返回false
  */
-bool ct_msgqueue_try_enqueue(ct_msgqueue_buf_t self, const void *item);
+COTER_API bool ct_msgqueue_try_enqueue(ct_msgqueue_buf_t self, const void *item);
 
 /**
  * @brief 尝试将事件消息出队
@@ -102,7 +94,7 @@ bool ct_msgqueue_try_enqueue(ct_msgqueue_buf_t self, const void *item);
  * @param item 事件消息
  * @return 如果出队成功，则返回true；否则返回false
  */
-bool ct_msgqueue_try_dequeue(ct_msgqueue_buf_t self, void *item);
+COTER_API bool ct_msgqueue_try_dequeue(ct_msgqueue_buf_t self, void *item);
 
 #ifdef __cplusplus
 }

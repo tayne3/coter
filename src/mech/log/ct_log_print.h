@@ -10,7 +10,7 @@
 extern "C" {
 #endif
 
-#include "base/ct_context.h"
+#include "base/ct_platform.h"
 
 // 日志打印-正文
 size_t ct_log_print_text(int level, char *cache, size_t size);

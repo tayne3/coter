@@ -19,13 +19,12 @@
 #define STR_CURRTITLE "[ct_queue]"
 
 #define CT_QUEUE_INDEX_INC(self, x) ((x) + 1 >= (self)->_max ? 0 : (x) + 1)  // 队列-索引 递增
-#define CT_QUEUE_INDEX_DEC(self, x) ((x) == 0 ? (self)->_max - 1 : (x)-1)    // 队列-索引 递减
+#define CT_QUEUE_INDEX_DEC(self, x) ((x) == 0 ? (self)->_max - 1 : (x) - 1)  // 队列-索引 递减
 #define CT_QUEUE_ITEM(self, idx)    (&(self)->_all[(idx) * (self)->_byte])   // 队列-数据
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
-void ct_queue_init(ct_queue_buf_t self, void* buffer, size_t byte, size_t max)
-{
+void ct_queue_init(ct_queue_buf_t self, void* buffer, size_t byte, size_t max) {
 	assert(self);
 	assert(buffer);
 	assert(byte);
@@ -37,8 +36,7 @@ void ct_queue_init(ct_queue_buf_t self, void* buffer, size_t byte, size_t max)
 	ct_queue_clear(self);
 }
 
-bool ct_queue_enqueue(ct_queue_buf_t self, const void* item)
-{
+bool ct_queue_enqueue(ct_queue_buf_t self, const void* item) {
 	assert(self);
 	assert(self->_byte);
 	assert(item);
@@ -52,8 +50,7 @@ bool ct_queue_enqueue(ct_queue_buf_t self, const void* item)
 	return true;
 }
 
-bool ct_queue_dequeue(ct_queue_buf_t self, void* item)
-{
+bool ct_queue_dequeue(ct_queue_buf_t self, void* item) {
 	assert(self);
 	assert(self->_byte);
 	assert(item);
@@ -67,8 +64,7 @@ bool ct_queue_dequeue(ct_queue_buf_t self, void* item)
 	return true;
 }
 
-bool ct_queue_head(ct_queue_buf_t self, void* item)
-{
+bool ct_queue_head(ct_queue_buf_t self, void* item) {
 	assert(self);
 	assert(self->_byte);
 	assert(item);

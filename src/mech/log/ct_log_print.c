@@ -12,7 +12,8 @@
 
 #include "../ct_log.h"
 #include "base/ct_platform.h"
-#include "common/ct_time.h"
+#include "base/ct_time.h"
+#include "base/ct_datetime.h"
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
@@ -93,15 +94,12 @@ size_t ct_log_print_tips(bool is_print, int level, int id, char *cache, size_t m
 	assert(cache && ctx);
 	assert(CTLOG_LEVEL_ISVALID(level));
 	// 日期时间字符串缓存区
-	char datetime[18];
-	// 获取当前日期时间字符串
-	{
-		const ct_datetime_t current_datetime = ct_current_datetime();
-		ct_datetime_to_string(datetime, 18, "%y.%m.%d-%H:%M:%S", &current_datetime);
-	}
+	char now[CT_DATETIME_FMT_BUFLEN];
+	const ct_datetime_t cdt = ct_datetime_now();
+	ct_datetime_fmt(&cdt, now);
 	// 填充
 	const char *level_list[] = {"VBASE", "DEBUG", "TRACE", "WARNG", "ERROR", "FATAL"};
-	int size = ct_snprintf(cache, max, CTLOG_FORMAT_TIPS, level_list[level], id, datetime,
+	int size = ct_snprintf(cache, max, CTLOG_FORMAT_TIPS, level_list[level], id, now,
 						   ct_log_basename(ctx->file), ctx->func, ctx->line);
 
 	if (is_print) {

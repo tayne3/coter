@@ -18,20 +18,17 @@
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
-void ct_list_init(ct_list_buf_t self)
-{
+void ct_list_init(ct_list_buf_t self) {
 	assert(self);
 	self->prev = self->next = self;
 }
 
-bool ct_list_isempty(const ct_list_buf_t self)
-{
+bool ct_list_isempty(const ct_list_buf_t self) {
 	assert(self);
-	return self == ct_list_first(self);
+	return self->next == self;
 }
 
-size_t ct_list_size(const ct_list_buf_t self)
-{
+size_t ct_list_size(const ct_list_buf_t self) {
 	assert(self);
 	size_t size = 0;
 	ct_list_foreach (node, self) {
@@ -40,8 +37,7 @@ size_t ct_list_size(const ct_list_buf_t self)
 	return size;
 }
 
-void ct_list_append(ct_list_buf_t self, ct_list_buf_t node)
-{
+void ct_list_append(ct_list_buf_t self, ct_list_buf_t node) {
 	assert(self);
 	assert(node);
 	node->prev       = self->prev;
@@ -50,8 +46,7 @@ void ct_list_append(ct_list_buf_t self, ct_list_buf_t node)
 	self->prev       = node;
 }
 
-void ct_list_prepend(ct_list_buf_t self, ct_list_buf_t node)
-{
+void ct_list_prepend(ct_list_buf_t self, ct_list_buf_t node) {
 	assert(self);
 	assert(node);
 	node->prev       = self;
@@ -60,8 +55,7 @@ void ct_list_prepend(ct_list_buf_t self, ct_list_buf_t node)
 	self->next       = node;
 }
 
-void ct_list_before(ct_list_buf_t target, ct_list_buf_t node)
-{
+void ct_list_before(ct_list_buf_t target, ct_list_buf_t node) {
 	assert(target);
 	assert(node);
 	node->prev         = target->prev;
@@ -70,8 +64,7 @@ void ct_list_before(ct_list_buf_t target, ct_list_buf_t node)
 	target->prev       = node;
 }
 
-void ct_list_after(ct_list_buf_t target, ct_list_buf_t node)
-{
+void ct_list_after(ct_list_buf_t target, ct_list_buf_t node) {
 	assert(target);
 	assert(node);
 	node->prev         = target;
@@ -80,15 +73,13 @@ void ct_list_after(ct_list_buf_t target, ct_list_buf_t node)
 	target->next       = node;
 }
 
-void ct_list_remove(ct_list_buf_t node)
-{
+void ct_list_remove(ct_list_buf_t node) {
 	assert(node);
 	node->prev->next = node->next;
 	node->next->prev = node->prev;
 }
 
-void ct_list_splice_prev(ct_list_buf_t self, ct_list_buf_t list)
-{
+void ct_list_splice_prev(ct_list_buf_t self, ct_list_buf_t list) {
 	assert(self);
 	assert(list);
 	if (ct_list_isempty(list)) {
@@ -101,8 +92,7 @@ void ct_list_splice_prev(ct_list_buf_t self, ct_list_buf_t list)
 	ct_list_init(list);
 }
 
-void ct_list_splice_next(ct_list_buf_t self, ct_list_buf_t list)
-{
+void ct_list_splice_next(ct_list_buf_t self, ct_list_buf_t list) {
 	assert(self);
 	assert(list);
 	if (ct_list_isempty(list)) {
@@ -115,15 +105,13 @@ void ct_list_splice_next(ct_list_buf_t self, ct_list_buf_t list)
 	ct_list_init(list);
 }
 
-bool ct_list_isfirst(const ct_list_buf_t self, const ct_list_buf_t node)
-{
+bool ct_list_isfirst(const ct_list_buf_t self, const ct_list_buf_t node) {
 	assert(self);
 	assert(node);
 	return ct_list_first(self) == node;
 }
 
-bool ct_list_islast(const ct_list_buf_t self, const ct_list_buf_t node)
-{
+bool ct_list_islast(const ct_list_buf_t self, const ct_list_buf_t node) {
 	assert(self);
 	assert(node);
 	return ct_list_last(self) == node;

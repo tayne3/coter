@@ -1,13 +1,14 @@
 /**
- * @brief
+ * @file test_random.c
+ * @brief 随机数测试
  * @author tayne3@dingtalk.com
  * @date 2023.11.30
  */
 #include <stdio.h>
 
+#include "base/ct_platform.h"
 #include "common/ct_random.h"
 #include "ctunit.h"
-#include "sys/ct_thread.h"
 
 static inline void test_random_bool(uint64_t test_number);
 static inline void test_random_uint8(uint64_t test_number);
@@ -17,21 +18,32 @@ static inline void test_random_uint64(uint64_t test_number);
 static inline void test_random_float(uint64_t test_number);
 static inline void test_random_double(uint64_t test_number);
 
-int main(void)
-{
+int main(void) {
 	test_random_bool(10000);
+	ctunit_trace("Finish! test_random_bool(10000);\n");
+
 	test_random_uint8(10000);
+	ctunit_trace("Finish! test_random_uint8(10000);\n");
+
 	test_random_uint16(10000);
+	ctunit_trace("Finish! test_random_uint16(10000);\n");
+
 	test_random_uint32(10000);
+	ctunit_trace("Finish! test_random_uint32(10000);\n");
+
 	test_random_uint64(10000);
+	ctunit_trace("Finish! test_random_uint64(10000);\n");
+
 	test_random_float(10000);
+	ctunit_trace("Finish! test_random_float(10000);\n");
+
 	test_random_double(10000);
+	ctunit_trace("Finish! test_random_double(10000);\n");
 
 	ctunit_pass();
 }
 
-static inline void test_random_bool(uint64_t test_number)
-{
+static inline void test_random_bool(uint64_t test_number) {
 	// 初始化随机数生成器
 	ct_random_buf_t state;
 	ct_random_init(state);
@@ -46,8 +58,7 @@ static inline void test_random_bool(uint64_t test_number)
 			ctunit_assert_uint8(random_num, 2, CTUnit_Less);
 			count[random_num]++;
 		}
-		ct_thread_msleep(5);
-		// sched_yield();
+		sched_yield();
 	}
 
 	// 检查随机数的分布是否均匀
@@ -62,8 +73,7 @@ static inline void test_random_bool(uint64_t test_number)
 	ctunit_assert_true(isok);
 }
 
-static inline void test_random_uint8(uint64_t test_number)
-{
+static inline void test_random_uint8(uint64_t test_number) {
 	// 初始化随机数生成器
 	ct_random_buf_t state;
 	ct_random_init(state);
@@ -78,7 +88,7 @@ static inline void test_random_uint8(uint64_t test_number)
 			ctunit_assert_uint8(random_num, 100, CTUnit_Less);
 			count[random_num]++;
 		}
-		ct_thread_msleep(5);
+		sched_yield();
 	}
 
 	// 检查随机数的分布是否均匀
@@ -93,8 +103,7 @@ static inline void test_random_uint8(uint64_t test_number)
 	ctunit_assert_true(isok);
 }
 
-static inline void test_random_uint16(uint64_t test_number)
-{
+static inline void test_random_uint16(uint64_t test_number) {
 	// 初始化随机数生成器
 	ct_random_buf_t state;
 	ct_random_init(state);
@@ -123,8 +132,7 @@ static inline void test_random_uint16(uint64_t test_number)
 	ctunit_assert_true(isok);
 }
 
-static inline void test_random_uint32(uint64_t test_number)
-{
+static inline void test_random_uint32(uint64_t test_number) {
 	// 初始化随机数生成器
 	ct_random_buf_t state;
 	ct_random_init(state);
@@ -139,7 +147,7 @@ static inline void test_random_uint32(uint64_t test_number)
 			ctunit_assert_uint32(random_num, 100, CTUnit_Less);
 			count[random_num]++;
 		}
-		ct_thread_msleep(5);
+		sched_yield();
 	}
 
 	// 检查随机数的分布是否均匀
@@ -154,8 +162,7 @@ static inline void test_random_uint32(uint64_t test_number)
 	ctunit_assert_true(isok);
 }
 
-static inline void test_random_uint64(uint64_t test_number)
-{
+static inline void test_random_uint64(uint64_t test_number) {
 	// 初始化随机数生成器
 	ct_random_buf_t state;
 	ct_random_init(state);
@@ -170,7 +177,7 @@ static inline void test_random_uint64(uint64_t test_number)
 			ctunit_assert_uint64(random_num, 100, CTUnit_Less);
 			count[random_num]++;
 		}
-		ct_thread_msleep(5);
+		sched_yield();
 	}
 
 	// 检查随机数的分布是否均匀
@@ -186,8 +193,7 @@ static inline void test_random_uint64(uint64_t test_number)
 	ctunit_assert_true(isok);
 }
 
-static inline void test_random_float(uint64_t test_number)
-{
+static inline void test_random_float(uint64_t test_number) {
 	// 初始化随机数生成器
 	ct_random_buf_t state;
 	ct_random_init(state);
@@ -201,7 +207,7 @@ static inline void test_random_float(uint64_t test_number)
 			random_num = (int)(ct_random_float(state, 0.0f, 1.0f) * 100);
 			count[random_num]++;
 		}
-		ct_thread_msleep(5);
+		sched_yield();
 	}
 
 	// 检查随机数的分布是否均匀
@@ -217,8 +223,7 @@ static inline void test_random_float(uint64_t test_number)
 	ctunit_assert_true(isok);
 }
 
-static inline void test_random_double(uint64_t test_number)
-{
+static inline void test_random_double(uint64_t test_number) {
 	// 初始化随机数生成器
 	ct_random_buf_t state;
 	ct_random_init(state);
@@ -232,7 +237,7 @@ static inline void test_random_double(uint64_t test_number)
 			random_num = (int)(ct_random_double(state, 0.0, 1.0) * 100);
 			count[random_num]++;
 		}
-		ct_thread_msleep(5);
+		sched_yield();
 	}
 
 	// 检查随机数的分布是否均匀
