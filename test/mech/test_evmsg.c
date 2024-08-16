@@ -28,7 +28,7 @@ static inline void *test_evmsg_publish(void *arg);
 int main(void) {
 	pthread_t threads[TEST_THREAD_NUMBER];
 
-	// 创建线程池
+	// 创建任务池
 	ct_jobpool_ptr_t jobpool = ct_jobpool_global(16, 50);
 	// 初始化事件消息中枢
 	ct_evmsg_mgr_init();
@@ -67,8 +67,8 @@ int main(void) {
 		sched_yield();
 	}
 
-	// 销毁线程池
-	// ct_jobpool_destroy(jobpool);
+	// 销毁任务池
+	ct_jobpool_destroy(jobpool);
 
 	ctunit_pass();
 }
