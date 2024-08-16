@@ -34,7 +34,7 @@ static inline void test_hash_basic(void) {
 
 	ctunit_assert_false(ct_hash_insert(chash, "", ct_any_null));
 	ctunit_assert_false(ct_hash_remove(chash, ""));
-	ctunit_assert_false(ct_hash_value_r(chash, "", ct_nullptr));
+	ctunit_assert_false(ct_hash_value_r(chash, "", NULL));
 
 	for (register int i = 0; i < TEST_NUMBER; i++) {
 		ct_snprintf(test_keys[i], sizeof(test_keys[0]), "Key%03d", i + 1);

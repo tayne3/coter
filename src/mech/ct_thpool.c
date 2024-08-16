@@ -20,14 +20,6 @@
 
 #define STR_CURRTITLE "[ct_thpool]"
 
-#if defined(__GNUC__) || defined(__clang__)
-#define PAUSE() __asm__ volatile("pause" ::: "memory")
-#elif defined(_MSC_VER)
-#define PAUSE() _mm_pause()
-#else
-#define PAUSE() sched_yield()
-#endif
-
 /// 全局线程池
 static ct_thpool_ptr_t thpool_global       = ct_nullptr;
 static pthread_mutex_t thpool_global_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -118,7 +110,6 @@ void ct_thpool_destroy(ct_thpool_ptr_t self) {
 		pthread_mutex_unlock(self->resident_mutex);
 
 		pthread_cancel(unit->thread);
-		PAUSE();
 	}
 
 	ct_forever {
@@ -138,7 +129,6 @@ void ct_thpool_destroy(ct_thpool_ptr_t self) {
 		pthread_mutex_unlock(self->resident_mutex);
 
 		free(unit);
-		PAUSE();
 	}
 
 	ct_forever {
@@ -158,7 +148,6 @@ void ct_thpool_destroy(ct_thpool_ptr_t self) {
 		pthread_mutex_unlock(self->resident_mutex);
 
 		free(unit);
-		PAUSE();
 	}
 
 	// 销毁互斥锁

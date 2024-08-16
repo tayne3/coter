@@ -188,7 +188,7 @@ static inline int test_list_remove(void) {
 
 	ctunit_assert_pointer(ct_list_first(head), node2.list);
 	ctunit_assert_pointer(ct_list_last(head), node2.list);
-	
+
 	ct_list_remove(node2.list);
 	ctunit_assert_true(ct_list_isempty(head));
 
@@ -277,7 +277,7 @@ static inline int test_list_foreach_entry_from(void) {
 	ct_list_append(head, node2.list);
 
 	int          sum = 0;
-	my_struct_t *pos = ct_nullptr;
+	my_struct_t *pos = NULL;
 
 	sum = 0;
 	pos = &node1;

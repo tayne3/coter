@@ -33,7 +33,7 @@ int main(void) {
 	// 初始化事件消息中枢
 	ct_evmsg_mgr_init();
 	// 订阅事件
-	ct_evmsg_subscribe(1, test_evmsg_handler, ct_nullptr);
+	ct_evmsg_subscribe(1, test_evmsg_handler, NULL);
 
 	// 创建线程
 	for (uint8_t i = 0; i < TEST_THREAD_NUMBER; i++) {
@@ -92,7 +92,7 @@ static inline void *test_evmsg_publish(void *arg) {
 	const uint8_t id = (uint8_t)(uint64_t)arg;
 
 	// 模拟事件数据
-	ct_evmsg_t msg = CT_EVMSG_MSG_INIT(1, id, ct_nullptr, 0);
+	ct_evmsg_t msg = CT_EVMSG_MSG_INIT(1, id, NULL, 0);
 
 	// 发布事件
 	for (size_t i = 0; i < TEST_DATA_NUMBER; i++) {

@@ -44,22 +44,21 @@ typedef struct {
 #define CT_THPOOL_JOB_INIT(_routine, _arg) {.routine = _routine, .arg = _arg}
 
 typedef struct {
-	ct_list_buf_t    list;    // 链表节点
-	ct_jobpool_ptr_t thpool;  // 任务池
-	pthread_t        thread;  // 线程
-	job_buf_t        job;     // 工作
+	ct_list_buf_t  list;       // 链表节点
+	pthread_t      thread;     // 线程
+	ct_msgqueue_t* job_queue;  // 工作队列
+	job_buf_t      job;        // 工作
 } unit_t, unit_buf_t[1];
 
 /**
  * @brief 任务池
  */
 typedef struct ct_thpool {
-	job_t*            job_buffer;        // 工作队列缓冲区
-	ct_msgqueue_buf_t job_queue;         // 工作队列
-	ct_list_buf_t     regular_list;      // 执行常规任务的线程
-	pthread_mutex_t   regular_mutex[1];  // 互斥锁
-	size_t            thread_max;        // 线程数
-	size_t            job_max;           // 工作数
+	job_t*            job_buffer;    // 工作队列缓冲区
+	ct_msgqueue_buf_t job_queue;     // 工作队列
+	ct_list_buf_t     regular_list;  // 执行常规任务的线程
+	size_t            thread_max;    // 线程数
+	size_t            job_max;       // 工作数
 } ct_jobpool_t;
 
 // 线程执行函数-常规
@@ -74,8 +73,6 @@ ct_jobpool_ptr_t ct_jobpool_create(size_t thread_max, size_t job_max) {
 	// 创建任务池
 	ct_jobpool_ptr_t self = (ct_jobpool_ptr_t)malloc(sizeof(ct_jobpool_t));
 	assert(self);
-	// 初始化互斥锁
-	pthread_mutex_init(self->regular_mutex, NULL);
 
 	self->thread_max = thread_max;
 	self->job_max    = job_max;
@@ -96,8 +93,9 @@ ct_jobpool_ptr_t ct_jobpool_create(size_t thread_max, size_t job_max) {
 	pthread_attr_setstacksize(attr, 1 * 1024 * 1024);
 	// 设置调度策略: 轮转调度
 	pthread_attr_setschedpolicy(attr, SCHED_RR);
-	// 设置调度优先级: 10
-	struct sched_param param = {10};
+	// 设置调度优先级: 0
+	struct sched_param param;
+	param.sched_priority = 0;
 	pthread_attr_setschedparam(attr, &param);
 
 	unit_t* unit = NULL;
@@ -107,16 +105,14 @@ ct_jobpool_ptr_t ct_jobpool_create(size_t thread_max, size_t job_max) {
 		unit = (unit_t*)malloc(sizeof(unit_t));
 		assert(unit);
 
-		unit->thpool = self;
+		unit->job_queue = self->job_queue;
 		ct_list_init(unit->list);
 
 		// 创建线程
 		const int ret = pthread_create(&unit->thread, attr, ct_jobpool_thread_do_regular, unit);
 		if (ret == 0) {
-			pthread_mutex_lock(self->regular_mutex);
 			ct_list_append(self->regular_list, unit->list);
-			pthread_mutex_unlock(self->regular_mutex);
-			PAUSE();
+			sched_yield();
 		} else {
 			free(unit);
 			cfatal(STR_CURRTITLE " failed to create thread" STR_NEWLINE);
@@ -147,13 +143,10 @@ void ct_jobpool_destroy(ct_jobpool_ptr_t self) {
 
 	// 关闭消息队列
 	ct_msgqueue_close(self->job_queue);
-	// 上锁
-	pthread_mutex_lock(self->regular_mutex);
 
 	// 取消所有线程
 	ct_list_foreach_entry_safe (unit, self->regular_list, unit_t, list) {
 		pthread_cancel(unit->thread);
-		PAUSE();
 	}
 
 	// 等待所有线程退出
@@ -161,13 +154,8 @@ void ct_jobpool_destroy(ct_jobpool_ptr_t self) {
 		pthread_join(unit->thread, NULL);
 		ct_list_remove(unit->list);
 		free(unit);
-		PAUSE();
 	}
 
-	// 解锁
-	pthread_mutex_unlock(self->regular_mutex);
-	// 销毁互斥锁
-	pthread_mutex_destroy(self->regular_mutex);
 	// 销毁消息队列
 	ct_msgqueue_destroy(self->job_queue);
 
@@ -192,19 +180,18 @@ void ct_jobpool_add(ct_jobpool_ptr_t self, ct_jobpool_routine_t routine, void* a
 
 static inline void* ct_jobpool_thread_do_regular(void* arg) {
 	unit_t* unit = (unit_t*)arg;
-
+	job_t*  job  = unit->job;
 
 	ct_forever {
-		if (!ct_msgqueue_dequeue(unit->thpool->job_queue, unit->job)) {
-			break;  // 等待工作, 获取失败的话则代表任务池已经关闭
+		if (!ct_msgqueue_dequeue(unit->job_queue, job)) {
+			break;  // 等待工作, 失败则代表任务池已关闭
 		}
-		if (unit->job->routine) {  // 执行工作
-			unit->job->routine(unit->job->arg);
+		if (job->routine) {
+			job->routine(job->arg);
 		}
 		PAUSE();  // 避免独占CPU
 	}
 
-	ctrace_n("[%p] pthread exit %d\n", pthread_self(), __ct_line__);
-	pthread_exit(ct_nullptr);	// 退出线程
+	pthread_exit(ct_nullptr);
 	return ct_nullptr;
 }

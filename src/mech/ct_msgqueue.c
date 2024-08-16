@@ -16,22 +16,16 @@
 
 #define STR_CURRTITLE "[ct_msgqueue]"
 
-#define TIMEOUT_SEC 5  // 5 seconds timeout
-
 #define ct_msgqueue_lock(self)   pthread_mutex_lock(self->mutex)
 #define ct_msgqueue_unlock(self) pthread_mutex_unlock(self->mutex)
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
 void ct_msgqueue_init(ct_msgqueue_buf_t self, void *buffer, size_t byte, size_t max) {
-	// 初始化消息队列
 	ct_queue_init(self->queue, buffer, byte, max);
-	// 初始化互斥锁
 	pthread_mutex_init(self->mutex, NULL);
-	// 初始化条件变量
 	pthread_cond_init(self->not_empty, NULL);
 	pthread_cond_init(self->not_full, NULL);
-	// 设置关闭状态
 	self->is_shut = false;
 }
 
@@ -45,13 +39,6 @@ void ct_msgqueue_close(ct_msgqueue_buf_t self) {
 	pthread_cond_broadcast(self->not_empty);
 	pthread_cond_broadcast(self->not_full);
 	ct_msgqueue_unlock(self);
-
-	for (bool is_empty = false; !is_empty;) {
-		ct_msgqueue_lock(self);
-		is_empty = ct_queue_isempty(self->queue);
-		ct_msgqueue_unlock(self);
-		ct_msleep(10);
-	}
 }
 
 void ct_msgqueue_destroy(ct_msgqueue_buf_t self) {
@@ -59,10 +46,8 @@ void ct_msgqueue_destroy(ct_msgqueue_buf_t self) {
 		ct_msgqueue_close(self);
 	}
 
-	// 销毁条件变量
 	pthread_cond_destroy(self->not_full);
 	pthread_cond_destroy(self->not_empty);
-	// 销毁互斥锁
 	pthread_mutex_destroy(self->mutex);
 }
 

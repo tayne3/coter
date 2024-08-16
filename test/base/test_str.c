@@ -73,8 +73,8 @@ static inline void test_strchr(void) {
 	ctunit_assert_pointer(ct_strchr(s, 'e'), s + 1);
 	ctunit_assert_pointer(ct_strchr(s, 'l'), s + 2);
 	ctunit_assert_pointer(ct_strchr(s, 'o'), s + 4);
-	ctunit_assert_pointer(ct_strchr(s, 'h'), ct_nullptr);
-	ctunit_assert_pointer(ct_strchr(s, 'z'), ct_nullptr);
+	ctunit_assert_pointer(ct_strchr(s, 'h'), NULL);
+	ctunit_assert_pointer(ct_strchr(s, 'z'), NULL);
 }
 
 static inline void test_strrchr(void) {
@@ -83,8 +83,8 @@ static inline void test_strrchr(void) {
 	ctunit_assert_pointer(ct_strrchr(s, 'e'), s + 1);
 	ctunit_assert_pointer(ct_strrchr(s, 'l'), s + 3);
 	ctunit_assert_pointer(ct_strrchr(s, 'o'), s + 4);
-	ctunit_assert_pointer(ct_strrchr(s, 'h'), ct_nullptr);
-	ctunit_assert_pointer(ct_strrchr(s, 'z'), ct_nullptr);
+	ctunit_assert_pointer(ct_strrchr(s, 'h'), NULL);
+	ctunit_assert_pointer(ct_strrchr(s, 'z'), NULL);
 }
 
 static inline void test_strcmp(void) {
@@ -104,7 +104,7 @@ static inline void test_strstr(void) {
 	const char *s = "Hello World";
 	ctunit_assert_pointer(ct_strstr(s, "World"), s + 6);
 	ctunit_assert_pointer(ct_strstr(s, "Hello"), s + 0);
-	ctunit_assert_pointer(ct_strstr(s, "Universe"), ct_nullptr);
+	ctunit_assert_pointer(ct_strstr(s, "Universe"), NULL);
 }
 
 static inline void test_strcat(void) {

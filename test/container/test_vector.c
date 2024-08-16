@@ -54,7 +54,7 @@ static inline void test_vector_get(void) {
 	}
 
 	{
-		const int *it = ct_nullptr;
+		const int *it = NULL;
 		for (size_t i = 0; i < 100; i++) {
 			it = ct_vector_value(vec, i);
 			ctunit_assert_int32(*it, i, CTUnit_Equal);
@@ -62,7 +62,7 @@ static inline void test_vector_get(void) {
 	}
 
 	{
-		const int *it = ct_nullptr;
+		const int *it = NULL;
 		ct_vector_resize(vec, 50);
 		for (size_t i = 0; i < ct_vector_size(vec); i++) {
 			it = ct_vector_value(vec, i);
@@ -71,7 +71,7 @@ static inline void test_vector_get(void) {
 	}
 
 	{
-		const int *it = ct_nullptr;
+		const int *it = NULL;
 		ct_vector_resize(vec, 10);
 		for (size_t i = 0; i < ct_vector_size(vec); i++) {
 			it = ct_vector_value(vec, i);
@@ -92,7 +92,7 @@ static inline void test_vector_at(void) {
 	}
 
 	{
-		int *it = ct_nullptr;
+		int *it = NULL;
 		for (size_t i = 0; i < ct_vector_size(vec); i++) {
 			it = ct_vector_at(vec, i);
 			ctunit_assert_int32(*it, i, CTUnit_Equal);
@@ -100,7 +100,7 @@ static inline void test_vector_at(void) {
 	}
 
 	{
-		int *it = ct_nullptr;
+		int *it = NULL;
 		for (size_t i = 0; i < ct_vector_size(vec); i++) {
 			it  = ct_vector_at(vec, i);
 			*it = i + 1;
@@ -108,7 +108,7 @@ static inline void test_vector_at(void) {
 	}
 
 	{
-		const int *it = ct_nullptr;
+		const int *it = NULL;
 		for (size_t i = 0; i < ct_vector_size(vec); i++) {
 			it = ct_vector_value(vec, i);
 			ctunit_assert_int32(*it, i + 1, CTUnit_Equal);
