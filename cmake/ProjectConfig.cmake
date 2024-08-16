@@ -38,10 +38,6 @@ if(NOT CMAKE_ARCHIVE_OUTPUT_DIRECTORY)
 	set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${OUTPUT_DIR})
 endif()
 
-# set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OUTPUT_DIR})					# 设置可执行文件输出路径
-# set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${OUTPUT_DIR})					# 设置共享库输出路径
-# set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${OUTPUT_DIR})					# 设置静态库输出路径
-
 set(CMAKE_C_STANDARD 99) 											# 指定C语言标准
 set(CMAKE_C_STANDARD_REQUIRED ON) 									# 是否要求使用特定的C语言标准
 set(CMAKE_C_EXTENSIONS ON)											# 是否启用C语言编译器扩展功能

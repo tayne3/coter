@@ -33,6 +33,9 @@ configure_file(
     @ONLY
 )
 
+set(PTHREADS_ROOT ${SUB_DIR}/pthreads-w32)
+include(FindPthreadW32)
+
 # 打印版本号
 message(STATUS "Coter version: ${PROJECT_VERSION}")
 

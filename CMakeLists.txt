@@ -16,11 +16,11 @@ include(ProjectConfig)
 include(ProjectFunctions)
 include(ToolchainLinux)
 include(ToolchainWindows)
-# include(EnablingCCache)
-include(ImportSubproject)
 
 # 导入子目录: 源码
 add_subdirectory(src)
+# 导入子目录: 子项目
+add_subdirectory(sub)
 
 # 导入子目录: 测试
 if(COTER_BUILD_TEST)
