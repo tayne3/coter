@@ -6,12 +6,6 @@
  */
 #include "ct_any.h"
 
-#include <inttypes.h>
-
-//#include <assert.h>
-//#include <stdio.h>
-//#include <string.h>
-
 #include "base/ct_platform.h"
 
 // -------------------------[STATIC DECLARATION]-------------------------

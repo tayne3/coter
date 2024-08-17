@@ -43,12 +43,12 @@ static inline int test_hash_siphash(void) {
 
 	char plaintext[64] = {0};
 
-	for (size_t i = 0; i < 64; i++) {
+	for (int i = 0; i < 64; i++) {
 		plaintext[i] = (char)i;
 	}
 
-	for (size_t n = 0; n < TEST_HASH_NUMBER; n++) {
-		for (size_t i = 1; i < 64; i++) {
+	for (int n = 0; n < TEST_HASH_NUMBER; n++) {
+		for (int i = 1; i < 64; i++) {
 			ctunit_assert_uint64(ct_hashalgo_siphash_64(plaintext, i, ct_hash_key), vectors[i], CTUnit_Equal,
 								 "n = %d, i = %d", n, i);
 		}

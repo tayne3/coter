@@ -10,6 +10,22 @@
 
 #include "base/prefix/ct_config.h"
 
+// ANSI C
+#include <assert.h>
+#include <ctype.h>
+#include <errno.h>
+#include <float.h>
+#include <inttypes.h>
+#include <limits.h>
+#include <math.h>
+#include <signal.h>
+#include <stdarg.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
 // clang-format off
 
 #ifndef __cplusplus
@@ -41,6 +57,22 @@ typedef unsigned __int8     uint8_t;
 typedef unsigned __int16    uint16_t;
 typedef unsigned __int32    uint32_t;
 typedef unsigned __int64    uint64_t;
+#endif
+
+#ifdef _MSC_VER
+    typedef int pid_t;
+    typedef int gid_t;
+    typedef int uid_t;
+    #define strcasecmp  stricmp
+    #define strncasecmp strnicmp
+#else
+    typedef int                 BOOL;
+    typedef unsigned char       BYTE;
+    typedef unsigned short      WORD;
+    typedef void*               HANDLE;
+    #include <strings.h>
+    #define stricmp     strcasecmp
+    #define strnicmp    strncasecmp
 #endif
 
 // OS
@@ -85,16 +117,25 @@ typedef unsigned __int64    uint64_t;
     #define CT_OS_UNIX
 #endif
 
-// no argument
-// # ifdef ct_noarg
-// #   warning "duplicate definition"
-// # else
-// #   ifdef __cplusplus
-// #       define ct_noarg
-// #   else
-// #       define ct_noarg				void
-// #   endif
-// # endif
+// byte endian
+typedef bool ct_endian_t;
+
+#define CTEndian_Little  false
+#define CTEndian_Big     true
+#define CTEndian_Network CTEndian_Big
+
+#if (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__) || defined(__LITTLE_ENDIAN__) ||          \
+	(defined(__BYTE_ORDER) && __BYTE_ORDER == __LITTLE_ENDIAN) || defined(ARCH_X86) || defined(ARCH_X86_64) ||       \
+	defined(__ARMEL__) || defined(__THUMBEL__) || defined(__AARCH64EL__) || defined(_MIPSEL) || defined(__MIPSEL) || \
+	defined(__MIPSEL__) || defined(__MIPS64EL)
+#define CTEndian_System CTEndian_Little
+#elif (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__) || defined(__BIG_ENDIAN__) ||      \
+	(defined(__BYTE_ORDER) && __BYTE_ORDER == __BIG_ENDIAN) || defined(__ARMEB__) || defined(__THUMBEB__) || \
+	defined(__AARCH64EB__) || defined(_MIBSEB) || defined(__MIBSEB) || defined(__MIBSEB__) || defined(__MIPS64EB)
+#define CTEndian_System CTEndian_Big
+#else
+#define CTEndian_System ((*(unsigned char *)&(unsigned int){1}) == 0)
+#endif
 
 // null
 # ifdef ct_nullptr
@@ -121,13 +162,6 @@ typedef unsigned __int64    uint64_t;
 #   define ct_arrsize(_arr)			(sizeof(_arr) / sizeof((_arr)[0]))
 # endif
 
-// variable swap
-// # ifdef ct_swap
-// #	warning "duplicate definition"
-// # else
-// #   define ct_swap(_v1, _v2)		do { (_v1) ^= (_v2); (_v2) ^= (_v1); (_v1) ^= (_v2); } while(0)
-// # endif
-
 // variable unused
 # ifdef ct_unused
 #	warning "duplicate definition"
@@ -147,25 +181,6 @@ typedef unsigned __int64    uint64_t;
 # ifndef CONTAINER_OF
 # 	define CONTAINER_OF(_ptr, _type, _member)		(_type *)((_ptr) == ct_nullptr ? ct_nullptr : ((char *)(_ptr)-OFFSET_OF(_type, _member)))
 # endif
-
-// # ifndef OFFSET_OF
-// # 	ifdef __compiler_offsetof
-// #   	define OFFSET_OF(_type, _member)			offsetof(_type, _member)
-// # 	else
-// #   	define OFFSET_OF(_type, _member)			((size_t)(((char *)&((_type *)STR_NULL)->_member) - (char *)STR_NULL))
-// # 	endif
-// # endif
-// # ifdef ct_offset_of
-// #	warning "duplicate definition"
-// # else
-// #   define ct_offset_of(_type, _member) 			OFFSET_OF(_type, _member)
-// # endif
-// # ifdef ct_container_of
-// #	warning "duplicate definition"
-// # else
-// #   define ct_container_of(_ptr, _type, _member)	CONTAINER_OF(_ptr, _type, _member)
-// # endif
-// bit size
 
 # ifdef __CT_WORDSIZE
 #   warning "duplicate definition"
@@ -200,25 +215,6 @@ typedef unsigned __int64    uint64_t;
 #   define CT_MIN(_a, _b) MIN((_a), (_b))
 # endif
 
-// #include <ctype.h>
-// # define ct_isalnum(c)  isalnum(c)   // 检查给定字符是否是字母或数字
-// # define ct_isalpha(c)  isalpha(c)   // 检查给定字符是否是字母
-// # define ct_iscntrl(c)  iscntrl(c)   // 检查给定字符是否是控制字符
-// # define ct_isdigit(c)  isdigit(c)   // 检查给定字符是否是数字
-// # define ct_isgraph(c)  isgraph(c)   // 检查给定字符是否是可打印的非空白字符
-// # define ct_islower(c)  islower(c)   // 检查给定字符是否是小写字母
-// # define ct_isprint(c)  isprint(c)   // 检查给定字符是否是可打印字符
-// # define ct_ispunct(c)  ispunct(c)   // 检查给定字符是否是标点符号字符
-// # define ct_isspace(c)  isspace(c)   // 检查给定字符是否是空白字符
-// # define ct_isupper(c)  isupper(c)   // 检查给定字符是否是大写字母
-// # define ct_isxdigit(c) isxdigit(c)  // 检查给定字符是否是16进制数字
-// # define ct_isblank(c)  isblank(c)   // 检查给定字符是否是空格或制表符
-// # define ct_isascii(c)  isascii(c)   // 检查给定字符是否是ASCII字符
-
-// # define ct_tolower(c)  tolower(c)   // 将给定大写字母转换为小写
-// # define ct_toupper(c)  toupper(c)   // 将给定小写字母转换为大写
-// # define ct_toascii(c)  toascii(c)   // 将给定字符转换为ASCII字符
-
 #ifdef WIN32
 #ifdef __cplusplus
 #define DLL_EXPORT_C_DECL     extern "C" __declspec(dllexport)
@@ -245,7 +241,7 @@ typedef unsigned __int64    uint64_t;
 #endif
 #endif
 
-#ifdef COTER_EXPORTS
+#ifdef DLL_EXPORT
 #define COTER_API DLL_EXPORT_DECL
 #else
 #define COTER_API DLL_IMPORT_DECL
@@ -290,6 +286,39 @@ typedef unsigned __int64    uint64_t;
 # 	endif
 # endif
 
+// context information
+typedef struct {
+	const char *file;
+	const char *func;
+	int         line;
+} ct_context_t;
+
+#define CT_CONTEXT_INIT(_file, _func, _line) {.file = (_file), .func = (_func), .line = (_line)}
+#define CT_CONTEXT_CURR                      (ct_context_t)CT_CONTEXT_INIT(__ct_file__, __ct_func__, __ct_line__)
+#define CT_CONTEXT_ISVALID(_ctx)             ((_ctx)->line > 0)
+
+#define __ct_assert_fail(expr)                                                                      \
+	do {                                                                                            \
+		fprintf(stderr, "%s:%d: assert failed: `%s`." STR_NEWLINE, __ct_file__, __ct_line__, expr); \
+		raise(SIGABRT);                                                                             \
+	} while (0)
+
+// assert
+#ifdef NDEBUG
+#define ASSERT(expr) ((void)(0))
+#elif defined __cplusplus
+#define ASSERT(expr) (static_cast<bool>(expr) ? (void)(0) : __ct_assert_fail(#expr))
+#elif !defined __GNUC__ || defined __STRICT_ANSI__
+#define ASSERT(expr) ((expr) ? (void)(0) : __ct_assert_fail(#expr))
+#else
+#define ASSERT(expr)                               \
+	((void)sizeof((expr) ? 1 : 0), __extension__({ \
+		 if (!(expr)) {                            \
+			 __ct_assert_fail(#expr);              \
+		 }                                         \
+	 }))
+#endif
+
 # ifndef __THROW
 # 	define __THROW
 # endif
@@ -313,13 +342,13 @@ typedef unsigned __int64    uint64_t;
 
 # if defined(__GNUC__) && __GNUC__ >= 2
 #   define __ct_attribute__(...)		__attribute__(__VA_ARGS__)				// GCC属性声明
-#   define __ct_func_weak__ 			__attribute__((weak))					// 标记弱引用函数
+#   define __ct_attribute_weak__ 		__attribute__((weak))					// 标记弱引用函数
 #   define __ct_packed__ 				__attribute__((packed))					// 紧凑打包,平台默认对齐方式
 #   define __ct_aligned__(_n)  			__attribute__((aligned(_n)))			// 允许成员间填充,n字节对齐
 #   define __ct_packed_aligned__(_n)	__attribute__((packed, aligned(_n)))	// 紧凑打包,n字节对齐
 # else
 #   define __ct_attribute__(...)
-#   define __ct_func_weak__
+#   define __ct_attribute_weak__
 #   define __ct_packed__
 #   define __ct_aligned__(_n) 
 #   define __ct_packed_aligned__(_n)
@@ -327,75 +356,75 @@ typedef unsigned __int64    uint64_t;
 
 // 标记函数不会抛出异常
 # if !defined __cplusplus && __GNUC_PREREQ (3,3)
-#   define __ct_func_throw 				__THROW
+#   define __ct_throw 				__THROW
 # else
-#   define __ct_func_throw
+#   define __ct_throw
 # endif
 // 标记函数可能引发异常
 # if !defined __cplusplus  && __GNUC_PREREQ (2,8)
-#   define __ct_func_thrownl 			__THROWNL
+#   define __ct_thrownl 			__THROWNL
 # else
-#   define __ct_func_thrownl
+#   define __ct_thrownl
 # endif
 // 标记函数分配内存
 # if __GNUC_PREREQ(2,96) 
-#   define __ct_func_malloc__ 			__attribute_malloc__
+#   define __ct_attribute_malloc__ 			__attribute_malloc__
 # else
-#   define __ct_func_malloc__
+#   define __ct_attribute_malloc__
 # endif
 // 标记函数参数为可变长度
 # if __GNUC_PREREQ (4,3) 
-#   define __ct_func_alloc_size__(...)	__attribute_alloc_size__ (__VA_ARGS__)
+#   define __ct_attribute_alloc_size__(...)	__attribute_alloc_size__ (__VA_ARGS__)
 # else
-#   define __ct_func_alloc_size__(...)
+#   define __ct_attribute_alloc_size__(...)
 # endif
 // 标记纯函数 (在相同的输入下，总是返回相同的输出，且不会产生任何副作用)
 #if __GNUC_PREREQ (2,96)
-#   define __ct_func_pure__ 			__attribute_pure__
+#   define __ct_attribute_pure__ 			__attribute_pure__
 # else
-# define __ct_func_pure__
+#   define __ct_attribute_pure__
 #endif
 // 标记常量函数
 # if __GNUC_PREREQ (2,5) 
-#   define __ct_func_const__ 			__attribute_const__
+#   define __ct_attribute_const__ 			__attribute_const__
 # else
-#   define __ct_func_const__
+#   define __ct_attribute_const__
 # endif
 // 即使某个函数或变量没有被使用, 也不要将其优化掉
 # if __GNUC_PREREQ (3,1)
-#   define __ct_func_used__ 			__attribute_used__
+#   define __ct_attribute_used__ 			__attribute_used__
 # else
-#   define __ct_func_used__
+#   define __ct_attribute_used__
 # endif
 // 标记函数不内联
 # if __GNUC_PREREQ (3,1)
-#   define __ct_func_noinline__ 		__attribute_noinline__
+#   define __ct_attribute_noinline__ 		__attribute_noinline__
 # else
-#   define __ct_func_noinline__
+#   define __ct_attribute_noinline__
 # endif
 // 标记函数已弃用
 # if __GNUC_PREREQ (3,2)
-#   define __ct_func_deprecated__		__attribute_deprecated__
+#   define __ct_attribute_deprecated__		__attribute_deprecated__
 # else 
-#   define __ct_func_deprecated__
+#   define __ct_attribute_deprecated__
 # endif
 // 标记函数已弃用, 并指定打印的消息
 # if __GNUC_PREREQ (3,2) 
 # 	if __GNUC_PREREQ (4,5)
-#   	define __ct_func_deprecated_msg__(msg)	__attribute_deprecated_msg__(msg)
+#   	define __ct_attribute_deprecated_msg__(msg)	__attribute_deprecated_msg__(msg)
 #	elif __glibc_clang_has_extension (__attribute_deprecated_with_message__)
-#   	define __ct_func_deprecated_msg__(msg)	__attribute_deprecated_msg__(msg)
+#   	define __ct_attribute_deprecated_msg__(msg)	__attribute_deprecated_msg__(msg)
 # 	else
-#   	define __ct_func_deprecated_msg__(msg)	__attribute_deprecated__
+#   	define __ct_attribute_deprecated_msg__(msg)	__attribute_deprecated__
 # 	endif
 # else
-#   define __ct_func_deprecated_msg__(msg)
+#   define __ct_attribute_deprecated_msg__(msg)
 # endif
 // 指定 format 参数
 # if __GNUC_PREREQ (2,8)
-#   define __ct_format_arg__(x)			__attribute_format_arg__(x)
+#   define __ct_attribute_format_arg__(x)			__attribute_format_arg__(x)
 # else 
-#   define __ct_format_arg__(x)
+#   define __ct_attribute_format_arg__(x)
 # endif
 // 标记非空参数
 # if __GNUC_PREREQ (3,3)
@@ -405,15 +434,15 @@ typedef unsigned __int64    uint64_t;
 # endif
 // 标记函数返回值会被使用
 # if __GNUC_PREREQ (3,4)  
-#   define __ct_func_wur__ 				__attribute_warn_unused_result__
+#   define __ct_attribute_wur__ 				__attribute_warn_unused_result__
 # else
-#   define __ct_func_wur__
+#   define __ct_attribute_wur__
 # endif
 // 将错误消息与调用点的源位置相关联, 而不是与函数内的源位置相关联
 # if __GNUC_PREREQ (4,3) 
-#   define __ct_func_artificial__		__attribute_artificial__
+#   define __ct_attribute_artificial__		__attribute_artificial__
 # else
-#   define __ct_func_artificial__
+#   define __ct_attribute_artificial__
 # endif
 // restrict
 # if __GNUC_PREREQ (4,3)
@@ -423,9 +452,9 @@ typedef unsigned __int64    uint64_t;
 # endif
 // 标记函数不返回
 # if __GNUC_PREREQ (2,8) && defined(_Noreturn)
-#   define __ct_func_noreturn 			_Noreturn
+#   define __ct_noreturn 			_Noreturn
 # else
-#   define __ct_func_noreturn
+#   define __ct_noreturn
 # endif
 
 #endif // _CT_MACRO_H

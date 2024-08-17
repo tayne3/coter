@@ -10,10 +10,6 @@
  */
 #include "ct_rbuf.h"
 
-#include <assert.h>
-#include <stdio.h>
-#include <string.h>
-
 // -------------------------[STATIC DECLARATION]-------------------------
 
 #define STR_CURRTITLE "[ct_rbuf]"

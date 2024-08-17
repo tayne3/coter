@@ -6,15 +6,6 @@
  */
 #include "ct_log.h"
 
-#include <assert.h>
-#include <signal.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-//#include <unistd.h>
-
 #include "base/ct_platform.h"
 #include "log/ct_log_control.h"
 #include "log/ct_log_msg.h"

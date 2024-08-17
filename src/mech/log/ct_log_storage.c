@@ -6,8 +6,6 @@
  */
 #include "ct_log_storage.h"
 
-#include <sys/stat.h>
-
 #include "base/ct_platform.h"
 
 // -------------------------[STATIC DECLARATION]-------------------------

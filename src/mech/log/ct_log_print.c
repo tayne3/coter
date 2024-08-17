@@ -6,14 +6,10 @@
  */
 #include "ct_log_print.h"
 
-#include <assert.h>
-#include <stdio.h>
-#include <string.h>
-
 #include "../ct_log.h"
+#include "base/ct_datetime.h"
 #include "base/ct_platform.h"
 #include "base/ct_time.h"
-#include "base/ct_datetime.h"
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
@@ -78,29 +74,31 @@
 #define CTLOG_FORMAT_ERROR (CTLOG_ESCAPE_START CTLOG_COLOR_ERROR "%s" CTLOG_ESCAPE_END STR_NEWLINE)
 #define CTLOG_FORMAT_FATAL (CTLOG_ESCAPE_START CTLOG_COLOR_FATAL "%s" CTLOG_ESCAPE_END STR_NEWLINE)
 
-//
-static inline const char *ct_log_basename(const char *path);
+// #define CTLOG_FORMAT_VBASE (CTLOG_ESCAPE_START CTLOG_COLOR_VBASE "%s" CTLOG_ESCAPE_END " ")
+// #define CTLOG_FORMAT_DEBUG (CTLOG_ESCAPE_START CTLOG_COLOR_DEBUG "%s" CTLOG_ESCAPE_END " ")
+// #define CTLOG_FORMAT_TRACE (CTLOG_ESCAPE_START CTLOG_COLOR_TRACE "%s" CTLOG_ESCAPE_END " ")
+// #define CTLOG_FORMAT_WARNG (CTLOG_ESCAPE_START CTLOG_COLOR_WARNG "%s" CTLOG_ESCAPE_END " ")
+// #define CTLOG_FORMAT_ERROR (CTLOG_ESCAPE_START CTLOG_COLOR_ERROR "%s" CTLOG_ESCAPE_END " ")
+// #define CTLOG_FORMAT_FATAL (CTLOG_ESCAPE_START CTLOG_COLOR_FATAL "%s" CTLOG_ESCAPE_END " ")
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
-size_t ct_log_print_text(int level, char *cache, size_t size)
-{
+size_t ct_log_print_text(int level, char *cache, size_t size) {
 	assert(cache);
 	return fwrite(cache, sizeof(char), size, CTLOG_LEVEL_ISABNOR(level) ? stderr : stdout);
 }
 
-size_t ct_log_print_tips(bool is_print, int level, int id, char *cache, size_t max, ct_context_buf_t ctx)
-{
+size_t ct_log_print_tips(bool is_print, int level, int id, char *cache, size_t max, const ct_context_t *ctx) {
 	assert(cache && ctx);
 	assert(CTLOG_LEVEL_ISVALID(level));
 	// 日期时间字符串缓存区
-	char now[CT_DATETIME_FMT_BUFLEN];
+	char                now[CT_DATETIME_FMT_BUFLEN];
 	const ct_datetime_t cdt = ct_datetime_now();
 	ct_datetime_fmt(&cdt, now);
 	// 填充
 	const char *level_list[] = {"VBASE", "DEBUG", "TRACE", "WARNG", "ERROR", "FATAL"};
-	int size = ct_snprintf(cache, max, CTLOG_FORMAT_TIPS, level_list[level], id, now,
-						   ct_log_basename(ctx->file), ctx->func, ctx->line);
+	int size = ct_snprintf(cache, max, CTLOG_FORMAT_TIPS, level_list[level], id, now, ct_basename(ctx->file), ctx->func,
+						   ctx->line);
 
 	if (is_print) {
 		// 打印
@@ -111,7 +109,7 @@ size_t ct_log_print_tips(bool is_print, int level, int id, char *cache, size_t m
 			case CTLogLevel_Debug:  // 调试信息
 				fprintf(stdout, CTLOG_FORMAT_DEBUG, cache);
 				break;
-			case CTLogLevel_Trace:  // 一般信息
+			case CTLogLevel_Trace:  // 跟踪信息
 				fprintf(stdout, CTLOG_FORMAT_TRACE, cache);
 				break;
 			case CTLogLevel_Warning:  // 警告信息
@@ -134,9 +132,3 @@ size_t ct_log_print_tips(bool is_print, int level, int id, char *cache, size_t m
 }
 
 // -------------------------[STATIC DEFINITION]-------------------------
-
-static inline const char *ct_log_basename(const char *path)
-{
-	const char *filename = strrchr(path, STR_SEPARATOR);
-	return filename ? filename + 1 : path;
-}

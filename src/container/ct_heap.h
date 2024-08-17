@@ -17,7 +17,7 @@ extern "C" {
 #include "base/ct_platform.h"
 #include "common/ct_any.h"
 
-/// 排序比较函数类型 (返回值: true=触发交换, false=无操作)
+// 排序比较函数类型 (返回值: true=触发交换, false=无操作)
 typedef bool (*ct_heap_sort_t)(const ct_any_buf_t, const ct_any_buf_t);
 
 /**
@@ -68,21 +68,21 @@ typedef struct ct_heap {
 	for (index = 0, it = (type*)(self)->_all[index].d.ptr; index < ct_heap_size(self); \
 		 index++, it   = (type*)(self)->_all[index].d.ptr)
 
-/// 初始化堆
+// 初始化堆
 COTER_API void ct_heap_init(ct_heap_buf_t self, ct_any_t* all, size_t max, ct_heap_sort_t sort);
-/// 向上调整堆
+// 向上调整堆
 COTER_API void ct_heap_up(ct_heap_buf_t self, size_t index);
-/// 向下调整堆
+// 向下调整堆
 COTER_API void ct_heap_down(ct_heap_buf_t self, size_t index);
-/// 重新排序
+// 重新排序
 COTER_API void ct_heap_reorder(ct_heap_buf_t self);
-/// 插入元素
+// 插入元素
 COTER_API void ct_heap_insert(ct_heap_buf_t self, ct_any_t data);
-/// 移除堆顶元素
+// 移除堆顶元素
 COTER_API void ct_heap_remove(ct_heap_buf_t self);
-/// 获取并移除堆顶元素
+// 获取并移除堆顶元素
 COTER_API ct_any_t ct_heap_take(ct_heap_buf_t self);
-/// 拷贝所有元素到目标堆
+// 拷贝所有元素到目标堆
 COTER_API bool ct_heap_copy(ct_heap_buf_t self, ct_heap_t* target);
 
 #ifdef __cplusplus

@@ -64,7 +64,7 @@ COTER_API ct_time64_t gethrtime_us(void);
 #define ct_current_microsecond() gettimeofday_us()
 
 /**
- * @brief 日期时间类型
+ * @brief 获取当前日期时间
  * @note
  * tm_year:    since the year 1900
  * tm_mon:     [0-11]
@@ -73,97 +73,57 @@ COTER_API ct_time64_t gethrtime_us(void);
  * tm_min:     [0-59]
  * tm_sec:     [0-60] (1 leap second)
  */
-typedef struct tm ct_tm_t, ct_tm_buf_t[1], *ct_tm_ref_t;
+static inline struct tm* ct_localtime_now(void) {
+	const time_t now = time(NULL);
+	return localtime(&now);
+}
 
-
-/**
- * @brief 获取当前日期时间
- * 
- * @return ct_tm_ref_t 指向当前日期时间的指针
- */
-COTER_API ct_tm_ref_t ct_tm_current(void);
-
-// /**
-//  * @brief 获取当前日期时间字符串
-//  * 
-//  * @return ct_tm_ref_t 指向当前日期时间的指针
-//  */
-// void ct_tm_current_string(const char *format, char *buf, size_t max);
+// 将时间戳转换为本地时间
+#define ct_localtime(t) localtime(t)
+// 将日期时间结构体转换为时间戳
+#define ct_mktime(dt) mktime(dt)
 
 /**
- * @brief 时间戳转换为日期时间
- * 
- * @param t 时间戳
- * @return ct_tm_ref_t 指向转换后的日期时间的指针
+ * @brief 格式化持续时间
+ *
+ * 将给定的秒数格式化为字符串形式(HH:MM:SS)
+ *
+ * @param sec 持续时间（秒）
+ * @param buf 用于存储格式化结果的字符缓冲区
+ * @return char* 指向格式化后字符串的指针（与 buf 相同）
+ *
+ * @code
+ * char buf[CT_TM_FMT_BUFLEN];
+ * int duration_seconds = 3661; // 1小时1分钟1秒
+ * ct_tm_duration_fmt(duration_seconds, buf);
+ * printf("duration: %s\n", buf); // 输出：duration: 01:01:01
+ * @endcode
+ *
+ * @note 这个函数在显示持续时间或时间间隔时非常有用，如视频播放器或计时器。
  */
-COTER_API ct_tm_ref_t ct_tm_from_time(ct_time_t t);
+COTER_API char* ct_tm_duration_fmt(int sec, char* buf);
+#define CT_TM_DURATION_MAX 12
 
 /**
- * @brief 日期时间转换为时间戳
- * 
- * @param dt 日期时间缓冲区
- * @return ct_time_t 转换后的时间戳
+ * @brief 格式化日期时间
+ *
+ * 将日期时间结构体格式化为字符串形式(YYYY-MM-DD HH:MM:SS)。
+ *
+ * @param dt 指向日期时间结构体的指针
+ * @param buf 用于存储格式化结果的字符缓冲区
+ * @return char* 指向格式化后字符串的指针（与 buf 相同）
+ *
+ * @code
+ * const struct tm dt = ct_tm_now();
+ * char buf[CT_DATETIME_FMT_BUFLEN];
+ * ct_tm_fmt(&dt, buf);
+ * printf("当前日期时间：%s\n", buf);
+ * @endcode
+ *
+ * @note 这个函数在需要以标准格式显示日期时间时很有用，如日志记录或用户界面显示。
  */
-COTER_API ct_time_t ct_tm_to_time(ct_tm_buf_t dt);
-
-/**
- * @brief 将日期时间转换为字符串格式
- * 
- * @param buf 存储结果字符串的缓冲区
- * @param max 缓冲区的最大长度
- * @param format 指定输出格式的字符串
- * @param cdt 指向日期时间结构体的指针
- * @return size_t 返回格式化后的字符串长度
- * @note 
- * 格式化字符串的说明:
- * %a - 星期几的简写
- * %A - 星期几的全称
- * %b - 月份的简写
- * %B - 月份的全称
- * %c - 标准的日期和时间串
- * %C - 年份的前两位数字
- * %d - 十进制表示的每月的第几天
- * %D - 月/天/年
- * %e - 在两字符域中, 十进制表示的每月的第几天
- * %F - 年-月-日
- * %g - 年份的后两位数字, 使用基于周的年
- * %G - 年份, 使用基于周的年
- * %h - 简写的月份名
- * %H - 24小时制的小时
- * %I - 12小时制的小时
- * %j - 十进制表示的每年的第几天
- * %m - 十进制表示的月份
- * %M - 十进制表示的分钟数
- * %n - 新行符
- * %p - 本地的AM或PM的等价显示
- * %r - 12小时的时间
- * %R - 显示小时和分钟: hh:mm
- * %S - 十进制的秒数
- * %t - 水平制表符
- * %T - 显示时分秒: hh:mm:ss
- * %u - 每周的第几天, 星期一为第一天 (值从1到7, 星期一为1)
- * %U - 每年的第几周, 把星期日做为第一天 (值从0到53)
- * %w - 十进制表示的星期几 (值从0到6, 星期天为0)
- * %W - 每年的第几周, 把星期一做为第一天 (值从0到53)
- * %x - 标准的日期串
- * %X - 标凈的时间串
- * %y - 不带世纪的十进制年份 (值从0到99)
- * %Y - 带世纪部分的十进制年份
- * %z - 时区名称, 如果不能得到时区名称则返回空字符
- * %Z - 时区名称, 如果不能得到时区名称则返回空字符
- * %% - 百分号
- */
-COTER_API size_t ct_tm_to_string(char *buf, size_t max, const char *format, const ct_tm_buf_t cdt);
-
-/**
- * @brief 解析日期时间字符串
- * 
- * @param buf 输入的日期时间字符串
- * @param format 日期时间字符串的格式
- * @param cdt 存储解析结果的结构体
- * @return char* 成功返回解析后的字符串指针，失败返回NULL
- */
-COTER_API const char *ct_tm_from_string(const char *buf, const char *format, ct_tm_buf_t cdt);
+COTER_API char* ct_tm_fmt(const struct tm* dt, char* buf);
+#define CT_TM_FMT_MAX 20
 
 #ifdef __cplusplus
 }

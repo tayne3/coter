@@ -1,18 +1,12 @@
 /**
- * @file ct_app.c
+ * @file app.c
  * @brief Application 实例
  * @author tayne3@dingtalk.com
  * @date 2024.2.6
  */
-#include "ct_app.h"
+#include "app.h"
 
-#include <assert.h>
 #include <setjmp.h>
-#include <signal.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 #ifdef CT_OS_WIN
 // #if _MSC_VER
@@ -26,68 +20,60 @@
 #include "base/ct_datetime.h"
 #include "base/ct_platform.h"
 #include "base/ct_time.h"
+#include "excep.h"
 #include "mech/ct_evmsg.h"
 #include "mech/ct_jobpool.h"
 #include "mech/ct_log.h"
 #include "mech/ct_msgqueue.h"
 #include "mech/ct_thpool.h"
+#include "mech/ct_timer.h"
 #include "mech/log/ct_log_msg_asyn.h"
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
-#define STR_CURRTITLE "[ct_app]"
-
-// 异常信息
-typedef struct ct_error {
-	int         code;
-	const char* msg;
-	bool        is_sig;
-} ct_excep_t;
-
-#define CT_EXCEP_INIT(code, msg, is_sig) {code, msg, is_sig}
+#define STR_CURRTITLE "[app]"
 
 /**
  * @brief coter 应用实例
  */
-static struct ct_app {
+static struct app {
 	pthread_t         tid;         // 主线程ID
 	jmp_buf           jmp;         // 上下文信息
-	ct_excep_t        exitBuf[1];  // 异常退出缓冲区
+	excep_t           exitBuf[1];  // 异常退出缓冲区
 	ct_msgqueue_buf_t exitMQ;      // 异常退出队列
 	ct_time64_t       timecurr;    // 当前调度时间
 	ct_thpool_ptr_t   thpool;      // 全局线程池
 	ct_jobpool_ptr_t  jobpool;     // 全局任务池
-} app[1] = {{
+} gapp[1] = {{
 	.tid    = 0,
 	.thpool = ct_nullptr,
 }};
 
 // 初始化异常处理
-static inline void ct_exception_init(void);
+static inline void app_exception_init(void);
 // 打印堆栈信息
-static inline void ct_program_backtrace(void);
+static inline void app_program_backtrace(void);
 // 异常发生
-static inline void ct_occurred(const char* err);
+static inline void app_occurred(const excep_t* excep);
 // 启动
-static inline void ct_welcome(void);
+static inline void app_welcome(void);
 // 结束
-static inline void ct_goobye(void);
+static inline void app_goobye(void);
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
-ct_app_ptr_t ct_app_create(void) {
-	ct_welcome();                                                        // 输出启动信息
-	ct_exception_init();                                                 // 初始化异常处理函数
-	ct_msgqueue_init(app->exitMQ, app->exitBuf, sizeof(ct_excep_t), 1);  // 初始化异常退出队列
-	app->thpool  = ct_thpool_global(NULL);                               // 创建全局线程池
-	app->jobpool = ct_jobpool_global(16, 50);                            // 创建全局任务池
-	ct_evmsg_mgr_init();                                                 // 初始化事件消息中枢
-	return app;
-
-	// ct_timer_mgr_init(); // 初始化定时器中枢
+app_ptr_t app_create(void) {
+	app_welcome();                                                      // 输出启动信息
+	app_exception_init();                                               // 初始化异常处理函数
+	ct_msgqueue_init(gapp->exitMQ, gapp->exitBuf, sizeof(excep_t), 1);  // 初始化异常退出队列
+	gapp->thpool  = ct_thpool_global(NULL);                             // 创建全局线程池
+	gapp->jobpool = ct_jobpool_global(16, 50);                          // 创建全局任务池
+	ct_timer_mgr_init();                                                // 初始化定时器中枢
+	ct_evmsg_mgr_init();                                                // 初始化事件消息中枢
+	return gapp;
 }
 
-int ct_app_exec(ct_app_ptr_t self) {
+int app_exec(app_ptr_t self) {
 	// 记录主线程ID
 	self->tid = pthread_self();
 
@@ -96,23 +82,26 @@ int ct_app_exec(ct_app_ptr_t self) {
 		goto Fail;
 	}
 
-	const char* err;
-	size_t      count = 0;
+	excep_t     excep;
+	int         count = 0;
+	ct_time64_t now, tick;
 
 	ct_forever {
-		if (++count > 100) {
+		now  = gettimeofday_ms();
+		tick = gettick_ms();
+
+		if (++count > 10) {
 			count = 0;
-			if (ct_msgqueue_try_dequeue(app->exitMQ, &err)) {
-				ct_occurred(err);
+			if (ct_msgqueue_try_dequeue(gapp->exitMQ, &excep)) {
+				app_occurred(&excep);
 				break;
 			}
 		}
 
-		ct_log_mgr_schedule();    // 执行日志调度
-		ct_evmsg_schedule();  // 执行事件消息调度
-		ct_msleep(10);            // 调度间隔 (10ms)
-
-		// ct_timer_mgr_schedule(); // 执行定时器调度
+		ct_timer_mgr_schedule(now, tick);  // 执行定时器调度
+		ct_evmsg_schedule();               // 执行事件消息调度
+		ct_log_mgr_schedule();             // 执行日志调度
+		ct_msleep(10);                     // 调度间隔 (10ms)
 	}
 
 	// self->tid = 0;              // 重置主线程ID
@@ -130,24 +119,24 @@ int ct_app_exec(ct_app_ptr_t self) {
 
 Fail:
 	ct_log_flush();  // 刷新日志缓冲区
-	ct_goobye();     // 输出结束信息
+	app_goobye();    // 输出结束信息
 	return EXIT_FAILURE;
 }
 
-void ct_app_exit(int code, const char* msg) {
+void app_exit(int code, const char* msg) {
 	// 打印堆栈信息
-	ct_program_backtrace();
+	app_program_backtrace();
 	// 发送异常退出消息
 	{
-		const ct_excep_t excep = CT_EXCEP_INIT(code, msg, false);
-		ct_msgqueue_enqueue(app->exitMQ, &excep);
+		const excep_t excep = EXCEP_INIT(code, msg, false);
+		ct_msgqueue_enqueue(gapp->exitMQ, &excep);
 	}
 	// 如果当前线程是主线程, 则跳转到记录的位置
-	// if (pthread_self() == app->tid) {
-	//	longjmp(app->jmp, EXIT_FAILURE);
+	// if (pthread_self() == gapp->tid) {
+	//	longjmp(gapp->jmp, EXIT_FAILURE);
 	//}
-	if (pthread_equal(pthread_self(), app->tid)) {
-		longjmp(app->jmp, EXIT_FAILURE);
+	if (pthread_equal(pthread_self(), gapp->tid)) {
+		longjmp(gapp->jmp, EXIT_FAILURE);
 	}
 	// 死循环，等待主线程退出
 	ct_forever {
@@ -155,17 +144,17 @@ void ct_app_exit(int code, const char* msg) {
 	}
 
 	// // 检查是否在运行中
-	// if (!app->tid) {
+	// if (!gapp->tid) {
 	// 	ct_goobye(status);  // 输出结束信息
 	// 	ct_log_flush();      // 刷新日志缓冲区
 	// 	exit(status);        // 直接退出程序
 	// }
 	// // 如果当前线程是主线程, 则跳转到记录的位置
-	// if (ct_thread_self() == app->tid) {
-	// 	longjmp(app->jmp, status);
+	// if (ct_thread_self() == gapp->tid) {
+	// 	longjmp(gapp->jmp, status);
 	// }
 	// // 设置异常标志
-	// app->abnormal = status;
+	// gapp->abnormal = status;
 	// // 死循环，等待主线程退出
 	// ct_forever {
 	// 	ct_msleep(100);
@@ -175,44 +164,42 @@ void ct_app_exit(int code, const char* msg) {
 // -------------------------[STATIC DEFINITION]-------------------------
 
 #ifdef _WIN32
-static BOOL WINAPI ct_console_ctrl_handler(DWORD CtrlType) {
+static BOOL WINAPI app_console_ctrl_handler(DWORD CtrlType) {
+	excep_t excep;
 	switch (CtrlType) {
-		case CTRL_C_EVENT: {
-			const ct_excep_t excep = CT_EXCEP_INIT(SIGINT, "CTRL+C pressed", true);
-			ct_msgqueue_enqueue(app->exitMQ, &excep);
+		case CTRL_C_EVENT:
+			excep_init(&excep, SIGINT, "CTRL+C pressed", true);
+			ct_msgqueue_enqueue(gapp->exitMQ, &excep);
 			return TRUE;
-		}
-		case CTRL_BREAK_EVENT: {
-			const ct_excep_t excep = CT_EXCEP_INIT(SIGINT, "CTRL+BREAK pressed", true);
-			ct_msgqueue_enqueue(app->exitMQ, &excep);
+		case CTRL_BREAK_EVENT:
+			excep_init(&excep, SIGINT, "CTRL+BREAK pressed", true);
+			ct_msgqueue_enqueue(gapp->exitMQ, &excep);
 			return TRUE;
-		}
-		case CTRL_CLOSE_EVENT: {
-			const ct_excep_t excep = CT_EXCEP_INIT(SIGTERM, "Window close event", true);
-			ct_msgqueue_enqueue(app->exitMQ, &excep);
+		case CTRL_CLOSE_EVENT:
+			excep_init(&excep, SIGTERM, "Window close event", true);
+			ct_msgqueue_enqueue(gapp->exitMQ, &excep);
 			return TRUE;
-		}
 	}
 	return FALSE;
 }
 #else
-static inline void ct_exception_handler(int sig) {
+static inline void app_exception_handler(int sig) {
 	// 检查主线程是否在运行中
-	if (!app->tid) {
+	if (!gapp->tid) {
 		ct_log_flush();  // 刷新日志缓冲区
 		exit(sig);       // 直接退出程序
 	}
 	// 发送异常退出消息
 	{
-		const ct_excep_t excep = CT_EXCEP_INIT(sig, strsignal(sig), true);
-		ct_msgqueue_enqueue(app->exitMQ, &excep);
+		const excep_t excep = CT_EXCEP_INIT(sig, strsignal(sig), true);
+		ct_msgqueue_enqueue(gapp->exitMQ, &excep);
 	}
 	// 如果当前线程是主线程, 则跳转到记录的位置
-	// if (ct_thread_self() == app->tid) {
-	// 	longjmp(app->jmp, sig);
+	// if (ct_thread_self() == gapp->tid) {
+	// 	longjmp(gapp->jmp, sig);
 	// }
-	if (pthread_equal(pthread_self(), app->tid)) {
-		longjmp(app->jmp, sig);
+	if (pthread_equal(pthread_self(), gapp->tid)) {
+		longjmp(gapp->jmp, sig);
 	}
 	// 死循环，等待主线程退出
 	ct_forever {
@@ -220,7 +207,7 @@ static inline void ct_exception_handler(int sig) {
 	}
 
 	// // 避免多线程同时出错时, 异常处理函数被调用多次
-	// if (!ct_mutex_try_lock(app->mutex)) {
+	// if (!ct_mutex_try_lock(gapp->mutex)) {
 	// 	ct_forever {
 	// 		ct_msleep(100);
 	// 	}
@@ -230,16 +217,16 @@ static inline void ct_exception_handler(int sig) {
 	// // 打印堆栈信息
 	// ct_program_backtrace();
 	// // 检查主线程是否在运行中
-	// if (!app->tid) {
+	// if (!gapp->tid) {
 	// 	ct_log_flush();  // 刷新日志缓冲区
 	// 	exit(sig);       // 直接退出程序
 	// }
 	// // 如果当前线程是主线程, 则跳转到记录的位置
-	// if (ct_thread_self() == app->tid) {
-	// 	longjmp(app->jmp, sig);
+	// if (ct_thread_self() == gapp->tid) {
+	// 	longjmp(gapp->jmp, sig);
 	// }
 	// // 设置异常标志
-	// app->abnormal = sig;
+	// gapp->abnormal = sig;
 	// // 死循环，等待主线程退出
 	// ct_forever {
 	// 	ct_msleep(100);
@@ -247,9 +234,9 @@ static inline void ct_exception_handler(int sig) {
 }
 #endif
 
-static inline void ct_exception_init(void) {
+static inline void app_exception_init(void) {
 #ifdef _WIN32
-	SetConsoleCtrlHandler((PHANDLER_ROUTINE)ct_console_ctrl_handler, TRUE);
+	SetConsoleCtrlHandler((PHANDLER_ROUTINE)app_console_ctrl_handler, TRUE);
 #else
 	// struct sigaction action[1];
 	// action->sa_handler = ct_exception_handler;
@@ -267,7 +254,7 @@ static inline void ct_exception_init(void) {
 #endif
 }
 
-static inline void ct_program_backtrace(void) {
+static inline void app_program_backtrace(void) {
 #define BACKTRACE_SIZE 100
 
 #if defined(CT_OS_WIN)
@@ -359,25 +346,25 @@ static inline void ct_program_backtrace(void) {
 #endif
 }
 
-static inline void ct_occurred(const char* err) {
-	if (err == ct_nullptr) {
+static inline void app_occurred(const excep_t* excep) {
+	if (excep == ct_nullptr) {
 		cerror(STR_CURRTITLE " error occurred (unknown)." STR_NEWLINE);
 	} else {
-		cerror(STR_CURRTITLE " error occurred (%s)." STR_NEWLINE, err);
+		cerror(STR_CURRTITLE " error occurred (%s)." STR_NEWLINE, excep->msg);
 	}
 }
 
-static inline void ct_welcome(void) {
-	char                now[CT_DATETIME_FMT_BUFLEN];
-	const ct_datetime_t cdt = ct_datetime_now();
-	ct_datetime_fmt(&cdt, now);
-	ctrace(STR_CURRTITLE " application start at '%s'." STR_NEWLINE, now);
+static inline void app_welcome(void) {
+	char                str[CT_DATETIME_FMT_BUFLEN];
+	const ct_datetime_t now = ct_datetime_now();
+	ct_datetime_fmt(&now, str);
+	ctrace(STR_CURRTITLE " application start at '%s'." STR_NEWLINE, str);
 }
 
-static inline void ct_goobye(void) {
-	char                now[CT_DATETIME_FMT_BUFLEN];
-	const ct_datetime_t cdt = ct_datetime_now();
-	ct_datetime_fmt(&cdt, now);
-	ctrace(STR_CURRTITLE " application exit at '%s'." STR_NEWLINE, now);
+static inline void app_goobye(void) {
+	char                str[CT_DATETIME_FMT_BUFLEN];
+	const ct_datetime_t now = ct_datetime_now();
+	ct_datetime_fmt(&now, str);
+	ctrace(STR_CURRTITLE " application exit at '%s'." STR_NEWLINE, str);
 	ct_log_flush();
 }

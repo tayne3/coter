@@ -10,9 +10,6 @@
  */
 #include "ct_stack.h"
 
-#include <stddef.h>
-#include <stdio.h>
-
 // -------------------------[STATIC DECLARATION]-------------------------
 
 #define STR_CURRTITLE "[ct_stack]"

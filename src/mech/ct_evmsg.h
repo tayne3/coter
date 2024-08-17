@@ -35,7 +35,7 @@ typedef bool (*ct_evmsg_handler_t)(ct_evmsg_buf_t msg, void *userdata);
 /**
  * @brief 初始化事件消息中枢
  */
-COTER_API void ct_evmsg_mgr_init(void) __ct_func_throw;
+COTER_API void ct_evmsg_mgr_init(void) __ct_throw;
 
 /**
  * @brief 销毁事件消息中枢

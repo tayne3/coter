@@ -31,15 +31,16 @@ ct_datetime_t ct_datetime_now(void) {
 #ifdef CT_OS_WIN
 	SYSTEMTIME tm;
 	GetLocalTime(&tm);
-	ct_datetime_t dt;
-	dt.year  = tm.wYear;
-	dt.month = tm.wMonth;
-	dt.day   = tm.wDay;
-	dt.wday  = tm.wDayOfWeek;
-	dt.hour  = tm.wHour;
-	dt.min   = tm.wMinute;
-	dt.sec   = tm.wSecond;
-	dt.ms    = tm.wMilliseconds;
+	ct_datetime_t dt = {
+		.year  = tm.wYear,
+		.month = tm.wMonth,
+		.day   = tm.wDay,
+		.wday  = tm.wDayOfWeek,
+		.hour  = tm.wHour,
+		.min   = tm.wMinute,
+		.sec   = tm.wSecond,
+		.ms    = tm.wMilliseconds,
+	};
 	return dt;
 #else
 	struct timeval tv;
@@ -52,29 +53,38 @@ ct_datetime_t ct_datetime_now(void) {
 
 ct_datetime_t ct_datetime_localtime(time_t seconds) {
 	struct tm*    tm = localtime(&seconds);
-	ct_datetime_t dt;
-	dt.year  = tm->tm_year + 1900;
-	dt.month = tm->tm_mon + 1;
-	dt.day   = tm->tm_mday;
-	dt.wday  = tm->tm_wday;
-	dt.hour  = tm->tm_hour;
-	dt.min   = tm->tm_min;
-	dt.sec   = tm->tm_sec;
+	ct_datetime_t dt = {
+		.year  = tm->tm_year + 1900,
+		.month = tm->tm_mon + 1,
+		.day   = tm->tm_mday,
+		.wday  = tm->tm_wday,
+		.hour  = tm->tm_hour,
+		.min   = tm->tm_min,
+		.sec   = tm->tm_sec,
+	};
 	return dt;
 }
 
 time_t ct_datetime_mktime(const ct_datetime_t* dt) {
-	struct tm tm;
-	time_t    ts;
-	time(&ts);
-	struct tm* ptm = localtime(&ts);
-	memcpy(&tm, ptm, sizeof(struct tm));
-	tm.tm_year = dt->year - 1900;
-	tm.tm_mon  = dt->month - 1;
-	tm.tm_mday = dt->day;
-	tm.tm_hour = dt->hour;
-	tm.tm_min  = dt->min;
-	tm.tm_sec  = dt->sec;
+	// struct tm tm;
+	// time_t    ts;
+	// time(&ts);
+	// struct tm* ptm = localtime(&ts);
+	// memcpy(&tm, ptm, sizeof(struct tm));
+	// tm.tm_year = dt->year - 1900;
+	// tm.tm_mon  = dt->month - 1;
+	// tm.tm_mday = dt->day;
+	// tm.tm_hour = dt->hour;
+	// tm.tm_min  = dt->min;
+	// tm.tm_sec  = dt->sec;
+
+	struct tm tm = {0};
+	tm.tm_year   = dt->year - 1900;
+	tm.tm_mon    = dt->month - 1;
+	tm.tm_mday   = dt->day;
+	tm.tm_hour   = dt->hour;
+	tm.tm_min    = dt->min;
+	tm.tm_sec    = dt->sec;
 	return mktime(&tm);
 }
 
@@ -142,7 +152,7 @@ char* ct_datetime_gmtime_fmt(time_t time, char* buf) {
 	struct tm* tm = gmtime(&time);
 	// strftime(buf, CT_GMTIME_FMT_BUFLEN, "%a, %d %b %Y %H:%M:%S GMT", tm);
 	ct_sprintf(buf, CT_GMTIME_FMT, s_weekdays[tm->tm_wday], tm->tm_mday, s_months[tm->tm_mon], tm->tm_year + 1900,
-			tm->tm_hour, tm->tm_min, tm->tm_sec);
+			   tm->tm_hour, tm->tm_min, tm->tm_sec);
 	return buf;
 }
 
@@ -155,7 +165,7 @@ int ct_datetime_days_of_month(int month, int year) {
 }
 
 int ct_datetime_month_atoi(const char* month) {
-	for (size_t i = 0; i < 12; i++) {
+	for (int i = 0; i < 12; i++) {
 		if (strnicmp(month, s_months[i], strlen(month)) == 0) {
 			return i + 1;
 		}
@@ -169,7 +179,7 @@ const char* ct_datetime_month_itoa(int month) {
 }
 
 int ct_datetime_weekday_atoi(const char* weekday) {
-	for (size_t i = 0; i < 7; i++) {
+	for (int i = 0; i < 7; i++) {
 		if (strnicmp(weekday, s_weekdays[i], strlen(weekday)) == 0) {
 			return i;
 		}
@@ -195,6 +205,10 @@ ct_datetime_t __ct_datetime_compile(const char* date, const char* time) {
 }
 
 time_t ct_datetime_cron_next_timeout(int minute, int hour, int day, int week, int month) {
+	if (minute >= 60 || hour >= 24 || day == 0 || day > 31 || week >= 7 || month == 0 || month > 12) {
+		return -1;  // 参数检查，确保输入的时间参数在合理范围内
+	}
+
 	enum {
 		MINUTELY,
 		HOURLY,
@@ -202,57 +216,55 @@ time_t ct_datetime_cron_next_timeout(int minute, int hour, int day, int week, in
 		WEEKLY,
 		MONTHLY,
 		YEARLY,
-	} period_type = MINUTELY;
-	struct tm tm;
-	time_t    tt;
-	time(&tt);
-	tm              = *localtime(&tt);
-	time_t tt_round = 0;
+	} period_type         = MINUTELY;  // 初始化周期类型为每分钟
+	const time_t tt_now   = time(NULL);
+	struct tm    tm       = *localtime(&tt_now);  // 获取当前时间
+	time_t       tt_round = 0;
 
-	tm.tm_sec = 0;
+	tm.tm_sec = 0;  // 将秒数置为0
 	if (minute >= 0) {
-		period_type = HOURLY;
+		period_type = HOURLY;  // 如果设置了分钟，则周期类型为每小时
 		tm.tm_min   = minute;
 	}
 	if (hour >= 0) {
-		period_type = DAILY;
+		period_type = DAILY;  // 如果设置了小时，则周期类型为每天
 		tm.tm_hour  = hour;
 	}
 	if (week >= 0) {
-		period_type = WEEKLY;
+		period_type = WEEKLY;  // 如果设置了星期，则周期类型为每周
 	} else if (day > 0) {
-		period_type = MONTHLY;
+		period_type = MONTHLY;  // 如果设置了天数，则周期类型为每月
 		tm.tm_mday  = day;
 		if (month > 0) {
-			period_type = YEARLY;
+			period_type = YEARLY;  // 如果设置了月份，则周期类型为每年
 			tm.tm_mon   = month - 1;
 		}
 	}
 
-	tt_round = mktime(&tm);
+	tt_round = mktime(&tm);  // 将tm结构体转换为time_t类型
 	if (week >= 0) {
-		tt_round += (week - tm.tm_wday) * SECONDS_PER_DAY;
+		tt_round += (week - tm.tm_wday) * SECONDS_PER_DAY;  // 如果设置了星期，计算下一个星期的时间
 	}
-	if (tt_round > tt) {
-		return tt_round;
+	if (tt_round > tt_now) {
+		return tt_round;  // 如果计算出的时间在当前时间之后，直接返回
 	}
 
 	switch (period_type) {
-		case MINUTELY: tt_round += SECONDS_PER_MINUTE; return tt_round;
-		case HOURLY: tt_round += SECONDS_PER_HOUR; return tt_round;
-		case DAILY: tt_round += SECONDS_PER_DAY; return tt_round;
-		case WEEKLY: tt_round += SECONDS_PER_WEEK; return tt_round;
+		case MINUTELY: tt_round += SECONDS_PER_MINUTE; return tt_round;  // 每分钟增加60秒
+		case HOURLY: tt_round += SECONDS_PER_HOUR; return tt_round;      // 每小时增加3600秒
+		case DAILY: tt_round += SECONDS_PER_DAY; return tt_round;        // 每天增加86400秒
+		case WEEKLY: tt_round += SECONDS_PER_WEEK; return tt_round;      // 每周增加604800秒
 		case MONTHLY:
 			if (++tm.tm_mon == 12) {
 				tm.tm_mon = 0;
-				++tm.tm_year;
+				++tm.tm_year;  // 如果月份增加到12月，则年份增加1
 			}
 			break;
-		case YEARLY: ++tm.tm_year; break;
-		default: return -1;
+		case YEARLY: ++tm.tm_year; break;  // 年份加1
+		default: return -1;                // 无效返回-1
 	}
 
-	return mktime(&tm);
+	return mktime(&tm);  // 返回计算后的时间
 }
 
 // -------------------------[STATIC DEFINITION]-------------------------

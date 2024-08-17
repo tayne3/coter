@@ -16,7 +16,7 @@ extern "C" {
 size_t ct_log_print_text(int level, char *cache, size_t size);
 
 // 日志打印-提示信息
-size_t ct_log_print_tips(bool is_print, int level, int id, char *cache, size_t max, ct_context_buf_t ctx);
+size_t ct_log_print_tips(bool is_print, int level, int id, char *cache, size_t max, const ct_context_t *ctx);
 
 #ifdef __cplusplus
 }

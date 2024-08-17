@@ -6,10 +6,6 @@
  */
 #include "ct_vector.h"
 
-#include <assert.h>
-#include <stdlib.h>
-#include <string.h>
-
 // -------------------------[STATIC DECLARATION]-------------------------
 
 #define STR_CURRTITLE "[ct_vector]"

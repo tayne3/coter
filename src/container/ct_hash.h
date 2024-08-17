@@ -26,7 +26,7 @@ extern "C" {
 #include "base/ct_platform.h"
 #include "common/ct_any.h"
 
-/// 哈希值类型
+// 哈希值类型
 typedef uint32_t ct_hash32_t;
 
 /**

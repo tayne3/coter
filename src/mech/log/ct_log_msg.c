@@ -6,10 +6,6 @@
  */
 #include "ct_log_msg.h"
 
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "../ct_log.h"
 #include "ct_log_print.h"
 
@@ -43,7 +39,7 @@ void ct_log_msg_push(ct_log_msg_buf_t msg) {
 void ct_log_msg_flush(void) {
 	ct_log_control_t *self = ct_nullptr;
 
-	for (size_t i = CTLOG_TYPE_MIN; i < CTLOG_TYPE_MAX; i++) {
+	for (int i = CTLOG_TYPE_MIN; i < CTLOG_TYPE_MAX; i++) {
 		self = ct_log_control_get(i);
 		if (!self) {
 			continue;

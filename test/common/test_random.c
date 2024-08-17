@@ -4,8 +4,6 @@
  * @author tayne3@dingtalk.com
  * @date 2023.11.30
  */
-#include <stdio.h>
-
 #include "base/ct_platform.h"
 #include "common/ct_random.h"
 #include "ctunit.h"
@@ -53,7 +51,7 @@ static inline void test_random_bool(uint64_t test_number) {
 
 	bool random_num = 0;
 	for (register uint64_t i = 0; i < 2 * test_number;) {
-		for (size_t n = 0; n < test_number; n++, i++) {
+		for (uint64_t n = 0; n < test_number; n++, i++) {
 			random_num = ct_random_bool(state);
 			ctunit_assert_uint8(random_num, 2, CTUnit_Less);
 			count[random_num]++;
@@ -63,7 +61,7 @@ static inline void test_random_bool(uint64_t test_number) {
 
 	// 检查随机数的分布是否均匀
 	bool isok = true;
-	for (size_t i = 0; i < 2; i++) {
+	for (int i = 0; i < 2; i++) {
 		if (count[i] < test_number * 0.8 || count[i] > test_number * 1.2) {
 			isok = false;
 			break;
@@ -83,7 +81,7 @@ static inline void test_random_uint8(uint64_t test_number) {
 
 	uint8_t random_num = 0;
 	for (register uint64_t i = 0; i < 100 * test_number;) {
-		for (size_t n = 0; n < 50 * test_number; n++, i++) {
+		for (uint64_t n = 0; n < 50 * test_number; n++, i++) {
 			random_num = ct_random_uint8(state, 0, 100);
 			ctunit_assert_uint8(random_num, 100, CTUnit_Less);
 			count[random_num]++;
@@ -93,7 +91,7 @@ static inline void test_random_uint8(uint64_t test_number) {
 
 	// 检查随机数的分布是否均匀
 	bool isok = true;
-	for (size_t i = 0; i < 100; i++) {
+	for (int i = 0; i < 100; i++) {
 		if (count[i] < test_number * 0.8 || count[i] > test_number * 1.2) {
 			isok = false;
 			break;
@@ -113,7 +111,7 @@ static inline void test_random_uint16(uint64_t test_number) {
 
 	uint16_t random_num = 0;
 	for (register uint64_t i = 0; i < 100 * test_number;) {
-		for (size_t n = 0; n < 50 * test_number; n++, i++) {
+		for (uint64_t n = 0; n < 50 * test_number; n++, i++) {
 			random_num = ct_random_uint16(state, 0, 100);
 			ctunit_assert_uint16(random_num, 100, CTUnit_Less);
 			count[random_num]++;
@@ -122,7 +120,7 @@ static inline void test_random_uint16(uint64_t test_number) {
 
 	// 检查随机数的分布是否均匀
 	bool isok = true;
-	for (size_t i = 0; i < 100; i++) {
+	for (int i = 0; i < 100; i++) {
 		if (count[i] < test_number * 0.8 || count[i] > test_number * 1.2) {
 			isok = false;
 			break;
@@ -142,7 +140,7 @@ static inline void test_random_uint32(uint64_t test_number) {
 
 	uint32_t random_num = 0;
 	for (register uint64_t i = 0; i < 100 * test_number;) {
-		for (size_t n = 0; n < 50 * test_number; n++, i++) {
+		for (uint64_t n = 0; n < 50 * test_number; n++, i++) {
 			random_num = ct_random_uint32(state, 0, 100);
 			ctunit_assert_uint32(random_num, 100, CTUnit_Less);
 			count[random_num]++;
@@ -152,7 +150,7 @@ static inline void test_random_uint32(uint64_t test_number) {
 
 	// 检查随机数的分布是否均匀
 	bool isok = true;
-	for (size_t i = 0; i < 100; i++) {
+	for (int i = 0; i < 100; i++) {
 		if (count[i] < test_number * 0.8 || count[i] > test_number * 1.2) {
 			isok = false;
 			break;
@@ -172,7 +170,7 @@ static inline void test_random_uint64(uint64_t test_number) {
 
 	uint64_t random_num = 0;
 	for (register uint64_t i = 0; i < 100 * test_number;) {
-		for (size_t n = 0; n < 50 * test_number; n++, i++) {
+		for (uint64_t n = 0; n < 50 * test_number; n++, i++) {
 			random_num = ct_random_uint64(state, 0, 100);
 			ctunit_assert_uint64(random_num, 100, CTUnit_Less);
 			count[random_num]++;
@@ -182,7 +180,7 @@ static inline void test_random_uint64(uint64_t test_number) {
 
 	// 检查随机数的分布是否均匀
 	bool isok = true;
-	for (size_t i = 0; i < 100; i++) {
+	for (int i = 0; i < 100; i++) {
 		if (count[i] < test_number * 0.8 || count[i] > test_number * 1.2) {
 			isok = false;
 			break;
@@ -203,7 +201,7 @@ static inline void test_random_float(uint64_t test_number) {
 
 	int random_num = 0;
 	for (register uint64_t i = 0; i < 100 * test_number;) {
-		for (size_t n = 0; n < 50 * test_number; n++, i++) {
+		for (uint64_t n = 0; n < 50 * test_number; n++, i++) {
 			random_num = (int)(ct_random_float(state, 0.0f, 1.0f) * 100);
 			count[random_num]++;
 		}
@@ -212,7 +210,7 @@ static inline void test_random_float(uint64_t test_number) {
 
 	// 检查随机数的分布是否均匀
 	bool isok = true;
-	for (size_t i = 0; i < 100; i++) {
+	for (int i = 0; i < 100; i++) {
 		if (count[i] < test_number * 0.8 || count[i] > test_number * 1.2) {
 			isok = false;
 			break;
@@ -233,7 +231,7 @@ static inline void test_random_double(uint64_t test_number) {
 
 	int random_num = 0;
 	for (register uint64_t i = 0; i < 100 * test_number;) {
-		for (size_t n = 0; n < 50 * test_number; n++, i++) {
+		for (uint64_t n = 0; n < 50 * test_number; n++, i++) {
 			random_num = (int)(ct_random_double(state, 0.0, 1.0) * 100);
 			count[random_num]++;
 		}
@@ -242,7 +240,7 @@ static inline void test_random_double(uint64_t test_number) {
 
 	// 检查随机数的分布是否均匀
 	bool isok = true;
-	for (size_t i = 0; i < 100; i++) {
+	for (int i = 0; i < 100; i++) {
 		if (count[i] < test_number * 0.8 || count[i] > test_number * 1.2) {
 			isok = false;
 			break;

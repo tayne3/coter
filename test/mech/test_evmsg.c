@@ -4,11 +4,7 @@
  * @author tayne3@dingtalk.com
  * @date 2023.12.18
  */
-#include <stdbool.h>
-#include <stdio.h>
-
 #include "base/ct_platform.h"
-#include "ct_app.h"
 #include "ctunit.h"
 #include "mech/ct_evmsg.h"
 #include "mech/ct_jobpool.h"
@@ -41,7 +37,7 @@ int main(void) {
 	}
 
 	// 调度事件管理
-	for (size_t count = 0, n = 0; n < 1000; n++) {
+	for (int count = 0, n = 0; n < 1000; n++) {
 		ct_msleep(10);
 		ct_evmsg_schedule();  // 事件消息调度
 		if (is_exit[count]) {
@@ -54,13 +50,13 @@ int main(void) {
 	ct_evmsg_mgr_destroy();  // 销毁事件消息中枢
 
 	// 等待线程结束
-	for (size_t i = 0; i < TEST_THREAD_NUMBER; i++) {
+	for (int i = 0; i < TEST_THREAD_NUMBER; i++) {
 		pthread_join(threads[i], NULL);
 	}
 
 	// 检查结果
-	for (size_t id = 0; id < TEST_THREAD_NUMBER; id++) {
-		for (size_t i = 0; i < TEST_DATA_NUMBER; i++) {
+	for (int id = 0; id < TEST_THREAD_NUMBER; id++) {
+		for (int i = 0; i < TEST_DATA_NUMBER; i++) {
 			ctunit_assert_true(test_result[id][i], "id = %ld, i = %ld", id, i);
 		}
 		sched_yield();
@@ -95,7 +91,7 @@ static inline void *test_evmsg_publish(void *arg) {
 	ct_evmsg_t msg = CT_EVMSG_MSG_INIT(1, id, NULL, 0);
 
 	// 发布事件
-	for (size_t i = 0; i < TEST_DATA_NUMBER; i++) {
+	for (int i = 0; i < TEST_DATA_NUMBER; i++) {
 		msg.data = &i;
 		msg.size = sizeof(size_t);
 		ct_evmsg_publish(&msg);

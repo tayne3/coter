@@ -6,10 +6,6 @@
  */
 #include "ct_log_control.h"
 
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "../ct_log.h"
 
 // -------------------------[STATIC DECLARATION]-------------------------
@@ -31,14 +27,12 @@ static inline void ct_log_config_default(ct_log_control_t *self, int type);
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
-ct_log_control_t *ct_log_control_get(int type)
-{
+ct_log_control_t *ct_log_control_get(int type) {
 	assert(CTLOG_TYPE_ISVALID(type));
 	return ct_log_control_all[type];
 }
 
-ct_log_control_t *ct_log_control_ask(int type)
-{
+ct_log_control_t *ct_log_control_ask(int type) {
 	assert(CTLOG_TYPE_ISVALID(type));
 	ct_log_control_t *self = ct_log_control_all[type];
 
@@ -54,8 +48,7 @@ ct_log_control_t *ct_log_control_ask(int type)
 	// 申请空间
 	self = ct_log_control_all[type] = (ct_log_control_t *)malloc(sizeof(ct_log_control_t));
 	if (self) {
-		// 重置参数
-		ct_log_config_default(self, type);
+		ct_log_config_default(self, type);  // 重置参数
 	} else {
 		perror("clog malloc failed");
 		exit(-1);
@@ -64,8 +57,7 @@ ct_log_control_t *ct_log_control_ask(int type)
 	return self;
 }
 
-void ct_log_control_close(int type)
-{
+void ct_log_control_close(int type) {
 	assert(CTLOG_TYPE_ISVALID(type));
 	if (!CTLOG_TYPE_ISUSER(type)) {
 		return;
@@ -78,8 +70,7 @@ void ct_log_control_close(int type)
 	}
 }
 
-void ct_log_config_set(int type, bool is_print, ct_log_callback_t callback, ct_log_storage_t *storage)
-{
+void ct_log_config_set(int type, bool is_print, ct_log_callback_t callback, ct_log_storage_t *storage) {
 	assert(CTLOG_TYPE_ISVALID(type));
 
 	ct_log_control_t *const self = ct_log_control_ask(type);
@@ -89,28 +80,20 @@ void ct_log_config_set(int type, bool is_print, ct_log_callback_t callback, ct_l
 
 	if (self->storage != storage) {
 		if (self->storage) {
-			// 上锁
-			ct_log_storage_lock(self->storage);
-			// 关闭
-			ct_log_storage_close(self->storage);
-			// 解锁
-			ct_log_storage_unlock(self->storage);
+			ct_log_storage_lock(self->storage);    // 上锁
+			ct_log_storage_close(self->storage);   // 关闭
+			ct_log_storage_unlock(self->storage);  // 解锁
 		}
-		// 修改
-		self->storage = storage;
-		// 上锁
-		ct_log_storage_lock(self->storage);
-		// 初始化
-		ct_log_storage_start(self->storage);
-		// 解锁
-		ct_log_storage_unlock(self->storage);
+		self->storage = storage;               // 修改
+		ct_log_storage_lock(self->storage);    // 上锁
+		ct_log_storage_start(self->storage);   // 初始化
+		ct_log_storage_unlock(self->storage);  // 解锁
 	}
 }
 
 // -------------------------[STATIC DEFINITION]-------------------------
 
-static inline void ct_log_config_default(ct_log_control_t *self, int type)
-{
+static inline void ct_log_config_default(ct_log_control_t *self, int type) {
 	self->is_print = true;
 	self->id       = type;
 	self->storage  = ct_nullptr;

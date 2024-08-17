@@ -4,8 +4,6 @@
  * @author tayne3@dingtalk.com
  * @date 2023.12.03
  */
-#include <stdio.h>
-
 #include "base/ct_platform.h"
 #include "common/ct_random.h"
 #include "ctunit.h"

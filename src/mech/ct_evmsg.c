@@ -5,13 +5,6 @@
  * @date 2023.12.18
  */
 #include "ct_evmsg.h"
-
-#include <assert.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "base/ct_platform.h"
 #include "container/ct_heap.h"
 #include "container/ct_list.h"
@@ -27,13 +20,13 @@
 #define CTEVMSGTYPE_ISVALID(x) ((x) < CTEvMsgType_Max)  // 事件消息类型是否有效
 #define CTEVMSG_MSG_MAX        300                      // 事件消息缓冲区最大长度
 
-/// 事件中枢自身事件
+// 事件中枢自身事件
 enum ct_evmsg_id {
 	EvMsgID_None = 0,       // 无 (消息中代表着此消息无效,订阅者中代表接受所有)
 	EvMsgID_AddSubscriber,  // 添加订阅者
 };
 
-/// 订阅者
+// 订阅者
 typedef struct ct_evmsg_subscriber {
 	ct_list_buf_t      list;      // 链表
 	ct_evmsg_handler_t handler;   // 处理函数
@@ -41,7 +34,7 @@ typedef struct ct_evmsg_subscriber {
 	uint8_t            type;      // 事件类型
 } ct_evmsg_subscriber_t;
 
-/// 消息处理函数
+// 消息处理函数
 bool ct_evmsg_handler(ct_evmsg_buf_t msg, void *userdata);
 
 // 事件消息管理器
@@ -61,7 +54,7 @@ static struct ct_evmsg_mgr {
 		},
 }};
 
-/// 消息处理回调
+// 消息处理回调
 static inline void ct_evmsg_callback(void *arg);
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
@@ -72,7 +65,7 @@ void ct_evmsg_mgr_init(void) {
 	// 初始化事件消息
 	ct_msgqueue_init(mgr->msgqueue, ct_evmsg_msg_buffer, sizeof(ct_evmsg_t), CTEVMSG_MSG_MAX);
 	// 初始化订阅者链表
-	for (size_t i = 0; i < CTEvMsgType_Max; i++) {
+	for (int i = 0; i < CTEvMsgType_Max; i++) {
 		ct_list_init(mgr->subscriber_list[i]);
 	}
 
@@ -88,7 +81,7 @@ void ct_evmsg_mgr_destroy(void) {
 		ct_msleep(10);
 	}
 
-	for (size_t i = 0; i < CTEvMsgType_Max; i++) {
+	for (int i = 0; i < CTEvMsgType_Max; i++) {
 		// 遍历所有订阅者
 		ct_list_foreach_entry_safe (subscriber, mgr->subscriber_list[i], ct_evmsg_subscriber_t, list) {
 			if (subscriber == &mgr->subscriber_itself) {

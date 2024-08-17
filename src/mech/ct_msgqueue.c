@@ -5,11 +5,6 @@
  * @date 2023.12.03
  */
 #include "ct_msgqueue.h"
-
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "base/ct_time.h"
 
 // -------------------------[STATIC DECLARATION]-------------------------

@@ -22,7 +22,7 @@ extern "C" {
  */
 typedef struct ct_log_msg {
 	ct_log_control_t *const control;                      // 所属的日志控制器
-	ct_context_buf_t        context;                      // 日志上下文
+	ct_context_t            context[1];                   // 日志上下文
 	int                     level;                        // 日志级别
 	char                    msg_cache[CTLOG_BUFFER_MAX];  // 消息缓存
 	size_t                  msg_size;                     // 消息缓存大小

@@ -12,9 +12,9 @@ extern "C" {
 
 #include "base/ct_platform.h"
 
-/// 任务池执行函数
+// 任务池执行函数
 typedef void (*ct_jobpool_routine_t)(void*);
-/// 任务池
+// 任务池
 typedef struct ct_thpool* ct_jobpool_ptr_t;
 
 /**
@@ -25,7 +25,7 @@ typedef struct ct_thpool* ct_jobpool_ptr_t;
  * @param attr 线程属性 (NULL 则使用默认属性)
  * @return 返回新创建的任务池指针，如果创建失败则返回空指针
  */
-COTER_API ct_jobpool_ptr_t ct_jobpool_create(size_t thread_max, size_t job_max) __ct_func_throw;
+COTER_API ct_jobpool_ptr_t ct_jobpool_create(size_t thread_max, size_t job_max) __ct_throw;
 
 /**
  * @brief 创建全局任务池
@@ -35,7 +35,7 @@ COTER_API ct_jobpool_ptr_t ct_jobpool_create(size_t thread_max, size_t job_max) 
  * @return 返回全局任务池指针，如果创建失败则返回空指针, 如果全局任务池已存在则返回全局任务池
  * @note 为保证线程安全, 当前函数只建议在主线程调用
  */
-COTER_API ct_jobpool_ptr_t ct_jobpool_global(size_t thread_max, size_t job_max) __ct_func_throw;
+COTER_API ct_jobpool_ptr_t ct_jobpool_global(size_t thread_max, size_t job_max) __ct_throw;
 
 /**
  * @brief 销毁任务池

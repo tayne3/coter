@@ -125,7 +125,8 @@ enum ct_log_level {
  * @param format 日志消息格式
  * @param ... 日志消息参数
  */
-COTER_API void ct_log_msg_debug(int type, int level, const char *file, const char *func, int line, const char *format, ...);
+COTER_API void ct_log_msg_debug(int type, int level, const char *file, const char *func, int line, const char *format,
+								...);
 
 /**
  * @brief 普通日志消息

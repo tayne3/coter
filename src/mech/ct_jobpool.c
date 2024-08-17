@@ -5,11 +5,6 @@
  * @date 2023.12.03
  */
 #include "ct_jobpool.h"
-
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "base/ct_platform.h"
 #include "container/ct_list.h"
 #include "mech/ct_log.h"
@@ -28,7 +23,7 @@
 #define PAUSE() sched_yield()
 #endif
 
-/// 全局任务池
+// 全局任务池
 static ct_jobpool_ptr_t jobpool_global       = ct_nullptr;
 static pthread_mutex_t  jobpool_global_mutex = PTHREAD_MUTEX_INITIALIZER;
 

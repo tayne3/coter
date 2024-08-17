@@ -6,11 +6,6 @@
  */
 #include "ct_random.h"
 
-#include <assert.h>
-#include <stdlib.h>
-#include <time.h>
-#include <pthread.h>
-
 // -------------------------[STATIC DECLARATION]-------------------------
 
 #define STR_CURRTITLE "[ct_random]"

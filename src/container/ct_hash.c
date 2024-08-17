@@ -19,10 +19,6 @@
  */
 #include "ct_hash.h"
 
-#include <assert.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "algo/ct_hashalgo.h"
 #include "base/ct_platform.h"
 

@@ -7,17 +7,43 @@
 #include "base/ct_time.h"
 #include "ctunit.h"
 
-static inline int  change_system_time(time_t new_time);
-static inline void test_gettick_ms(void);
+// 辅助函数: 修改系统时间 (需要管理员权限)
+static inline int change_system_time(time_t new_time);
+// 测试用例: 验证时间戳递增
+static inline void test_timestamp_increment(void);
+// 测试用例: 验证毫秒精度
+static inline void test_millisecond_precision(void);
+// 测试用例: 验证不受系统时间影响
+static inline void test_unaffected_by_system_time(void);
 
-int main(void) {
-	test_gettick_ms();
-	ctunit_trace("Finish! test_gettick_ms();\n");
+int main(int argc, char *argv[]) {
+	bool is_quiet = false;
+	for (int i = 1; i < argc; i++) {
+		if (strncmp(argv[i], "-q", 2) == 0) {
+			is_quiet = true;
+			break;
+		}
+	}
+
+	ctunit_trace("Warning: About to change system time, please ensure you have administrator privileges\n");
+	if (!is_quiet) {
+		ctunit_trace("Press Enter to continue...");
+		getchar();
+	}
+
+	test_timestamp_increment();
+	ctunit_trace("Finish! test_timestamp_increment();\n");
+
+	test_millisecond_precision();
+	ctunit_trace("Finish! test_millisecond_precision();\n");
+
+	test_unaffected_by_system_time();
+	ctunit_trace("Finish! test_unaffected_by_system_time();\n");
 
 	ctunit_pass();
 }
 
-// 修改系统时间(需要管理员权限)
+// 辅助函数: 修改系统时间 (需要管理员权限)
 static inline int change_system_time(time_t new_time) {
 #ifdef _WIN32
 	SYSTEMTIME     st;
@@ -38,14 +64,15 @@ static inline int change_system_time(time_t new_time) {
 #endif
 }
 
-static inline void test_gettick_ms(void) {
-	// Test 1: Verify timestamp increment
+// 测试用例: 验证时间戳递增
+static inline void test_timestamp_increment(void) {
 	ct_time64_t tick1 = gettick_ms();
 	ct_time64_t tick2 = gettick_ms();
 	ctunit_assert_uint64(tick2, tick1, CTUnit_GreaterEqual);
-	ctunit_trace("Test 1 passed: Timestamp increment\n");
+}
 
-	// Test 2: Verify millisecond precision
+// 测试用例: 验证毫秒精度
+static inline void test_millisecond_precision(void) {
 	ct_time64_t start_tick = gettick_ms();
 #ifdef _WIN32
 	Sleep(100);  // Sleep for 100 milliseconds
@@ -56,13 +83,10 @@ static inline void test_gettick_ms(void) {
 	// Allow some error
 	ctunit_assert_uint64(end_tick - start_tick, 80, CTUnit_GreaterEqual);
 	ctunit_assert_uint64(end_tick - start_tick, 120, CTUnit_Less);
-	ctunit_trace("Test 2 passed: Millisecond precision verification\n");
+}
 
-	// Test 3: Verify unaffected by system time
-	ctunit_trace("Warning: About to change system time, please ensure you have administrator privileges\n");
-	ctunit_trace("Press Enter to continue...");
-	getchar();
-
+// 测试用例: 验证不受系统时间影响
+static inline void test_unaffected_by_system_time(void) {
 	int ret;
 
 	ct_time64_t before_tick = gettick_ms();
@@ -80,5 +104,4 @@ static inline void test_gettick_ms(void) {
 
 	// Allow 1 second error
 	ctunit_assert_uint64(after_tick - before_tick, 1000, CTUnit_Less);
-	ctunit_trace("Test 3 passed: Timestamp unaffected by system time\n");
 }

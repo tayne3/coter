@@ -4,8 +4,6 @@
  * @author tayne3@dingtalk.com
  * @date 2023.12.03
  */
-#include <stdio.h>
-
 #include "base/ct_platform.h"
 #include "base/ct_time.h"
 #include "ctunit.h"
@@ -85,7 +83,7 @@ static inline void test_jobpool_add(size_t data_count, size_t task_count, size_t
 
 	// 等待结束 (超时时长: 10s)
 	bool is_timeout = false;
-	for (size_t i = 0; i < 1000; i++) {
+	for (int i = 0; i < 1000; i++) {
 		pthread_mutex_lock(test_mutex);
 		is_timeout = test_end_number >= test_data_size;
 		pthread_mutex_unlock(test_mutex);

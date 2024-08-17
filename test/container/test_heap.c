@@ -4,11 +4,8 @@
  * @author tayne3@dingtalk.com
  * @date 2023.11.30
  */
-#include "container/ct_heap.h"
-
-//#include "base/ct_time.h"
-
 #include "common/ct_random.h"
+#include "container/ct_heap.h"
 #include "ctunit.h"
 
 static inline bool ct_heap_sort_func(const ct_any_buf_t a, const ct_any_buf_t b);

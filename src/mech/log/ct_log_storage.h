@@ -10,8 +10,6 @@
 extern "C" {
 #endif
 
-#include <stdio.h>
-
 #include "base/ct_platform.h"
 
 /**

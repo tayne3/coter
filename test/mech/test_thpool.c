@@ -4,8 +4,6 @@
  * @author tayne3@dingtalk.com
  * @date 2023.12.03
  */
-#include <stdio.h>
-
 #include "base/ct_platform.h"
 #include "base/ct_time.h"
 #include "ctunit.h"
@@ -72,7 +70,7 @@ static inline void test_thpool_add(size_t data_count) {
 
 	// 等待结束 (最多等待 5s)
 	{
-		for (size_t i = 0; i < 500; i++) {
+		for (int i = 0; i < 500; i++) {
 			pthread_mutex_lock(test_mutex);
 			if (test_end_number >= test_data_size) {
 				pthread_mutex_unlock(test_mutex);

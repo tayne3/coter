@@ -9,11 +9,6 @@
  */
 #include "ct_queue.h"
 
-#include <assert.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <string.h>
-
 // -------------------------[STATIC DECLARATION]-------------------------
 
 #define STR_CURRTITLE "[ct_queue]"

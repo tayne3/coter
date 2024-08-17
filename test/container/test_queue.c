@@ -108,7 +108,7 @@ static inline int test_queue_dequeue(void) {
 
 	{
 		uint64_t it = 0;
-		for (size_t i = 1; i <= max; i++) {
+		for (uint64_t i = 1; i <= max; i++) {
 			ct_queue_dequeue(&queue, &it);
 
 			ctunit_assert_uint64(it, i, CTUnit_Equal);

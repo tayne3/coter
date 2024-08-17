@@ -8,7 +8,7 @@
 # PTHREADS_FOUND       - 如果找到 Pthreads 库，则为 True
 # PTHREADS_LIBRARY     - Pthreads 库的位置
 # PTHREADS_INCLUDE_DIR - Pthreads 库的包含目录
-# PTHREADS_DEFINITIONS - 预处理器定义（HAVE_PTHREAD_H 是一个相当常见的定义）
+# PTHREADS_DEFINITIONS - 预处理器定义
 #
 # ==============================================================================
 

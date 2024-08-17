@@ -6,11 +6,6 @@
  */
 #include "ct_str.h"
 
-#include <assert.h>
-#include <ctype.h>
-#include <stdarg.h>
-#include <stdio.h>
-
 // -------------------------[STATIC DECLARATION]-------------------------
 
 #define STR_CURRTITLE "[ct_str]"

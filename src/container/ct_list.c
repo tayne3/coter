@@ -10,8 +10,6 @@
  */
 #include "ct_list.h"
 
-#include <assert.h>
-
 // -------------------------[STATIC DECLARATION]-------------------------
 
 #define STR_CURRTITLE "[ct_list]"
@@ -21,11 +19,6 @@
 void ct_list_init(ct_list_buf_t self) {
 	assert(self);
 	self->prev = self->next = self;
-}
-
-bool ct_list_isempty(const ct_list_buf_t self) {
-	assert(self);
-	return self->next == self;
 }
 
 size_t ct_list_size(const ct_list_buf_t self) {
@@ -103,18 +96,6 @@ void ct_list_splice_next(ct_list_buf_t self, ct_list_buf_t list) {
 	ct_list_last(list)->prev  = self;
 	ct_list_last(self)        = ct_list_last(list);
 	ct_list_init(list);
-}
-
-bool ct_list_isfirst(const ct_list_buf_t self, const ct_list_buf_t node) {
-	assert(self);
-	assert(node);
-	return ct_list_first(self) == node;
-}
-
-bool ct_list_islast(const ct_list_buf_t self, const ct_list_buf_t node) {
-	assert(self);
-	assert(node);
-	return ct_list_last(self) == node;
 }
 
 // -------------------------[STATIC DEFINITION]-------------------------

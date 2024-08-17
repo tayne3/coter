@@ -13,7 +13,7 @@ foreach(test_src ${sources_files})
     # 链接库
     target_link_libraries(${test_name} coter::coter ctunit::ctunit)
     # 添加测试
-    add_test(NAME ${test_name} COMMAND ${test_name})
+    add_test(NAME ${test_name} COMMAND ${test_name} -q)
     # 设置测试通过条件
     set_tests_properties(${test_name} PROPERTIES FAIL_REGULAR_EXPRESSION "failed|error")
 endforeach(test_src)

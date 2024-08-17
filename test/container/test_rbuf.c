@@ -4,8 +4,6 @@
  * @author tayne3@dingtalk.com
  * @date 2024.2.10
  */
-#include <string.h>
-
 #include "container/ct_rbuf.h"
 #include "ctunit.h"
 
@@ -69,7 +67,7 @@ static inline void test_put_take(void) {
 
 	{
 		char out;
-		for (size_t i = 0; i < TEST_BUF_SIZE; i++) {
+		for (int i = 0; i < TEST_BUF_SIZE; i++) {
 			for (char c = 0; c < 10; c++) {
 				ctunit_assert_true(ct_rbuf_put(rbuf, &c));
 				ctunit_assert_true(ct_rbuf_take(rbuf, &out));
@@ -82,7 +80,7 @@ static inline void test_put_take(void) {
 
 	{
 		char in;
-		for (size_t i = 0; i < TEST_BUF_SIZE; i++) {
+		for (int i = 0; i < TEST_BUF_SIZE; i++) {
 			in = (char)i;
 			ctunit_assert_true(ct_rbuf_put(rbuf, &in));
 		}
@@ -91,7 +89,7 @@ static inline void test_put_take(void) {
 
 	{
 		char out;
-		for (size_t i = 0; i < TEST_BUF_SIZE; i++) {
+		for (int i = 0; i < TEST_BUF_SIZE; i++) {
 			ctunit_assert_true(ct_rbuf_take(rbuf, &out));
 			ctunit_assert_int8(out, (char)i, CTUnit_Equal);
 		}
@@ -116,13 +114,13 @@ static inline void test_full_empty(void) {
 	ctunit_assert_true(ct_rbuf_isempty(rbuf));
 	ct_rbuf_clear(rbuf);
 
-	for (size_t i = 0; i < TEST_BUF_SIZE; i++) {
+	for (int i = 0; i < TEST_BUF_SIZE; i++) {
 		ctunit_assert_true(ct_rbuf_put(rbuf, "x"));
 	}
 	ctunit_assert_true(ct_rbuf_isfull(rbuf));
 
 	char out;
-	for (size_t i = 0; i < TEST_BUF_SIZE; i++) {
+	for (int i = 0; i < TEST_BUF_SIZE; i++) {
 		ctunit_assert_true(ct_rbuf_take(rbuf, &out));
 	}
 	ctunit_assert_true(ct_rbuf_isempty(rbuf));
@@ -139,7 +137,7 @@ static inline void test_puts_takes(void) {
 	ctunit_assert_uint32(ct_rbuf_takes(rbuf, (void **)out, TEST_BUF_SIZE), TEST_BUF_SIZE, CTUnit_Equal);
 	ctunit_assert_string_n(out, items, TEST_BUF_SIZE);
 
-	for (size_t i = 1; i <= TEST_BUF_SIZE; i++) {
+	for (int i = 1; i <= TEST_BUF_SIZE; i++) {
 		ctunit_assert_uint32(ct_rbuf_puts(rbuf, (const void **)items, i), i, CTUnit_Equal);
 		ctunit_assert_uint32(ct_rbuf_takes(rbuf, (void **)out, i), i, CTUnit_Equal);
 		ctunit_assert_string_n(out, items, i);
@@ -196,7 +194,7 @@ static inline void test_gets_remove(void) {
 	ctunit_assert_uint32(ct_rbuf_remove(rbuf, TEST_BUF_SIZE), 0, CTUnit_Equal);
 	ctunit_assert_true(ct_rbuf_isempty(rbuf));
 
-	for (size_t i = 1; i <= TEST_BUF_SIZE; i++) {
+	for (int i = 1; i <= TEST_BUF_SIZE; i++) {
 		ctunit_assert_uint32(ct_rbuf_puts(rbuf, (const void **)items, i), i, CTUnit_Equal);
 		ctunit_assert_uint32(ct_rbuf_gets(rbuf, (void **)out, i), i, CTUnit_Equal);
 		ctunit_assert_uint32(ct_rbuf_remove(rbuf, TEST_BUF_SIZE), i, CTUnit_Equal);

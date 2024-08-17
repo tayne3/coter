@@ -12,9 +12,9 @@ extern "C" {
 
 #include "base/ct_platform.h"
 
-/// 线程池执行函数
+// 线程池执行函数
 typedef void (*ct_thpool_routine_t)(void*);
-/// 线程池
+// 线程池
 typedef struct ct_thpool* ct_thpool_ptr_t;
 
 /**
@@ -25,7 +25,7 @@ typedef struct ct_thpool* ct_thpool_ptr_t;
  * @param attr 线程属性 (NULL 则使用默认属性)
  * @return 返回新创建的线程池指针，如果创建失败则返回空指针
  */
-COTER_API ct_thpool_ptr_t ct_thpool_create(pthread_attr_t* attr) __ct_func_throw;
+COTER_API ct_thpool_ptr_t ct_thpool_create(pthread_attr_t* attr) __ct_throw;
 
 /**
  * @brief 创建全局线程池
@@ -35,7 +35,7 @@ COTER_API ct_thpool_ptr_t ct_thpool_create(pthread_attr_t* attr) __ct_func_throw
  * @return 返回全局线程池指针，如果创建失败则返回空指针, 如果全局线程池已存在则返回全局线程池
  * @note 为保证线程安全, 当前函数只建议在主线程调用
  */
-COTER_API ct_thpool_ptr_t ct_thpool_global(pthread_attr_t* attr) __ct_func_throw;
+COTER_API ct_thpool_ptr_t ct_thpool_global(pthread_attr_t* attr) __ct_throw;
 
 /**
  * @brief 销毁线程池

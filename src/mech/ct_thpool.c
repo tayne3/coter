@@ -5,11 +5,6 @@
  * @date 2023.12.03
  */
 #include "ct_thpool.h"
-
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "base/ct_platform.h"
 #include "container/ct_list.h"
 #include "mech/ct_log.h"
@@ -20,7 +15,7 @@
 
 #define STR_CURRTITLE "[ct_thpool]"
 
-/// 全局线程池
+// 全局线程池
 static ct_thpool_ptr_t thpool_global       = ct_nullptr;
 static pthread_mutex_t thpool_global_mutex = PTHREAD_MUTEX_INITIALIZER;
 
