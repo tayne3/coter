@@ -16,7 +16,7 @@ extern "C" {
 /**
  * @brief 动态数组结构体
  */
-typedef struct ct_vector {
+typedef struct {
 	char*  _all;   // 元素缓存区
 	size_t _byte;  // 单个元素的字节大小
 	size_t _max;   // 最大容量

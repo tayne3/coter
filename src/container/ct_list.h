@@ -27,7 +27,7 @@ struct ct_list;
  * 首节点是第一个节点, 头节点的后继节点为首节点, 首节点的前驱节点为头节点;
  * 尾节点是最后一个节点, 头节点的前驱节点为尾节点，尾节点的后继节点为头节点;
  */
-typedef struct ct_list {
+typedef struct {
 	struct ct_list* prev;  // 前驱节点
 	struct ct_list* next;  // 后继节点
 } ct_list_t, ct_list_buf_t[1];

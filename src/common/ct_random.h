@@ -13,7 +13,7 @@ extern "C" {
 #include "base/ct_platform.h"
 
 // 随机数句柄
-typedef struct ct_random {
+typedef struct {
 	uint64_t _s[2];
 } ct_random_t, ct_random_buf_t[1];
 

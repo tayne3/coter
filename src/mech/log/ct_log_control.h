@@ -20,7 +20,7 @@ extern "C" {
 typedef void (*ct_log_callback_t)(char *message, size_t size);
 
 // 日志控制项
-typedef struct ct_log_control {
+typedef struct {
 	bool              is_print;  // 是否打印输出
 	int               id;        // 控制项ID
 	ct_log_storage_t *storage;   // 存储配置 (为空则不存储到文件)

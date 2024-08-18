@@ -32,7 +32,7 @@ typedef uint32_t ct_hash32_t;
 /**
  * @brief 哈希表-键值对
  */
-typedef struct ct_hash_pair {
+typedef struct {
 	struct ct_hash_pair *next;        // 下一个
 	ct_any_buf_t         value;       // 值
 	ct_hash32_t          key_hash;    // 键的哈希值
@@ -43,7 +43,7 @@ typedef struct ct_hash_pair {
 /**
  * @brief 哈希表结构体
  */
-typedef struct ct_hash {
+typedef struct {
 	ct_hash_pair_t **all;           // 键值对数组
 	ct_any_methods_t methods;       // Any函数组
 	size_t           max;           // 最大容量
