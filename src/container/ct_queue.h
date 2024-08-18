@@ -18,7 +18,7 @@ extern "C" {
 /**
  * @brief 队列结构体
  */
-typedef struct {
+typedef struct ct_queue {
 	char*  _all;   // 缓存区
 	size_t _byte;  // 元素字节大小
 	size_t _max;   // 缓存区长度

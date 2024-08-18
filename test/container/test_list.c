@@ -8,7 +8,7 @@
 #include "ctunit.h"
 
 // 测试函数：ct_list_foreach_entry
-typedef struct {
+typedef struct my_struct {
 	ct_list_buf_t list;
 	int           data;
 } my_struct_t;

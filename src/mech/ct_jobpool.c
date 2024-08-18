@@ -23,7 +23,7 @@ static pthread_mutex_t  jobpool_global_mutex = PTHREAD_MUTEX_INITIALIZER;
 /**
  * @brief 任务池工作
  */
-typedef struct {
+typedef struct job {
 	ct_jobpool_routine_t routine;  // 执行函数
 	void*                arg;      // 执行参数
 } job_t, job_buf_t[1];
@@ -31,7 +31,7 @@ typedef struct {
 // 初始化
 #define CT_THPOOL_JOB_INIT(_routine, _arg) {.routine = _routine, .arg = _arg}
 
-typedef struct {
+typedef struct unit {
 	ct_list_buf_t  list;       // 链表节点
 	pthread_t      thread;     // 线程
 	ct_msgqueue_t* job_queue;  // 工作队列

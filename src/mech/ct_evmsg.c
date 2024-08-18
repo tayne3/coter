@@ -5,6 +5,7 @@
  * @date 2023.12.18
  */
 #include "ct_evmsg.h"
+
 #include "base/ct_platform.h"
 #include "container/ct_heap.h"
 #include "container/ct_list.h"
@@ -41,9 +42,10 @@ bool ct_evmsg_handler(ct_evmsg_buf_t msg, void *userdata);
 static struct ct_evmsg_mgr {
 	bool                  is_busy;                           // 是否正在处理事件消息
 	ct_list_buf_t         subscriber_list[CTEvMsgType_Max];  // 订阅者链表
-	ct_msgqueue_buf_t     msgqueue;                          // 事件消息队列
+	ct_evmsg_t            msg_buffer[CTEVMSG_MSG_MAX];       // 事件消息缓冲区
+	ct_msgqueue_t         msgqueue[1];                       // 事件消息队列
 	ct_evmsg_subscriber_t subscriber_itself;                 // 事件中枢自身订阅者
-	ct_evmsg_buf_t        msg;                               // 正在处理的事件消息
+	ct_evmsg_t            msg[1];                            // 正在处理的事件消息
 } mgr[1] = {{
 	.is_busy = false,
 	.subscriber_itself =
@@ -60,10 +62,8 @@ static inline void ct_evmsg_callback(void *arg);
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
 void ct_evmsg_mgr_init(void) {
-	// 事件消息缓冲区
-	static ct_evmsg_t ct_evmsg_msg_buffer[CTEVMSG_MSG_MAX];
 	// 初始化事件消息
-	ct_msgqueue_init(mgr->msgqueue, ct_evmsg_msg_buffer, sizeof(ct_evmsg_t), CTEVMSG_MSG_MAX);
+	ct_msgqueue_init(mgr->msgqueue, mgr->msg_buffer, sizeof(ct_evmsg_t), CTEVMSG_MSG_MAX);
 	// 初始化订阅者链表
 	for (int i = 0; i < CTEvMsgType_Max; i++) {
 		ct_list_init(mgr->subscriber_list[i]);

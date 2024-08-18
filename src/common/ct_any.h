@@ -41,7 +41,7 @@ typedef int32_t ct_any_type_t;
 /**
  * @brief 任何类型的变量
  */
-typedef struct {
+typedef struct ct_any {
 	union {
 		bool        b;    // 布尔类型
 		float       f;    // 浮点类型

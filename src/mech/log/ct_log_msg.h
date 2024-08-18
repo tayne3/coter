@@ -20,7 +20,7 @@ extern "C" {
  * @note
  * 该结构体用于存储日志消息的相关信息，包括所属的日志控制器、行号、文件名、函数名、消息缓冲区和消息缓冲区大小。
  */
-typedef struct {
+typedef struct ct_log_msg {
 	ct_log_control_t *const control;                      // 所属的日志控制器
 	ct_context_t            context[1];                   // 日志上下文
 	int                     level;                        // 日志级别

@@ -15,7 +15,7 @@ extern "C" {
 /**
  * @brief 事件消息
  */
-typedef struct {
+typedef struct ct_evmsg {
 	uint8_t type;  // 事件类型
 	uint8_t id;    // 事件ID
 	void   *data;  // 事件数据

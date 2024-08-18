@@ -287,7 +287,7 @@ typedef bool ct_endian_t;
 # endif
 
 // context information
-typedef struct {
+typedef struct ct_context {
 	const char *file;
 	const char *func;
 	int         line;

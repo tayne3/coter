@@ -20,7 +20,7 @@ extern "C" {
 /**
  * @brief 栈结构体
  */
-typedef struct {
+typedef struct ct_stack {
 	ct_any_t* _all;   // 缓存区
 	size_t    _max;   // 缓存区长度
 	size_t    _size;  // 元素数量

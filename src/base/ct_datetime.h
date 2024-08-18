@@ -17,7 +17,7 @@ extern "C" {
  *
  * 用于表示完整的日期时间信息, 包括年、月、日、时、分、秒和毫秒。
  */
-typedef struct {
+typedef struct ct_datetime {
 	int year;   // 年份
 	int month;  // 月份 (1-12)
 	int day;    // 日期 (1-31)

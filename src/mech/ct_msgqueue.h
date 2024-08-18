@@ -20,7 +20,7 @@ extern "C" {
  * @param not_empty 条件变量，表示队列非空
  * @param not_full 条件变量，表示队列非满
  */
-typedef struct {
+typedef struct ct_msgqueue {
 	ct_queue_buf_t  queue;         // 队列
 	pthread_mutex_t mutex[1];      // 互斥锁
 	pthread_cond_t  not_empty[1];  // 条件变量，表示队列非空

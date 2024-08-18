@@ -10,7 +10,7 @@ extern "C" {
 #endif
 
 // 异常信息
-typedef struct {
+typedef struct excep {
 	int         code;
 	const char* msg;
 	bool        is_sig;

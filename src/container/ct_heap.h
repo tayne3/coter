@@ -31,7 +31,7 @@ typedef bool (*ct_heap_sort_t)(const ct_any_buf_t, const ct_any_buf_t);
  * - 其中每个结点的值都是一个大于其子节点的值;
  * - 顶部的结点是最大堆的根结点,根结点的值是最大值;
  */
-typedef struct {
+typedef struct ct_heap {
 	ct_any_t*      _all;   // 所有元素
 	size_t         _max;   // 最大容量
 	size_t         _size;  // 堆的大小

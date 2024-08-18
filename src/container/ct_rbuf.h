@@ -19,7 +19,7 @@ extern "C" {
  * @brief 环形缓冲区结构体
  * @note
  */
-typedef struct {
+typedef struct ct_rbuf {
 	char  *_all;   // 缓存区
 	size_t _byte;  // 元素字节大小
 	size_t _max;   // 缓存区长度
