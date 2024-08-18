@@ -46,134 +46,28 @@ extern "C" {
 // clang-format on
 
 /**
- * @brief 获取字符串的长度
- * @param __s 字符串
- * @return 字符串的长度
- */
-#define ct_strlen(__s) strlen(__s)
-
-/**
- * @brief 从字符串中读取格式化输入
- * @param __s 输入字符串
- * @param __format 格式化字符串
- * @param ... 可变参数列表，用于存储读取的值
- * @return 成功匹配并赋值的项数
- */
-#define ct_sscanf(__s, __format, ...) sscanf(__s, __format, __VA_ARGS__)
-
-/**
- * @brief 在字符串中查找指定字符第一次出现的位置
- * @param __s 字符串
- * @param __c 要查找的字符
- * @return 指向第一次出现的字符位置的指针，如果未找到则返回NULL
- */
-#define ct_strchr(__s, __c) strchr(__s, __c)
-
-/**
- * @brief 在字符串中查找指定字符最后一次出现的位置
- * @param __s 字符串
- * @param __c 要查找的字符
- * @return 指向最后一次出现的字符位置的指针，如果未找到则返回NULL
- */
-#define ct_strrchr(__s, __c) strrchr(__s, __c)
-
-/**
- * @brief 在字符串中查找子字符串的第一次出现位置
- * @param __haystack 要查找的字符串
- * @param __needle 要查找的子字符串
- * @return 指向第一次出现的子字符串位置的指针，如果未找到则返回NULL
- */
-#define ct_strstr(__haystack, __needle) strstr(__haystack, __needle)
-
-/**
- * @brief 将源字符串连接到目标字符串的末尾
- * @param __dest 目标字符串
- * @param __src 源字符串
- * @return 指向连接后的目标字符串的指针
- */
-CT_API char *ct_strcat(char *__dest, const char *__src) __ct_throw __ct_nonnull(1, 2);
-
-/**
- * @brief 将源字符串的前n个字符连接到目标字符串的末尾
- * @param __dest 目标字符串
- * @param __src 源字符串
- * @param __n 要连接的字符个数
- * @return 指向连接后的目标字符串的指针
- */
-CT_API char *ct_strncat(char *__dest, const char *__src, size_t __n) __ct_throw __ct_nonnull(1, 2);
-
-/**
- * @brief 复制字符串
- * @param __dest 目标字符串
- * @param __src 源字符串
- * @return 复制后的字符串
- */
-CT_API char *ct_strcpy(char *__dest, const char *__src) __ct_throw __ct_nonnull(1, 2);
-
-/**
- * @brief 复制字符串的前n个字符
- * @param __dest 目标字符串
- * @param __src 源字符串
- * @param __n 复制的字符个数
- * @return 复制后的字符串
- */
-CT_API char *ct_strncpy(char *__dest, const char *__src, size_t __n) __ct_throw __ct_nonnull(1, 2);
-
-/**
- * @brief 比较字符串
- * @param l 第一个字符串
- * @param r 第二个字符串
- * @return 比较结果 (-1=小于; 0=等于; 1=大于)
- * @note
- *  比较字符串是指按照字典顺序比较两个字符串的大小。
- *  与 strcmp 相比, ct_strcmp 不会因为 l 和 r 是空指针而发生段错误。
- */
-CT_API int ct_strcmp(const char *l, const char *r) __ct_throw __ct_attribute_pure__;
-
-/**
- * @brief 比较字符串的前n个字符
- * @param l 第一个字符串
- * @param r 第二个字符串
- * @param n 比较的字符个数
- * @return 比较结果 (-1=小于; 0=等于; 1=大于)
- * @note
- *  比较字符串的前n个字符是指按照字典顺序比较两个字符串的前n个字符的大小。
- *  与 strncmp 相比, ct_strncmp 不会因为 l 和 r 是空指针而发生段错误。
- */
-CT_API int ct_strncmp(const char *l, const char *r, size_t n) __ct_throw __ct_attribute_pure__;
-
-/**
- * @brief 比较字符串（忽略大小写）
- * @param l 第一个字符串
- * @param r 第二个字符串
- * @return 比较结果 (-1=小于; 0=等于; 1=大于)
- * @note
- *  比较字符串（忽略大小写）是指按照字典顺序比较两个字符串的大小，忽略大小写。
- *  与 strcasecmp 相比, ct_strcasecmp 不会因为 l 和 r 是空指针而发生段错误。
- */
-CT_API int ct_strcasecmp(const char *l, const char *r) __ct_throw __ct_attribute_pure__;
-#define ct_stricmp ct_strcasecmp
-
-/**
- * @brief 比较字符串的前n个字符（忽略大小写）
- * @param l 第一个字符串
- * @param r 第二个字符串
- * @param n 比较的字符个数
- * @return 比较结果 (-1=小于; 0=等于; 1=大于)
- * @note
- *  比较字符串的前n个字符（忽略大小写）是指按照字典顺序比较两个字符串的前n个字符的大小，忽略大小写。
- *  与 strncasecmp 相比, ct_strncasecmp 不会因为 l 和 r 是空指针而发生段错误。
- */
-CT_API int ct_strncasecmp(const char *l, const char *r, size_t n) __ct_throw __ct_attribute_pure__;
-#define ct_strnicmp ct_strncasecmp
-
-/**
  * @brief 格式化输出字符串
  * @param __s 目标字符串
  * @param __format 格式化字符串
  * @return 格式化后的字符串的长度
  */
-CT_API int ct_sprintf(char *__restrict __s, const char *__restrict __format, ...) __ct_throw;
+static inline int ct_sprintf(char *__s, const char *__format, ...) {
+	assert(__s);
+	assert(__format);
+
+	int ret;
+
+	va_list args;
+	va_start(args, __format);
+#ifdef CT_OS_WIN
+	ret = vsprintf_s(__s, _TRUNCATE, __format, args);
+#else
+	ret = vsprintf(__s, __format, args);
+#endif
+	va_end(args);
+
+	return ret;
+}
 
 /**
  * @brief 格式化输出字符串
@@ -183,8 +77,26 @@ CT_API int ct_sprintf(char *__restrict __s, const char *__restrict __format, ...
  * @param ... 可变参数
  * @return 输出的实际字符数(不包含字符串结束符)。如果缓冲区长度不足,输出的字符串会被截断,且返回输出需要的总长度。
  */
-CT_API int ct_snprintf(char *__restrict __s, size_t __maxlen, const char *__restrict __format, ...) __ct_throw
-	__ct_attribute__((__format__(__printf__, 3, 4)));
+static inline int ct_snprintf(char *__s, size_t __maxlen, const char *__format, ...) {
+	assert(__s);
+	assert(__format);
+
+	int ret;
+
+	va_list args;
+	va_start(args, __format);
+#ifdef CT_OS_WIN
+	ret = _vsnprintf_s(__s, __maxlen, _TRUNCATE, __format, args);
+	if (ret == -1) {
+		ret = _vscprintf(__format, args);
+	}
+#else
+	ret = vsnprintf(__s, __maxlen, __format, args);
+#endif
+	va_end(args);
+
+	return ret;
+}
 
 /**
  * @brief 获取文件路径中的文件名
@@ -192,7 +104,7 @@ CT_API int ct_snprintf(char *__restrict __s, size_t __maxlen, const char *__rest
  * @return 文件名指针
  */
 static inline const char *ct_basename(const char *path) {
-	const char *filename = ct_strrchr(path, STR_SEPARATOR);
+	const char *filename = strrchr(path, STR_SEPARATOR);
 	return filename ? filename + 1 : path;
 }
 #define __ct_filename__ ct_basename(__ct_file__)

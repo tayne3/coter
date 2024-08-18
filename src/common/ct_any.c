@@ -15,18 +15,21 @@
 // 空
 const ct_any_t ct_any_null = CT_ANY_INIT_SPECIFY(0, CTAny_TypeInvalid);
 
+// 字符串比较
+static inline bool any_strcmp(const char *l, const char *r);
+
 // 构造函数-缺省值
-static inline void ct_any_methods_ctor_default(ct_any_buf_t src, const ct_any_buf_t value);
+static inline void any_methods_ctor_default(ct_any_buf_t src, const ct_any_buf_t value);
 // 析构函数-缺省值
-static inline void ct_any_methods_dtor_default(ct_any_buf_t src);
+static inline void any_methods_dtor_default(ct_any_buf_t src);
 // 更新值函数-缺省值
-static inline void ct_any_methods_update_default(ct_any_buf_t src, const ct_any_buf_t value);
+static inline void any_methods_update_default(ct_any_buf_t src, const ct_any_buf_t value);
 
 // 默认函数组
 const ct_any_methods_t ct_any_methods_default = {
-	.ctor   = ct_any_methods_ctor_default,
-	.dtor   = ct_any_methods_dtor_default,
-	.update = ct_any_methods_update_default,
+	.ctor   = any_methods_ctor_default,
+	.dtor   = any_methods_dtor_default,
+	.update = any_methods_update_default,
 };
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
@@ -95,7 +98,7 @@ int ct_any_compare(const ct_any_buf_t l, const ct_any_buf_t r) {
 		case CTAny_TypeBool: return (l->d->b > r->d->b) - (l->d->b < r->d->b);
 		case CTAny_TypeFloat: return (l->d->f > r->d->f) - (l->d->f < r->d->f);
 		case CTAny_TypeDouble: return (l->d->d > r->d->d) - (l->d->d < r->d->d);
-		case CTAny_TypeString: return ct_strcmp(l->d->str, r->d->str);
+		case CTAny_TypeString: return any_strcmp(l->d->str, r->d->str);
 		case CTAny_TypePointer: return (l->d->ptr > r->d->ptr) - (l->d->ptr < r->d->ptr);
 		case CTAny_TypeInt: return (l->d->i > r->d->i) - (l->d->i < r->d->i);
 		case CTAny_TypeInt8: return (l->d->i8 > r->d->i8) - (l->d->i8 < r->d->i8);
@@ -302,15 +305,19 @@ uint64_t ct_any_get_uint64(const ct_any_buf_t self) {
 
 // -------------------------[STATIC DEFINITION]-------------------------
 
-static inline void ct_any_methods_ctor_default(ct_any_buf_t src, const ct_any_buf_t value) {
+static inline bool any_strcmp(const char *l, const char *r) {
+	return l == r ? 0 : !l ? -1 : !r ? 1 : strcmp(l, r);
+}
+
+static inline void any_methods_ctor_default(ct_any_buf_t src, const ct_any_buf_t value) {
 	*src = *value;
 }
 
-static inline void ct_any_methods_dtor_default(ct_any_buf_t src) {
+static inline void any_methods_dtor_default(ct_any_buf_t src) {
 	return;
 	ct_unused(src);
 }
 
-static inline void ct_any_methods_update_default(ct_any_buf_t src, const ct_any_buf_t value) {
+static inline void any_methods_update_default(ct_any_buf_t src, const ct_any_buf_t value) {
 	*src = *value;
 }
