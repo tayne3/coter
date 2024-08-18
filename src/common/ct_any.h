@@ -63,7 +63,7 @@ typedef struct ct_any {
 } ct_any_t, ct_any_buf_t[1];
 
 // ct_any_null
-COTER_API const ct_any_t ct_any_null;
+CT_API const ct_any_t ct_any_null;
 
 // 初始化
 #define CT_ANY_INIT_SPECIFY(_x, _t) {.d[0] = {.u64 = (uint64_t)(_x)}, .type = (_t)}
@@ -82,14 +82,14 @@ typedef struct ct_any_methods {
 } ct_any_methods_t, ct_any_methods_buf_t[1];
 
 // 默认函数组
-COTER_API const ct_any_methods_t ct_any_methods_default;
+CT_API const ct_any_methods_t ct_any_methods_default;
 
 // 构造
-COTER_API void ct_any_ctor(const ct_any_methods_buf_t methods, ct_any_buf_t src, const ct_any_buf_t value);
+CT_API void ct_any_ctor(const ct_any_methods_buf_t methods, ct_any_buf_t src, const ct_any_buf_t value);
 // 析构
-COTER_API void ct_any_dtor(const ct_any_methods_buf_t methods, ct_any_buf_t src);
+CT_API void ct_any_dtor(const ct_any_methods_buf_t methods, ct_any_buf_t src);
 // 更新值
-COTER_API void ct_any_update(const ct_any_methods_buf_t methods, ct_any_buf_t src, const ct_any_buf_t value);
+CT_API void ct_any_update(const ct_any_methods_buf_t methods, ct_any_buf_t src, const ct_any_buf_t value);
 
 // clang-format off
 #define CT_ANY_INIT_INVALID 	{.d[0]={.u64 = 0}, .type = CTAny_TypeInvalid}				// 初始化无效类型
@@ -148,7 +148,7 @@ COTER_API void ct_any_update(const ct_any_methods_buf_t methods, ct_any_buf_t sr
  * @param self Any 对象指针
  * @return 如果有效，返回 true；否则，返回 false
  */
-COTER_API bool ct_any_isvalid(const ct_any_buf_t self) __ct_throw __ct_nonnull(1);
+CT_API bool ct_any_isvalid(const ct_any_buf_t self) __ct_throw __ct_nonnull(1);
 
 /**
  * @brief 将 Any 对象 转换为字符串
@@ -157,7 +157,7 @@ COTER_API bool ct_any_isvalid(const ct_any_buf_t self) __ct_throw __ct_nonnull(1
  * @param max 最大长度
  * @return 字符串长度
  */
-COTER_API size_t ct_any_tostring(const ct_any_buf_t self, char *buf, size_t max) __ct_throw __ct_nonnull(1);
+CT_API size_t ct_any_tostring(const ct_any_buf_t self, char *buf, size_t max) __ct_throw __ct_nonnull(1);
 
 /**
  * @brief 比较两个 Any 对象 的大小
@@ -165,238 +165,238 @@ COTER_API size_t ct_any_tostring(const ct_any_buf_t self, char *buf, size_t max)
  * @param r 右操作数
  * @return -1=小于; 0=等于; 1=大于; -2=错误
  */
-COTER_API int ct_any_compare(const ct_any_buf_t l, const ct_any_buf_t r) __ct_throw __ct_nonnull(1);
+CT_API int ct_any_compare(const ct_any_buf_t l, const ct_any_buf_t r) __ct_throw __ct_nonnull(1);
 
 /**
  * @brief 交换两个 Any 对象 的值
  * @param l 左操作数
  * @param r 右操作数
  */
-COTER_API void ct_any_swap(ct_any_buf_t l, ct_any_buf_t r) __ct_throw __ct_nonnull(1);
+CT_API void ct_any_swap(ct_any_buf_t l, ct_any_buf_t r) __ct_throw __ct_nonnull(1);
 
 /**
  * @brief 拷贝 Any 对象 的值
  * @param self 目标 Any 对象
  * @param other 源 Any 对象
  */
-COTER_API void ct_any_copy(ct_any_buf_t self, const ct_any_buf_t other) __ct_throw __ct_nonnull(1);
+CT_API void ct_any_copy(ct_any_buf_t self, const ct_any_buf_t other) __ct_throw __ct_nonnull(1);
 
 /**
  * @brief 获取 类型
  * @param self Any 对象指针
  * @return 数据类型
  */
-COTER_API ct_any_type_t ct_any_type(const ct_any_buf_t self) __ct_throw __ct_nonnull(1);
+CT_API ct_any_type_t ct_any_type(const ct_any_buf_t self) __ct_throw __ct_nonnull(1);
 
 /**
  * @brief 赋值为布尔类型
  * @param self Any 对象指针
  * @param value 布尔值
  */
-COTER_API void ct_any_set_bool(ct_any_buf_t self, bool value) __ct_throw __ct_nonnull(1);
+CT_API void ct_any_set_bool(ct_any_buf_t self, bool value) __ct_throw __ct_nonnull(1);
 
 /**
  * @brief 赋值为浮点类型
  * @param self Any 对象指针
  * @param value 浮点值
  */
-COTER_API void ct_any_set_float(ct_any_buf_t self, float value) __ct_throw __ct_nonnull(1);
+CT_API void ct_any_set_float(ct_any_buf_t self, float value) __ct_throw __ct_nonnull(1);
 
 /**
  * @brief 赋值为双精度浮点类型
  * @param self Any 对象指针
  * @param value 双精度浮点值
  */
-COTER_API void ct_any_set_double(ct_any_buf_t self, double value) __ct_throw __ct_nonnull(1);
+CT_API void ct_any_set_double(ct_any_buf_t self, double value) __ct_throw __ct_nonnull(1);
 
 /**
  * @brief 赋值为字符串类型
  * @param self Any 对象指针
  * @param value 字符串值
  */
-COTER_API void ct_any_set_string(ct_any_buf_t self, const char *value) __ct_throw __ct_nonnull(1);
+CT_API void ct_any_set_string(ct_any_buf_t self, const char *value) __ct_throw __ct_nonnull(1);
 
 /**
  * @brief 赋值为指针类型
  * @param self Any 对象指针
  * @param value 指针值
  */
-COTER_API void ct_any_set_pointer(ct_any_buf_t self, void *value) __ct_throw __ct_nonnull(1);
+CT_API void ct_any_set_pointer(ct_any_buf_t self, void *value) __ct_throw __ct_nonnull(1);
 
 /**
  * @brief 赋值为整型
  * @param self Any 对象指针
  * @param value 整型值
  */
-COTER_API void ct_any_set_int(ct_any_buf_t self, int value) __ct_throw __ct_nonnull(1);
+CT_API void ct_any_set_int(ct_any_buf_t self, int value) __ct_throw __ct_nonnull(1);
 
 /**
  * @brief 赋值为8位整型
  * @param self Any 对象指针
  * @param value 8位整型值
  */
-COTER_API void ct_any_set_int8(ct_any_buf_t self, int8_t value) __ct_throw __ct_nonnull(1);
+CT_API void ct_any_set_int8(ct_any_buf_t self, int8_t value) __ct_throw __ct_nonnull(1);
 
 /**
  * @brief 赋值为16位整型
  * @param self Any 对象指针
  * @param value 16位整型值
  */
-COTER_API void ct_any_set_int16(ct_any_buf_t self, int16_t value) __ct_throw __ct_nonnull(1);
+CT_API void ct_any_set_int16(ct_any_buf_t self, int16_t value) __ct_throw __ct_nonnull(1);
 
 /**
  * @brief 赋值为32位整型
  * @param self Any 对象指针
  * @param value 32位整型值
  */
-COTER_API void ct_any_set_int32(ct_any_buf_t self, int32_t value) __ct_throw __ct_nonnull(1);
+CT_API void ct_any_set_int32(ct_any_buf_t self, int32_t value) __ct_throw __ct_nonnull(1);
 
 /**
  * @brief 赋值为64位整型
  * @param self Any 对象指针
  * @param value 64位整型值
  */
-COTER_API void ct_any_set_int64(ct_any_buf_t self, int64_t value) __ct_throw __ct_nonnull(1);
+CT_API void ct_any_set_int64(ct_any_buf_t self, int64_t value) __ct_throw __ct_nonnull(1);
 
 /**
  * @brief 赋值为无符号整型
  * @param self Any 对象指针
  * @param value 无符号整型值
  */
-COTER_API void ct_any_set_uint(ct_any_buf_t self, unsigned value) __ct_throw __ct_nonnull(1);
+CT_API void ct_any_set_uint(ct_any_buf_t self, unsigned value) __ct_throw __ct_nonnull(1);
 
 /**
  * @brief 赋值为8位无符号整型
  * @param self Any 对象指针
  * @param value 8位无符号整型值
  */
-COTER_API void ct_any_set_uint8(ct_any_buf_t self, uint8_t value) __ct_throw __ct_nonnull(1);
+CT_API void ct_any_set_uint8(ct_any_buf_t self, uint8_t value) __ct_throw __ct_nonnull(1);
 
 /**
  * @brief 赋值为16位无符号整型
  * @param self Any 对象指针
  * @param value 16位无符号整型值
  */
-COTER_API void ct_any_set_uint16(ct_any_buf_t self, uint16_t value) __ct_throw __ct_nonnull(1);
+CT_API void ct_any_set_uint16(ct_any_buf_t self, uint16_t value) __ct_throw __ct_nonnull(1);
 
 /**
  * @brief 赋值为32位无符号整型
  * @param self Any 对象指针
  * @param value 32位无符号整型值
  */
-COTER_API void ct_any_set_uint32(ct_any_buf_t self, uint32_t value) __ct_throw __ct_nonnull(1);
+CT_API void ct_any_set_uint32(ct_any_buf_t self, uint32_t value) __ct_throw __ct_nonnull(1);
 
 /**
  * @brief 赋值为64位无符号整型
  * @param self Any 对象指针
  * @param value 64位无符号整型值
  */
-COTER_API void ct_any_set_uint64(ct_any_buf_t self, uint64_t value) __ct_throw __ct_nonnull(1);
+CT_API void ct_any_set_uint64(ct_any_buf_t self, uint64_t value) __ct_throw __ct_nonnull(1);
 
 /**
  * @brief 获取 布尔值
  * @param self Any 对象指针
  * @return 布尔值
  */
-COTER_API bool ct_any_get_bool(const ct_any_buf_t self) __ct_throw __ct_nonnull(1);
+CT_API bool ct_any_get_bool(const ct_any_buf_t self) __ct_throw __ct_nonnull(1);
 
 /**
  * @brief 获取 浮点值
  * @param self Any 对象指针
  * @return 浮点值
  */
-COTER_API float ct_any_get_float(const ct_any_buf_t self) __ct_throw __ct_nonnull(1);
+CT_API float ct_any_get_float(const ct_any_buf_t self) __ct_throw __ct_nonnull(1);
 
 /**
  * @brief 获取 双精度浮点值
  * @param self Any 对象指针
  * @return 双精度浮点值
  */
-COTER_API double ct_any_get_double(const ct_any_buf_t self) __ct_throw __ct_nonnull(1);
+CT_API double ct_any_get_double(const ct_any_buf_t self) __ct_throw __ct_nonnull(1);
 
 /**
  * @brief 获取 字符串值
  * @param self Any 对象指针
  * @return 字符串值
  */
-COTER_API const char *ct_any_get_string(const ct_any_buf_t self) __ct_throw __ct_nonnull(1);
+CT_API const char *ct_any_get_string(const ct_any_buf_t self) __ct_throw __ct_nonnull(1);
 
 /**
  * @brief 获取 指针值
  * @param self Any 对象指针
  * @return 指针值
  */
-COTER_API void *ct_any_get_pointer(const ct_any_buf_t self) __ct_throw __ct_nonnull(1);
+CT_API void *ct_any_get_pointer(const ct_any_buf_t self) __ct_throw __ct_nonnull(1);
 
 /**
  * @brief 获取 整型值
  * @param self Any 对象指针
  * @return 整型值
  */
-COTER_API int ct_any_get_int(const ct_any_buf_t self) __ct_throw __ct_nonnull(1);
+CT_API int ct_any_get_int(const ct_any_buf_t self) __ct_throw __ct_nonnull(1);
 
 /**
  * @brief 获取 8位整型值
  * @param self Any 对象指针
  * @return 8位整型值
  */
-COTER_API int8_t ct_any_get_int8(const ct_any_buf_t self) __ct_throw __ct_nonnull(1);
+CT_API int8_t ct_any_get_int8(const ct_any_buf_t self) __ct_throw __ct_nonnull(1);
 
 /**
  * @brief 获取 16位整型值
  * @param self Any 对象指针
  * @return 16位整型值
  */
-COTER_API int16_t ct_any_get_int16(const ct_any_buf_t self) __ct_throw __ct_nonnull(1);
+CT_API int16_t ct_any_get_int16(const ct_any_buf_t self) __ct_throw __ct_nonnull(1);
 
 /**
  * @brief 获取 32位整型值
  * @param self Any 对象指针
  * @return 32位整型值
  */
-COTER_API int32_t ct_any_get_int32(const ct_any_buf_t self) __ct_throw __ct_nonnull(1);
+CT_API int32_t ct_any_get_int32(const ct_any_buf_t self) __ct_throw __ct_nonnull(1);
 
 /**
  * @brief 获取 64位整型值
  * @param self Any 对象指针
  * @return 64位整型值
  */
-COTER_API int64_t ct_any_get_int64(const ct_any_buf_t self) __ct_throw __ct_nonnull(1);
+CT_API int64_t ct_any_get_int64(const ct_any_buf_t self) __ct_throw __ct_nonnull(1);
 
 /**
  * @brief 获取 无符号整型值
  * @param self Any 对象指针
  * @return 无符号整型值
  */
-COTER_API unsigned ct_any_get_uint(const ct_any_buf_t self) __ct_throw __ct_nonnull(1);
+CT_API unsigned ct_any_get_uint(const ct_any_buf_t self) __ct_throw __ct_nonnull(1);
 
 /**
  * @brief 获取 8位无符号整型值
  * @param self Any 对象指针
  * @return 8位无符号整型值
  */
-COTER_API uint8_t ct_any_get_uint8(const ct_any_buf_t self) __ct_throw __ct_nonnull(1);
+CT_API uint8_t ct_any_get_uint8(const ct_any_buf_t self) __ct_throw __ct_nonnull(1);
 
 /**
  * @brief 获取 16位无符号整型值
  * @param self Any 对象指针
  * @return 16位无符号整型值
  */
-COTER_API uint16_t ct_any_get_uint16(const ct_any_buf_t self) __ct_throw __ct_nonnull(1);
+CT_API uint16_t ct_any_get_uint16(const ct_any_buf_t self) __ct_throw __ct_nonnull(1);
 
 /**
  * @brief 获取 32位无符号整型值
  * @param self Any 对象指针
  * @return 32位无符号整型值
  */
-COTER_API uint32_t ct_any_get_uint32(const ct_any_buf_t self) __ct_throw __ct_nonnull(1);
+CT_API uint32_t ct_any_get_uint32(const ct_any_buf_t self) __ct_throw __ct_nonnull(1);
 
 /**
  * @brief 获取 64位无符号整型值
  * @param self Any 对象指针
  * @return 64位无符号整型值
  */
-COTER_API uint64_t ct_any_get_uint64(const ct_any_buf_t self) __ct_throw __ct_nonnull(1);
+CT_API uint64_t ct_any_get_uint64(const ct_any_buf_t self) __ct_throw __ct_nonnull(1);
 
 #ifdef __cplusplus
 }

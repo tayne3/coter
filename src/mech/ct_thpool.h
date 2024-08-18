@@ -25,7 +25,7 @@ typedef struct ct_thpool* ct_thpool_ptr_t;
  * @param attr 线程属性 (NULL 则使用默认属性)
  * @return 返回新创建的线程池指针，如果创建失败则返回空指针
  */
-COTER_API ct_thpool_ptr_t ct_thpool_create(pthread_attr_t* attr) __ct_throw;
+CT_API ct_thpool_ptr_t ct_thpool_create(pthread_attr_t* attr) __ct_throw;
 
 /**
  * @brief 创建全局线程池
@@ -35,14 +35,14 @@ COTER_API ct_thpool_ptr_t ct_thpool_create(pthread_attr_t* attr) __ct_throw;
  * @return 返回全局线程池指针，如果创建失败则返回空指针, 如果全局线程池已存在则返回全局线程池
  * @note 为保证线程安全, 当前函数只建议在主线程调用
  */
-COTER_API ct_thpool_ptr_t ct_thpool_global(pthread_attr_t* attr) __ct_throw;
+CT_API ct_thpool_ptr_t ct_thpool_global(pthread_attr_t* attr) __ct_throw;
 
 /**
  * @brief 销毁线程池
  *
  * @param self 需要销毁的线程池指针, 不能为空指针
  */
-COTER_API void ct_thpool_destroy(ct_thpool_ptr_t self);
+CT_API void ct_thpool_destroy(ct_thpool_ptr_t self);
 
 /**
  * @brief 向线程池中添加一个常驻工作
@@ -52,7 +52,7 @@ COTER_API void ct_thpool_destroy(ct_thpool_ptr_t self);
  * @param arg 执行参数
  * @return 返回 0 表示成功，否则表示失败
  */
-COTER_API int ct_thpool_add(ct_thpool_ptr_t self, pthread_attr_t* attr, ct_thpool_routine_t routine, void* arg);
+CT_API int ct_thpool_add(ct_thpool_ptr_t self, pthread_attr_t* attr, ct_thpool_routine_t routine, void* arg);
 
 #ifdef __cplusplus
 }

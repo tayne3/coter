@@ -242,9 +242,9 @@ typedef bool ct_endian_t;
 #endif
 
 #ifdef DLL_EXPORT
-#define COTER_API DLL_EXPORT_DECL
+#define CT_API DLL_EXPORT_DECL
 #else
-#define COTER_API DLL_IMPORT_DECL
+#define CT_API DLL_IMPORT_DECL
 #endif
 
 # ifndef __GNUC_PREREQ
@@ -297,6 +297,7 @@ typedef struct {
 #define CT_CONTEXT_CURR                      (ct_context_t)CT_CONTEXT_INIT(__ct_file__, __ct_func__, __ct_line__)
 #define CT_CONTEXT_ISVALID(_ctx)             ((_ctx)->line > 0)
 
+#if 0
 #define __ct_assert_fail(expr)                                                                      \
 	do {                                                                                            \
 		fprintf(stderr, "%s:%d: assert failed: `%s`." STR_NEWLINE, __ct_file__, __ct_line__, expr); \
@@ -317,6 +318,15 @@ typedef struct {
 			 __ct_assert_fail(#expr);              \
 		 }                                         \
 	 }))
+#endif
+#endif
+
+#if defined(__GNUC__) || defined(__clang__)
+#define CT_PAUSE() __asm__ volatile("pause" ::: "memory")
+#elif defined(_MSC_VER)
+#define CT_PAUSE() _mm_pause()
+#else
+#define CT_PAUSE() sched_yield()
 #endif
 
 # ifndef __THROW

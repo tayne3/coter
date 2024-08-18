@@ -8,7 +8,6 @@
 #include "ctunit.h"
 #include "mech/ct_evmsg.h"
 #include "mech/ct_jobpool.h"
-#include "sched.h"
 
 #define TEST_THREAD_NUMBER 3
 #define TEST_DATA_NUMBER   10000
@@ -31,9 +30,12 @@ int main(void) {
 	// 订阅事件
 	ct_evmsg_subscribe(1, test_evmsg_handler, NULL);
 
+	bool isok = false;
+
 	// 创建线程
-	for (uint8_t i = 0; i < TEST_THREAD_NUMBER; i++) {
-		pthread_create(&threads[i], NULL, test_evmsg_publish, (void *)(uint64_t)i);
+	for (int i = 0; i < TEST_THREAD_NUMBER; i++) {
+		isok = pthread_create(&threads[i], NULL, test_evmsg_publish, (void *)(uint64_t)i) == 0;
+		ctunit_assert_true(isok, "id = %d/%d", i, TEST_THREAD_NUMBER);
 	}
 
 	// 调度事件管理
@@ -46,6 +48,7 @@ int main(void) {
 			}
 		}
 	}
+
 	ct_evmsg_schedule();     // 事件消息中枢调度
 	ct_evmsg_mgr_destroy();  // 销毁事件消息中枢
 
@@ -74,32 +77,26 @@ static inline bool test_evmsg_handler(ct_evmsg_t *msg, void *userdata) {
 	ctunit_assert_uint8(msg->id, 0, CTUnit_GreaterEqual);
 	ctunit_assert_uint8(msg->id, TEST_THREAD_NUMBER, CTUnit_Less);
 
-	size_t i = *(size_t *)msg->data;
-
-	ctunit_assert_false(test_result[msg->id][i]);
-
-	test_result[msg->id][i] = true;
-
+	const int index = *(int *)msg->data;
+	ctunit_assert_false(test_result[msg->id][index]);
+	test_result[msg->id][index] = true;
 	return false;
 	ct_unused(userdata);
 }
 
 static inline void *test_evmsg_publish(void *arg) {
 	const uint8_t id = (uint8_t)(uint64_t)arg;
-
 	// 模拟事件数据
 	ct_evmsg_t msg = CT_EVMSG_MSG_INIT(1, id, NULL, 0);
-
 	// 发布事件
 	for (int i = 0; i < TEST_DATA_NUMBER; i++) {
 		msg.data = &i;
-		msg.size = sizeof(size_t);
+		msg.size = sizeof(int);
 		ct_evmsg_publish(&msg);
 		sched_yield();
 	}
 
 	is_exit[id] = true;
-
 	pthread_exit(NULL);
 	return NULL;
 }

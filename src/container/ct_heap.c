@@ -30,7 +30,8 @@ void ct_heap_init(ct_heap_buf_t self, ct_any_t* all, size_t max, ct_heap_sort_t 
 }
 
 void ct_heap_up(ct_heap_buf_t self, size_t i) {
-	for (size_t parent = CT_HEAP_INDEX_PARENT(i); i > 0 && CT_HEAP_COMPARE(self, i, parent);) {
+	size_t parent = CT_HEAP_INDEX_PARENT(i);
+	for (; i > 0 && CT_HEAP_COMPARE(self, i, parent);) {
 		CT_HEAP_SWAP(self, i, parent);
 		i      = parent;
 		parent = CT_HEAP_INDEX_PARENT(i);

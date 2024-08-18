@@ -10,11 +10,6 @@
 
 #define STR_CURRTITLE "[ct_datetime]"
 
-#define SECONDS_PER_MINUTE 60      // 1 minute
-#define SECONDS_PER_HOUR   3600    // 1 hour
-#define SECONDS_PER_DAY    86400   // 1 day (24 * 3600)
-#define SECONDS_PER_WEEK   604800  // 1 week (7 * 24 * 3600)
-
 #define IS_LEAP_YEAR(year) (((year) % 4 == 0 && (year) % 100 != 0) || (year) % 400 == 0)
 
 static const char* s_weekdays[] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
@@ -78,13 +73,17 @@ time_t ct_datetime_mktime(const ct_datetime_t* dt) {
 	// tm.tm_min  = dt->min;
 	// tm.tm_sec  = dt->sec;
 
-	struct tm tm = {0};
-	tm.tm_year   = dt->year - 1900;
-	tm.tm_mon    = dt->month - 1;
-	tm.tm_mday   = dt->day;
-	tm.tm_hour   = dt->hour;
-	tm.tm_min    = dt->min;
-	tm.tm_sec    = dt->sec;
+	struct tm tm = {
+		.tm_sec   = dt->sec,
+		.tm_min   = dt->min,
+		.tm_hour  = dt->hour,
+		.tm_mday  = dt->day,
+		.tm_mon   = dt->month - 1,
+		.tm_year  = dt->year - 1900,
+		.tm_wday  = dt->wday,
+		.tm_yday  = -1,
+		.tm_isdst = -1,
+	};
 	return mktime(&tm);
 }
 
@@ -202,69 +201,6 @@ ct_datetime_t __ct_datetime_compile(const char* date, const char* time) {
 	sscanf(time, "%d:%d:%d", &dt.hour, &dt.min, &dt.sec);
 	dt.month = ct_datetime_month_atoi(month);
 	return dt;
-}
-
-time_t ct_datetime_cron_next_timeout(int minute, int hour, int day, int week, int month) {
-	if (minute >= 60 || hour >= 24 || day == 0 || day > 31 || week >= 7 || month == 0 || month > 12) {
-		return -1;  // 参数检查，确保输入的时间参数在合理范围内
-	}
-
-	enum {
-		MINUTELY,
-		HOURLY,
-		DAILY,
-		WEEKLY,
-		MONTHLY,
-		YEARLY,
-	} period_type         = MINUTELY;  // 初始化周期类型为每分钟
-	const time_t tt_now   = time(NULL);
-	struct tm    tm       = *localtime(&tt_now);  // 获取当前时间
-	time_t       tt_round = 0;
-
-	tm.tm_sec = 0;  // 将秒数置为0
-	if (minute >= 0) {
-		period_type = HOURLY;  // 如果设置了分钟，则周期类型为每小时
-		tm.tm_min   = minute;
-	}
-	if (hour >= 0) {
-		period_type = DAILY;  // 如果设置了小时，则周期类型为每天
-		tm.tm_hour  = hour;
-	}
-	if (week >= 0) {
-		period_type = WEEKLY;  // 如果设置了星期，则周期类型为每周
-	} else if (day > 0) {
-		period_type = MONTHLY;  // 如果设置了天数，则周期类型为每月
-		tm.tm_mday  = day;
-		if (month > 0) {
-			period_type = YEARLY;  // 如果设置了月份，则周期类型为每年
-			tm.tm_mon   = month - 1;
-		}
-	}
-
-	tt_round = mktime(&tm);  // 将tm结构体转换为time_t类型
-	if (week >= 0) {
-		tt_round += (week - tm.tm_wday) * SECONDS_PER_DAY;  // 如果设置了星期，计算下一个星期的时间
-	}
-	if (tt_round > tt_now) {
-		return tt_round;  // 如果计算出的时间在当前时间之后，直接返回
-	}
-
-	switch (period_type) {
-		case MINUTELY: tt_round += SECONDS_PER_MINUTE; return tt_round;  // 每分钟增加60秒
-		case HOURLY: tt_round += SECONDS_PER_HOUR; return tt_round;      // 每小时增加3600秒
-		case DAILY: tt_round += SECONDS_PER_DAY; return tt_round;        // 每天增加86400秒
-		case WEEKLY: tt_round += SECONDS_PER_WEEK; return tt_round;      // 每周增加604800秒
-		case MONTHLY:
-			if (++tm.tm_mon == 12) {
-				tm.tm_mon = 0;
-				++tm.tm_year;  // 如果月份增加到12月，则年份增加1
-			}
-			break;
-		case YEARLY: ++tm.tm_year; break;  // 年份加1
-		default: return -1;                // 无效返回-1
-	}
-
-	return mktime(&tm);  // 返回计算后的时间
 }
 
 // -------------------------[STATIC DEFINITION]-------------------------

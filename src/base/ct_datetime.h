@@ -42,7 +42,7 @@ typedef struct {
  * @note
  * 获取系统当前的日期时间, 精确到毫秒。
  */
-COTER_API ct_datetime_t ct_datetime_now(void);
+CT_API ct_datetime_t ct_datetime_now(void);
 
 /**
  * @brief 将时间戳转换为本地日期时间
@@ -61,7 +61,7 @@ COTER_API ct_datetime_t ct_datetime_now(void);
  * @note
  * 将给定的 UNIX 时间戳转换为本地时区的日期时间结构体。
  */
-COTER_API ct_datetime_t ct_datetime_localtime(time_t seconds);
+CT_API ct_datetime_t ct_datetime_localtime(time_t seconds);
 
 /**
  * @brief 将日期时间结构体转换为时间戳
@@ -78,7 +78,7 @@ COTER_API ct_datetime_t ct_datetime_localtime(time_t seconds);
  * @note
  * 将给定的日期时间结构体转换为 UNIX 时间戳。
  */
-COTER_API time_t ct_datetime_mktime(const ct_datetime_t* dt);
+CT_API time_t ct_datetime_mktime(const ct_datetime_t* dt);
 
 /**
  * @brief 计算过去的日期
@@ -96,7 +96,7 @@ COTER_API time_t ct_datetime_mktime(const ct_datetime_t* dt);
  * @note
  * 从给定的日期时间向前推算指定的天数。
  */
-COTER_API ct_datetime_t* ct_datetime_past(ct_datetime_t* dt, int days);
+CT_API ct_datetime_t* ct_datetime_past(ct_datetime_t* dt, int days);
 
 /**
  * @brief 计算未来的日期
@@ -114,7 +114,7 @@ COTER_API ct_datetime_t* ct_datetime_past(ct_datetime_t* dt, int days);
  * @note
  * 从给定的日期时间向后推算指定的天数。
  */
-COTER_API ct_datetime_t* ct_datetime_future(ct_datetime_t* dt, int days);
+CT_API ct_datetime_t* ct_datetime_future(ct_datetime_t* dt, int days);
 
 #define CT_TIME_FMT        "%02d:%02d:%02d"
 #define CT_TIME_FMT_BUFLEN 12
@@ -136,7 +136,7 @@ COTER_API ct_datetime_t* ct_datetime_future(ct_datetime_t* dt, int days);
  *
  * @note 这个函数在显示持续时间或时间间隔时非常有用, 如视频播放器或计时器。
  */
-COTER_API char* ct_datetime_duration_fmt(int sec, char* buf);
+CT_API char* ct_datetime_duration_fmt(int sec, char* buf);
 
 #define CT_DATETIME_FMT        "%04d-%02d-%02d %02d:%02d:%02d"
 #define CT_DATETIME_FMT_ISO    "%04d-%02d-%02dT%02d:%02d:%02d.%03dZ"
@@ -159,7 +159,7 @@ COTER_API char* ct_datetime_duration_fmt(int sec, char* buf);
  *
  * @note 这个函数在需要以标准格式显示日期时间时很有用, 如日志记录或用户界面显示。
  */
-COTER_API char* ct_datetime_fmt(const ct_datetime_t* dt, char* buf);
+CT_API char* ct_datetime_fmt(const ct_datetime_t* dt, char* buf);
 
 /**
  * @brief 格式化ISO日期时间
@@ -179,7 +179,7 @@ COTER_API char* ct_datetime_fmt(const ct_datetime_t* dt, char* buf);
  *
  * @note 这个函数在需要以标准格式显示日期时间时很有用, 如日志记录或用户界面显示。
  */
-COTER_API char* ct_datetime_fmt_iso(const ct_datetime_t* dt, char* buf);
+CT_API char* ct_datetime_fmt_iso(const ct_datetime_t* dt, char* buf);
 
 #define CT_GMTIME_FMT        "%.3s, %02d %.3s %04d %02d:%02d:%02d GMT"
 #define CT_GMTIME_FMT_BUFLEN 30
@@ -201,7 +201,7 @@ COTER_API char* ct_datetime_fmt_iso(const ct_datetime_t* dt, char* buf);
  *
  * @note 这个函数在需要显示 GMT 时间时很有用, 如生成 HTTP 头或处理国际化时间。
  */
-COTER_API char* ct_datetime_gmtime_fmt(time_t time, char* buf);
+CT_API char* ct_datetime_gmtime_fmt(time_t time, char* buf);
 
 /**
  * @brief 计算指定月份的天数
@@ -219,7 +219,7 @@ COTER_API char* ct_datetime_gmtime_fmt(time_t time, char* buf);
  *
  * @note 这个函数在处理日期计算和验证时很有用, 特别是在考虑闰年的情况下。
  */
-COTER_API int ct_datetime_days_of_month(int month, int year);
+CT_API int ct_datetime_days_of_month(int month, int year);
 
 /**
  * @brief 将月份名称转换为数字
@@ -236,7 +236,7 @@ COTER_API int ct_datetime_days_of_month(int month, int year);
  *
  * @note 这个函数在解析包含月份名称的日期字符串时很有用。
  */
-COTER_API int ct_datetime_month_atoi(const char* month);
+CT_API int ct_datetime_month_atoi(const char* month);
 
 /**
  * @brief 将月份数字转换为名称
@@ -253,7 +253,7 @@ COTER_API int ct_datetime_month_atoi(const char* month);
  *
  * @note 这个函数在格式化日期显示时很有用, 特别是在需要显示月份名称而不是数字时。
  */
-COTER_API const char* ct_datetime_month_itoa(int month);
+CT_API const char* ct_datetime_month_itoa(int month);
 
 /**
  * @brief 将星期名称转换为数字
@@ -270,7 +270,7 @@ COTER_API const char* ct_datetime_month_itoa(int month);
  *
  * @note 这个函数在解析包含星期名称的日期字符串时很有用。
  */
-COTER_API int ct_datetime_weekday_atoi(const char* weekday);
+CT_API int ct_datetime_weekday_atoi(const char* weekday);
 
 /**
  * @brief 将星期数字转换为名称
@@ -287,7 +287,7 @@ COTER_API int ct_datetime_weekday_atoi(const char* weekday);
  *
  * @note 这个函数在格式化日期显示时很有用, 特别是在需要显示星期名称而不是数字时。
  */
-COTER_API const char* ct_datetime_weekday_itoa(int weekday);
+CT_API const char* ct_datetime_weekday_itoa(int weekday);
 
 /**
  * @brief 获取库的编译时间
@@ -305,43 +305,8 @@ COTER_API const char* ct_datetime_weekday_itoa(int weekday);
  *
  * @note 这个函数通常用于调试或版本信息显示, 可以帮助识别特定的库构建。
  */
-COTER_API ct_datetime_t __ct_datetime_compile(const char* date, const char* time);
+CT_API ct_datetime_t __ct_datetime_compile(const char* date, const char* time);
 #define ct_datetime_compile() __ct_datetime_compile(__DATE__, __TIME__)
-
-/**
- * @brief 计算下一个 cron 任务执行时间
- *
- * 根据给定的 cron 表达式参数, 计算下一个符合条件的执行时间。
- *
- * @param minute 分钟 (0-59, -1 表示每分钟)
- * @param hour 小时 (0-23, -1 表示每小时)
- * @param day 日期 (1-31, -1 表示每天)
- * @param week 星期 (0-6, 0 表示周日, -1 表示每周)
- * @param month 月份 (1-12, -1 表示每月)
- * @return time_t 下一个执行时间的时间戳, 如果参数无效则返回 -1
- *
- * @code
- * // 设置每天凌晨1:30执行
- * time_t next_run = ct_datetime_cron_next_timeout(30, 1, -1, -1, -1);
- * if (next_run != -1) {
- *     char buf[CT_DATETIME_FMT_BUFLEN];
- *     ct_datetime_t dt = ct_datetime_datetime_localtime(next_run);
- *     ct_datetime_datetime_fmt(&dt, buf);
- *     printf("next run time: %s\n", buf);
- * }
- * @endcode
- *
- * @note 这个函数在实现定时任务或调度系统时非常有用, 可以灵活地设置各种周期性任务。
- * minute   hour    day     week    month       action
- * 0~59     0~23    1~31    0~6     1~12
- *  -1      -1      -1      -1      -1          cron.minutely
- *  30      -1      -1      -1      -1          cron.hourly
- *  30      1       -1      -1      -1          cron.daily
- *  30      1       15      -1      -1          cron.monthly
- *  30      1       -1       0      -1          cron.weekly
- *  30      1        1      -1      10          cron.yearly
- */
-COTER_API time_t ct_datetime_cron_next_timeout(int minute, int hour, int day, int week, int month);
 
 #ifdef __cplusplus
 }

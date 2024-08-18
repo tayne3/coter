@@ -91,7 +91,7 @@ extern "C" {
  * @param __src 源字符串
  * @return 指向连接后的目标字符串的指针
  */
-COTER_API char *ct_strcat(char *__dest, const char *__src) __ct_throw __ct_nonnull(1, 2);
+CT_API char *ct_strcat(char *__dest, const char *__src) __ct_throw __ct_nonnull(1, 2);
 
 /**
  * @brief 将源字符串的前n个字符连接到目标字符串的末尾
@@ -100,7 +100,7 @@ COTER_API char *ct_strcat(char *__dest, const char *__src) __ct_throw __ct_nonnu
  * @param __n 要连接的字符个数
  * @return 指向连接后的目标字符串的指针
  */
-COTER_API char *ct_strncat(char *__dest, const char *__src, size_t __n) __ct_throw __ct_nonnull(1, 2);
+CT_API char *ct_strncat(char *__dest, const char *__src, size_t __n) __ct_throw __ct_nonnull(1, 2);
 
 /**
  * @brief 复制字符串
@@ -108,7 +108,7 @@ COTER_API char *ct_strncat(char *__dest, const char *__src, size_t __n) __ct_thr
  * @param __src 源字符串
  * @return 复制后的字符串
  */
-COTER_API char *ct_strcpy(char *__dest, const char *__src) __ct_throw __ct_nonnull(1, 2);
+CT_API char *ct_strcpy(char *__dest, const char *__src) __ct_throw __ct_nonnull(1, 2);
 
 /**
  * @brief 复制字符串的前n个字符
@@ -117,7 +117,7 @@ COTER_API char *ct_strcpy(char *__dest, const char *__src) __ct_throw __ct_nonnu
  * @param __n 复制的字符个数
  * @return 复制后的字符串
  */
-COTER_API char *ct_strncpy(char *__dest, const char *__src, size_t __n) __ct_throw __ct_nonnull(1, 2);
+CT_API char *ct_strncpy(char *__dest, const char *__src, size_t __n) __ct_throw __ct_nonnull(1, 2);
 
 /**
  * @brief 比较字符串
@@ -128,7 +128,7 @@ COTER_API char *ct_strncpy(char *__dest, const char *__src, size_t __n) __ct_thr
  *  比较字符串是指按照字典顺序比较两个字符串的大小。
  *  与 strcmp 相比, ct_strcmp 不会因为 l 和 r 是空指针而发生段错误。
  */
-COTER_API int ct_strcmp(const char *l, const char *r) __ct_throw __ct_attribute_pure__;
+CT_API int ct_strcmp(const char *l, const char *r) __ct_throw __ct_attribute_pure__;
 
 /**
  * @brief 比较字符串的前n个字符
@@ -140,7 +140,7 @@ COTER_API int ct_strcmp(const char *l, const char *r) __ct_throw __ct_attribute_
  *  比较字符串的前n个字符是指按照字典顺序比较两个字符串的前n个字符的大小。
  *  与 strncmp 相比, ct_strncmp 不会因为 l 和 r 是空指针而发生段错误。
  */
-COTER_API int ct_strncmp(const char *l, const char *r, size_t n) __ct_throw __ct_attribute_pure__;
+CT_API int ct_strncmp(const char *l, const char *r, size_t n) __ct_throw __ct_attribute_pure__;
 
 /**
  * @brief 比较字符串（忽略大小写）
@@ -151,7 +151,7 @@ COTER_API int ct_strncmp(const char *l, const char *r, size_t n) __ct_throw __ct
  *  比较字符串（忽略大小写）是指按照字典顺序比较两个字符串的大小，忽略大小写。
  *  与 strcasecmp 相比, ct_strcasecmp 不会因为 l 和 r 是空指针而发生段错误。
  */
-COTER_API int ct_strcasecmp(const char *l, const char *r) __ct_throw __ct_attribute_pure__;
+CT_API int ct_strcasecmp(const char *l, const char *r) __ct_throw __ct_attribute_pure__;
 #define ct_stricmp ct_strcasecmp
 
 /**
@@ -164,7 +164,7 @@ COTER_API int ct_strcasecmp(const char *l, const char *r) __ct_throw __ct_attrib
  *  比较字符串的前n个字符（忽略大小写）是指按照字典顺序比较两个字符串的前n个字符的大小，忽略大小写。
  *  与 strncasecmp 相比, ct_strncasecmp 不会因为 l 和 r 是空指针而发生段错误。
  */
-COTER_API int ct_strncasecmp(const char *l, const char *r, size_t n) __ct_throw __ct_attribute_pure__;
+CT_API int ct_strncasecmp(const char *l, const char *r, size_t n) __ct_throw __ct_attribute_pure__;
 #define ct_strnicmp ct_strncasecmp
 
 /**
@@ -173,7 +173,7 @@ COTER_API int ct_strncasecmp(const char *l, const char *r, size_t n) __ct_throw 
  * @param __format 格式化字符串
  * @return 格式化后的字符串的长度
  */
-COTER_API int ct_sprintf(char *__restrict __s, const char *__restrict __format, ...) __ct_throw;
+CT_API int ct_sprintf(char *__restrict __s, const char *__restrict __format, ...) __ct_throw;
 
 /**
  * @brief 格式化输出字符串
@@ -183,7 +183,7 @@ COTER_API int ct_sprintf(char *__restrict __s, const char *__restrict __format, 
  * @param ... 可变参数
  * @return 输出的实际字符数(不包含字符串结束符)。如果缓冲区长度不足,输出的字符串会被截断,且返回输出需要的总长度。
  */
-COTER_API int ct_snprintf(char *__restrict __s, size_t __maxlen, const char *__restrict __format, ...) __ct_throw
+CT_API int ct_snprintf(char *__restrict __s, size_t __maxlen, const char *__restrict __format, ...) __ct_throw
 	__ct_attribute__((__format__(__printf__, 3, 4)));
 
 /**

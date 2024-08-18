@@ -33,6 +33,20 @@ macro(project_check_function function header)
     endif()
 endmacro()
 
+# 检查结构体是否存在
+include(CheckStructHasMember)
+macro(project_check_struct struct member header)
+    string(TOUPPER ${struct} str1)
+    string(REGEX REPLACE "[ ]" "_" str2 ${str1})
+    set(str3 HAVE_${str2})
+    check_struct_has_member(${struct} ${member} ${header} ${str3})
+    if (${str3})
+        set(${str3} 1)
+    else()
+        set(${str3} 0)
+    endif()
+endmacro()
+
 # 安装目标
 macro(project_install_target Target)
     install(TARGETS ${Target}

@@ -5,7 +5,9 @@
  * @date 2023.12.03
  */
 #include "ct_msgqueue.h"
+
 #include "base/ct_time.h"
+#include "mech/ct_log.h"
 
 // -------------------------[STATIC DECLARATION]-------------------------
 

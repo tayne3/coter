@@ -22,8 +22,6 @@ static inline void  test_job_routine(void *arg);
 static inline void  test_jobpool_add(size_t data_count, size_t task_count, size_t job_count);
 
 int main(void) {
-	ctunit_trace("---------\n");
-
 	test_jobpool_add(10, 1, 10);
 	ctunit_trace("Finish! test_jobpool_add(10, 1, 10);\n");
 

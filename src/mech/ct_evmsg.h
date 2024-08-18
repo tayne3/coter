@@ -15,7 +15,7 @@ extern "C" {
 /**
  * @brief 事件消息
  */
-typedef struct ct_evmsg {
+typedef struct {
 	uint8_t type;  // 事件类型
 	uint8_t id;    // 事件ID
 	void   *data;  // 事件数据
@@ -35,22 +35,22 @@ typedef bool (*ct_evmsg_handler_t)(ct_evmsg_buf_t msg, void *userdata);
 /**
  * @brief 初始化事件消息中枢
  */
-COTER_API void ct_evmsg_mgr_init(void) __ct_throw;
+CT_API void ct_evmsg_mgr_init(void) __ct_throw;
 
 /**
  * @brief 销毁事件消息中枢
  */
-COTER_API void ct_evmsg_mgr_destroy(void);
+CT_API void ct_evmsg_mgr_destroy(void);
 
 /**
  * @brief 初始化事件消息
  */
-COTER_API void ct_evmsg_init(ct_evmsg_buf_t msg, uint8_t type, uint8_t id, void *data, size_t size);
+CT_API void ct_evmsg_init(ct_evmsg_buf_t msg, uint8_t type, uint8_t id, void *data, size_t size);
 
 /**
  * @brief 事件消息调度
  */
-COTER_API void ct_evmsg_schedule(void);
+CT_API void ct_evmsg_schedule(void);
 
 /**
  * @brief 订阅特定类型的事件
@@ -58,13 +58,13 @@ COTER_API void ct_evmsg_schedule(void);
  * @param handler 事件处理函数
  * @param userdata 用户数据
  */
-COTER_API void ct_evmsg_subscribe(uint8_t type, ct_evmsg_handler_t handler, void *userdata);
+CT_API void ct_evmsg_subscribe(uint8_t type, ct_evmsg_handler_t handler, void *userdata);
 
 /**
  * @brief 发布事件
  * @param msg 事件消息缓冲区
  */
-COTER_API void ct_evmsg_publish(ct_evmsg_buf_t msg);
+CT_API void ct_evmsg_publish(ct_evmsg_buf_t msg);
 
 #ifdef __cplusplus
 }

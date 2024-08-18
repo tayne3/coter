@@ -40,7 +40,7 @@ typedef time_t ct_time_t;
 typedef uint64_t ct_time64_t;
 
 // get milliseconds since system start (if available).
-COTER_API ct_time64_t gettick_ms(void);
+CT_API ct_time64_t gettick_ms(void);
 // get time in milliseconds.
 static inline ct_time64_t gettimeofday_ms(void) {
     struct timeval tv;
@@ -54,7 +54,7 @@ static inline ct_time64_t gettimeofday_us(void) {
     return tv.tv_sec * (ct_time64_t)1000000 + tv.tv_usec;
 }
 // get high-resolution time in microseconds.
-COTER_API ct_time64_t gethrtime_us(void);
+CT_API ct_time64_t gethrtime_us(void);
 
 // 获取当前秒级时间戳 (自纪元时间)
 #define ct_current_second() time(NULL)
@@ -101,7 +101,7 @@ static inline struct tm* ct_localtime_now(void) {
  *
  * @note 这个函数在显示持续时间或时间间隔时非常有用，如视频播放器或计时器。
  */
-COTER_API char* ct_tm_duration_fmt(int sec, char* buf);
+CT_API char* ct_tm_duration_fmt(int sec, char* buf);
 #define CT_TM_DURATION_MAX 12
 
 /**
@@ -122,7 +122,7 @@ COTER_API char* ct_tm_duration_fmt(int sec, char* buf);
  *
  * @note 这个函数在需要以标准格式显示日期时间时很有用，如日志记录或用户界面显示。
  */
-COTER_API char* ct_tm_fmt(const struct tm* dt, char* buf);
+CT_API char* ct_tm_fmt(const struct tm* dt, char* buf);
 #define CT_TM_FMT_MAX 20
 
 #ifdef __cplusplus

@@ -5,6 +5,7 @@
  * @date 2023.12.03
  */
 #include "ct_jobpool.h"
+
 #include "base/ct_platform.h"
 #include "container/ct_list.h"
 #include "mech/ct_log.h"
@@ -14,14 +15,6 @@
 // -------------------------[STATIC DECLARATION]-------------------------
 
 #define STR_CURRTITLE "[ct_thpool]"
-
-#if defined(__GNUC__) || defined(__clang__)
-#define PAUSE() __asm__ volatile("pause" ::: "memory")
-#elif defined(_MSC_VER)
-#define PAUSE() _mm_pause()
-#else
-#define PAUSE() sched_yield()
-#endif
 
 // 全局任务池
 static ct_jobpool_ptr_t jobpool_global       = ct_nullptr;
@@ -184,7 +177,7 @@ static inline void* ct_jobpool_thread_do_regular(void* arg) {
 		if (job->routine) {
 			job->routine(job->arg);
 		}
-		PAUSE();  // 避免独占CPU
+		CT_PAUSE();  // 避免独占CPU
 	}
 
 	pthread_exit(ct_nullptr);

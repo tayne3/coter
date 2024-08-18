@@ -125,7 +125,7 @@ enum ct_log_level {
  * @param format 日志消息格式
  * @param ... 日志消息参数
  */
-COTER_API void ct_log_msg_debug(int type, int level, const char *file, const char *func, int line, const char *format,
+CT_API void ct_log_msg_debug(int type, int level, const char *file, const char *func, int line, const char *format,
 								...);
 
 /**
@@ -135,7 +135,7 @@ COTER_API void ct_log_msg_debug(int type, int level, const char *file, const cha
  * @param format 日志消息格式
  * @param ... 日志消息参数
  */
-COTER_API void ct_log_msg_basic(int type, int level, const char *format, ...);
+CT_API void ct_log_msg_basic(int type, int level, const char *format, ...);
 
 /**
  * @brief 以十六进制格式打印数组
@@ -145,36 +145,36 @@ COTER_API void ct_log_msg_basic(int type, int level, const char *format, ...);
  * @param length 数组长度
  * @param format 输出格式
  */
-COTER_API void ct_log_msg_hex(int type, int level, const uint8_t *array, int length, const char *format, ...);
+CT_API void ct_log_msg_hex(int type, int level, const uint8_t *array, int length, const char *format, ...);
 
 /**
  * @brief 刷新日志缓冲区
  */
-COTER_API void ct_log_flush(void);
+CT_API void ct_log_flush(void);
 
 /**
  * @brief 日志中枢-调度
  */
-COTER_API void ct_log_mgr_schedule(void);
+CT_API void ct_log_mgr_schedule(void);
 
 /**
  * @brief 日志中枢-获取日志输出等级
  * @return 日志输出等级
  */
-COTER_API int ct_log_mgr_get_level(void);
+CT_API int ct_log_mgr_get_level(void);
 
 /**
  * @brief 日志中枢-设置日志输出等级
  * @param level 日志输出等级
  */
-COTER_API void ct_log_mgr_set_level(int level);
+CT_API void ct_log_mgr_set_level(int level);
 
 /**
  * @brief 日志中枢-设置日志异步输出
  * @param is_asyn 是否异步输出
  * @note 由于该函数并非线程安全, 应在程序启动后单次调用
  */
-COTER_API void ct_log_mgr_set_asyn(bool is_asyn);
+CT_API void ct_log_mgr_set_asyn(bool is_asyn);
 
 #ifdef __cplusplus
 }

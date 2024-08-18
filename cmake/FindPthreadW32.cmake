@@ -21,9 +21,9 @@ if(NOT WIN32)
     find_package(Threads REQUIRED)
 
     if(CMAKE_USE_PTHREADS_INIT)
-        add_library(pthread INTERFACE)
-        target_link_libraries(pthread INTERFACE ${CMAKE_THREAD_LIBS_INIT})
-        add_library(pthread::pthread ALIAS pthread)
+        # add_library(pthread INTERFACE)
+        # target_link_libraries(pthread INTERFACE ${CMAKE_THREAD_LIBS_INIT})
+        # add_library(pthread::pthread ALIAS pthread)
         message(STATUS "CMAKE_USE_PTHREADS_INIT: ${CMAKE_USE_PTHREADS_INIT}")
     else()
         message(FATAL_ERROR "Could not find pthread library. See README.Win32 for more information.")
@@ -31,11 +31,33 @@ if(NOT WIN32)
     return()
 endif()
 
-# 是否原生支持pthread
+# # 是否原生支持pthread
+# include(CheckLibraryExists)
+# check_library_exists(pthread pthread_rwlock_init "" HAVE_PTHREAD)
+# if(HAVE_PTHREAD)
+#     message(STATUS "HAVE_PTHREAD: ${HAVE_PTHREAD}")
+#     return()
+# endif()
+
 include(CheckLibraryExists)
-check_library_exists(pthread pthread_rwlock_init "" HAVE_PTHREAD)
-if(HAVE_PTHREAD)
-    message(STATUS "HAVE_PTHREAD: ${HAVE_PTHREAD}")
+
+# Do we have -lpthreads
+check_library_exists(pthreads pthread_create "" CMAKE_HAVE_PTHREADS_CREATE)
+if(CMAKE_HAVE_PTHREADS_CREATE)
+    message(STATUS "CMAKE_HAVE_PTHREADS_CREATE: ${CMAKE_HAVE_PTHREADS_CREATE}")
+    set(CMAKE_THREAD_LIBS_INIT "-lpthreads")
+    # set(CMAKE_HAVE_THREADS_LIBRARY 1)
+    # set(Threads_FOUND TRUE)
+    return()
+endif()
+
+# Ok, how about -lpthread
+check_library_exists(pthread pthread_create "" CMAKE_HAVE_PTHREAD_CREATE)
+if(CMAKE_HAVE_PTHREAD_CREATE)
+    message(STATUS "CMAKE_HAVE_PTHREAD_CREATE: ${CMAKE_HAVE_PTHREAD_CREATE}")
+    set(CMAKE_THREAD_LIBS_INIT "-lpthread")
+    # set(Threads_FOUND TRUE)
+    # set(CMAKE_HAVE_THREADS_LIBRARY 1)
     return()
 endif()
 
@@ -126,26 +148,27 @@ find_package_handle_standard_args(PTHREADS DEFAULT_MSG PTHREADS_LIBRARY PTHREADS
 if(PTHREADS_FOUND)
     set(PTHREADS_INCLUDE_DIRS ${PTHREADS_INCLUDE_DIR})
     set(PTHREADS_LIBRARIES ${PTHREADS_LIBRARY})
-    set(PTHREADS_DEFINITIONS -DHAVE_PTHREADS_H)
+    # set(PTHREADS_DEFINITIONS -DHAVE_PTHREADS_H)
 
     # Avoid redefinition of struct timespec
-    if(MSVC)
-        include(CheckStructHasMember)
-        check_struct_has_member("struct timespec" tv_sec time.h HAVE_STRUCT_TIMESPEC LANGUAGE C)
+    # if(MSVC)
+    #     include(CheckStructHasMember)
+    #     check_struct_has_member("struct timespec" tv_sec time.h HAVE_STRUCT_TIMESPEC LANGUAGE C)
 
-        if(HAVE_STRUCT_TIMESPEC)
-            set(PTHREADS_DEFINITIONS "${PTHREADS_DEFINITIONS} -DHAVE_STRUCT_TIMESPEC")
-        endif()
-    endif()
+    #     if(HAVE_STRUCT_TIMESPEC)
+    #         set(PTHREADS_DEFINITIONS "${PTHREADS_DEFINITIONS} -DHAVE_STRUCT_TIMESPEC")
+    #     endif()
+    # endif()
 
-    add_library(pthreadsw32 UNKNOWN IMPORTED)
-    add_library(pthread::pthread ALIAS pthreadsw32)
-    set_target_properties(pthreadsw32 PROPERTIES
+    add_library(pthreads-w32 UNKNOWN IMPORTED)
+    # add_library(pthread::pthread ALIAS pthreads-w32)
+    set_target_properties(pthreads-w32 PROPERTIES
         INTERFACE_INCLUDE_DIRECTORIES "${PTHREADS_INCLUDE_DIRS}"
         IMPORTED_LOCATION "${PTHREADS_LIBRARIES}"
         INTERFACE_COMPILE_DEFINITIONS "${PTHREADS_DEFINITIONS}"
         IMPORTED_LINK_INTERFACE_LANGUAGES "C"
     )
+    set(CMAKE_THREAD_LIBS_INIT pthreads-w32)
 
     if(PTHREADS_DLL)
         file(COPY ${PTHREADS_LIBRARIES} ${PTHREADS_DLL} DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")

@@ -27,7 +27,7 @@ static inline void main_timing_exit(ct_timer_id_t id, const ct_any_buf_t arg);
 int main(void) {
 	app_ptr_t app = app_create();
 
-	ct_timer_start(1000, false, true, main_timing_trigger, ct_any_null);  // 定时触发
+	ct_timer_start(1000, true, true, main_timing_trigger, ct_any_null);  // 定时触发
 	ct_timer_start(5000, false, false, main_timing_exit, ct_any_null);    // 定时退出
 
 	return app_exec(app);
@@ -37,7 +37,6 @@ int main(void) {
 
 static inline void main_timing_trigger(ct_timer_id_t id, const ct_any_buf_t arg) {
 	printf("timed trigger." STR_NEWLINE);
-	ASSERT(false);
 	ct_unused(id);
 	ct_unused(arg);
 }

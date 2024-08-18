@@ -26,6 +26,8 @@ project_check_function("setproctitle" "unistd.h")
 # project_check_function("pthread_spin_lock" "pthread.h")
 # project_check_function("pthread_mutex_timedlock" "pthread.h")
 
+project_check_struct("struct timespec" "tv_sec" "time.h")
+
 # 生成配置信息头文件
 configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/base/prefix/ct_config.h.in"
@@ -39,6 +41,7 @@ include(FindPthreadW32)
 # 打印版本号
 message(STATUS "Coter version: ${PROJECT_VERSION}")
 
+
 # 收集当前目录及其子目录中的源文件
 project_list_sources(files)
 # 创建库目标
@@ -50,9 +53,9 @@ target_include_directories(coter_obj PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_
 # 添加导出宏
 target_compile_definitions(coter_obj PRIVATE DLL_EXPORT)
 # 链接库
-if(TARGET pthread::pthread)
-    target_link_libraries(coter_obj PUBLIC pthread::pthread)
-endif()
+target_link_libraries(coter_obj PUBLIC 
+    ${CMAKE_THREAD_LIBS_INIT}
+)
 
 # 编译动态库
 if(COTER_BUILD_SHARED)
@@ -61,9 +64,9 @@ if(COTER_BUILD_SHARED)
     target_include_directories(coter_shared PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
     set_target_properties(coter_shared PROPERTIES OUTPUT_NAME coter)
     target_compile_definitions(coter_shared PRIVATE DLL_EXPORT)
-    if(TARGET pthread::pthread)
-        target_link_libraries(coter_shared PUBLIC pthread::pthread)
-    endif()
+    target_link_libraries(coter_shared PUBLIC 
+        ${CMAKE_THREAD_LIBS_INIT}
+    )
     if(NOT TARGET coter::coter)
         add_library(coter::coter ALIAS coter_shared)
     endif()
@@ -79,9 +82,9 @@ if(COTER_BUILD_STATIC)
     target_include_directories(coter_static PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
     set_target_properties(coter_static PROPERTIES OUTPUT_NAME coter)
     target_compile_definitions(coter_static PRIVATE DLL_EXPORT)
-    if(TARGET pthread::pthread)
-        target_link_libraries(coter_static PUBLIC pthread::pthread)
-    endif()
+    target_link_libraries(coter_static PUBLIC 
+        ${CMAKE_THREAD_LIBS_INIT}
+    )
     if(NOT TARGET coter::coter)
         add_library(coter::coter ALIAS coter_static)
     endif()

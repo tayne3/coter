@@ -25,7 +25,7 @@ typedef struct ct_thpool* ct_jobpool_ptr_t;
  * @param attr 线程属性 (NULL 则使用默认属性)
  * @return 返回新创建的任务池指针，如果创建失败则返回空指针
  */
-COTER_API ct_jobpool_ptr_t ct_jobpool_create(size_t thread_max, size_t job_max) __ct_throw;
+CT_API ct_jobpool_ptr_t ct_jobpool_create(size_t thread_max, size_t job_max) __ct_throw;
 
 /**
  * @brief 创建全局任务池
@@ -35,14 +35,14 @@ COTER_API ct_jobpool_ptr_t ct_jobpool_create(size_t thread_max, size_t job_max) 
  * @return 返回全局任务池指针，如果创建失败则返回空指针, 如果全局任务池已存在则返回全局任务池
  * @note 为保证线程安全, 当前函数只建议在主线程调用
  */
-COTER_API ct_jobpool_ptr_t ct_jobpool_global(size_t thread_max, size_t job_max) __ct_throw;
+CT_API ct_jobpool_ptr_t ct_jobpool_global(size_t thread_max, size_t job_max) __ct_throw;
 
 /**
  * @brief 销毁任务池
  *
  * @param self 需要销毁的任务池指针, 不能为空指针
  */
-COTER_API void ct_jobpool_destroy(ct_jobpool_ptr_t self);
+CT_API void ct_jobpool_destroy(ct_jobpool_ptr_t self);
 
 /**
  * @brief 向任务池中添加一个工作
@@ -51,7 +51,7 @@ COTER_API void ct_jobpool_destroy(ct_jobpool_ptr_t self);
  * @param routine 执行函数
  * @param arg 执行参数
  */
-COTER_API void ct_jobpool_add(ct_jobpool_ptr_t self, ct_jobpool_routine_t routine, void* arg);
+CT_API void ct_jobpool_add(ct_jobpool_ptr_t self, ct_jobpool_routine_t routine, void* arg);
 
 #ifdef __cplusplus
 }
