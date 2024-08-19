@@ -36,12 +36,14 @@ CT_API bool ct_cron_mgr_schedule(ct_time_t now);
 
 /**
  * @brief 启动cron任务
- * @param interval 触发间隔 (ms)
- * @param isnow 是否立即触发
- * @param isloop 是否循环触发
- * @param callback 回调函数
- * @param arg 回调参数
- * @return ct_cron_id_t cron任务id
+ * @param minute 分钟 (0-59, -1 表示每分钟)
+ * @param hour 小时 (0-23, -1 表示每小时)
+ * @param day 日期 (1-31, -1 表示每天)
+ * @param week 星期 (0-6, 0 表示周日, -1 表示每周)
+ * @param month 月份 (1-12, -1 表示每月)
+ * @param callback 任务触发时的回调函数
+ * @param arg 传递给回调函数的参数
+ * @return ct_cron_id_t 返回cron任务的唯一标识符，如果创建失败则返回 CT_CRON_ID_INVALID
  */
 CT_API ct_cron_id_t ct_cron_start(int minute, int hour, int day, int week, int month, ct_cron_callback_t callback,
 									 ct_any_t arg);
