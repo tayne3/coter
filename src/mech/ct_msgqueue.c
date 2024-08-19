@@ -13,9 +13,6 @@
 
 #define STR_CURRTITLE "[ct_msgqueue]"
 
-#define ct_msgqueue_lock(self)   pthread_mutex_lock(self->mutex)
-#define ct_msgqueue_unlock(self) pthread_mutex_unlock(self->mutex)
-
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
 void ct_msgqueue_init(ct_msgqueue_buf_t self, void *buffer, size_t byte, size_t max) {
@@ -31,11 +28,11 @@ void ct_msgqueue_close(ct_msgqueue_buf_t self) {
 		return;
 	}
 
-	ct_msgqueue_lock(self);
+	pthread_mutex_lock(self->mutex);
 	self->is_shut = true;
 	pthread_cond_broadcast(self->not_empty);
 	pthread_cond_broadcast(self->not_full);
-	ct_msgqueue_unlock(self);
+	pthread_mutex_unlock(self->mutex);
 }
 
 void ct_msgqueue_destroy(ct_msgqueue_buf_t self) {
@@ -50,17 +47,17 @@ void ct_msgqueue_destroy(ct_msgqueue_buf_t self) {
 
 bool ct_msgqueue_isempty(ct_msgqueue_buf_t self) {
 	bool is_empty;
-	ct_msgqueue_lock(self);
+	pthread_mutex_lock(self->mutex);
 	is_empty = ct_queue_isempty(self->queue);
-	ct_msgqueue_unlock(self);
+	pthread_mutex_unlock(self->mutex);
 	return is_empty;
 }
 
 bool ct_msgqueue_isfull(ct_msgqueue_buf_t self) {
 	bool is_full;
-	ct_msgqueue_lock(self);
+	pthread_mutex_lock(self->mutex);
 	is_full = ct_queue_isfull(self->queue);
-	ct_msgqueue_unlock(self);
+	pthread_mutex_unlock(self->mutex);
 	return is_full;
 }
 
@@ -69,21 +66,21 @@ bool ct_msgqueue_enqueue(ct_msgqueue_buf_t self, const void *item) {
 		return false;
 	}
 
-	ct_msgqueue_lock(self);
+	pthread_mutex_lock(self->mutex);
 	for (; ct_queue_isfull(self->queue);) {
 		if (pthread_cond_wait(self->not_full, self->mutex) != 0) {
-			ct_msgqueue_unlock(self);
+			pthread_mutex_unlock(self->mutex);
 			return false;
 		}
 		if (self->is_shut) {
-			ct_msgqueue_unlock(self);
+			pthread_mutex_unlock(self->mutex);
 			return false;
 		}
 	}
 
 	ct_queue_enqueue(self->queue, item);
 	pthread_cond_signal(self->not_empty);
-	ct_msgqueue_unlock(self);
+	pthread_mutex_unlock(self->mutex);
 	return true;
 }
 
@@ -92,21 +89,21 @@ bool ct_msgqueue_dequeue(ct_msgqueue_buf_t self, void *item) {
 		return false;
 	}
 
-	ct_msgqueue_lock(self);
+	pthread_mutex_lock(self->mutex);
 	for (; ct_queue_isempty(self->queue);) {
 		if (pthread_cond_wait(self->not_empty, self->mutex) != 0) {
-			ct_msgqueue_unlock(self);
+			pthread_mutex_unlock(self->mutex);
 			return false;
 		}
 		if (self->is_shut) {
-			ct_msgqueue_unlock(self);
+			pthread_mutex_unlock(self->mutex);
 			return false;
 		}
 	}
 
 	ct_queue_dequeue(self->queue, item);
 	pthread_cond_signal(self->not_full);
-	ct_msgqueue_unlock(self);
+	pthread_mutex_unlock(self->mutex);
 	return true;
 }
 
@@ -115,18 +112,18 @@ bool ct_msgqueue_try_enqueue(ct_msgqueue_buf_t self, const void *item) {
 		return false;
 	}
 
-	ct_msgqueue_lock(self);
+	pthread_mutex_lock(self->mutex);
 	if (self->is_shut) {
-		ct_msgqueue_unlock(self);
+		pthread_mutex_unlock(self->mutex);
 		return false;
 	}
 	if (ct_queue_isfull(self->queue)) {
-		ct_msgqueue_unlock(self);
+		pthread_mutex_unlock(self->mutex);
 		return false;
 	}
 	ct_queue_enqueue(self->queue, item);
 	pthread_cond_signal(self->not_empty);
-	ct_msgqueue_unlock(self);
+	pthread_mutex_unlock(self->mutex);
 	return true;
 }
 
@@ -135,18 +132,18 @@ bool ct_msgqueue_try_dequeue(ct_msgqueue_buf_t self, void *item) {
 		return false;
 	}
 
-	ct_msgqueue_lock(self);
+	pthread_mutex_lock(self->mutex);
 	if (self->is_shut) {
-		ct_msgqueue_unlock(self);
+		pthread_mutex_unlock(self->mutex);
 		return false;
 	}
 	if (ct_queue_isempty(self->queue)) {
-		ct_msgqueue_unlock(self);
+		pthread_mutex_unlock(self->mutex);
 		return false;
 	}
 	ct_queue_dequeue(self->queue, item);
 	pthread_cond_signal(self->not_full);
-	ct_msgqueue_unlock(self);
+	pthread_mutex_unlock(self->mutex);
 	return true;
 }
 
