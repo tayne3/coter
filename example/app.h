@@ -36,6 +36,13 @@ int app_exec(app_ptr_t self);
  */
 void app_exit(int code, const char* msg);
 
+/**
+ * @brief 应用崩溃
+ * @param code 退出状态码
+ * @param msg 退出消息
+ */
+void app_crash(int code, const char* msg);
+
 #ifdef __cplusplus
 }
 #endif
