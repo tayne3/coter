@@ -60,16 +60,9 @@ typedef unsigned __int64    uint64_t;
 #endif
 
 #ifdef _MSC_VER
-    typedef int pid_t;
-    typedef int gid_t;
-    typedef int uid_t;
     #define strcasecmp  stricmp
     #define strncasecmp strnicmp
 #else
-    typedef int                 BOOL;
-    typedef unsigned char       BYTE;
-    typedef unsigned short      WORD;
-    typedef void*               HANDLE;
     #include <strings.h>
     #define stricmp     strcasecmp
     #define strnicmp    strncasecmp
