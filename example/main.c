@@ -5,7 +5,6 @@
  * @date 2023.12.04
  */
 #include "app.h"
-#include "base/ct_time.h"
 #include "mech/ct_log.h"
 #include "mech/ct_timer.h"
 
@@ -28,7 +27,7 @@ int main(void) {
 	app_ptr_t app = app_create();
 
 	ct_timer_start(1000, true, true, main_timing_trigger, ct_any_null);  // 定时触发
-	ct_timer_start(5000, false, false, main_timing_exit, ct_any_null);    // 定时退出
+	ct_timer_start(5000, false, false, main_timing_exit, ct_any_null);   // 定时退出
 
 	return app_exec(app);
 }
@@ -36,13 +35,13 @@ int main(void) {
 // -------------------------[STATIC DECLARATION]-------------------------
 
 static inline void main_timing_trigger(ct_timer_id_t id, const ct_any_buf_t arg) {
-	printf("timed trigger." STR_NEWLINE);
+	ctrace("timed trigger." STR_NEWLINE);
 	ct_unused(id);
 	ct_unused(arg);
 }
 
 static inline void main_timing_exit(ct_timer_id_t id, const ct_any_buf_t arg) {
-	app_exit(1, "timed exit.");
+	app_exit(EXIT_FAILURE, "timed exit.");
 	ct_unused(id);
 	ct_unused(arg);
 }

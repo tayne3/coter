@@ -7,6 +7,9 @@ if(MSVC)
     add_compile_options(
         /source-charset:utf-8               # 设置源代码文件的字符集编码为UTF-8
     )
+    # Release也生成pdb文件
+    # set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /DEBUG /OPT:REF /OPT:ICF")
+    # set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} /DEBUG /OPT:REF /OPT:ICF")
 else()
     add_compile_options(
         -Wall                               # 启用常见警告

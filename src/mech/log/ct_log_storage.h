@@ -34,7 +34,7 @@ typedef struct ct_log_storage {
 		.file_name   = _file_name,                                           \
 		._file       = ct_nullptr,                                           \
 		._file_index = 0,                                                    \
-		.mutex       = {CT_MUTEX_INITIALIZATION},                            \
+		.mutex       = {PTHREAD_MUTEX_INITIALIZER},                          \
 	}
 
 /**

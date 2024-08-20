@@ -18,12 +18,6 @@ typedef struct excep {
 
 #define EXCEP_INIT(code, msg, is_sig) {code, msg, is_sig}
 
-static inline void excep_init(excep_t* self, int code, const char* msg, bool is_sig) {
-	self->code   = code;
-	self->msg    = msg;
-	self->is_sig = is_sig;
-}
-
 #ifdef __cplusplus
 }
 #endif
