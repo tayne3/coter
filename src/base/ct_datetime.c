@@ -194,11 +194,11 @@ const char* ct_datetime_weekday_itoa(int weekday) {
 	return s_weekdays[weekday];
 }
 
-ct_datetime_t __ct_datetime_compile(const char* date, const char* time) {
+ct_datetime_t __ct_datetime_compile(const char* _date, const char* _time) {
 	ct_datetime_t dt;
 	char          month[32];
-	sscanf(date, "%s %d %d", month, &dt.day, &dt.year);
-	sscanf(time, "%d:%d:%d", &dt.hour, &dt.min, &dt.sec);
+	sscanf(_date, "%s %d %d", month, &dt.day, &dt.year);
+	sscanf(_time, "%d:%d:%d", &dt.hour, &dt.min, &dt.sec);
 	dt.month = ct_datetime_month_atoi(month);
 	return dt;
 }

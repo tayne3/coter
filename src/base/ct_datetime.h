@@ -305,7 +305,7 @@ CT_API const char* ct_datetime_weekday_itoa(int weekday);
  *
  * @note 这个函数通常用于调试或版本信息显示, 可以帮助识别特定的库构建。
  */
-CT_API ct_datetime_t __ct_datetime_compile(const char* date, const char* time);
+CT_API ct_datetime_t __ct_datetime_compile(const char* _date, const char* _time);
 #define ct_datetime_compile() __ct_datetime_compile(__DATE__, __TIME__)
 
 #ifdef __cplusplus
