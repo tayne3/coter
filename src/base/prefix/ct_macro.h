@@ -314,12 +314,17 @@ typedef struct ct_context {
 #endif
 #endif
 
-#if defined(__GNUC__) || defined(__clang__)
-#define CT_PAUSE() __asm__ volatile("pause" ::: "memory")
-#elif defined(_MSC_VER)
-#define CT_PAUSE() _mm_pause()
+#if defined(__x86_64__) || defined(__i386__)
+    #if defined(__GNUC__) || defined(__clang__)
+        #define CT_PAUSE() __asm__ volatile("pause" ::: "memory")
+    #elif defined(_MSC_VER)
+        #include <intrin.h>
+        #define CT_PAUSE() _mm_pause()
+    #endif
+#elif defined(__aarch64__) || defined(__arm__)
+    #define CT_PAUSE() __asm__ volatile("yield" ::: "memory")
 #else
-#define CT_PAUSE() sched_yield()
+    #define CT_PAUSE() sched_yield()
 #endif
 
 # ifndef __THROW
