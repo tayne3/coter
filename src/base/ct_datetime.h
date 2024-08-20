@@ -188,7 +188,7 @@ CT_API char* ct_datetime_fmt_iso(const ct_datetime_t* dt, char* buf);
  *
  * 将给定的时间戳格式化为 GMT 时间字符串。
  *
- * @param time UNIX 时间戳
+ * @param t UNIX 时间戳
  * @param buf 用于存储格式化结果的字符缓冲区
  * @return char* 指向格式化后字符串的指针(与 buf 相同)
  *
@@ -201,7 +201,7 @@ CT_API char* ct_datetime_fmt_iso(const ct_datetime_t* dt, char* buf);
  *
  * @note 这个函数在需要显示 GMT 时间时很有用, 如生成 HTTP 头或处理国际化时间。
  */
-CT_API char* ct_datetime_gmtime_fmt(time_t time, char* buf);
+CT_API char* ct_datetime_gmtime_fmt(time_t t, char* buf);
 
 /**
  * @brief 计算指定月份的天数

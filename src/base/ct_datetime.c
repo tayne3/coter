@@ -147,8 +147,8 @@ char* ct_datetime_fmt_iso(const ct_datetime_t* dt, char* buf) {
 	return buf;
 }
 
-char* ct_datetime_gmtime_fmt(time_t time, char* buf) {
-	struct tm* tm = gmtime(&time);
+char* ct_datetime_gmtime_fmt(time_t t, char* buf) {
+	struct tm* tm = gmtime(&t);
 	// strftime(buf, CT_GMTIME_FMT_BUFLEN, "%a, %d %b %Y %H:%M:%S GMT", tm);
 	ct_sprintf(buf, CT_GMTIME_FMT, s_weekdays[tm->tm_wday], tm->tm_mday, s_months[tm->tm_mon], tm->tm_year + 1900,
 			   tm->tm_hour, tm->tm_min, tm->tm_sec);
