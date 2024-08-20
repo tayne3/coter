@@ -110,6 +110,40 @@ typedef unsigned __int64    uint64_t;
     #define CT_OS_UNIX
 #endif
 
+#if defined(__x86_64__) || defined(__i386__)
+    #if defined(__GNUC__) || defined(__clang__)
+        #define CT_PAUSE() __asm__ volatile("pause" ::: "memory")
+    #elif defined(_MSC_VER)
+        #include <intrin.h>
+        #define CT_PAUSE() _mm_pause()
+    #endif
+#elif (defined(__aarch64__) || defined(__arm__)) && defined(__ARM_ARCH)
+    #if __ARM_ARCH >= 7
+        #define CT_PAUSE() __asm__ volatile("yield" ::: "memory")
+    #else
+        #define CT_PAUSE() __asm__ volatile("nop" ::: "memory")
+    #endif
+#elif defined(__powerpc__) || defined(__ppc__) || defined(__PPC__)
+    #define CT_PAUSE() __asm__ volatile("or 27,27,27" ::: "memory")
+#elif defined(__ia64__)
+    #define CT_PAUSE() __asm__ volatile ("hint @pause" ::: "memory")
+#elif defined(__sparc__)
+    #define CT_PAUSE() __asm__ volatile("rd %ccr, %g0" ::: "memory")
+#elif defined(__mips__)
+    #define CT_PAUSE() __asm__ volatile(".word 0x00000140" ::: "memory")
+#elif defined(__riscv)
+    #if __riscv_xlen == 32
+        #define CT_PAUSE() __asm__ volatile(".word 0x0100000f" ::: "memory")
+    #elif __riscv_xlen == 64
+        #define CT_PAUSE() __asm__ volatile(".dword 0x0100000f" ::: "memory")
+    #endif
+#elif defined(__loongarch__)
+    #define CT_PAUSE() __asm__ volatile("dbar 0" ::: "memory")
+#else
+    #include <sched.h>
+    #define CT_PAUSE() sched_yield()
+#endif
+
 // byte endian
 typedef bool ct_endian_t;
 
@@ -312,19 +346,6 @@ typedef struct ct_context {
 		 }                                         \
 	 }))
 #endif
-#endif
-
-#if defined(__x86_64__) || defined(__i386__)
-    #if defined(__GNUC__) || defined(__clang__)
-        #define CT_PAUSE() __asm__ volatile("pause" ::: "memory")
-    #elif defined(_MSC_VER)
-        #include <intrin.h>
-        #define CT_PAUSE() _mm_pause()
-    #endif
-#elif defined(__aarch64__) || defined(__arm__)
-    #define CT_PAUSE() __asm__ volatile("yield" ::: "memory")
-#else
-    #define CT_PAUSE() sched_yield()
 #endif
 
 # ifndef __THROW
