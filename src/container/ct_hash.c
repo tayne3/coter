@@ -32,10 +32,6 @@
 #define CT_HASH_ISFULL(self)  ((self)->size >= (self)->max)  // 判断 哈希表 是否已满
 #define CT_HASH_DATA(self, i) ((self)->all[i])               // 获取 哈希表 指定元素
 
-#ifndef STR_ISEMPTY
-#define STR_ISEMPTY(_str) (!(_str) || !*(const char *)(_str))
-#endif
-
 #define CT_HASH_DEFAULT_MAX               8                                           // 默认容量
 #define CT_HASH_MEMORY_MAX                0x80000000                                  // 最大内存限制
 #define CT_HASH_HASHALGO(key, key_length) ct_hashalgo_times33((key), (key_length))    // 根据key生成哈希值

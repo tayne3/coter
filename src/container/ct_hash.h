@@ -107,7 +107,7 @@ CT_API bool ct_hash_isempty(const ct_hash_buf_t self) __ct_nonnull(1);
  * @param key 键
  * @return 是否存在
  */
-CT_API bool ct_hash_contains(const ct_hash_buf_t self, const char *key) __ct_nonnull(1, 2);
+CT_API bool ct_hash_contains(const ct_hash_buf_t self, const char *key) __ct_nonnull(1);
 
 /**
  * @brief 插入元素
@@ -116,7 +116,7 @@ CT_API bool ct_hash_contains(const ct_hash_buf_t self, const char *key) __ct_non
  * @param value 值
  * @return 是否成功插入
  */
-CT_API bool ct_hash_insert(ct_hash_buf_t self, const char *key, ct_any_t value) __ct_nonnull(1, 2);
+CT_API bool ct_hash_insert(ct_hash_buf_t self, const char *key, ct_any_t value) __ct_nonnull(1);
 
 /**
  * @brief 删除元素
@@ -124,7 +124,7 @@ CT_API bool ct_hash_insert(ct_hash_buf_t self, const char *key, ct_any_t value) 
  * @param key 键
  * @return 是否成功删除
  */
-CT_API bool ct_hash_remove(ct_hash_buf_t self, const char *key) __ct_nonnull(1, 2);
+CT_API bool ct_hash_remove(ct_hash_buf_t self, const char *key) __ct_nonnull(1);
 
 /**
  * @brief 清空哈希表
@@ -138,7 +138,7 @@ CT_API void ct_hash_clear(ct_hash_buf_t self) __ct_nonnull(1);
  * @param key 键
  * @return 对应的值
  */
-CT_API ct_any_t ct_hash_value(ct_hash_buf_t self, const char *key) __ct_nonnull(1, 2);
+CT_API ct_any_t ct_hash_value(ct_hash_buf_t self, const char *key) __ct_nonnull(1);
 
 /**
  * @brief 获取 key 对应的值
@@ -147,7 +147,7 @@ CT_API ct_any_t ct_hash_value(ct_hash_buf_t self, const char *key) __ct_nonnull(
  * @param value 值的指针
  * @return 是否成功获取值
  */
-CT_API bool ct_hash_value_r(ct_hash_buf_t self, const char *key, ct_any_buf_t value) __ct_nonnull(1, 2);
+CT_API bool ct_hash_value_r(ct_hash_buf_t self, const char *key, ct_any_buf_t value) __ct_nonnull(1);
 
 /**
  * @brief 获取 key 对应的值 (带默认值)
@@ -156,7 +156,7 @@ CT_API bool ct_hash_value_r(ct_hash_buf_t self, const char *key, ct_any_buf_t va
  * @param default_value 默认值
  * @return 对应的值
  */
-CT_API ct_any_t ct_hash_value_s(ct_hash_buf_t self, const char *key, ct_any_t default_value) __ct_nonnull(1, 2);
+CT_API ct_any_t ct_hash_value_s(ct_hash_buf_t self, const char *key, ct_any_t default_value) __ct_nonnull(1);
 
 #ifdef __cplusplus
 }
