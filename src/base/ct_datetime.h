@@ -165,7 +165,7 @@ CT_API char* ct_datetime_fmt_iso(const ct_datetime_t* dt, char* buf) __ct_nonnul
  *
  * 将给定的时间戳格式化为 GMT 时间字符串。
  *
- * @param time UNIX 时间戳
+ * @param t UNIX 时间戳
  * @param buf 用于存储格式化结果的字符缓冲区
  * @return char* 指向格式化后字符串的指针(与 buf 相同)
  *
@@ -176,7 +176,7 @@ CT_API char* ct_datetime_fmt_iso(const ct_datetime_t* dt, char* buf) __ct_nonnul
  * printf("GMT time: %s\n", buf);
  * @endcode
  */
-CT_API char* ct_datetime_gmtime_fmt(time_t time, char* buf) __ct_nonnull(2);
+CT_API char* ct_datetime_gmtime_fmt(time_t t, char* buf);
 
 /**
  * @brief 计算指定月份的天数
@@ -268,7 +268,7 @@ CT_API const char* ct_datetime_weekday_itoa(int weekday);
  * printf("compile time: %s\n", buf);
  * @endcode
  */
-CT_API ct_datetime_t __ct_datetime_compile(const char* date, const char* time) __ct_nonnull(1, 2);
+CT_API ct_datetime_t __ct_datetime_compile(const char* _date, const char* _time);
 #define ct_datetime_compile() __ct_datetime_compile(__DATE__, __TIME__)
 
 #ifdef __cplusplus

@@ -147,8 +147,8 @@ char* ct_datetime_fmt_iso(const ct_datetime_t* dt, char* buf) {
 	return buf;
 }
 
-char* ct_datetime_gmtime_fmt(time_t time, char* buf) {
-	struct tm* tm = gmtime(&time);
+char* ct_datetime_gmtime_fmt(time_t t, char* buf) {
+	struct tm* tm = gmtime(&t);
 	// strftime(buf, CT_GMTIME_FMT_BUFLEN, "%a, %d %b %Y %H:%M:%S GMT", tm);
 	sprintf(buf, CT_GMTIME_FMT, s_weekdays[tm->tm_wday], tm->tm_mday, s_months[tm->tm_mon], tm->tm_year + 1900,
 			   tm->tm_hour, tm->tm_min, tm->tm_sec);
@@ -194,11 +194,11 @@ const char* ct_datetime_weekday_itoa(int weekday) {
 	return s_weekdays[weekday];
 }
 
-ct_datetime_t __ct_datetime_compile(const char* date, const char* time) {
+ct_datetime_t __ct_datetime_compile(const char* _date, const char* _time) {
 	ct_datetime_t dt;
 	char          month[32];
-	sscanf(date, "%s %d %d", month, &dt.day, &dt.year);
-	sscanf(time, "%d:%d:%d", &dt.hour, &dt.min, &dt.sec);
+	sscanf(_date, "%s %d %d", month, &dt.day, &dt.year);
+	sscanf(_time, "%d:%d:%d", &dt.hour, &dt.min, &dt.sec);
 	dt.month = ct_datetime_month_atoi(month);
 	return dt;
 }
