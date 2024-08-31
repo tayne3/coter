@@ -61,38 +61,35 @@ ct_logger_t* ct_logger_create(const struct ct_log_config* config) {
 
 void ct_logger_destroy(ct_logger_t* logger) {
 	assert(logger);
-	if (logger) {
-		struct ct_log_printer*  printer  = logger->printer;
-		struct ct_log_callback* callback = logger->callback;
-		struct ct_log_storage*  storage  = logger->storage;
-		logger->printer                  = NULL;
-		logger->callback                 = NULL;
-		logger->storage                  = NULL;
-		if (printer) {
-			ct_log_printer_flush(printer);
-		}
-		if (storage) {
-			ct_log_storage_destroy(storage);
-		}
-		if (callback) {
-			ct_log_callback_destroy(callback);
-		}
-		free(logger);
+
+	struct ct_log_printer*  printer  = logger->printer;
+	struct ct_log_callback* callback = logger->callback;
+	struct ct_log_storage*  storage  = logger->storage;
+	logger->printer                  = NULL;
+	logger->callback                 = NULL;
+	logger->storage                  = NULL;
+	if (printer) {
+		ct_log_printer_flush(printer);
 	}
+	if (storage) {
+		ct_log_storage_destroy(storage);
+	}
+	if (callback) {
+		ct_log_callback_destroy(callback);
+	}
+	free(logger);
 }
 
 CT_API void ct_logger_schedule(ct_logger_t* logger) {
 	assert(logger);
-	if (logger) {
-		if (logger->printer) {
-			ct_log_printer_flush(logger->printer);
-		}
-		if (logger->storage) {
-			ct_log_storage_flush(logger->storage);
-		}
-		if (logger->callback) {
-			ct_log_callback_flush(logger->callback);
-		}
+	if (logger->printer) {
+		ct_log_printer_flush(logger->printer);
+	}
+	if (logger->storage) {
+		ct_log_storage_flush(logger->storage);
+	}
+	if (logger->callback) {
+		ct_log_callback_flush(logger->callback);
 	}
 }
 
@@ -115,6 +112,7 @@ void ct_logger_handle(ct_logger_t* logger, char* buf, size_t size) {
 static inline void mgr_initialize(void) {
 	g_bytepool = ct_bytepool_create(1024, 1024);
 	g_printer  = ct_log_printer_create(g_bytepool);
+	atexit(mgr_destroy);
 }
 
 static inline void mgr_destroy(void) {

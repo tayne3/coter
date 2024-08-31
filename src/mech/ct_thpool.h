@@ -25,7 +25,7 @@ typedef struct ct_thpool* ct_thpool_ptr_t;
  * @param attr 线程属性 (NULL 则使用默认属性)
  * @return 返回新创建的线程池指针，如果创建失败则返回空指针
  */
-CT_API ct_thpool_ptr_t ct_thpool_create(pthread_attr_t* attr) __ct_throw __ct_nonnull(1);
+CT_API ct_thpool_ptr_t ct_thpool_create(pthread_attr_t* attr) __ct_throw;
 
 /**
  * @brief 销毁线程池

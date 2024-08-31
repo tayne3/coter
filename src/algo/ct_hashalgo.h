@@ -61,7 +61,7 @@ CT_API uint64_t ct_hashalgo_murmurhash2_64(const char *data, size_t size, uint64
  * @return 64位哈希值
  */
 CT_API uint64_t ct_hashalgo_siphash_64(const char *data, size_t size, const uint8_t sipct_hashalgo_keys[16])
-	__ct_nonnull(1, 2);
+	__ct_nonnull(1);
 
 #ifdef __cplusplus
 }

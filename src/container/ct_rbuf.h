@@ -59,7 +59,7 @@ CT_API void ct_rbuf_init(ct_rbuf_buf_t self, void *buffer, size_t byte, size_t m
  * @param item 要添加的元素
  * @return 成功返回 true，失败返回 false
  */
-CT_API bool ct_rbuf_put(ct_rbuf_buf_t self, const void *item) __ct_nonnull(1, 2);
+CT_API bool ct_rbuf_put(ct_rbuf_buf_t self, const void *item) __ct_nonnull(1);
 
 /**
  * @brief 从环形缓冲区取出单个元素
@@ -67,7 +67,7 @@ CT_API bool ct_rbuf_put(ct_rbuf_buf_t self, const void *item) __ct_nonnull(1, 2)
  * @param item 用于存储元素的指针
  * @return 成功返回 true，失败返回 false
  */
-CT_API bool ct_rbuf_take(ct_rbuf_buf_t self, void *item) __ct_nonnull(1, 2);
+CT_API bool ct_rbuf_take(ct_rbuf_buf_t self, void *item) __ct_nonnull(1);
 
 /**
  * @brief 向环形缓冲区添加多个元素
@@ -79,7 +79,7 @@ CT_API bool ct_rbuf_take(ct_rbuf_buf_t self, void *item) __ct_nonnull(1, 2);
  * 该函数用于从环形缓冲区中取出多个元素，如果要取出的元素数量超过了环形缓冲区的大小，将只取出环形缓冲区中的所有元素。
  * 该函数相当于从环形缓冲区中获取到元素之后将其删除。
  */
-CT_API size_t ct_rbuf_puts(ct_rbuf_buf_t self, const void *items, size_t size) __ct_nonnull(1, 2);
+CT_API size_t ct_rbuf_puts(ct_rbuf_buf_t self, const void *items, size_t size) __ct_nonnull(1);
 
 /**
  * @brief 从环形缓冲区取出多个元素
@@ -88,7 +88,7 @@ CT_API size_t ct_rbuf_puts(ct_rbuf_buf_t self, const void *items, size_t size) _
  * @param size 要获取的元素数量
  * @return 成功获取的元素数量
  */
-CT_API size_t ct_rbuf_takes(ct_rbuf_buf_t self, void *items, size_t size) __ct_nonnull(1, 2);
+CT_API size_t ct_rbuf_takes(ct_rbuf_buf_t self, void *items, size_t size) __ct_nonnull(1);
 
 /**
  * @brief 从环形缓冲区获取多个元素
@@ -99,7 +99,7 @@ CT_API size_t ct_rbuf_takes(ct_rbuf_buf_t self, void *items, size_t size) __ct_n
  * @note
  * 该函数用于从环形缓冲区中获取多个元素，如果要获取的元素数量超过了环形缓冲区的大小，将只获取环形缓冲区中的所有元素。
  */
-CT_API size_t ct_rbuf_gets(ct_rbuf_buf_t self, void *items, size_t size) __ct_nonnull(1, 2);
+CT_API size_t ct_rbuf_gets(ct_rbuf_buf_t self, void *items, size_t size) __ct_nonnull(1);
 
 /**
  * @brief 从环形缓冲区中移除指定数量的元素

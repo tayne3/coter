@@ -50,7 +50,6 @@ void ct_rbuf_init(ct_rbuf_buf_t self, void *buffer, size_t byte, size_t max) {
 bool ct_rbuf_put(ct_rbuf_buf_t self, const void *item) {
 	assert(self);
 	assert(self->_byte);
-	assert(item);
 
 	if (ct_rbuf_isfull(self)) {
 		return false;
@@ -67,7 +66,6 @@ bool ct_rbuf_put(ct_rbuf_buf_t self, const void *item) {
 bool ct_rbuf_take(ct_rbuf_buf_t self, void *item) {
 	assert(self);
 	assert(self->_byte);
-	assert(item);
 
 	if (ct_rbuf_isempty(self)) {
 		return false;
@@ -84,7 +82,6 @@ bool ct_rbuf_take(ct_rbuf_buf_t self, void *item) {
 size_t ct_rbuf_puts(ct_rbuf_buf_t self, const void *items, size_t size) {
 	assert(self);
 	assert(self->_byte);
-	assert(items);
 
 	{
 		const size_t available = self->_max - self->_size;
@@ -112,7 +109,6 @@ size_t ct_rbuf_puts(ct_rbuf_buf_t self, const void *items, size_t size) {
 size_t ct_rbuf_takes(ct_rbuf_buf_t self, void *items, size_t size) {
 	assert(self);
 	assert(self->_byte);
-	assert(items);
 
 	{
 		const size_t available = self->_size;
@@ -140,7 +136,6 @@ size_t ct_rbuf_takes(ct_rbuf_buf_t self, void *items, size_t size) {
 size_t ct_rbuf_gets(ct_rbuf_buf_t self, void *items, size_t size) {
 	assert(self);
 	assert(self->_byte);
-	assert(items);
 
 	{
 		const size_t available = self->_size;

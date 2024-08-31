@@ -60,7 +60,8 @@ void ct_hash_init(ct_hash_buf_t self) {
 }
 
 void ct_hash_init_s(ct_hash_buf_t self, size_t max, bool allow_resize, ct_any_methods_t methods) {
-	assert(self && max);
+	assert(self);
+	assert(max > 0);
 
 	if (max > CT_HASH_MEMORY_MAX) {
 		max = CT_HASH_MEMORY_MAX;

@@ -25,16 +25,15 @@ ct_bytepool_t *ct_bytepool_create(size_t max_size, size_t bytes_capacity) {
 }
 
 void ct_bytepool_destroy(ct_bytepool_t *self) {
-	if (self) {
-		ct_spinlock_lock(&self->lock);
-		ct_list_foreach_entry_safe (bytes, self->box_list, ct_bytes_t, list) {
-			ct_list_remove(bytes->list);
-			ct_bytes_destroy(bytes);
-		}
-		ct_spinlock_unlock(&self->lock);
-		ct_spinlock_destroy(&self->lock);
-		free(self);
+	assert(self);
+	ct_spinlock_lock(&self->lock);
+	ct_list_foreach_entry_safe (bytes, self->box_list, ct_bytes_t, list) {
+		ct_list_remove(bytes->list);
+		ct_bytes_destroy(bytes);
 	}
+	ct_spinlock_unlock(&self->lock);
+	ct_spinlock_destroy(&self->lock);
+	free(self);
 }
 
 ct_bytes_t *ct_bytepool_get(ct_bytepool_t *self) {

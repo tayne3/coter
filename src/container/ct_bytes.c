@@ -29,9 +29,8 @@ ct_bytes_t *ct_bytes_create(size_t capacity) {
 }
 
 void ct_bytes_destroy(ct_bytes_t *self) {
-	if (self) {
-		free(self);
-	}
+	assert(self);
+	free(self);
 }
 
 size_t ct_bytes_write(ct_bytes_t *self, const void *data, size_t length) {
