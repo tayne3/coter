@@ -115,11 +115,6 @@ void ct_jobpool_destroy(ct_jobpool_t* self) {
 	// 关闭消息队列
 	ct_msgqueue_close(self->job_queue);
 
-	// 取消所有线程
-	ct_list_foreach_entry_safe (unit, self->regular_list, unit_t, list) {
-		pthread_cancel(unit->thread);
-	}
-
 	// 等待所有线程退出
 	ct_list_foreach_entry_safe (unit, self->regular_list, unit_t, list) {
 		pthread_join(unit->thread, NULL);
