@@ -65,7 +65,7 @@ LONG WINAPI MyUnhandledExceptionFilter(EXCEPTION_POINTERS *exp);
  * @param CtrlType 控制类型
  * @return WINBOOL 处理结果
  */
-WINBOOL WINAPI MyConsoleCtrlHandler(DWORD CtrlType);
+BOOL WINAPI MyConsoleCtrlHandler(DWORD CtrlType);
 
 /**
  * @brief 写入迷你转储文件
@@ -156,7 +156,7 @@ LONG WINAPI MyUnhandledExceptionFilter(EXCEPTION_POINTERS *exp) {
 	return EXCEPTION_EXECUTE_HANDLER;
 }
 
-WINBOOL WINAPI MyConsoleCtrlHandler(DWORD CtrlType) {
+BOOL WINAPI MyConsoleCtrlHandler(DWORD CtrlType) {
 	switch (CtrlType) {
 		case CTRL_C_EVENT: app_exit(EXIT_FAILURE, "CTRL+C pressed"); return TRUE;
 		case CTRL_BREAK_EVENT: app_exit(EXIT_FAILURE, "CTRL+BREAK pressed"); return TRUE;

@@ -283,8 +283,8 @@ static inline bool storage_file_init(ct_log_storage_t *self) {
 	// 索引
 	int last_index = -1, first_index = -1;
 	// 文件名缓冲区
-	char curr_filename[256], last_filename[256], first_filename[256];
-	int  curr_length;
+	char curr_filename[256] = {0}, last_filename[256] = {0}, first_filename[256] = {0};
+	int  curr_length = 0;
 
 	if (ct_stat(self->file_dir, &curr_st) != 0) {
 		storage_folder_create_recursive(self->file_dir);  // 递归创建文件夹
@@ -297,28 +297,36 @@ static inline bool storage_file_init(ct_log_storage_t *self) {
 		if (ct_stat(curr_filename, &curr_st) == -1) {
 			continue;  // 获取文件状态失败
 		}
+#ifdef CT_OS_WIN
+		storage_file_writable_set(last_filename);
+#else
 		if (!(curr_st.st_mode & S_IRUSR) || !(curr_st.st_mode & S_IWUSR)) {
-			storage_file_writable_set(last_filename);  // 设置可写权限
+			storage_file_writable_set(last_filename);
 		}
+#endif
 		if (last_index == -1) {
 			last_index = i;
 			last_st    = curr_st;
-			strncpy(last_filename, curr_filename, curr_length);
+			char *end  = strncpy(last_filename, curr_filename, curr_length);
+			*end       = '\0';
 		} else if (last_st.st_mtime < curr_st.st_mtime) {
 			last_index = i;
 			last_st    = curr_st;
-			strncpy(last_filename, curr_filename, curr_length);
+			char *end  = strncpy(last_filename, curr_filename, curr_length);
+			*end       = '\0';
 		}
 		if (first_index == -1) {
 			first_index = i;
 			first_st    = curr_st;
 			first_index = curr_length;
-			strncpy(first_filename, curr_filename, curr_length);
+			char *end   = strncpy(first_filename, curr_filename, curr_length);
+			*end        = '\0';
 		} else if (first_st.st_mtime < curr_st.st_mtime) {
 			first_index = i;
 			first_st    = curr_st;
 			first_index = curr_length;
-			strncpy(first_filename, curr_filename, curr_length);
+			char *end   = strncpy(first_filename, curr_filename, curr_length);
+			*end        = '\0';
 		}
 	}
 	if (last_index == -1) {
@@ -405,13 +413,13 @@ static inline bool storage_folder_create_recursive(const char *path) {
 static inline bool storage_file_writable_set(const char *filename) {
 #ifdef CT_OS_WIN
 	DWORD attributes = GetFileAttributesA(filename);
-	if (attributes == INVALID_FILE_ATTRIBUTES) {
-		fprintf(stderr, "Error getting file attributes: %lu\n", GetLastError());
-		return false;
-	}
+	// if (attributes == INVALID_FILE_ATTRIBUTES) {
+	// 	fprintf(stderr, "Error getting file attributes: %lu\n", GetLastError());
+	// 	return false;
+	// }
 
 	// 移除只读属性，确保文件可写
-	if (attributes & FILE_ATTRIBUTE_READONLY) {
+	if (attributes != INVALID_FILE_ATTRIBUTES && (attributes & FILE_ATTRIBUTE_READONLY)) {
 		attributes &= ~FILE_ATTRIBUTE_READONLY;
 		if (!SetFileAttributesA(filename, attributes)) {
 			fprintf(stderr, "Error setting file attributes: %lu\n", GetLastError());

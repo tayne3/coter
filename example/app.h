@@ -14,6 +14,10 @@ extern "C" {
 #include "base/ct_platform.h"
 #include "mech/ct_log.h"
 
+#define cerror printf
+#define cerror_n printf
+#define ctrace printf
+
 /**
  * @brief 应用实例
  */

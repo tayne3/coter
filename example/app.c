@@ -61,10 +61,10 @@ app_ptr_t app_create(void) {
 	app_welcome();                                                      // 输出启动信息
 	exception_init();                                                   // 初始化异常处理函数
 	ct_msgqueue_init(gapp->exitMQ, gapp->exitBuf, sizeof(excep_t), 1);  // 初始化异常退出队列
-	gapp->thpool  = ct_thpool_global(NULL);                             // 创建全局线程池
-	gapp->jobpool = ct_jobpool_global(16, 50);                          // 创建全局任务池
+	gapp->thpool  = ct_thpool_create(NULL);                             // 创建全局线程池
+	gapp->jobpool = ct_jobpool_create(16, 50);                          // 创建全局任务池
 	ct_timer_mgr_init(tick, gapp->jobpool);                             // 初始化定时器中枢
-	ct_evmsg_mgr_init();                                                // 初始化事件消息中枢
+	//ct_evmsg_mgr_init();                                                // 初始化事件消息中枢
 	ct_cron_mgr_init(now / 1000, gapp->jobpool);                        // 初始化cron任务中枢
 
 	return gapp;
@@ -97,7 +97,7 @@ int app_exec(app_ptr_t self) {
 
 		ct_cron_mgr_schedule(now);    // 执行cron任务调度
 		ct_timer_mgr_schedule(tick);  // 执行定时器调度
-		ct_evmsg_schedule();          // 执行事件消息调度
+		//ct_evmsg_schedule();          // 执行事件消息调度
 		// ct_log_mgr_schedule();        // 执行日志调度
 		ct_msleep(10);  // 调度间隔 (10ms)
 	}

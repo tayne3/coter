@@ -6,6 +6,8 @@
  */
 #include "ct_log_timecache.h"
 
+#include "base/ct_time.h"
+
 // -------------------------[STATIC DECLARATION]-------------------------
 
 #define STR_CURRTITLE "[ct_log_timecache]"
