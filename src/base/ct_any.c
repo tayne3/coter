@@ -13,7 +13,7 @@
 #define STR_CURRTITLE "[ct_any]"
 
 // 空
-const ct_any_t ct_any_null = CT_ANY_INIT_SPECIFY(0, CTAny_TypeInvalid);
+const ct_any_t ct_any_null = CT_ANY_INIT_INVALID;
 
 // 字符串比较
 static inline bool any_strcmp(const char *l, const char *r);
@@ -68,23 +68,23 @@ size_t ct_any_to_string(const ct_any_buf_t self, char *buf, size_t max) {
 	assert(buf);
 	assert(max > 0);
 	switch (self->type) {
-		case CTAny_TypeBool: return ct_snprintf(buf, max, "%d", self->d->b);
-		case CTAny_TypeFloat: return ct_snprintf(buf, max, "%f", self->d->f);
-		case CTAny_TypeDouble: return ct_snprintf(buf, max, "%f", self->d->d);
-		case CTAny_TypeString: return ct_snprintf(buf, max, "%s", self->d->str);
-		case CTAny_TypePointer: return ct_snprintf(buf, max, "%p", self->d->ptr);
-		case CTAny_TypeInt: return ct_snprintf(buf, max, "%i", self->d->i);
-		case CTAny_TypeInt8: return ct_snprintf(buf, max, "%" PRIi8, self->d->i8);
-		case CTAny_TypeInt16: return ct_snprintf(buf, max, "%" PRIi16, self->d->i16);
-		case CTAny_TypeInt32: return ct_snprintf(buf, max, "%" PRIi32, self->d->i32);
-		case CTAny_TypeInt64: return ct_snprintf(buf, max, "%" PRIi64, self->d->i64);
-		case CTAny_TypeUint: return ct_snprintf(buf, max, "%u", self->d->u);
-		case CTAny_TypeUint8: return ct_snprintf(buf, max, "%" PRIu8, self->d->u8);
-		case CTAny_TypeUint16: return ct_snprintf(buf, max, "%" PRIu16, self->d->u16);
-		case CTAny_TypeUint32: return ct_snprintf(buf, max, "%" PRIu32, self->d->u32);
-		case CTAny_TypeUint64: return ct_snprintf(buf, max, "%" PRIu64, self->d->u64);
+		case CTAny_TypeBool: return ct_snprintf_s(buf, max, "%d", self->d->b);
+		case CTAny_TypeFloat: return ct_snprintf_s(buf, max, "%f", self->d->f);
+		case CTAny_TypeDouble: return ct_snprintf_s(buf, max, "%f", self->d->d);
+		case CTAny_TypeString: return ct_snprintf_s(buf, max, "%s", self->d->str);
+		case CTAny_TypePointer: return ct_snprintf_s(buf, max, "%p", self->d->ptr);
+		case CTAny_TypeInt: return ct_snprintf_s(buf, max, "%i", self->d->i);
+		case CTAny_TypeInt8: return ct_snprintf_s(buf, max, "%" PRIi8, self->d->i8);
+		case CTAny_TypeInt16: return ct_snprintf_s(buf, max, "%" PRIi16, self->d->i16);
+		case CTAny_TypeInt32: return ct_snprintf_s(buf, max, "%" PRIi32, self->d->i32);
+		case CTAny_TypeInt64: return ct_snprintf_s(buf, max, "%" PRIi64, self->d->i64);
+		case CTAny_TypeUint: return ct_snprintf_s(buf, max, "%u", self->d->u);
+		case CTAny_TypeUint8: return ct_snprintf_s(buf, max, "%" PRIu8, self->d->u8);
+		case CTAny_TypeUint16: return ct_snprintf_s(buf, max, "%" PRIu16, self->d->u16);
+		case CTAny_TypeUint32: return ct_snprintf_s(buf, max, "%" PRIu32, self->d->u32);
+		case CTAny_TypeUint64: return ct_snprintf_s(buf, max, "%" PRIu64, self->d->u64);
 		case CTAny_TypeInvalid:
-		default: return ct_snprintf(buf, max, "%s", "(invalid)");
+		default: return ct_snprintf_s(buf, max, "%s", "(invalid)");
 	}
 }
 

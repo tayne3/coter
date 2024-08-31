@@ -133,24 +133,24 @@ char* ct_datetime_duration_fmt(int sec, char* buf) {
 	s = sec % 60;
 	h = m / 60;
 	m = m % 60;
-	ct_sprintf(buf, CT_TIME_FMT, h, m, s);
+	sprintf(buf, CT_TIME_FMT, h, m, s);
 	return buf;
 }
 
 char* ct_datetime_fmt(const ct_datetime_t* dt, char* buf) {
-	ct_sprintf(buf, CT_DATETIME_FMT, dt->year, dt->month, dt->day, dt->hour, dt->min, dt->sec);
+	sprintf(buf, CT_DATETIME_FMT, dt->year, dt->month, dt->day, dt->hour, dt->min, dt->sec);
 	return buf;
 }
 
 char* ct_datetime_fmt_iso(const ct_datetime_t* dt, char* buf) {
-	ct_sprintf(buf, CT_DATETIME_FMT_ISO, dt->year, dt->month, dt->day, dt->hour, dt->min, dt->sec, dt->ms);
+	sprintf(buf, CT_DATETIME_FMT_ISO, dt->year, dt->month, dt->day, dt->hour, dt->min, dt->sec, dt->ms);
 	return buf;
 }
 
 char* ct_datetime_gmtime_fmt(time_t time, char* buf) {
 	struct tm* tm = gmtime(&time);
 	// strftime(buf, CT_GMTIME_FMT_BUFLEN, "%a, %d %b %Y %H:%M:%S GMT", tm);
-	ct_sprintf(buf, CT_GMTIME_FMT, s_weekdays[tm->tm_wday], tm->tm_mday, s_months[tm->tm_mon], tm->tm_year + 1900,
+	sprintf(buf, CT_GMTIME_FMT, s_weekdays[tm->tm_wday], tm->tm_mday, s_months[tm->tm_mon], tm->tm_year + 1900,
 			   tm->tm_hour, tm->tm_min, tm->tm_sec);
 	return buf;
 }

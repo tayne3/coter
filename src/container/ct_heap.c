@@ -43,7 +43,7 @@ void ct_heap_down(ct_heap_buf_t self, size_t i) {
 	size_t index_left  = CT_HEAP_INDEX_LEFT(index_min);
 	size_t index_right = CT_HEAP_INDEX_RIGHT(index_min);
 
-	ct_forever {
+	for (;;) {
 		if (index_left < self->_size && CT_HEAP_COMPARE(self, index_left, i)) {
 			i = index_left;
 		}

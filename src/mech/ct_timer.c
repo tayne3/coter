@@ -42,8 +42,8 @@ typedef struct ct_timer {
 #define CT_TIMER_MAX             128
 #define CT_TIMER_ID_NULL         CT_TIMER_ID_INVALID
 #define CT_TIMER_ID_ISNULL(id)   ((id) == CT_TIMER_ID_NULL)
-#define CT_TIMER_ID_TO_INDEX(id) (((id) & 0x00000000FFFFFFFF) - 1)
-#define CT_TIMER_ID_RESET(self)  ((self)->id &= 0x00000000FFFFFFFF)
+#define CT_TIMER_ID_TO_INDEX(id) (((id) & 0x0000FFFFUL) - 1)
+#define CT_TIMER_ID_RESET(self)  ((self)->id &= 0x0000FFFFUL)
 
 /**
  * @struct ct_timer_manager
@@ -73,10 +73,13 @@ static struct ct_timer_manager {
 	ct_heap_buf_t   heap;                        // 最小堆
 	ct_timer_buf_t  timer_null;                  // 空定时器
 	ct_time64_t     time_tick;                   // 运行时间
+	ct_jobpool_t   *jobpool;                     // 任务池
 	ct_timer_id_t   ident_count;                 // ID计数
 	bool            is_busy;                     // 是否忙碌
 } mgr[1] = {{
 	.lock        = {PTHREAD_MUTEX_INITIALIZER},
+	.time_tick   = 0,
+	.jobpool     = NULL,
 	.ident_count = 0,
 	.is_busy     = false,
 }};
@@ -120,8 +123,6 @@ static inline void mgr_timer_callback(void *arg);
 static inline ct_timer_t *mgr_take_trigger_timer(void);
 // 生成并返回唯一的定时器id
 static inline ct_timer_id_t tr_generate_id(ct_timer_t *self);
-// 获取定时器 (此函数永远不返回空指针)
-// static inline ct_timer_t *tr_get(ct_timer_id_t id);
 // 添加定时器
 static inline void tr_add(ct_timer_t *self);
 // 刷新定时器触发时间
@@ -131,7 +132,8 @@ static inline bool tr_istrigger(ct_timer_t *self);
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
-void ct_timer_mgr_init(ct_time64_t tick) {
+void ct_timer_mgr_init(ct_time64_t tick, struct ct_jobpool *jobpool) {
+	assert(jobpool);
 	// 初始化最小堆
 	ct_heap_init(mgr->heap, mgr->heap_buffer, CT_TIMER_MAX, tr_sorting);
 	// 初始化可用定时器链表
@@ -148,6 +150,7 @@ void ct_timer_mgr_init(ct_time64_t tick) {
 	}
 
 	mgr->time_tick = tick;
+	mgr->jobpool   = jobpool;
 }
 
 bool ct_timer_mgr_schedule(ct_time64_t tick) {
@@ -167,7 +170,7 @@ bool ct_timer_mgr_schedule(ct_time64_t tick) {
 	mgr_unlock();
 
 	// 添加异步工作
-	ct_jobpool_add(ct_nullptr, mgr_trigger_callback, it);
+	ct_jobpool_add(mgr->jobpool, mgr_trigger_callback, it);
 	return true;
 }
 
@@ -175,14 +178,14 @@ ct_timer_id_t ct_timer_start(ct_time64_t interval, bool is_loop, bool is_now, ct
 							 ct_any_t arg) {
 	assert(callback);
 	if (interval == 0) {
-		// cwarning(STR_CURRTITLE " start timer error, timer interval is 0." STR_NEWLINE);
+		// printf(STR_CURRTITLE " start timer error, timer interval is 0." STR_NEWLINE);
 		return CT_TIMER_ID_NULL;
 	}
 	mgr_lock();
 	// 判断启用数量是否达到上限 以及 可用链表是否为空
 	if (mgr_isfull() || ct_list_isempty(mgr->idle_list)) {
 		mgr_unlock();
-		// cwarning(STR_CURRTITLE " start timer error, timer is full." STR_NEWLINE);
+		// printf(STR_CURRTITLE " start timer error, timer is full." STR_NEWLINE);
 		return CT_TIMER_ID_NULL;
 	}
 	// 取出第一个可用定时器
@@ -213,7 +216,7 @@ ct_timer_id_t ct_timer_start(ct_time64_t interval, bool is_loop, bool is_now, ct
 
 void ct_timer_stop(ct_timer_id_t id) {
 	if (CT_TIMER_ID_ISNULL(id)) {
-		cwarning(STR_CURRTITLE " get timer error, timer id invalid: %llu. " STR_NEWLINE, id);
+		// printf(STR_CURRTITLE " get timer error, timer id invalid: %" PRIu32 ". " STR_NEWLINE, id);
 		return;  // 无效ID
 	}
 
@@ -229,7 +232,7 @@ void ct_timer_stop(ct_timer_id_t id) {
 	}
 	if (!self || !self->is_active) {
 		mgr_unlock();
-		cwarning(STR_CURRTITLE " get timer error, timer id %llu not found. " STR_NEWLINE, id);
+		// printf(STR_CURRTITLE " get timer error, timer id %" PRIu32 " not found. " STR_NEWLINE, id);
 		return;
 	}
 
@@ -256,7 +259,7 @@ static inline void tr_init(ct_timer_t *self, uint32_t idx) {
 	self->is_loop     = false;
 	self->trigger_new = 0;
 	self->interval    = 0;
-	self->callback    = ct_nullptr;
+	self->callback    = NULL;
 	*self->arg        = ct_any_null;
 }
 
@@ -264,13 +267,12 @@ static inline void mgr_trigger_callback(void *arg) {
 	assert(arg);
 	ct_timer_t *it = (ct_timer_t *)arg;
 	if (it->is_active) {
-		// ct_jobpool_add(ct_nullptr, mgr_timer_callback, it);  // 添加异步工作
-
+		// ct_jobpool_add(mgr->jobpool, mgr_timer_callback, it);  // 添加异步工作
 		mgr_timer_callback(it);
 	}
 
 	// 不断取出定时器并处理, 直到不存在定时器或者存在定时器不触发时停止
-	ct_forever {
+	for (;;) {
 		mgr_lock();
 		it = mgr_take_trigger_timer();
 		if (!it->is_active) {
@@ -281,8 +283,7 @@ static inline void mgr_trigger_callback(void *arg) {
 		mgr_unlock();
 
 		if (it->is_active) {
-			// ct_jobpool_add(ct_nullptr, mgr_timer_callback, it);  // 添加异步工作
-
+			// ct_jobpool_add(mgr->jobpool, mgr_timer_callback, it);  // 添加异步工作
 			mgr_timer_callback(it);
 		}
 		sched_yield();
@@ -340,26 +341,8 @@ static inline ct_timer_id_t tr_generate_id(ct_timer_t *self) {
 	} else {
 		mgr->ident_count = 0;
 	}
-	return self->id = ((ct_timer_id_t)mgr->ident_count << 32) | (self->id & 0x00000000FFFFFFFF);
+	return self->id = ((ct_timer_id_t)mgr->ident_count << 16) | (self->id & 0x0000FFFF);
 }
-
-// static inline ct_timer_t *tr_get(ct_timer_id_t id) {
-// 	if (CT_TIMER_ID_ISNULL(id)) {
-// 		cwarning(STR_CURRTITLE " get timer error, timer id invalid: %llu. " STR_NEWLINE, id);
-// 		return CT_TIMER_NULL;  // 无效ID
-// 	}
-
-// 	const size_t idx = CT_TIMER_ID_TO_INDEX(id);
-// 	if (idx < mgr_max()) {
-// 		ct_timer_t *it = mgr->timer_buffer[idx];
-// 		if (it->id == id) {
-// 			return it;
-// 		}
-// 	}
-
-// 	// cwarning(STR_CURRTITLE " get timer error, timer id %llu not found." STR_NEWLINE, id);
-// 	return CT_TIMER_NULL;
-// }
 
 static inline void tr_add(ct_timer_t *self) {
 	// 计算并设置触发时间 (触发时间小于当前时间时,直接返回)

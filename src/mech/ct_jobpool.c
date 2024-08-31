@@ -14,11 +14,7 @@
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
-#define STR_CURRTITLE "[ct_thpool]"
-
-// 全局任务池
-static ct_jobpool_ptr_t jobpool_global       = ct_nullptr;
-static pthread_mutex_t  jobpool_global_mutex = PTHREAD_MUTEX_INITIALIZER;
+#define STR_CURRTITLE "[ct_jobpool]"
 
 /**
  * @brief 任务池工作
@@ -41,25 +37,25 @@ typedef struct unit {
 /**
  * @brief 任务池
  */
-typedef struct ct_thpool {
+struct ct_jobpool {
 	job_t*            job_buffer;    // 工作队列缓冲区
 	ct_msgqueue_buf_t job_queue;     // 工作队列
 	ct_list_buf_t     regular_list;  // 执行常规任务的线程
 	size_t            thread_max;    // 线程数
 	size_t            job_max;       // 工作数
-} ct_jobpool_t;
+};
 
 // 线程执行函数-常规
 static inline void* ct_jobpool_thread_do_regular(void* arg);
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
-ct_jobpool_ptr_t ct_jobpool_create(size_t thread_max, size_t job_max) {
+ct_jobpool_t* ct_jobpool_create(size_t thread_max, size_t job_max) {
 	assert(thread_max);
 	assert(job_max);
 
 	// 创建任务池
-	ct_jobpool_ptr_t self = (ct_jobpool_ptr_t)malloc(sizeof(ct_jobpool_t));
+	ct_jobpool_t* self = (ct_jobpool_t*)malloc(sizeof(ct_jobpool_t));
 	assert(self);
 
 	self->thread_max = thread_max;
@@ -103,7 +99,7 @@ ct_jobpool_ptr_t ct_jobpool_create(size_t thread_max, size_t job_max) {
 			sched_yield();
 		} else {
 			free(unit);
-			cfatal(STR_CURRTITLE " failed to create thread" STR_NEWLINE);
+			printf(STR_CURRTITLE " failed to create thread" STR_NEWLINE);
 		}
 	}
 
@@ -112,20 +108,7 @@ ct_jobpool_ptr_t ct_jobpool_create(size_t thread_max, size_t job_max) {
 	return self;
 }
 
-ct_jobpool_ptr_t ct_jobpool_global(size_t thread_max, size_t job_max) {
-	assert(thread_max);
-	assert(job_max);
-	if (!jobpool_global) {
-		pthread_mutex_lock(&jobpool_global_mutex);
-		if (!jobpool_global) {
-			jobpool_global = ct_jobpool_create(thread_max, job_max);
-		}
-		pthread_mutex_unlock(&jobpool_global_mutex);
-	}
-	return jobpool_global;
-}
-
-void ct_jobpool_destroy(ct_jobpool_ptr_t self) {
+void ct_jobpool_destroy(ct_jobpool_t* self) {
 	assert(self);
 	assert(self->job_buffer);
 
@@ -153,11 +136,9 @@ void ct_jobpool_destroy(ct_jobpool_ptr_t self) {
 	free(self);
 }
 
-void ct_jobpool_add(ct_jobpool_ptr_t self, ct_jobpool_routine_t routine, void* arg) {
-	if (!self) {
-		self = ct_jobpool_global(16, 50);
-	}
+void ct_jobpool_add(ct_jobpool_t* self, ct_jobpool_routine_t routine, void* arg) {
 	assert(self);
+	assert(routine);
 
 	// 将工作加入消息队列
 	const job_buf_t job = {CT_THPOOL_JOB_INIT(routine, arg)};
@@ -170,7 +151,7 @@ static inline void* ct_jobpool_thread_do_regular(void* arg) {
 	unit_t* unit = (unit_t*)arg;
 	job_t*  job  = unit->job;
 
-	ct_forever {
+	for (;;) {
 		if (!ct_msgqueue_dequeue(unit->job_queue, job)) {
 			break;  // 等待工作, 失败则代表任务池已关闭
 		}
@@ -180,6 +161,6 @@ static inline void* ct_jobpool_thread_do_regular(void* arg) {
 		CT_PAUSE();  // 避免独占CPU
 	}
 
-	pthread_exit(ct_nullptr);
-	return ct_nullptr;
+	pthread_exit(NULL);
+	return NULL;
 }

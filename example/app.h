@@ -9,7 +9,10 @@
 extern "C" {
 #endif
 
+#define CTLog_StyleUser CTLog_StyleBrief
+
 #include "base/ct_platform.h"
+#include "mech/ct_log.h"
 
 /**
  * @brief 应用实例

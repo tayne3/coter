@@ -4,8 +4,8 @@
  * @author tayne3@dingtalk.com
  * @date 2023.11.30
  */
+#include "base/ct_any.h"
 #include "base/ct_platform.h"
-#include "common/ct_any.h"
 #include "container/ct_hash.h"
 #include "ctunit.h"
 #include "sched.h"
@@ -37,8 +37,8 @@ static inline void test_hash_basic(void) {
 	ctunit_assert_false(ct_hash_value_r(chash, "", NULL));
 
 	for (register int i = 0; i < TEST_NUMBER; i++) {
-		ct_snprintf(test_keys[i], sizeof(test_keys[0]), "Key%03d", i + 1);
-		ct_snprintf(test_values[i], sizeof(test_keys[0]), "Value%03d", i + 1);
+		ct_snprintf_s(test_keys[i], sizeof(test_keys[0]), "Key%03d", i + 1);
+		ct_snprintf_s(test_values[i], sizeof(test_keys[0]), "Value%03d", i + 1);
 		sched_yield();
 	}
 

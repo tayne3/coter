@@ -18,12 +18,12 @@ extern "C" {
 
 // COMPILER
 #if defined (_MSC_VER)
-#define COMPILER_MSVC
+#define CT_COMPILER_MSVC
 
-#undef  HAVE_STDATOMIC_H
-#define HAVE_STDATOMIC_H        0
-#undef  HAVE_SYS_TIME_H
-#define HAVE_SYS_TIME_H         0
+// #undef  HAVE_STDATOMIC_H
+// #define HAVE_STDATOMIC_H        0
+// #undef  HAVE_SYS_TIME_H
+// #define HAVE_SYS_TIME_H         0
 
 #pragma warning (disable: 4018) // signed/unsigned comparison
 #pragma warning (disable: 4100) // unused param
@@ -34,23 +34,23 @@ extern "C" {
 #pragma warning (disable: 4996) // _CRT_SECURE_NO_WARNINGS
 
 #elif defined(__GNUC__)
-#define COMPILER_GCC
+#define CT_COMPILER_GCC
 
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE 1
 #endif
 
 #elif defined(__clang__)
-#define COMPILER_CLANG
+#define CT_COMPILER_CLANG
 
 #elif defined(__MINGW32__) || defined(__MINGW64__)
-#define COMPILER_MINGW
+#define CT_COMPILER_MINGW
 
 #elif defined(__MSYS__)
-#define COMPILER_MSYS
+#define CT_COMPILER_MSYS
 
 #elif defined(__CYGWIN__)
-#define COMPILER_CYGWIN
+#define CT_COMPILER_CYGWIN
 
 #else
 #warning "Untested compiler!"
@@ -67,12 +67,15 @@ extern "C" {
 	#ifndef WIN64_LEAN_AND_MEAN
 	#define WIN64_LEAN_AND_MEAN
 	#endif
+    // 禁止编译器对非标准C函数发出废弃警告
 	#ifndef _CRT_NONSTDC_NO_DEPRECATE
 	#define _CRT_NONSTDC_NO_DEPRECATE
 	#endif
+    // 禁止编译器对不安全的C运行时函数发出警告
 	#ifndef _CRT_SECURE_NO_WARNINGS
 	#define _CRT_SECURE_NO_WARNINGS
 	#endif
+    // 禁止编译器对已废弃的Winsock API函数发出警告
 	#ifndef _WINSOCK_DEPRECATED_NO_WARNINGS
 	#define _WINSOCK_DEPRECATED_NO_WARNINGS
 	#endif

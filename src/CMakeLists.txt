@@ -41,7 +41,6 @@ include(FindPthreadW32)
 # 打印版本号
 message(STATUS "Coter version: ${PROJECT_VERSION}")
 
-
 # 收集当前目录及其子目录中的源文件
 project_list_sources(files)
 # 创建库目标
@@ -54,7 +53,7 @@ target_include_directories(coter_obj PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_
 target_compile_definitions(coter_obj PRIVATE DLL_EXPORT)
 # 链接库
 target_link_libraries(coter_obj PUBLIC 
-    ${CMAKE_THREAD_LIBS_INIT}
+    ${PTHREAD_LIBS}
 )
 
 # 编译动态库
@@ -65,7 +64,7 @@ if(COTER_BUILD_SHARED)
     set_target_properties(coter_shared PROPERTIES OUTPUT_NAME coter)
     target_compile_definitions(coter_shared PRIVATE DLL_EXPORT)
     target_link_libraries(coter_shared PUBLIC 
-        ${CMAKE_THREAD_LIBS_INIT}
+        ${PTHREAD_LIBS}
     )
     if(NOT TARGET coter::coter)
         add_library(coter::coter ALIAS coter_shared)
@@ -83,7 +82,7 @@ if(COTER_BUILD_STATIC)
     set_target_properties(coter_static PROPERTIES OUTPUT_NAME coter)
     target_compile_definitions(coter_static PRIVATE DLL_EXPORT)
     target_link_libraries(coter_static PUBLIC 
-        ${CMAKE_THREAD_LIBS_INIT}
+        ${PTHREAD_LIBS}
     )
     if(NOT TARGET coter::coter)
         add_library(coter::coter ALIAS coter_static)

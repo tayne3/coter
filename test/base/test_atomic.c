@@ -1,0 +1,300 @@
+/**
+ * @file test_atomic.c
+ * @brief 原子操作相关测试
+ * @author tayne3@dingtalk.com
+ * @date 2023.12.18
+ */
+#include "base/ct_atomic.h"
+#include "ctunit.h"
+
+// 定义线程数量
+#define NUM_THREADS (8 << 1)
+// 定义每个线程的迭代次数
+#define NUM_ITERATIONS 100000
+
+// 测试原子递增和递减的计数器
+ct_atomic_t test_counter = CT_ATOMIC_VAR_INIT(0);
+
+ct_atomic_t shared_counter = CT_ATOMIC_VAR_INIT(0);
+
+// 辅助函数: 原子递增的线程函数
+static inline void* increment_thread(void* arg);
+// 辅助函数: 原子递减的线程函数
+static inline void* decrement_thread(void* arg);
+// 辅助函数: 原子递增的线程函数
+static inline void* atomic_inc_thread(void* arg);
+// 辅助函数: 原子递减的线程函数
+static inline void* atomic_dec_thread(void* arg);
+
+// 测试案例: 原子标志
+static inline void test_atomic_flag(void);
+// 测试案例: 原子递增和递减
+static inline void test_atomic_inc_dec(void);
+// 测试案例: 原子加法和减法
+static inline void test_atomic_add_sub(void);
+// 测试案例: 原子加载和存储操作
+static inline void test_atomic_load_store(void);
+// 测试案例: 多线程环境下的原子操作
+static inline void test_atomic_operations_multi_threaded(void);
+// 测试案例: 边界条件
+static inline void test_boundary_conditions(void);
+
+// 测试案例: 原子比较和交换
+static inline void test_atomic_compare_exchange_weak(void);
+// 辅助函数: 原子比较和交换的线程函数
+static inline void* test_atomic_increment_thread(void* arg);
+// 测试案例: 原子比较和交换并发测试
+static inline void test_atomic_compare_exchange_weak_concurrent(void);
+
+int main(void) {
+	test_atomic_flag();
+	ctunit_trace("Finish! test_atomic_flag();\n");
+
+	test_atomic_inc_dec();
+	ctunit_trace("Finish! test_atomic_inc_dec();\n");
+
+	test_atomic_add_sub();
+	ctunit_trace("Finish! test_atomic_add_sub();\n");
+
+	test_atomic_load_store();
+	ctunit_trace("Finish! test_atomic_load_store();\n");
+
+	test_atomic_operations_multi_threaded();
+	ctunit_trace("Finish! test_atomic_operations_multi_threaded();\n");
+
+	test_boundary_conditions();
+	ctunit_trace("Finish! test_boundary_conditions();\n");
+
+	test_atomic_compare_exchange_weak();
+	ctunit_trace("Finish! test_atomic_compare_exchange_weak();\n");
+
+	test_atomic_compare_exchange_weak_concurrent();
+	ctunit_trace("Finish! test_atomic_compare_exchange_weak_concurrent();\n");
+
+	ctunit_pass();
+}
+
+static inline void* increment_thread(void* arg) {
+	for (int i = 0; i < NUM_ITERATIONS; i++) {
+		CT_ATOMIC_INC(&test_counter);
+		CT_ATOMIC_INC(&test_counter);
+	}
+	pthread_exit(NULL);
+	return NULL;
+	(void)arg;
+}
+
+static inline void* decrement_thread(void* arg) {
+	for (int i = 0; i < NUM_ITERATIONS; i++) {
+		CT_ATOMIC_DEC(&test_counter);
+		CT_ATOMIC_DEC(&test_counter);
+	}
+	pthread_exit(NULL);
+	return NULL;
+	(void)arg;
+}
+
+static inline void* atomic_inc_thread(void* arg) {
+	ct_atomic_t* value = (ct_atomic_t*)arg;
+	for (int i = 0; i < NUM_ITERATIONS; i++) {
+		CT_ATOMIC_ADD(value, 1);
+		CT_ATOMIC_SUB(value, 3);
+		CT_ATOMIC_ADD(value, 5);
+	}
+	pthread_exit(NULL);
+	return NULL;
+}
+
+static inline void* atomic_dec_thread(void* arg) {
+	ct_atomic_t* value = (ct_atomic_t*)arg;
+	for (int i = 0; i < NUM_ITERATIONS; i++) {
+		CT_ATOMIC_SUB(value, 6);
+		CT_ATOMIC_ADD(value, 7);
+		CT_ATOMIC_SUB(value, 4);
+	}
+	pthread_exit(NULL);
+	return NULL;
+}
+
+// 测试案例: 原子标志
+static inline void test_atomic_flag(void) {
+	ct_atomic_flag_t flag = CT_ATOMIC_FLAG_INIT;
+
+	ctunit_assert_int64(CT_ATOMIC_FLAG_TEST_AND_SET(&flag), 0, CTUnit_Equal);
+	ctunit_assert_int64(CT_ATOMIC_FLAG_TEST_AND_SET(&flag), 1, CTUnit_Equal);
+
+	CT_ATOMIC_FLAG_CLEAR(&flag);
+	ctunit_assert_int64(CT_ATOMIC_FLAG_TEST_AND_SET(&flag), 0, CTUnit_Equal);
+}
+
+// 测试案例: 原子递增和递减
+static inline void test_atomic_inc_dec(void) {
+	bool      is_ok;
+	pthread_t threads[NUM_THREADS];
+
+	CT_ATOMIC_STORE(&test_counter, 0);
+	ctunit_assert_int64(CT_ATOMIC_LOAD(&test_counter), 0, CTUnit_Equal);
+
+	for (int i = 0; i < NUM_THREADS >> 1; i++) {
+		is_ok = 0 == pthread_create(&threads[i], NULL, increment_thread, NULL);
+		ctunit_assert_true(is_ok);
+	}
+	for (int i = NUM_THREADS >> 1; i < NUM_THREADS; i++) {
+		is_ok = 0 == pthread_create(&threads[i], NULL, decrement_thread, NULL);
+		ctunit_assert_true(is_ok);
+	}
+
+	for (int i = 0; i < NUM_THREADS; i++) {
+		CT_ATOMIC_INC(&test_counter);
+	}
+
+	for (int i = 0; i < NUM_THREADS; i++) {
+		is_ok = 0 == pthread_join(threads[i], NULL);
+		ctunit_assert_true(is_ok);
+	}
+
+	ctunit_assert_int64(CT_ATOMIC_LOAD(&test_counter), NUM_THREADS, CTUnit_Equal);
+}
+
+// 测试案例: 原子加法和减法
+static inline void test_atomic_add_sub(void) {
+	ct_atomic_t value = CT_ATOMIC_VAR_INIT(0);
+	ctunit_assert_int64(CT_ATOMIC_LOAD(&value), 0, CTUnit_Equal);
+
+	CT_ATOMIC_ADD(&value, 10);
+	ctunit_assert_int64(CT_ATOMIC_LOAD(&value), 10, CTUnit_Equal);
+
+	CT_ATOMIC_SUB(&value, 5);
+	ctunit_assert_int64(CT_ATOMIC_LOAD(&value), 5, CTUnit_Equal);
+
+	// Test with large numbers
+	CT_ATOMIC_ADD(&value, 1000000);
+	CT_ATOMIC_SUB(&value, 1000000);
+	ctunit_assert_int64(CT_ATOMIC_LOAD(&value), 5, CTUnit_Equal);
+
+	// 测试负数
+	CT_ATOMIC_ADD(&value, -15);
+	ctunit_assert_int64(CT_ATOMIC_LOAD(&value), -10, CTUnit_Equal);
+
+	CT_ATOMIC_SUB(&value, -20);
+	ctunit_assert_int64(CT_ATOMIC_LOAD(&value), 10, CTUnit_Equal);
+}
+
+// 测试案例: 原子加载和存储操作
+static inline void test_atomic_load_store(void) {
+	ct_atomic_t value = CT_ATOMIC_VAR_INIT(42);
+	ctunit_assert_int64(CT_ATOMIC_LOAD(&value), 42, CTUnit_Equal);
+
+	CT_ATOMIC_STORE(&value, 100);
+	ctunit_assert_int64(CT_ATOMIC_LOAD(&value), 100, CTUnit_Equal);
+
+	// 测试边界值
+	CT_ATOMIC_STORE(&value, LONG_MAX);
+	ctunit_assert_int64(CT_ATOMIC_LOAD(&value), LONG_MAX, CTUnit_Equal);
+
+	CT_ATOMIC_STORE(&value, LONG_MIN);
+	ctunit_assert_int64(CT_ATOMIC_LOAD(&value), LONG_MIN, CTUnit_Equal);
+}
+
+// 测试案例: 多线程环境下的原子操作
+static inline void test_atomic_operations_multi_threaded(void) {
+	bool      is_ok;
+	pthread_t threads[NUM_THREADS];
+
+	ct_atomic_t value = CT_ATOMIC_VAR_INIT(0);
+	ctunit_assert_int64(CT_ATOMIC_LOAD(&value), 0, CTUnit_Equal);
+
+	for (int i = 0; i < NUM_THREADS >> 1; i++) {
+		is_ok = 0 == pthread_create(&threads[i], NULL, atomic_inc_thread, (void*)&value);
+		ctunit_assert_true(is_ok);
+	}
+	for (int i = NUM_THREADS >> 1; i < NUM_THREADS; i++) {
+		is_ok = 0 == pthread_create(&threads[i], NULL, atomic_dec_thread, (void*)&value);
+		ctunit_assert_true(is_ok);
+	}
+
+	for (int i = 0; i < NUM_THREADS; i++) {
+		CT_ATOMIC_ADD(&value, 1);
+	}
+
+	for (int i = 0; i < NUM_THREADS; i++) {
+		is_ok = 0 == pthread_join(threads[i], NULL);
+		ctunit_assert_true(is_ok);
+	}
+
+	ctunit_assert_int64(CT_ATOMIC_LOAD(&value), NUM_THREADS, CTUnit_Equal);
+}
+
+// 测试案例: 边界条件
+static inline void test_boundary_conditions(void) {
+	// 测试溢出 (LONG_MAX + 1 = LONG_MIN)
+	{
+		ct_atomic_t max_value = CT_ATOMIC_VAR_INIT(LONG_MAX);
+		CT_ATOMIC_ADD(&max_value, 1);
+		ctunit_assert_int64(CT_ATOMIC_LOAD(&max_value), LONG_MIN, CTUnit_Equal);
+	}
+
+	// 测试下溢 (LONG_MIN - 1 = LONG_MAX)
+	{
+		ct_atomic_t min_value = CT_ATOMIC_VAR_INIT(LONG_MIN);
+		CT_ATOMIC_SUB(&min_value, 1);
+		ctunit_assert_int64(CT_ATOMIC_LOAD(&min_value), LONG_MAX, CTUnit_Equal);
+	}
+
+	// 测试最大值加法 (LONG_MAX + LONG_MAX = 2^63 - 1 + 2^63 - 1 = 2^64 - 2)
+	{
+		ct_atomic_t max_value = CT_ATOMIC_VAR_INIT(LONG_MAX);
+		CT_ATOMIC_ADD(&max_value, LONG_MAX);
+		ctunit_assert_int64(CT_ATOMIC_LOAD(&max_value), -2, CTUnit_Equal);
+	}
+
+	// 测试最小值减法 (LONG_MIN - LONG_MAX = -2^63 - (2^63 - 1) = -2^64 + 1)
+	{
+		ct_atomic_t min_value = CT_ATOMIC_VAR_INIT(LONG_MIN);
+		CT_ATOMIC_SUB(&min_value, LONG_MAX);
+		ctunit_assert_int64(CT_ATOMIC_LOAD(&min_value), 1, CTUnit_Equal);
+	}
+}
+
+static inline void test_atomic_compare_exchange_weak(void) {
+	ct_atomic_t value    = CT_ATOMIC_VAR_INIT(10);
+	long        expected = 10;
+	long        desired  = 20;
+
+	// 测试成功的情况
+	ctunit_assert_true(ct_atomic_cas(&value, &expected, desired));
+	ctunit_assert_int64(CT_ATOMIC_LOAD(&value), 20, CTUnit_Equal);
+
+	// 测试失败的情况
+	expected = 10;
+	ctunit_assert_true(ct_atomic_cas(&value, &expected, 30) == false);
+	ctunit_assert_true(expected == 20);                // expected 应该被更新为当前值
+	ctunit_assert_true(ct_atomic_load(&value) == 20);  // value 不应该改变
+}
+
+static inline void* test_atomic_increment_thread(void* arg) {
+	for (int i = 0; i < NUM_ITERATIONS; ++i) {
+		long expected, desired;
+		do {
+			expected = ct_atomic_load(&shared_counter);
+			desired  = expected + 1;
+		} while (!ct_atomic_cas(&shared_counter, &expected, desired));
+	}
+	pthread_exit(NULL);
+	return NULL;
+	(void)arg;
+}
+
+static inline void test_atomic_compare_exchange_weak_concurrent(void) {
+	pthread_t threads[NUM_THREADS];
+
+	for (int i = 0; i < NUM_THREADS; ++i) {
+		pthread_create(&threads[i], NULL, test_atomic_increment_thread, NULL);
+	}
+
+	for (int i = 0; i < NUM_THREADS; ++i) {
+		pthread_join(threads[i], NULL);
+	}
+
+	ctunit_assert_true(ct_atomic_load(&shared_counter) == NUM_THREADS * NUM_ITERATIONS);
+}

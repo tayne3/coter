@@ -34,11 +34,11 @@ static inline void test_restart_timer(void);
 
 int main(void) {
 	// 创建任务池
-	ct_jobpool_ptr_t jobpool = ct_jobpool_global(2, 10);
+	ct_jobpool_t *jobpool = ct_jobpool_create(2, 10);
 	ctunit_assert_not_null(jobpool);
 
 	// 初始化定时器中枢
-	ct_timer_mgr_init(mock_current_time);
+	ct_timer_mgr_init(mock_current_time, jobpool);
 
 	test_basic_functionality();
 	ctunit_trace("Finish! test_basic_functionality()\n");
@@ -96,7 +96,7 @@ static inline void timer_callback(ct_timer_id_t id, const ct_any_buf_t arg) {
 	size_t *count = (size_t *)ct_any_value_pointer(*arg);
 	*count += 1;
 	return;
-	ct_unused(id);
+	(void)(id);
 }
 
 // 测试基本功能

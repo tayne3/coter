@@ -5,7 +5,7 @@
  * @date 2023.12.03
  */
 #include "base/ct_platform.h"
-#include "common/ct_random.h"
+#include "base/ct_random.h"
 #include "ctunit.h"
 #include "mech/ct_msgqueue.h"
 
@@ -58,25 +58,24 @@ static inline void test_msgqueue(size_t data_size, size_t buffer_size) {
 
 	// 测试 enqueue 和 dequeue
 	{
-		bool isok = false;
-
+		bool is_ok;
 		pthread_t thread;
-		isok = pthread_create(&thread, NULL, test_task_enqueue, msgqueue) == 0;
-		ctunit_assert_true(isok);
+		is_ok = pthread_create(&thread, NULL, test_task_enqueue, msgqueue) == 0;
+		ctunit_assert_true(is_ok);
 
 		int item = 0;
 		for (size_t i = 0; i < test_data_size;) {
 			for (size_t n = 0; n < 1000 && i < test_data_size; n++, i++) {
-				isok = ct_msgqueue_dequeue(msgqueue, &item);
-				ctunit_assert_true(isok);
+				is_ok = ct_msgqueue_dequeue(msgqueue, &item);
+				ctunit_assert_true(is_ok);
 				ctunit_assert_int(item, test_data[i], CTUnit_Equal, "buffer_size=%d, data_size=%d", buffer_size,
 								  data_size);
 			}
 			sched_yield();
 		}
 
-		isok = pthread_join(thread, NULL) == 0;
-		ctunit_assert_true(isok);
+		is_ok = pthread_join(thread, NULL) == 0;
+		ctunit_assert_true(is_ok);
 
 		ctunit_assert_true(ct_msgqueue_isempty(msgqueue));
 		ctunit_assert_false(ct_msgqueue_isfull(msgqueue));
@@ -84,14 +83,14 @@ static inline void test_msgqueue(size_t data_size, size_t buffer_size) {
 
 	// 测试 try_enqueue 和 try_dequeue
 	{
-		bool isok = false;
+		bool is_ok;
 		for (size_t i = 0; i < test_data_size;) {
 			for (size_t n = 0; n < 1000 && i < test_data_size; n++, i++) {
-				isok = ct_msgqueue_try_enqueue(msgqueue, &test_buffer[i]);
+				is_ok = ct_msgqueue_try_enqueue(msgqueue, &test_buffer[i]);
 				if (i < buffer_size) {
-					ctunit_assert_true(isok);
+					ctunit_assert_true(is_ok);
 				} else {
-					ctunit_assert_false(isok);
+					ctunit_assert_false(is_ok);
 				}
 			}
 			sched_yield();
@@ -103,13 +102,13 @@ static inline void test_msgqueue(size_t data_size, size_t buffer_size) {
 		int item = 0;
 		for (size_t i = 0; i < test_data_size;) {
 			for (size_t n = 0; n < 1000 && i < test_data_size; n++, i++) {
-				isok = ct_msgqueue_try_dequeue(msgqueue, &item);
+				is_ok = ct_msgqueue_try_dequeue(msgqueue, &item);
 
 				if (i < buffer_size) {
-					ctunit_assert_true(isok);
+					ctunit_assert_true(is_ok);
 					ctunit_assert_int(item, test_buffer[i], CTUnit_Equal);
 				} else {
-					ctunit_assert_false(isok);
+					ctunit_assert_false(is_ok);
 				}
 			}
 			sched_yield();

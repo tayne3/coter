@@ -17,12 +17,14 @@
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
 void ct_stack_init(ct_stack_buf_t self, ct_any_t* buffer, size_t max) {
+	assert(self);
 	self->_all = buffer;
 	self->_max = max;
 	ct_stack_clear(self);
 }
 
 bool ct_stack_push(ct_stack_buf_t self, ct_any_t item) {
+	assert(self);
 	if (ct_stack_isfull(self)) {
 		return false;
 	}
@@ -32,6 +34,7 @@ bool ct_stack_push(ct_stack_buf_t self, ct_any_t item) {
 }
 
 bool ct_stack_pop(ct_stack_buf_t self, ct_any_buf_t item) {
+	assert(self);
 	if (ct_stack_isempty(self)) {
 		return false;
 	}
@@ -43,6 +46,7 @@ bool ct_stack_pop(ct_stack_buf_t self, ct_any_buf_t item) {
 }
 
 bool ct_stack_top(ct_stack_buf_t self, ct_any_buf_t item) {
+	assert(self);
 	if (ct_stack_isempty(self)) {
 		return false;
 	}

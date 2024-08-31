@@ -17,8 +17,7 @@
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
-void ct_vector_init(ct_vector_buf_t self, size_t byte, size_t max)
-{
+void ct_vector_init(ct_vector_buf_t self, size_t byte, size_t max) {
 	assert(self);
 	assert(byte);
 	assert(max);
@@ -31,52 +30,47 @@ void ct_vector_init(ct_vector_buf_t self, size_t byte, size_t max)
 	self->_max = self->_size = max;
 }
 
-void ct_vector_destroy(ct_vector_buf_t self)
-{
+void ct_vector_destroy(ct_vector_buf_t self) {
 	assert(self);
 
 	if (self->_all) {
 		free(self->_all);
-		self->_all = ct_nullptr;
+		self->_all = NULL;
 	}
 	self->_byte = self->_max = self->_size = 0;
 }
 
-size_t ct_vector_size(const ct_vector_buf_t self)
-{
+size_t ct_vector_size(const ct_vector_buf_t self) {
 	assert(self);
 
 	return CT_VECTOR_SIZE(self);
 }
 
-void* ct_vector_at(ct_vector_buf_t self, size_t idx)
-{
+void* ct_vector_at(ct_vector_buf_t self, size_t idx) {
 	assert(self);
 	assert(self->_byte);
 	assert(self->_all);
 
 	if (idx >= self->_size) {
-		return ct_nullptr;
+		return NULL;
 	}
 
 	return CT_VECTOR_ITEM(self, idx);
 }
 
-const void* ct_vector_value(const ct_vector_buf_t self, size_t idx)
-{
+const void* ct_vector_value(const ct_vector_buf_t self, size_t idx) {
 	assert(self);
 	assert(self->_byte);
 	assert(self->_all);
 
 	if (idx >= self->_size) {
-		return ct_nullptr;
+		return NULL;
 	}
 
 	return CT_VECTOR_ITEM(self, idx);
 }
 
-bool ct_vector_insert(ct_vector_buf_t self, size_t idx, const void* data)
-{
+bool ct_vector_insert(ct_vector_buf_t self, size_t idx, const void* data) {
 	assert(self);
 	assert(self->_byte);
 	assert(self->_all);
@@ -91,8 +85,7 @@ bool ct_vector_insert(ct_vector_buf_t self, size_t idx, const void* data)
 	return true;
 }
 
-bool ct_vector_resize(ct_vector_buf_t self, size_t size)
-{
+bool ct_vector_resize(ct_vector_buf_t self, size_t size) {
 	assert(self);
 	assert(self->_byte);
 	assert(self->_all);
@@ -104,16 +97,15 @@ bool ct_vector_resize(ct_vector_buf_t self, size_t size)
 
 	const size_t max    = self->_max * 2 < size ? size : self->_max * 2;
 	const size_t blocks = max * self->_byte;
-
 	if (blocks > CT_VECTOR_MEMORY_MAX) {
 		return false;
 	}
 
-	self->_all = realloc(self->_all, blocks);
-
-	if (!self->_all) {
+	char* new_all = realloc(self->_all, blocks);
+	if (!new_all) {
 		return false;
 	}
+	self->_all = new_all;
 
 	self->_max  = max;
 	self->_size = size;

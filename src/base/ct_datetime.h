@@ -14,18 +14,16 @@ extern "C" {
 
 /**
  * @brief 日期时间结构体
- *
- * 用于表示完整的日期时间信息, 包括年、月、日、时、分、秒和毫秒。
  */
 typedef struct ct_datetime {
-	int year;   // 年份
-	int month;  // 月份 (1-12)
-	int day;    // 日期 (1-31)
-	int wday;   // 星期几 (0-6, 0 表示星期日)
-	int hour;   // 小时 (0-23)
-	int min;    // 分钟 (0-59)
-	int sec;    // 秒 (0-59)
-	int ms;     // 毫秒 (0-999)
+	int year;   ///< 年份
+	int month;  ///< 月份 (1-12)
+	int day;    ///< 日期 (1-31)
+	int wday;   ///< 星期几 (0-6, 0 表示星期日)
+	int hour;   ///< 小时 (0-23)
+	int min;    ///< 分钟 (0-59)
+	int sec;    ///< 秒 (0-59)
+	int ms;     ///< 毫秒 (0-999)
 } ct_datetime_t, ct_datetime_buf_t[1];
 
 /**
@@ -38,9 +36,6 @@ typedef struct ct_datetime {
  * printf("current datetime: %04d-%02d-%02d %02d:%02d:%02d.%03d\n",
  *        now.year, now.month, now.day, now.hour, now.min, now.sec, now.ms);
  * @endcode
- *
- * @note
- * 获取系统当前的日期时间, 精确到毫秒。
  */
 CT_API ct_datetime_t ct_datetime_now(void);
 
@@ -57,9 +52,6 @@ CT_API ct_datetime_t ct_datetime_now(void);
  *        local_time.year, local_time.month, local_time.day,
  *        local_time.hour, local_time.min, local_time.sec);
  * @endcode
- *
- * @note
- * 将给定的 UNIX 时间戳转换为本地时区的日期时间结构体。
  */
 CT_API ct_datetime_t ct_datetime_localtime(time_t seconds);
 
@@ -74,11 +66,8 @@ CT_API ct_datetime_t ct_datetime_localtime(time_t seconds);
  * const time_t timestamp = ct_datetime_mktime(&dt);
  * printf("timestamp: %ld\n", timestamp);
  * @endcode
- *
- * @note
- * 将给定的日期时间结构体转换为 UNIX 时间戳。
  */
-CT_API time_t ct_datetime_mktime(const ct_datetime_t* dt);
+CT_API time_t ct_datetime_mktime(const ct_datetime_t* dt) __ct_nonnull(1);
 
 /**
  * @brief 计算过去的日期
@@ -92,11 +81,8 @@ CT_API time_t ct_datetime_mktime(const ct_datetime_t* dt);
  * ct_datetime_past(&dt, 7);
  * printf("一周前：%04d-%02d-%02d\n", dt.year, dt.month, dt.day);
  * @endcode
- *
- * @note
- * 从给定的日期时间向前推算指定的天数。
  */
-CT_API ct_datetime_t* ct_datetime_past(ct_datetime_t* dt, int days);
+CT_API ct_datetime_t* ct_datetime_past(ct_datetime_t* dt, int days) __ct_nonnull(1);
 
 /**
  * @brief 计算未来的日期
@@ -110,11 +96,8 @@ CT_API ct_datetime_t* ct_datetime_past(ct_datetime_t* dt, int days);
  * ct_datetime_future(&dt, 30);
  * printf("30天后：%04d-%02d-%02d\n", dt.year, dt.month, dt.day);
  * @endcode
- *
- * @note
- * 从给定的日期时间向后推算指定的天数。
  */
-CT_API ct_datetime_t* ct_datetime_future(ct_datetime_t* dt, int days);
+CT_API ct_datetime_t* ct_datetime_future(ct_datetime_t* dt, int days) __ct_nonnull(1);
 
 #define CT_TIME_FMT        "%02d:%02d:%02d"
 #define CT_TIME_FMT_BUFLEN 12
@@ -133,10 +116,8 @@ CT_API ct_datetime_t* ct_datetime_future(ct_datetime_t* dt, int days);
  * ct_datetime_duration_fmt(duration_seconds, buf);
  * printf("duration: %s\n", buf); // 输出：duration: 01:01:01
  * @endcode
- *
- * @note 这个函数在显示持续时间或时间间隔时非常有用, 如视频播放器或计时器。
  */
-CT_API char* ct_datetime_duration_fmt(int sec, char* buf);
+CT_API char* ct_datetime_duration_fmt(int sec, char* buf) __ct_nonnull(2);
 
 #define CT_DATETIME_FMT        "%04d-%02d-%02d %02d:%02d:%02d"
 #define CT_DATETIME_FMT_ISO    "%04d-%02d-%02dT%02d:%02d:%02d.%03dZ"
@@ -156,10 +137,8 @@ CT_API char* ct_datetime_duration_fmt(int sec, char* buf);
  * ct_datetime_fmt(&dt, buf);
  * printf("当前日期时间：%s\n", buf);
  * @endcode
- *
- * @note 这个函数在需要以标准格式显示日期时间时很有用, 如日志记录或用户界面显示。
  */
-CT_API char* ct_datetime_fmt(const ct_datetime_t* dt, char* buf);
+CT_API char* ct_datetime_fmt(const ct_datetime_t* dt, char* buf) __ct_nonnull(1, 2);
 
 /**
  * @brief 格式化ISO日期时间
@@ -176,10 +155,8 @@ CT_API char* ct_datetime_fmt(const ct_datetime_t* dt, char* buf);
  * ct_datetime_fmt_iso(&dt, buf);
  * printf("ISO 格式日期时间：%s\n", buf);
  * @endcode
- *
- * @note 这个函数在需要以标准格式显示日期时间时很有用, 如日志记录或用户界面显示。
  */
-CT_API char* ct_datetime_fmt_iso(const ct_datetime_t* dt, char* buf);
+CT_API char* ct_datetime_fmt_iso(const ct_datetime_t* dt, char* buf) __ct_nonnull(1, 2);
 
 #define CT_GMTIME_FMT        "%.3s, %02d %.3s %04d %02d:%02d:%02d GMT"
 #define CT_GMTIME_FMT_BUFLEN 30
@@ -198,10 +175,8 @@ CT_API char* ct_datetime_fmt_iso(const ct_datetime_t* dt, char* buf);
  * ct_datetime_gmtime_fmt(now, buf);
  * printf("GMT time: %s\n", buf);
  * @endcode
- *
- * @note 这个函数在需要显示 GMT 时间时很有用, 如生成 HTTP 头或处理国际化时间。
  */
-CT_API char* ct_datetime_gmtime_fmt(time_t time, char* buf);
+CT_API char* ct_datetime_gmtime_fmt(time_t time, char* buf) __ct_nonnull(2);
 
 /**
  * @brief 计算指定月份的天数
@@ -216,8 +191,6 @@ CT_API char* ct_datetime_gmtime_fmt(time_t time, char* buf);
  * int days = ct_datetime_days_of_month(2, 2024);
  * printf("2024年2月有 %d 天\n", days); // 输出：2024年2月有 29 天
  * @endcode
- *
- * @note 这个函数在处理日期计算和验证时很有用, 特别是在考虑闰年的情况下。
  */
 CT_API int ct_datetime_days_of_month(int month, int year);
 
@@ -233,10 +206,8 @@ CT_API int ct_datetime_days_of_month(int month, int year);
  * int month_num = ct_datetime_month_atoi("Feb");
  * printf("Feb 对应的月份数字：%d\n", month_num); // 输出：Feb 对应的月份数字：2
  * @endcode
- *
- * @note 这个函数在解析包含月份名称的日期字符串时很有用。
  */
-CT_API int ct_datetime_month_atoi(const char* month);
+CT_API int ct_datetime_month_atoi(const char* month) __ct_nonnull(1);
 
 /**
  * @brief 将月份数字转换为名称
@@ -250,8 +221,6 @@ CT_API int ct_datetime_month_atoi(const char* month);
  * const char* month_name = ct_datetime_month_itoa(2);
  * printf("2 对应的月份名称：%s\n", month_name); // 输出：2 对应的月份名称：February
  * @endcode
- *
- * @note 这个函数在格式化日期显示时很有用, 特别是在需要显示月份名称而不是数字时。
  */
 CT_API const char* ct_datetime_month_itoa(int month);
 
@@ -267,10 +236,8 @@ CT_API const char* ct_datetime_month_itoa(int month);
  * int weekday_num = ct_datetime_weekday_atoi("Mon");
  * printf("Mon 对应的星期数字：%d\n", weekday_num); // 输出：Mon 对应的星期数字：1
  * @endcode
- *
- * @note 这个函数在解析包含星期名称的日期字符串时很有用。
  */
-CT_API int ct_datetime_weekday_atoi(const char* weekday);
+CT_API int ct_datetime_weekday_atoi(const char* weekday) __ct_nonnull(1);
 
 /**
  * @brief 将星期数字转换为名称
@@ -284,8 +251,6 @@ CT_API int ct_datetime_weekday_atoi(const char* weekday);
  * const char* weekday_name = ct_datetime_weekday_itoa(3);
  * printf("3 对应的星期名称：%s\n", weekday_name); // 输出：3 对应的星期名称：Wednesday
  * @endcode
- *
- * @note 这个函数在格式化日期显示时很有用, 特别是在需要显示星期名称而不是数字时。
  */
 CT_API const char* ct_datetime_weekday_itoa(int weekday);
 
@@ -302,10 +267,8 @@ CT_API const char* ct_datetime_weekday_itoa(int weekday);
  * ct_datetime_fmt(&time_compile, buf);
  * printf("compile time: %s\n", buf);
  * @endcode
- *
- * @note 这个函数通常用于调试或版本信息显示, 可以帮助识别特定的库构建。
  */
-CT_API ct_datetime_t __ct_datetime_compile(const char* date, const char* time);
+CT_API ct_datetime_t __ct_datetime_compile(const char* date, const char* time) __ct_nonnull(1, 2);
 #define ct_datetime_compile() __ct_datetime_compile(__DATE__, __TIME__)
 
 #ifdef __cplusplus

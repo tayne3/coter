@@ -6,7 +6,6 @@
  */
 #include "ct_cron.h"
 
-#include "base/ct_time.h"
 #include "container/ct_heap.h"
 #include "container/ct_list.h"
 #include "mech/ct_jobpool.h"
@@ -45,8 +44,8 @@ typedef struct cron {
 #define CT_CRON_MAX             128
 #define CT_CRON_ID_NULL         CT_CRON_ID_INVALID
 #define CT_CRON_ID_ISNULL(id)   ((id) == CT_CRON_ID_NULL)
-#define CT_CRON_ID_TO_INDEX(id) (((id) & 0x00000000FFFFFFFF) - 1)
-#define CT_CRON_ID_RESET(self)  ((self)->id &= 0x00000000FFFFFFFF)
+#define CT_CRON_ID_TO_INDEX(id) (((id) & 0x0000FFFF) - 1)
+#define CT_CRON_ID_RESET(self)  ((self)->id &= 0x0000FFFF)
 
 /**
  * @struct ct_cron_manager
@@ -76,11 +75,14 @@ static struct ct_cron_manager {
 	ct_heap_buf_t   heap;                      // 最小堆
 	cron_buf_t      cron_null;                 // 空cron任务
 	ct_time_t       time_now;                  // 当前时间
+	ct_jobpool_t   *jobpool;                   // 任务池
 	ct_cron_id_t    ident_count;               // ID计数
 	bool            is_busy;                   // 是否忙碌
 	int             correct;                   // 修正计数
 } mgr[1] = {{
 	.lock        = {PTHREAD_MUTEX_INITIALIZER},
+	.time_now    = 0,
+	.jobpool     = NULL,
 	.ident_count = 0,
 	.is_busy     = false,
 	.correct     = 0,
@@ -128,8 +130,6 @@ static inline void mgr_correct_callback(void *arg);
 static inline cron_t *mgr_take_trigger_cron(void);
 // 生成并返回唯一的cron任务id
 static inline ct_cron_id_t tr_generate_id(cron_t *self);
-// 获取cron任务 (此函数永远不返回空指针)
-// static inline cron_t *tr_get(ct_cron_id_t id);
 // 刷新cron任务触发时间
 static inline bool tr_trigger_refresh(cron_t *self);
 // cron任务是否触发
@@ -137,7 +137,8 @@ static inline bool tr_istrigger(cron_t *self);
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
-void ct_cron_mgr_init(ct_time_t now) {
+void ct_cron_mgr_init(ct_time_t now, struct ct_jobpool *jobpool) {
+	assert(jobpool);
 	// 初始化最小堆
 	ct_heap_init(mgr->heap, mgr->heap_buffer, CT_CRON_MAX, tr_sorting);
 	// 初始化可用cron任务链表
@@ -154,6 +155,7 @@ void ct_cron_mgr_init(ct_time_t now) {
 	}
 
 	mgr->time_now = now;
+	mgr->jobpool  = jobpool;
 }
 
 bool ct_cron_mgr_schedule(ct_time_t now) {
@@ -171,7 +173,7 @@ bool ct_cron_mgr_schedule(ct_time_t now) {
 		mgr->is_busy = true;
 		mgr_unlock();
 		// 添加异步工作
-		ct_jobpool_add(ct_nullptr, mgr_correct_callback, NULL);
+		ct_jobpool_add(mgr->jobpool, mgr_correct_callback, NULL);
 		return true;
 	}
 	cron_t *const it = mgr_take_trigger_cron();
@@ -183,7 +185,7 @@ bool ct_cron_mgr_schedule(ct_time_t now) {
 	mgr_unlock();
 
 	// 添加异步工作
-	ct_jobpool_add(ct_nullptr, mgr_trigger_callback, it);
+	ct_jobpool_add(mgr->jobpool, mgr_trigger_callback, it);
 	return true;
 }
 
@@ -199,7 +201,7 @@ ct_cron_id_t ct_cron_start(int minute, int hour, int day, int week, int month, c
 	// 判断启用数量是否达到上限 以及 可用链表是否为空
 	if (mgr_isfull() || ct_list_isempty(mgr->idle_list)) {
 		mgr_unlock();
-		cwarning(STR_CURRTITLE " find idle cron error, cron is full." STR_NEWLINE);
+		// printf(STR_CURRTITLE " find idle cron error, cron is full." STR_NEWLINE);
 		return CT_CRON_ID_NULL;
 	}
 	// 取出第一个可用cron任务
@@ -227,7 +229,7 @@ ct_cron_id_t ct_cron_start(int minute, int hour, int day, int week, int month, c
 
 void ct_cron_stop(ct_cron_id_t id) {
 	if (CT_CRON_ID_ISNULL(id)) {
-		cwarning(STR_CURRTITLE " get cron error, cron id invalid: %llu. " STR_NEWLINE, id);
+		// printf(STR_CURRTITLE " get cron error, cron id invalid: %" PRIu32 ". " STR_NEWLINE, id);
 		return;  // 无效ID
 	}
 
@@ -243,7 +245,7 @@ void ct_cron_stop(ct_cron_id_t id) {
 	}
 	if (!self || !self->is_active) {
 		mgr_unlock();
-		cwarning(STR_CURRTITLE " get cron error, cron id %llu not found. " STR_NEWLINE, id);
+		// printf(STR_CURRTITLE " get cron error, cron id %" PRIu32 " not found. " STR_NEWLINE, id);
 		return;
 	}
 
@@ -340,7 +342,7 @@ static inline void tr_init(cron_t *self, uint32_t idx) {
 	self->week         = 0;
 	self->month        = 0;
 	self->trigger_next = 0;
-	self->callback     = ct_nullptr;
+	self->callback     = NULL;
 	*self->arg         = ct_any_null;
 }
 
@@ -348,18 +350,17 @@ static inline void mgr_trigger_callback(void *arg) {
 	assert(arg);
 	cron_t *it = (cron_t *)arg;
 	if (it->is_active) {
-		// ct_jobpool_add(ct_nullptr, mgr_cron_callback, it);  // 添加异步工作
-
+		// ct_jobpool_add(mgr->jobpool, mgr_cron_callback, it);  // 添加异步工作
 		mgr_cron_callback(it);
 	}
 
 	// 不断取出cron任务并处理, 直到不存在cron任务或者存在cron任务不触发时停止
-	ct_forever {
+	for (;;) {
 		mgr_lock();
 		if (mgr->correct > 0) {
 			mgr_unlock();
 			// 添加异步工作
-			ct_jobpool_add(ct_nullptr, mgr_correct_callback, NULL);
+			ct_jobpool_add(mgr->jobpool, mgr_correct_callback, NULL);
 			return;
 		}
 
@@ -372,8 +373,7 @@ static inline void mgr_trigger_callback(void *arg) {
 		mgr_unlock();
 
 		if (it->is_active) {
-			// ct_jobpool_add(ct_nullptr, mgr_cron_callback, it);  // 添加异步工作
-
+			// ct_jobpool_add(mgr->jobpool, mgr_cron_callback, it);  // 添加异步工作
 			mgr_cron_callback(it);
 		}
 		sched_yield();
@@ -468,26 +468,8 @@ static inline ct_cron_id_t tr_generate_id(cron_t *self) {
 	} else {
 		mgr->ident_count = 0;
 	}
-	return self->id = ((ct_cron_id_t)mgr->ident_count << 32) | (self->id & 0x00000000FFFFFFFF);
+	return self->id = ((ct_cron_id_t)mgr->ident_count << 16) | (self->id & 0x0000FFFF);
 }
-
-// static inline cron_t *tr_get(ct_cron_id_t id) {
-// 	if (CT_CRON_ID_ISNULL(id)) {
-// 		cwarning(STR_CURRTITLE " get cron error, cron id invalid: %llu. " STR_NEWLINE, id);
-// 		return CT_CRON_NULL;  // 无效ID
-// 	}
-
-// 	const size_t idx = CT_CRON_ID_TO_INDEX(id);
-// 	if (idx < mgr_max()) {
-// 		cron_t *it = mgr->cron_buffer[idx];
-// 		if (it->id == id) {
-// 			return it;
-// 		}
-// 	}
-
-// 	// cwarning(STR_CURRTITLE " get cron error, cron id %llu not found." STR_NEWLINE, id);
-// 	return CT_CRON_NULL;
-// }
 
 static inline bool tr_trigger_refresh(cron_t *self) {
 	self->trigger_next =

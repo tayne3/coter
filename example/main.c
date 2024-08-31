@@ -5,7 +5,6 @@
  * @date 2023.12.04
  */
 #include "app.h"
-#include "mech/ct_log.h"
 #include "mech/ct_timer.h"
 
 // -------------------------[STATIC DECLARATION]-------------------------

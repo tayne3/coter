@@ -1,29 +1,33 @@
 # ==============================================================================
+# Find Pthreads Library
+#
+# External variables required:
+#   - PTHREADS_ROOT - Root directory of the Pthreads-w32 installation.
+#
+# This module will define the following variables:
+#   - PTHREAD_LIBS - The libraries needed for threading.
+# ==============================================================================
 # 查找 Pthreads 库
 #
-# 外部需要配置变量 PTHREADS_ROOT 为指向 Pthreads-w32 安装的根目录。
+# 外部需要配置变量:
+#   - PTHREADS_ROOT - 指向 Pthreads-w32 安装的根目录。
 #
-# 此模块定义了以下变量：
-#
-# PTHREADS_FOUND       - 如果找到 Pthreads 库，则为 True
-# PTHREADS_LIBRARY     - Pthreads 库的位置
-# PTHREADS_INCLUDE_DIR - Pthreads 库的包含目录
-# PTHREADS_DEFINITIONS - 预处理器定义
-#
+# 此模块将输出以下变量：
+#   - PTHREAD_LIBS - 用于线程的库。
 # ==============================================================================
 
 include(CheckIncludeFile)
 include(CheckCSourceCompiles)
 include(CMakePushCheckState)
+include(CheckLibraryExists) # for check_library_exists
 
+# Use pthread
 if(NOT WIN32)
     set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
     find_package(Threads REQUIRED)
 
     if(CMAKE_USE_PTHREADS_INIT)
-        # add_library(pthread INTERFACE)
-        # target_link_libraries(pthread INTERFACE ${CMAKE_THREAD_LIBS_INIT})
-        # add_library(pthread::pthread ALIAS pthread)
+        set(PTHREAD_LIBS ${CMAKE_THREAD_LIBS_INIT})
         message(STATUS "CMAKE_USE_PTHREADS_INIT: ${CMAKE_USE_PTHREADS_INIT}")
     else()
         message(FATAL_ERROR "Could not find pthread library. See README.Win32 for more information.")
@@ -31,23 +35,11 @@ if(NOT WIN32)
     return()
 endif()
 
-# # 是否原生支持pthread
-# include(CheckLibraryExists)
-# check_library_exists(pthread pthread_rwlock_init "" HAVE_PTHREAD)
-# if(HAVE_PTHREAD)
-#     message(STATUS "HAVE_PTHREAD: ${HAVE_PTHREAD}")
-#     return()
-# endif()
-
-include(CheckLibraryExists)
-
 # Do we have -lpthreads
 check_library_exists(pthreads pthread_create "" CMAKE_HAVE_PTHREADS_CREATE)
 if(CMAKE_HAVE_PTHREADS_CREATE)
     message(STATUS "CMAKE_HAVE_PTHREADS_CREATE: ${CMAKE_HAVE_PTHREADS_CREATE}")
-    set(CMAKE_THREAD_LIBS_INIT "-lpthreads")
-    # set(CMAKE_HAVE_THREADS_LIBRARY 1)
-    # set(Threads_FOUND TRUE)
+    set(PTHREAD_LIBS "-lpthreads")
     return()
 endif()
 
@@ -55,9 +47,7 @@ endif()
 check_library_exists(pthread pthread_create "" CMAKE_HAVE_PTHREAD_CREATE)
 if(CMAKE_HAVE_PTHREAD_CREATE)
     message(STATUS "CMAKE_HAVE_PTHREAD_CREATE: ${CMAKE_HAVE_PTHREAD_CREATE}")
-    set(CMAKE_THREAD_LIBS_INIT "-lpthread")
-    # set(Threads_FOUND TRUE)
-    # set(CMAKE_HAVE_THREADS_LIBRARY 1)
+    set(PTHREAD_LIBS "-lpthread")
     return()
 endif()
 
@@ -129,7 +119,9 @@ endif()
 
 get_filename_component(PTHREADS_LIB_NAME ${PTHREADS_LIBRARY} NAME_WE)
 
+#
 # Find .dll file
+#
 find_file(PTHREADS_DLL
     NAMES "${PTHREADS_LIB_NAME}.dll"
     PATH_SUFFIXES dll/${PTHREADS_SUBDIR}
@@ -144,41 +136,27 @@ find_file(PTHREADS_DLL
 include(FindPackageHandleStandardArgs) 
 find_package_handle_standard_args(PTHREADS DEFAULT_MSG PTHREADS_LIBRARY PTHREADS_INCLUDE_DIR)
 
-# message(STATUS "PTHREADS_FOUND: ${PTHREADS_FOUND}")
 if(PTHREADS_FOUND)
     set(PTHREADS_INCLUDE_DIRS ${PTHREADS_INCLUDE_DIR})
     set(PTHREADS_LIBRARIES ${PTHREADS_LIBRARY})
-    # set(PTHREADS_DEFINITIONS -DHAVE_PTHREADS_H)
-
-    # Avoid redefinition of struct timespec
-    # if(MSVC)
-    #     include(CheckStructHasMember)
-    #     check_struct_has_member("struct timespec" tv_sec time.h HAVE_STRUCT_TIMESPEC LANGUAGE C)
-
-    #     if(HAVE_STRUCT_TIMESPEC)
-    #         set(PTHREADS_DEFINITIONS "${PTHREADS_DEFINITIONS} -DHAVE_STRUCT_TIMESPEC")
-    #     endif()
-    # endif()
 
     add_library(pthreads-w32 UNKNOWN IMPORTED)
-    # add_library(pthread::pthread ALIAS pthreads-w32)
     set_target_properties(pthreads-w32 PROPERTIES
         INTERFACE_INCLUDE_DIRECTORIES "${PTHREADS_INCLUDE_DIRS}"
         IMPORTED_LOCATION "${PTHREADS_LIBRARIES}"
         INTERFACE_COMPILE_DEFINITIONS "${PTHREADS_DEFINITIONS}"
         IMPORTED_LINK_INTERFACE_LANGUAGES "C"
     )
-    set(CMAKE_THREAD_LIBS_INIT pthreads-w32)
+    set(PTHREAD_LIBS pthreads-w32)
 
     if(PTHREADS_DLL)
-        file(COPY ${PTHREADS_LIBRARIES} ${PTHREADS_DLL} DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+        file(COPY ${PTHREADS_LIBRARIES} ${PTHREADS_DLL} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
         message(STATUS "Copied pthreads library files: ${PTHREADS_LIBRARIES} and ${PTHREADS_DLL}")
     else()
-        file(COPY ${PTHREADS_LIBRARIES} DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+        file(COPY ${PTHREADS_LIBRARIES} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
         message(WARNING "Could not find pthreads DLL file. Only .lib file will be copied.")
     endif()
 
-    # 标记为高级变量
     mark_as_advanced(PTHREADS_INCLUDE_DIR PTHREADS_LIBRARY)
 else()
     message(FATAL_ERROR "Could not find PTHREADS LIBRARY. See README.Win32 for more information.")

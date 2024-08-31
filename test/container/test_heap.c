@@ -4,7 +4,7 @@
  * @author tayne3@dingtalk.com
  * @date 2023.11.30
  */
-#include "common/ct_random.h"
+#include "base/ct_random.h"
 #include "container/ct_heap.h"
 #include "ctunit.h"
 

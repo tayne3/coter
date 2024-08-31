@@ -39,27 +39,27 @@ enum ct_any_type {
 typedef int32_t ct_any_type_t;
 
 /**
- * @brief 任何类型的变量
+ * @brief 任意类型的变量
  */
 typedef struct ct_any {
 	union {
-		bool        b;    // 布尔类型
-		float       f;    // 浮点类型
-		double      d;    // 双精度浮点类型
-		const char *str;  // 字符串类型
-		void       *ptr;  // 指针类型
-		int         i;    // 整型
-		int8_t      i8;   // 8位整型
-		int16_t     i16;  // 16位整型
-		int32_t     i32;  // 32位整型
-		int64_t     i64;  // 64位整型
-		unsigned    u;    // 无符号整型
-		uint8_t     u8;   // 8位无符号整型
-		uint16_t    u16;  // 16位无符号整型
-		uint32_t    u32;  // 32位无符号整型
-		uint64_t    u64;  // 64位无符号整型
-	} d[1];               // 数据
-	ct_any_type_t type;   // 数据类型
+		bool        b;    ///< 布尔类型
+		float       f;    ///< 浮点类型
+		double      d;    ///< 双精度浮点类型
+		const char *str;  ///< 字符串类型
+		void       *ptr;  ///< 指针类型
+		int         i;    ///< 整型
+		int8_t      i8;   ///< 8位整型
+		int16_t     i16;  ///< 16位整型
+		int32_t     i32;  ///< 32位整型
+		int64_t     i64;  ///< 64位整型
+		unsigned    u;    ///< 无符号整型
+		uint8_t     u8;   ///< 8位无符号整型
+		uint16_t    u16;  ///< 16位无符号整型
+		uint32_t    u32;  ///< 32位无符号整型
+		uint64_t    u64;  ///< 64位无符号整型
+	} d[1];               ///< 数据
+	ct_any_type_t type;   ///< 数据类型
 } ct_any_t, ct_any_buf_t[1];
 
 // ct_any_null

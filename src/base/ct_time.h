@@ -14,23 +14,23 @@ extern "C" {
 
 #ifdef _MSC_VER
 struct timezone {
-    int tz_minuteswest; /* of Greenwich */
-    int tz_dsttime;     /* type of dst correction to apply */
+	int tz_minuteswest; /* of Greenwich */
+	int tz_dsttime;     /* type of dst correction to apply */
 };
 
 #include <sys/timeb.h>
-static inline int gettimeofday(struct timeval *tv, struct timezone *tz) {
-    struct _timeb tb;
-    _ftime(&tb);
-    if (tv) {
-        tv->tv_sec =  (long)tb.time;
-        tv->tv_usec = tb.millitm * 1000;
-    }
-    if (tz) {
-        tz->tz_minuteswest = tb.timezone;
-        tz->tz_dsttime = tb.dstflag;
-    }
-    return 0;
+static inline int gettimeofday(struct timeval* tv, struct timezone* tz) {
+	struct _timeb tb;
+	_ftime(&tb);
+	if (tv) {
+		tv->tv_sec  = (long)tb.time;
+		tv->tv_usec = tb.millitm * 1000;
+	}
+	if (tz) {
+		tz->tz_minuteswest = tb.timezone;
+		tz->tz_dsttime     = tb.dstflag;
+	}
+	return 0;
 }
 #endif
 
@@ -43,15 +43,15 @@ typedef uint64_t ct_time64_t;
 CT_API ct_time64_t gettick_ms(void);
 // get time in milliseconds.
 static inline ct_time64_t gettimeofday_ms(void) {
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    return tv.tv_sec * (ct_time64_t)1000 + tv.tv_usec/1000;
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	return tv.tv_sec * (ct_time64_t)1000 + tv.tv_usec / 1000;
 }
 // get time in microseconds.
 static inline ct_time64_t gettimeofday_us(void) {
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    return tv.tv_sec * (ct_time64_t)1000000 + tv.tv_usec;
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	return tv.tv_sec * (ct_time64_t)1000000 + tv.tv_usec;
 }
 // get high-resolution time in microseconds.
 CT_API ct_time64_t gethrtime_us(void);
@@ -98,10 +98,8 @@ static inline struct tm* ct_localtime_now(void) {
  * ct_tm_duration_fmt(duration_seconds, buf);
  * printf("duration: %s\n", buf); // 输出：duration: 01:01:01
  * @endcode
- *
- * @note 这个函数在显示持续时间或时间间隔时非常有用，如视频播放器或计时器。
  */
-CT_API char* ct_tm_duration_fmt(int sec, char* buf);
+CT_API char* ct_tm_duration_fmt(int sec, char* buf) __ct_nonnull(2);
 #define CT_TM_DURATION_MAX 12
 
 /**
@@ -119,10 +117,8 @@ CT_API char* ct_tm_duration_fmt(int sec, char* buf);
  * ct_tm_fmt(&dt, buf);
  * printf("当前日期时间：%s\n", buf);
  * @endcode
- *
- * @note 这个函数在需要以标准格式显示日期时间时很有用，如日志记录或用户界面显示。
  */
-CT_API char* ct_tm_fmt(const struct tm* dt, char* buf);
+CT_API char* ct_tm_fmt(const struct tm* dt, char* buf) __ct_nonnull(1, 2);
 #define CT_TM_FMT_MAX 20
 
 #ifdef __cplusplus

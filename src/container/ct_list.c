@@ -93,7 +93,7 @@ void ct_list_splice_next(ct_list_buf_t self, ct_list_buf_t list) {
 	}
 	ct_list_first(list)->prev = ct_list_last(self);
 	ct_list_last(self)->next  = ct_list_first(list);
-	ct_list_last(list)->prev  = self;
+	ct_list_last(list)->next  = self;
 	ct_list_last(self)        = ct_list_last(list);
 	ct_list_init(list);
 }

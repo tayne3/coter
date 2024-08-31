@@ -15,21 +15,23 @@
 #define STR_CURRTITLE "[ct_rbuf]"
 
 #define CT_RBUF_INDEX_INC(self, x) ((x) + 1 >= (self)->_max ? 0 : (x) + 1)           // 环形缓冲区-索引 递增
-#define CT_RBUF_INDEX_DEC(self, x) ((x) == 0 ? (self)->_max - 1 : (x)-1)             // 环形缓冲区-索引 递减
+#define CT_RBUF_INDEX_DEC(self, x) ((x) == 0 ? (self)->_max - 1 : (x) - 1)           // 环形缓冲区-索引 递减
 #define CT_RBUF_INDEX_CAL(self, x) ((x) >= (self)->_max ? (x) % (self)->_max : (x))  // 环形缓冲区-索引 计算实际值
 #define CT_RBUF_DATA(self, index)  (&(self)->_all[(index) * (self)->_byte])          // 环形缓冲区-数据
 
+#if 0
 /**
  * @brief 环形缓冲区-遍历
  * @param i 元素索引
  * @param it 元素指针
  * @param pos 元素位置
  * @param type 元素类型
- * @param self 最小堆/最大堆-变量指针
+ * @param self 环形缓冲区-变量指针
  */
 #define ct_rbuf_foreach(i, it, pos, type, self)                                                    \
 	for ((i) = 0, (pos) = (self)->head, (it) = (type *)&(self)->all[(pos)]; (pos) != (self)->tail; \
 		 ++(i), (pos) = ct_rbuf_index_inc(self, pos), (it) = (type *)&(self)->all[(pos)])
+#endif
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
@@ -180,7 +182,7 @@ void *ct_rbuf_items(const ct_rbuf_buf_t self, size_t offset, size_t size[1]) {
 		if (size) {
 			*size = 0;
 		}
-		return ct_nullptr;
+		return NULL;
 	}
 
 	if (self->_head + offset < self->_max) {

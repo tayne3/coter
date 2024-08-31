@@ -13,6 +13,7 @@ static inline int test_hash_siphash(void);
 
 int main(void) {
 	test_hash_siphash();
+	ctunit_trace("Finish! test_hash_siphash();\n");
 
 	ctunit_pass();
 }

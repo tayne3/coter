@@ -23,8 +23,8 @@
 extern "C" {
 #endif
 
+#include "base/ct_any.h"
 #include "base/ct_platform.h"
-#include "common/ct_any.h"
 
 // 哈希值类型
 typedef uint32_t ct_hash32_t;
@@ -63,7 +63,7 @@ typedef struct ct_hash {
  * @brief 初始化哈希表
  * @param self 哈希表指针
  */
-CT_API void ct_hash_init(ct_hash_buf_t self);
+CT_API void ct_hash_init(ct_hash_buf_t self) __ct_nonnull(1);
 
 /**
  * @brief 初始化哈希表
@@ -72,34 +72,34 @@ CT_API void ct_hash_init(ct_hash_buf_t self);
  * @param allow_resize 是否能够扩容
  * @param methods Any函数组
  */
-CT_API void ct_hash_init_s(ct_hash_buf_t self, size_t max, bool allow_resize, ct_any_methods_t methods);
+CT_API void ct_hash_init_s(ct_hash_buf_t self, size_t max, bool allow_resize, ct_any_methods_t methods) __ct_nonnull(1);
 
 /**
  * @brief 销毁哈希表
  * @param self 哈希表指针
  */
-CT_API void ct_hash_destroy(ct_hash_buf_t self);
+CT_API void ct_hash_destroy(ct_hash_buf_t self) __ct_nonnull(1);
 
 /**
  * @brief 扩容哈希表
  * @param self 哈希表指针
  * @param max 最大容量
  */
-CT_API void ct_hash_reserve(ct_hash_buf_t self, size_t max);
+CT_API void ct_hash_reserve(ct_hash_buf_t self, size_t max) __ct_nonnull(1);
 
 /**
  * @brief 获取元素数量
  * @param self 哈希表指针
  * @return 元素数量
  */
-CT_API size_t ct_hash_size(const ct_hash_buf_t self);
+CT_API size_t ct_hash_size(const ct_hash_buf_t self) __ct_nonnull(1);
 
 /**
  * @brief 检查哈希表是否为空
  * @param self 哈希表指针
  * @return 是否为空
  */
-CT_API bool ct_hash_isempty(const ct_hash_buf_t self);
+CT_API bool ct_hash_isempty(const ct_hash_buf_t self) __ct_nonnull(1);
 
 /**
  * @brief 检查 key 是否已经存在
@@ -107,7 +107,7 @@ CT_API bool ct_hash_isempty(const ct_hash_buf_t self);
  * @param key 键
  * @return 是否存在
  */
-CT_API bool ct_hash_contains(const ct_hash_buf_t self, const char *key);
+CT_API bool ct_hash_contains(const ct_hash_buf_t self, const char *key) __ct_nonnull(1, 2);
 
 /**
  * @brief 插入元素
@@ -116,7 +116,7 @@ CT_API bool ct_hash_contains(const ct_hash_buf_t self, const char *key);
  * @param value 值
  * @return 是否成功插入
  */
-CT_API bool ct_hash_insert(ct_hash_buf_t self, const char *key, ct_any_t value);
+CT_API bool ct_hash_insert(ct_hash_buf_t self, const char *key, ct_any_t value) __ct_nonnull(1, 2);
 
 /**
  * @brief 删除元素
@@ -124,13 +124,13 @@ CT_API bool ct_hash_insert(ct_hash_buf_t self, const char *key, ct_any_t value);
  * @param key 键
  * @return 是否成功删除
  */
-CT_API bool ct_hash_remove(ct_hash_buf_t self, const char *key);
+CT_API bool ct_hash_remove(ct_hash_buf_t self, const char *key) __ct_nonnull(1, 2);
 
 /**
  * @brief 清空哈希表
  * @param self 哈希表指针
  */
-CT_API void ct_hash_clear(ct_hash_buf_t self);
+CT_API void ct_hash_clear(ct_hash_buf_t self) __ct_nonnull(1);
 
 /**
  * @brief 获取 key 对应的值
@@ -138,7 +138,7 @@ CT_API void ct_hash_clear(ct_hash_buf_t self);
  * @param key 键
  * @return 对应的值
  */
-CT_API ct_any_t ct_hash_value(ct_hash_buf_t self, const char *key);
+CT_API ct_any_t ct_hash_value(ct_hash_buf_t self, const char *key) __ct_nonnull(1, 2);
 
 /**
  * @brief 获取 key 对应的值
@@ -147,7 +147,7 @@ CT_API ct_any_t ct_hash_value(ct_hash_buf_t self, const char *key);
  * @param value 值的指针
  * @return 是否成功获取值
  */
-CT_API bool ct_hash_value_r(ct_hash_buf_t self, const char *key, ct_any_buf_t value);
+CT_API bool ct_hash_value_r(ct_hash_buf_t self, const char *key, ct_any_buf_t value) __ct_nonnull(1, 2);
 
 /**
  * @brief 获取 key 对应的值 (带默认值)
@@ -156,7 +156,7 @@ CT_API bool ct_hash_value_r(ct_hash_buf_t self, const char *key, ct_any_buf_t va
  * @param default_value 默认值
  * @return 对应的值
  */
-CT_API ct_any_t ct_hash_value_s(ct_hash_buf_t self, const char *key, ct_any_t default_value);
+CT_API ct_any_t ct_hash_value_s(ct_hash_buf_t self, const char *key, ct_any_t default_value) __ct_nonnull(1, 2);
 
 #ifdef __cplusplus
 }

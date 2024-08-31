@@ -12,10 +12,12 @@ extern "C" {
 
 #include "base/ct_platform.h"
 #include "base/ct_time.h"
-#include "common/ct_any.h"
+#include "base/ct_any.h"
+
+struct ct_jobpool;
 
 // 定时器id类型
-typedef uint64_t ct_timer_id_t;
+typedef uint32_t ct_timer_id_t;
 // 无效的定时器id
 #define CT_TIMER_ID_INVALID 0
 // 定时器回调函数类型
@@ -24,8 +26,9 @@ typedef void (*ct_timer_callback_t)(ct_timer_id_t, const ct_any_buf_t);
 /**
  * @brief 定时器管理初始化
  * @param tick 运行时间 (ms)
+ * @param jobpool 任务池
  */
-CT_API void ct_timer_mgr_init(ct_time64_t tick);
+CT_API void ct_timer_mgr_init(ct_time64_t tick, struct ct_jobpool *jobpool) __ct_nonnull(2);
 
 /**
  * @brief 定时器调度

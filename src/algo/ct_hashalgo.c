@@ -10,6 +10,12 @@
 
 #define STR_CURRTITLE "[ct_hashalgo]"
 
+/**
+ * @brief 将字节数组转换为64位无符号整数
+ * @param array 输入的字节数组
+ * @param endian 字节序类型
+ * @return 转换后的64位无符号整数
+ */
 static inline uint64_t hg_to_uint64s(const uint8_t *array, ct_endian_t endian);
 
 // -------------------------[GLOBAL DEFINITION]-------------------------

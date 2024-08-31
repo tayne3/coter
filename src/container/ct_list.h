@@ -50,9 +50,9 @@ typedef struct ct_list {
 #define ct_list_last_entry(__head, __type, __member)  ct_list_entry((__head)->prev, __type, __member)
 
 #define ct_list_next_entry(__pos, __type, __member) \
-	!(__pos) ? ct_nullptr : ct_list_entry((__pos)->__member->next, __type, __member)
+	!(__pos) ? NULL : ct_list_entry((__pos)->__member->next, __type, __member)
 #define ct_list_prev_entry(__pos, __type, __member) \
-	!(__pos) ? ct_nullptr : ct_list_entry((__pos)->__member->prev, __type, __member)
+	!(__pos) ? NULL : ct_list_entry((__pos)->__member->prev, __type, __member)
 
 // 遍历链表节点
 // 	- __pos 用于遍历的节点
@@ -92,27 +92,27 @@ typedef struct ct_list {
 		 __pos->__member != (__head); __pos = ___n, ___n = ct_list_next_entry(___n, __type, __member))
 
 // 初始化/重置链表
-CT_API void ct_list_init(ct_list_buf_t self);
+CT_API void ct_list_init(ct_list_buf_t self) __ct_nonnull(1);
 // 获取链表的大小
-CT_API size_t ct_list_size(const ct_list_buf_t self);
+CT_API size_t ct_list_size(const ct_list_buf_t self) __ct_nonnull(1);
 
 // 在链表头部添加新节点
-CT_API void ct_list_append(ct_list_buf_t self, ct_list_buf_t node);
+CT_API void ct_list_append(ct_list_buf_t self, ct_list_buf_t node) __ct_nonnull(1, 2);
 // 在链表尾部添加新节点
-CT_API void ct_list_prepend(ct_list_buf_t self, ct_list_buf_t node);
+CT_API void ct_list_prepend(ct_list_buf_t self, ct_list_buf_t node) __ct_nonnull(1, 2);
 
 // 在链表指定节点之前添加新节点
-CT_API void ct_list_before(ct_list_buf_t target, ct_list_buf_t node);
+CT_API void ct_list_before(ct_list_buf_t target, ct_list_buf_t node) __ct_nonnull(1, 2);
 // 在链表指定节点之后添加新节点
-CT_API void ct_list_after(ct_list_buf_t target, ct_list_buf_t node);
+CT_API void ct_list_after(ct_list_buf_t target, ct_list_buf_t node) __ct_nonnull(1, 2);
 
 // 删除链表指定节点
-CT_API void ct_list_remove(ct_list_buf_t node);
+CT_API void ct_list_remove(ct_list_buf_t node) __ct_nonnull(1);
 
 // 链表拼接, 将另一个链表的前驱节点作为链表的前驱节点
-CT_API void ct_list_splice_prev(ct_list_buf_t self, ct_list_buf_t list);
+CT_API void ct_list_splice_prev(ct_list_buf_t self, ct_list_buf_t list) __ct_nonnull(1, 2);
 // 链表拼接, 将另一个链表的后继节点作为链表的后继节点
-CT_API void ct_list_splice_next(ct_list_buf_t self, ct_list_buf_t list);
+CT_API void ct_list_splice_next(ct_list_buf_t self, ct_list_buf_t list) __ct_nonnull(1, 2);
 
 #ifdef __cplusplus
 }

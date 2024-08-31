@@ -14,8 +14,8 @@
 extern "C" {
 #endif
 
+#include "base/ct_any.h"
 #include "base/ct_platform.h"
-#include "common/ct_any.h"
 
 /**
  * @brief 栈结构体
@@ -27,9 +27,11 @@ typedef struct ct_stack {
 } ct_stack_t, ct_stack_buf_t[1];
 
 // 初始化
-#define CT_STACK_INIT(__buffer, __max)                      \
-	{                                                       \
-		._all = (void*)__buffer, ._max = __max, ._size = 0, \
+#define CT_STACK_INIT(__buffer, __max) \
+	{                                  \
+		._all  = (void*)__buffer,      \
+		._max  = __max,                \
+		._size = 0,                    \
 	}
 
 #define ct_stack_max(self)     ((self)->_max)                   // 获取 栈 最大容量
@@ -44,7 +46,7 @@ typedef struct ct_stack {
  * @param buffer 缓冲区地址
  * @param max 缓冲区大小
  */
-CT_API void ct_stack_init(ct_stack_buf_t self, ct_any_t* buffer, size_t max);
+CT_API void ct_stack_init(ct_stack_buf_t self, ct_any_t* buffer, size_t max) __ct_nonnull(1, 2);
 
 /**
  * @brief 将元素value推入栈顶
@@ -52,7 +54,7 @@ CT_API void ct_stack_init(ct_stack_buf_t self, ct_any_t* buffer, size_t max);
  * @param item 要添加的元素
  * @return 栈状态
  */
-CT_API bool ct_stack_push(ct_stack_buf_t self, ct_any_t item);
+CT_API bool ct_stack_push(ct_stack_buf_t self, ct_any_t item) __ct_nonnull(1);
 
 /**
  * @brief 弹出栈顶的元素
@@ -60,7 +62,7 @@ CT_API bool ct_stack_push(ct_stack_buf_t self, ct_any_t item);
  * @param item 用于存储元素的指针
  * @return 成功返回 true，失败返回 false
  */
-CT_API bool ct_stack_pop(ct_stack_buf_t self, ct_any_buf_t item);
+CT_API bool ct_stack_pop(ct_stack_buf_t self, ct_any_buf_t item) __ct_nonnull(1);
 
 /**
  * @brief 返回栈顶元素, 但不将其从栈中移除
@@ -68,7 +70,7 @@ CT_API bool ct_stack_pop(ct_stack_buf_t self, ct_any_buf_t item);
  * @param item 用于存储元素的指针
  * @return 成功返回 true，失败返回 false
  */
-CT_API bool ct_stack_top(ct_stack_buf_t self, ct_any_buf_t item);
+CT_API bool ct_stack_top(ct_stack_buf_t self, ct_any_buf_t item) __ct_nonnull(1);
 
 #ifdef __cplusplus
 }

@@ -10,8 +10,8 @@
 extern "C" {
 #endif
 
+#include "base/ct_any.h"
 #include "base/ct_platform.h"
-#include "common/ct_any.h"
 
 // 单事件id
 typedef uint8_t ct_event_id_t;
@@ -48,13 +48,13 @@ typedef struct ct_event {
  * @param id 事件id
  * @param arg 事件参数
  */
-CT_API void ct_event_send(ct_event_buf_t self, ct_event_id_t id, ct_any_t arg);
+CT_API void ct_event_send(ct_event_buf_t self, ct_event_id_t id, ct_any_t arg) __ct_nonnull(1);
 
 /**
  * @brief 清空所有事件
  * @param self 事件控制变量
  */
-CT_API void ct_event_clear(ct_event_buf_t self);
+CT_API void ct_event_clear(ct_event_buf_t self) __ct_nonnull(1);
 
 /**
  * @brief 获取事件参数
@@ -62,7 +62,7 @@ CT_API void ct_event_clear(ct_event_buf_t self);
  * @param id 事件id
  * @return ct_any_t 返回事件参数
  */
-CT_API ct_any_t ct_event_arg_get(ct_event_buf_t self, ct_event_id_t id);
+CT_API ct_any_t ct_event_arg_get(ct_event_buf_t self, ct_event_id_t id) __ct_nonnull(1);
 
 /**
  * @brief 获取并删除事件参数
@@ -70,14 +70,14 @@ CT_API ct_any_t ct_event_arg_get(ct_event_buf_t self, ct_event_id_t id);
  * @param id 事件id
  * @return ct_any_t 返回事件参数
  */
-CT_API ct_any_t ct_event_arg_take(ct_event_buf_t self, ct_event_id_t id);
+CT_API ct_any_t ct_event_arg_take(ct_event_buf_t self, ct_event_id_t id) __ct_nonnull(1);
 
 /**
  * @brief 等待接收单个事件 (指定事件类型)
  * @param self 事件控制变量
  * @return ct_event_id_t 返回接收到的事件id
  */
-CT_API ct_event_id_t ct_event_receive(ct_event_buf_t self);
+CT_API ct_event_id_t ct_event_receive(ct_event_buf_t self) __ct_nonnull(1);
 
 /**
  * @brief 等待接收单个事件 (指定事件类型 和 单事件id)
@@ -85,7 +85,7 @@ CT_API ct_event_id_t ct_event_receive(ct_event_buf_t self);
  * @param id 单个事件id
  * @return ct_event_id_t 返回接收到的事件id
  */
-CT_API ct_event_id_t ct_event_receive_single(ct_event_buf_t self, ct_event_id_t id);
+CT_API ct_event_id_t ct_event_receive_single(ct_event_buf_t self, ct_event_id_t id) __ct_nonnull(1);
 
 /**
  * @brief 等待接收单个事件 (指定事件类型 和 多事件id)
@@ -93,14 +93,14 @@ CT_API ct_event_id_t ct_event_receive_single(ct_event_buf_t self, ct_event_id_t 
  * @param ids 多个事件id
  * @return ct_event_id_t 返回接收到的事件id
  */
-CT_API ct_event_id_t ct_event_receive_multiple(ct_event_buf_t self, ct_event_ids_t ids);
+CT_API ct_event_id_t ct_event_receive_multiple(ct_event_buf_t self, ct_event_ids_t ids) __ct_nonnull(1);
 
 /**
  * @brief 尝试接收单个事件 (指定事件类型)
  * @param self 事件控制变量
  * @return ct_event_id_t 返回收到的事件id，未收到时返回无效值
  */
-CT_API ct_event_id_t ct_event_try_receive(ct_event_buf_t self);
+CT_API ct_event_id_t ct_event_try_receive(ct_event_buf_t self) __ct_nonnull(1);
 
 /**
  * @brief 尝试接收单个事件 (指定事件类型 和 单事件id)
@@ -108,7 +108,7 @@ CT_API ct_event_id_t ct_event_try_receive(ct_event_buf_t self);
  * @param id 单个事件id
  * @return ct_event_id_t 返回收到的事件id，未收到时返回无效值
  */
-CT_API ct_event_id_t ct_event_try_receive_single(ct_event_buf_t self, ct_event_id_t id);
+CT_API ct_event_id_t ct_event_try_receive_single(ct_event_buf_t self, ct_event_id_t id) __ct_nonnull(1);
 
 /**
  * @brief 尝试接收单个事件 (指定事件类型 和 多事件id)
@@ -116,7 +116,7 @@ CT_API ct_event_id_t ct_event_try_receive_single(ct_event_buf_t self, ct_event_i
  * @param ids 多个事件id
  * @return ct_event_id_t 返回收到的事件id，未收到时返回无效值
  */
-CT_API ct_event_id_t ct_event_try_receive_multiple(ct_event_buf_t self, ct_event_ids_t ids);
+CT_API ct_event_id_t ct_event_try_receive_multiple(ct_event_buf_t self, ct_event_ids_t ids) __ct_nonnull(1);
 
 /**
  * @brief 检查多事件id是否有效
@@ -139,14 +139,14 @@ CT_API ct_event_ids_t ct_event_ids_from(size_t count, size_t start, ...);
  * @param ids 多事件id
  * @param value 要添加的单事件id
  */
-CT_API void ct_event_ids_add(ct_event_ids_t *ids, ct_event_id_t value);
+CT_API void ct_event_ids_add(ct_event_ids_t *ids, ct_event_id_t value) __ct_nonnull(1);
 
 /**
  * @brief 从 ct_event_ids_t 中删除一个 ct_event_id_t
  * @param ids 多事件id
  * @param value 要删除的单事件id
  */
-CT_API void ct_event_ids_remove(ct_event_ids_t *ids, ct_event_id_t value);
+CT_API void ct_event_ids_remove(ct_event_ids_t *ids, ct_event_id_t value) __ct_nonnull(1);
 
 #ifdef __cplusplus
 }

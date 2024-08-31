@@ -58,12 +58,12 @@ char* ct_tm_duration_fmt(int sec, char* buf) {
 	int s = sec % 60;
 	int h = m / 60;
 	m = m % 60;
-	ct_sprintf(buf, "%02d:%02d:%02d", h, m, s);
+	sprintf(buf, "%02d:%02d:%02d", h, m, s);
 	return buf;
 }
 
 char* ct_tm_fmt(const struct tm* dt, char* buf) {
-	ct_sprintf(buf, "%04d-%02d-%02d %02d:%02d:%02d", dt->tm_year, dt->tm_mon, dt->tm_mday, dt->tm_hour, dt->tm_min, dt->tm_sec);
+	sprintf(buf, "%04d-%02d-%02d %02d:%02d:%02d", dt->tm_year, dt->tm_mon, dt->tm_mday, dt->tm_hour, dt->tm_min, dt->tm_sec);
 	return buf;
 }
 

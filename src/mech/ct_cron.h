@@ -12,10 +12,12 @@ extern "C" {
 
 #include "base/ct_platform.h"
 #include "base/ct_time.h"
-#include "common/ct_any.h"
+#include "base/ct_any.h"
+
+struct ct_jobpool;
 
 // cron任务id类型
-typedef uint64_t ct_cron_id_t;
+typedef uint32_t ct_cron_id_t;
 // 无效的cron任务id
 #define CT_CRON_ID_INVALID 0
 // cron任务回调函数类型
@@ -24,8 +26,9 @@ typedef void (*ct_cron_callback_t)(ct_cron_id_t, const ct_any_buf_t);
 /**
  * @brief cron任务管理初始化
  * @param now 当前时间 (s)
+ * @param jobpool 任务池
  */
-CT_API void ct_cron_mgr_init(ct_time_t now);
+CT_API void ct_cron_mgr_init(ct_time_t now, struct ct_jobpool* jobpool) __ct_nonnull(2);
 
 /**
  * @brief cron任务调度

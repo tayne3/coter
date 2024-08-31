@@ -5,19 +5,14 @@
  * @date 2023.12.03
  */
 #include "ct_thpool.h"
-#include "base/ct_platform.h"
+
 #include "container/ct_list.h"
 #include "mech/ct_log.h"
 #include "mech/ct_msgqueue.h"
-#include "sched.h"
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
 #define STR_CURRTITLE "[ct_thpool]"
-
-// 全局线程池
-static ct_thpool_ptr_t thpool_global       = ct_nullptr;
-static pthread_mutex_t thpool_global_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 /**
  * @brief 线程池工作
@@ -80,21 +75,10 @@ ct_thpool_ptr_t ct_thpool_create(pthread_attr_t* attr) {
 	return self;
 }
 
-ct_thpool_ptr_t ct_thpool_global(pthread_attr_t* attr) {
-	if (!thpool_global) {
-		pthread_mutex_lock(&thpool_global_mutex);
-		if (!thpool_global) {
-			thpool_global = ct_thpool_create(attr);
-		}
-		pthread_mutex_unlock(&thpool_global_mutex);
-	}
-	return thpool_global;
-}
-
 void ct_thpool_destroy(ct_thpool_ptr_t self) {
 	assert(self);
 
-	ct_forever {
+	for (;;) {
 		pthread_mutex_lock(self->resident_mutex);
 		if (ct_list_isempty(self->resident_list)) {
 			pthread_mutex_unlock(self->resident_mutex);
@@ -107,7 +91,7 @@ void ct_thpool_destroy(ct_thpool_ptr_t self) {
 		pthread_cancel(unit->thread);
 	}
 
-	ct_forever {
+	for (;;) {
 		pthread_mutex_lock(self->resident_mutex);
 		if (ct_list_isempty(self->resident_list)) {
 			pthread_mutex_unlock(self->resident_mutex);
@@ -126,7 +110,7 @@ void ct_thpool_destroy(ct_thpool_ptr_t self) {
 		free(unit);
 	}
 
-	ct_forever {
+	for (;;) {
 		pthread_mutex_lock(self->resident_mutex);
 		if (ct_list_isempty(self->recycle_list)) {
 			pthread_mutex_unlock(self->resident_mutex);
@@ -154,9 +138,6 @@ void ct_thpool_destroy(ct_thpool_ptr_t self) {
 }
 
 int ct_thpool_add(ct_thpool_ptr_t self, pthread_attr_t* attr, ct_thpool_routine_t routine, void* arg) {
-	if (!self) {
-		self = ct_thpool_global(NULL);
-	}
 	assert(self);
 
 	unit_t* unit = NULL;
@@ -215,6 +196,6 @@ static inline void* ct_thpool_thread_do_resident(void* arg) {
 	pthread_mutex_unlock(unit->thpool->resident_mutex);
 
 	// 退出线程
-	pthread_exit(ct_nullptr);
-	return ct_nullptr;
+	pthread_exit(NULL);
+	return NULL;
 }

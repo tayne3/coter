@@ -46,8 +46,7 @@ static inline bool ct_hash_resize(ct_hash_buf_t self, size_t max);
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
-void ct_hash_init(ct_hash_buf_t self)
-{
+void ct_hash_init(ct_hash_buf_t self) {
 	assert(self);
 
 	// 申请内存
@@ -60,8 +59,7 @@ void ct_hash_init(ct_hash_buf_t self)
 	self->allow_resize = true;
 }
 
-void ct_hash_init_s(ct_hash_buf_t self, size_t max, bool allow_resize, ct_any_methods_t methods)
-{
+void ct_hash_init_s(ct_hash_buf_t self, size_t max, bool allow_resize, ct_any_methods_t methods) {
 	assert(self && max);
 
 	if (max > CT_HASH_MEMORY_MAX) {
@@ -78,8 +76,7 @@ void ct_hash_init_s(ct_hash_buf_t self, size_t max, bool allow_resize, ct_any_me
 	self->allow_resize = allow_resize;
 }
 
-void ct_hash_destroy(ct_hash_buf_t self)
-{
+void ct_hash_destroy(ct_hash_buf_t self) {
 	assert(self);
 
 	// 清空元素
@@ -87,12 +84,11 @@ void ct_hash_destroy(ct_hash_buf_t self)
 	// 释放内存
 	if (self->all) {
 		free(self->all);
-		self->all = ct_nullptr;
+		self->all = NULL;
 	}
 }
 
-void ct_hash_reserve(ct_hash_buf_t self, size_t max)
-{
+void ct_hash_reserve(ct_hash_buf_t self, size_t max) {
 	assert(self);
 
 	if (self->max < max && max < CT_HASH_MEMORY_MAX) {
@@ -100,18 +96,15 @@ void ct_hash_reserve(ct_hash_buf_t self, size_t max)
 	}
 }
 
-size_t ct_hash_size(const ct_hash_buf_t self)
-{
+size_t ct_hash_size(const ct_hash_buf_t self) {
 	return CT_HASH_SIZE(self);
 }
 
-bool ct_hash_isempty(const ct_hash_buf_t self)
-{
+bool ct_hash_isempty(const ct_hash_buf_t self) {
 	return CT_HASH_ISEMPTY(self);
 }
 
-bool ct_hash_contains(const ct_hash_buf_t self, const char *key)
-{
+bool ct_hash_contains(const ct_hash_buf_t self, const char *key) {
 	assert(self);
 
 	if (STR_ISEMPTY(key) || CT_HASH_ISEMPTY(self)) {
@@ -141,8 +134,7 @@ bool ct_hash_contains(const ct_hash_buf_t self, const char *key)
 	return false;
 }
 
-bool ct_hash_insert(ct_hash_buf_t self, const char *key, ct_any_t value)
-{
+bool ct_hash_insert(ct_hash_buf_t self, const char *key, ct_any_t value) {
 	assert(self);
 
 	if (STR_ISEMPTY(key)) {
@@ -197,8 +189,7 @@ bool ct_hash_insert(ct_hash_buf_t self, const char *key, ct_any_t value)
 	return true;
 }
 
-bool ct_hash_remove(ct_hash_buf_t self, const char *key)
-{
+bool ct_hash_remove(ct_hash_buf_t self, const char *key) {
 	assert(self);
 
 	do {
@@ -219,7 +210,7 @@ bool ct_hash_remove(ct_hash_buf_t self, const char *key)
 		ct_hash_pair_t *pos = CT_HASH_DATA(self, hash_index);
 
 		// 遍历链表, 检查key是否已经存在
-		for (ct_hash_pair_t *it = pos, *prev = ct_nullptr; it; prev = it, it = it->next) {
+		for (ct_hash_pair_t *it = pos, *prev = NULL; it; prev = it, it = it->next) {
 			if (it->key_hash != key_hash || key_length != it->key_length || strncmp(key, it->key, key_length) != 0) {
 				continue;
 			}
@@ -239,8 +230,7 @@ bool ct_hash_remove(ct_hash_buf_t self, const char *key)
 	return false;
 }
 
-void ct_hash_clear(ct_hash_buf_t self)
-{
+void ct_hash_clear(ct_hash_buf_t self) {
 	assert(self);
 
 	ct_hash_pair_t *it, *pos;
@@ -251,7 +241,7 @@ void ct_hash_clear(ct_hash_buf_t self)
 			continue;
 		}
 		// 置空
-		CT_HASH_DATA(self, i) = ct_nullptr;
+		CT_HASH_DATA(self, i) = NULL;
 
 		for (it = pos; it; it = pos) {
 			if (pos) {
@@ -264,8 +254,7 @@ void ct_hash_clear(ct_hash_buf_t self)
 	}
 }
 
-ct_any_t ct_hash_value(ct_hash_buf_t self, const char *key)
-{
+ct_any_t ct_hash_value(ct_hash_buf_t self, const char *key) {
 	assert(self);
 
 	do {
@@ -297,11 +286,10 @@ ct_any_t ct_hash_value(ct_hash_buf_t self, const char *key)
 	return ct_any_null;
 }
 
-bool ct_hash_value_r(ct_hash_buf_t self, const char *key, ct_any_buf_t value)
-{
+bool ct_hash_value_r(ct_hash_buf_t self, const char *key, ct_any_buf_t value) {
 	assert(self);
 
-	bool isok = false;
+	bool is_ok = false;
 
 	do {
 		if (STR_ISEMPTY(key) || CT_HASH_ISEMPTY(self)) {
@@ -328,19 +316,18 @@ bool ct_hash_value_r(ct_hash_buf_t self, const char *key, ct_any_buf_t value)
 			if (value) {
 				*value = *it->value;
 			}
-			isok = true;
+			is_ok = true;
 			break;
 		}
 	} while (0);
 
-	if (!isok && value) {
+	if (!is_ok && value) {
 		*value = ct_any_null;
 	}
-	return isok;
+	return is_ok;
 }
 
-ct_any_t ct_hash_value_s(ct_hash_buf_t self, const char *key, ct_any_t default_value)
-{
+ct_any_t ct_hash_value_s(ct_hash_buf_t self, const char *key, ct_any_t default_value) {
 	assert(self);
 
 	do {
@@ -374,8 +361,7 @@ ct_any_t ct_hash_value_s(ct_hash_buf_t self, const char *key, ct_any_t default_v
 
 // -------------------------[STATIC DEFINITION]-------------------------
 
-static inline bool ct_hash_resize(ct_hash_buf_t self, size_t max)
-{
+static inline bool ct_hash_resize(ct_hash_buf_t self, size_t max) {
 	assert(self && self->all);
 
 	ct_hash_pair_t **const old_all = self->all;
@@ -402,7 +388,7 @@ static inline bool ct_hash_resize(ct_hash_buf_t self, size_t max)
 		for (size_t i = 0, hash_index; i < old_max; i++) {
 			pos = old_all[i];
 			if (!pos) {
-				self->all[i] = ct_nullptr;
+				self->all[i] = NULL;
 				continue;
 			}
 			for (it = pos; it; it = pos) {

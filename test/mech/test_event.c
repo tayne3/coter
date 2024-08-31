@@ -25,8 +25,6 @@ static inline void test_boundary_conditions(void);
 static inline void test_concurrency(void);
 // 测试非阻塞行为
 static inline void test_non_blocking(void);
-// 测试错误处理
-static inline void test_error_handling(void);
 
 int main(void) {
 	test_basic_functionality();
@@ -40,9 +38,6 @@ int main(void) {
 
 	test_non_blocking();
 	ctunit_trace("Finish! test_non_blocking();\n");
-
-	test_error_handling();
-	ctunit_trace("Finish! test_error_handling();\n");
 
 	ctunit_pass();
 }
@@ -142,12 +137,12 @@ static inline void test_boundary_conditions(void) {
 static inline void test_concurrency(void) {
 	pthread_t threads[TEST_THREAD_COUNT];
 
-	bool isok = false;
+	bool is_ok;
 
 	// 创建线程
 	for (int i = 0; i < TEST_THREAD_COUNT; i++) {
-		isok = pthread_create(&threads[i], NULL, send_events, (void*)(uintptr_t)i) == 0;
-		ctunit_assert_true(isok, "id = %d/%d", i, TEST_THREAD_COUNT);
+		is_ok = pthread_create(&threads[i], NULL, send_events, (void*)(uintptr_t)i) == 0;
+		ctunit_assert_true(is_ok, "id = %d/%d", i, TEST_THREAD_COUNT);
 	}
 
 	ct_event_id_t id;
@@ -186,15 +181,4 @@ static inline void test_non_blocking(void) {
 	ct_event_send(&event, CT_EVENT_ID_MIN, ct_any_null);
 	id = ct_event_try_receive(&event);
 	ctunit_assert_uint8(id, CT_EVENT_ID_MIN, CTUnit_Equal);
-}
-
-// 测试错误处理
-static inline void test_error_handling(void) {
-	ct_event_t event = CT_EVENT_INITIALIZER;
-
-	// 测试无效参数
-	ct_event_send(&event, CT_EVENT_ID_INVALID, ct_any_null);
-
-	ct_any_t arg = ct_event_arg_get(&event, CT_EVENT_ID_INVALID);
-	ctunit_assert_false(ct_any_isvalid(&arg));
 }

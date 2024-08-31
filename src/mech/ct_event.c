@@ -76,7 +76,7 @@ ct_event_id_t ct_event_receive(ct_event_buf_t self) {
 	ct_event_id_t result = CT_EVENT_ID_INVALID;
 	pthread_mutex_lock(self->mutex);
 	// 循环等待，直到接收到指定事件为止
-	ct_forever {
+	for (;;) {
 		// 判断是否接收到指定事件
 		if (ev_id_take(self, &result)) {
 			pthread_mutex_unlock(self->mutex);
@@ -95,7 +95,7 @@ ct_event_id_t ct_event_receive_single(ct_event_buf_t self, ct_event_id_t id) {
 	ct_event_id_t result = CT_EVENT_ID_INVALID;
 	pthread_mutex_lock(self->mutex);
 	// 循环等待，直到接收到指定事件为止
-	ct_forever {
+	for (;;) {
 		// 判断是否接收到指定事件
 		if (ev_id_take_single(self, id, &result)) {
 			pthread_mutex_unlock(self->mutex);
@@ -113,7 +113,7 @@ ct_event_id_t ct_event_receive_multiple(ct_event_buf_t self, ct_event_ids_t ids)
 	}
 	ct_event_id_t result = CT_EVENT_ID_INVALID;
 	// 循环等待，直到接收到指定事件为止
-	ct_forever {
+	for (;;) {
 		// 判断是否接收到事件
 		if (ev_id_take_multiple(self, ids, &result)) {
 			pthread_mutex_unlock(self->mutex);

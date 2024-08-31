@@ -1,8 +1,8 @@
 /**
  * @file ct_log_storage.h
- * @brief 日志存储
+ * @brief 日志存储器
  * @author tayne3@dingtalk.com
- * @date 2023.11.17
+ * @date 2024.2.9
  */
 #ifndef _CT_LOG_STORAGE_H
 #define _CT_LOG_STORAGE_H
@@ -11,79 +11,49 @@ extern "C" {
 #endif
 
 #include "base/ct_platform.h"
+#include "container/ct_bytes.h"
+
+struct ct_bytepool;
+struct ct_log_config;
 
 /**
- * @brief 日志存储配置
- * 该结构体用于配置日志存储的相关参数, 其中参数都是只读的,不允许在外部进行修改。
+ * @struct ct_log_storage
+ * @brief 日志存储器
  */
-typedef struct ct_log_storage {
-	int             file_number;  // 日志文件数量
-	size_t          file_size;    // 日志文件最大大小
-	size_t          buffer_max;   // 缓冲区最大空间
-	const char     *file_name;    // 日志文件前缀
-	FILE           *_file;        // 文件描述符
-	int             _file_index;  // 文件索引号
-	pthread_mutex_t mutex[1];     // 互斥锁
-} ct_log_storage_t, ct_log_storage_buf_t[1];
-
-#define CTLOG_STORAGE_INIT(_file_name, _file_number, _file_max, _buffer_max) \
-	{                                                                        \
-		.file_number = _file_number,                                         \
-		.file_size   = _file_max,                                            \
-		.buffer_max  = _buffer_max,                                          \
-		.file_name   = _file_name,                                           \
-		._file       = ct_nullptr,                                           \
-		._file_index = 0,                                                    \
-		.mutex       = {PTHREAD_MUTEX_INITIALIZER},                          \
-	}
+typedef struct ct_log_storage ct_log_storage_t;
 
 /**
- * @brief 启动日志存储
- * @param self 日志存储结构体指针
+ * @brief 创建日志存储器
+ *
+ * @param bytepool 字节池
+ * @param config 日志配置
+ * @return 返回创建的日志存储器
  */
-void ct_log_storage_start(ct_log_storage_buf_t self);
+ct_log_storage_t *ct_log_storage_create(struct ct_bytepool *bytepool, const struct ct_log_config *config)
+	__ct_nonnull(1, 2);
 
 /**
- * @brief 关闭日志文件
- * @param self 日志存储结构体指针
+ * @brief 销毁日志存储器
+ * @param self 日志存储器
  */
-void ct_log_storage_close(ct_log_storage_buf_t self);
+void ct_log_storage_destroy(ct_log_storage_t *self) __ct_nonnull(1);
 
 /**
- * @brief 锁定日志存储
- * @param self 日志存储结构体指针
+ * @brief 添加日志数据
+ * @param self 日志存储器
+ * @param buf 日志数据
+ * @param size 日志数据大小
  */
-void ct_log_storage_lock(ct_log_storage_buf_t self);
+void ct_log_storage_put(ct_log_storage_t *self, char *buf, size_t size) __ct_nonnull(1, 2);
 
 /**
- * @brief 解锁日志存储
- * @param self 日志存储结构体指针
+ * @brief 刷新日志存储器
+ *
+ * @param self 日志存储器
  */
-void ct_log_storage_unlock(ct_log_storage_buf_t self);
-
-/**
- * @brief 判断日志存储是否有效
- * @param self 日志存储结构体指针
- * @return true 有效
- * @return false 无效
- */
-bool ct_log_storage_isvalid(ct_log_storage_buf_t self);
-
-/**
- * @brief 刷新日志存储
- * @param self 日志存储结构体指针
- */
-void ct_log_storage_flush(ct_log_storage_buf_t self);
-
-/**
- * @brief 推送日志到存储
- * @param self 日志存储结构体指针
- * @param cache 日志缓存
- * @param size 日志缓存大小
- */
-void ct_log_storage_push(ct_log_storage_buf_t self, char *cache, size_t size);
+void ct_log_storage_flush(ct_log_storage_t *self) __ct_nonnull(1);
 
 #ifdef __cplusplus
 }
 #endif
-#endif
+#endif  // _CT_LOG_STORAGE_H

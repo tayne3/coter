@@ -35,62 +35,70 @@ typedef struct ct_evmsg_subscriber {
 	uint8_t            type;      // 事件类型
 } ct_evmsg_subscriber_t;
 
-// 消息处理函数
-bool ct_evmsg_handler(ct_evmsg_buf_t msg, void *userdata);
-
-// 事件消息管理器
-static struct ct_evmsg_mgr {
+// 事件消息中枢
+struct ct_evmsg_center {
 	bool                  is_busy;                           // 是否正在处理事件消息
 	ct_list_buf_t         subscriber_list[CTEvMsgType_Max];  // 订阅者链表
 	ct_evmsg_t            msg_buffer[CTEVMSG_MSG_MAX];       // 事件消息缓冲区
 	ct_msgqueue_t         msgqueue[1];                       // 事件消息队列
+	ct_jobpool_t         *jobpool;                           // 任务池
 	ct_evmsg_subscriber_t subscriber_itself;                 // 事件中枢自身订阅者
 	ct_evmsg_t            msg[1];                            // 正在处理的事件消息
-} mgr[1] = {{
-	.is_busy = false,
-	.subscriber_itself =
-		{
-			.type     = CTEvMsgType_Itself,
-			.handler  = ct_evmsg_handler,
-			.userdata = ct_nullptr,
-		},
-}};
+};
 
+// 事件消息处理函数
+static inline bool ct_evmsg_handler(ct_evmsg_buf_t msg, void *userdata);
 // 消息处理回调
 static inline void ct_evmsg_callback(void *arg);
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
-void ct_evmsg_mgr_init(void) {
+ct_evmsg_center_ptr_t ct_evmsg_center_create(struct ct_jobpool *jobpool) {
+	assert(jobpool);
+	ct_evmsg_center_ptr_t center = (ct_evmsg_center_ptr_t)malloc(sizeof(struct ct_evmsg_center));
+	if (!center) {
+		return NULL;
+	}
+
 	// 初始化事件消息
-	ct_msgqueue_init(mgr->msgqueue, mgr->msg_buffer, sizeof(ct_evmsg_t), CTEVMSG_MSG_MAX);
+	ct_msgqueue_init(center->msgqueue, center->msg_buffer, sizeof(ct_evmsg_t), CTEVMSG_MSG_MAX);
 	// 初始化订阅者链表
 	for (int i = 0; i < CTEvMsgType_Max; i++) {
-		ct_list_init(mgr->subscriber_list[i]);
+		ct_list_init(center->subscriber_list[i]);
 	}
 
 	// 初始化自身订阅者
-	ct_list_init(mgr->subscriber_itself.list);
+	ct_list_init(center->subscriber_itself.list);
+	center->subscriber_itself.handler  = ct_evmsg_handler;
+	center->subscriber_itself.userdata = center;
+	center->subscriber_itself.type     = CTEvMsgType_Itself;
 	// 添加自身订阅者
-	ct_list_append(mgr->subscriber_list[CTEvMsgType_Itself], mgr->subscriber_itself.list);
+	ct_list_append(center->subscriber_list[CTEvMsgType_Itself], center->subscriber_itself.list);
+
+	center->is_busy = false;
+	center->jobpool = jobpool;
+	return center;
 }
 
-void ct_evmsg_mgr_destroy(void) {
+void ct_evmsg_center_destroy(ct_evmsg_center_ptr_t center) {
+	assert(center);
 	// 等待事件消息处理完成
-	for (; mgr->is_busy;) {
-		ct_msleep(10);
+	for (; center->is_busy;) {
+		sched_yield();
 	}
 
 	for (int i = 0; i < CTEvMsgType_Max; i++) {
 		// 遍历所有订阅者
-		ct_list_foreach_entry_safe (subscriber, mgr->subscriber_list[i], ct_evmsg_subscriber_t, list) {
-			if (subscriber == &mgr->subscriber_itself) {
+		ct_list_foreach_entry_safe (subscriber, center->subscriber_list[i], ct_evmsg_subscriber_t, list) {
+			if (subscriber == &center->subscriber_itself) {
 				continue;
 			}
 			ct_list_remove(subscriber->list);
 			free(subscriber);
 		}
 	}
+
+	free(center);
 }
 
 void ct_evmsg_init(ct_evmsg_buf_t msg, uint8_t type, uint8_t id, void *data, size_t size) {
@@ -101,22 +109,24 @@ void ct_evmsg_init(ct_evmsg_buf_t msg, uint8_t type, uint8_t id, void *data, siz
 	msg->size = size;
 }
 
-void ct_evmsg_schedule(void) {
+void ct_evmsg_center_schedule(ct_evmsg_center_ptr_t center) {
+	assert(center);
 	// 检查是否忙碌
-	if (mgr->is_busy) {
+	if (center->is_busy) {
 		return;
 	}
 	// 取出事件消息, 失败则退出
-	if (!ct_msgqueue_try_dequeue(mgr->msgqueue, mgr->msg)) {
+	if (!ct_msgqueue_try_dequeue(center->msgqueue, center->msg)) {
 		return;
 	}
 	// 设置忙碌状态
-	mgr->is_busy = true;
+	center->is_busy = true;
 	// 添加异步工作
-	ct_jobpool_add(ct_nullptr, ct_evmsg_callback, ct_nullptr);
+	ct_jobpool_add(center->jobpool, ct_evmsg_callback, center);
 }
 
-void ct_evmsg_subscribe(uint8_t type, ct_evmsg_handler_t handler, void *userdata) {
+void ct_evmsg_subscribe(ct_evmsg_center_ptr_t center, uint8_t type, ct_evmsg_handler_t handler, void *userdata) {
+	assert(center);
 	assert(handler);
 
 	ct_evmsg_subscriber_t *subscriber = malloc(sizeof(ct_evmsg_subscriber_t));
@@ -133,10 +143,11 @@ void ct_evmsg_subscribe(uint8_t type, ct_evmsg_handler_t handler, void *userdata
 		.size = sizeof(ct_evmsg_subscriber_t),
 	};
 
-	ct_msgqueue_enqueue(mgr->msgqueue, &msg);
+	ct_msgqueue_enqueue(center->msgqueue, &msg);
 }
 
-void ct_evmsg_publish(ct_evmsg_buf_t msg) {
+void ct_evmsg_publish(ct_evmsg_center_ptr_t center, ct_evmsg_buf_t msg) {
+	assert(center);
 	assert(msg);
 	assert(msg->type != CTEvMsgType_Itself);
 	if (!CTEVMSGTYPE_ISVALID(msg->type)) {
@@ -153,13 +164,15 @@ void ct_evmsg_publish(ct_evmsg_buf_t msg) {
 		msg->data = data;
 	}
 
-	ct_msgqueue_enqueue(mgr->msgqueue, msg);
+	ct_msgqueue_enqueue(center->msgqueue, msg);
 }
 
 // -------------------------[STATIC DEFINITION]-------------------------
 
-bool ct_evmsg_handler(ct_evmsg_buf_t msg, void *userdata) {
+static inline bool ct_evmsg_handler(ct_evmsg_buf_t msg, void *userdata) {
 	assert(msg);
+	assert(userdata);
+	ct_evmsg_center_ptr_t center = (ct_evmsg_center_ptr_t)userdata;
 	switch (msg->id) {
 		case EvMsgID_AddSubscriber: {
 			ct_evmsg_subscriber_t *subscriber = (ct_evmsg_subscriber_t *)msg->data;
@@ -167,7 +180,7 @@ bool ct_evmsg_handler(ct_evmsg_buf_t msg, void *userdata) {
 			assert(it);
 			memcpy(it, subscriber, sizeof(ct_evmsg_subscriber_t));
 			ct_list_init(it->list);
-			ct_list_append(mgr->subscriber_list[subscriber->type], it->list);
+			ct_list_append(center->subscriber_list[subscriber->type], it->list);
 		} break;
 		case EvMsgID_None:
 		default: break;
@@ -178,34 +191,36 @@ bool ct_evmsg_handler(ct_evmsg_buf_t msg, void *userdata) {
 }
 
 static inline void ct_evmsg_callback(void *arg) {
+	assert(arg);
+	ct_evmsg_center_ptr_t center = (ct_evmsg_center_ptr_t)arg;
 	// 不断取出事件消息并处理
-	ct_forever {
+	for (;;) {
 		// 遍历所有订阅者
-		ct_list_foreach_entry (subscriber, mgr->subscriber_list[mgr->msg->type], ct_evmsg_subscriber_t, list) {
+		ct_list_foreach_entry (subscriber, center->subscriber_list[center->msg->type], ct_evmsg_subscriber_t, list) {
 			assert(subscriber);
 
 			// 跳过事件类型不匹配的订阅者
-			if (subscriber->type != mgr->msg->type) {
+			if (subscriber->type != center->msg->type) {
 				continue;
 			}
 
 			// 执行处理
-			if (subscriber->handler(mgr->msg, subscriber->userdata)) {
+			if (subscriber->handler(center->msg, subscriber->userdata)) {
 				break;
 			}
 		}
 		// 释放处理内存
-		if (mgr->msg->size > 0 && mgr->msg->data) {
-			free(mgr->msg->data);
+		if (center->msg->size > 0 && center->msg->data) {
+			free(center->msg->data);
 		}
 		// 取出下一条事件消息, 失败则退出循环
-		if (!ct_msgqueue_try_dequeue(mgr->msgqueue, mgr->msg)) {
+		if (!ct_msgqueue_try_dequeue(center->msgqueue, center->msg)) {
 			break;
 		}
 	}
 
 	// 重置忙碌状态
-	mgr->is_busy = false;
+	center->is_busy = false;
 	return;
 	ct_unused(arg);
 }

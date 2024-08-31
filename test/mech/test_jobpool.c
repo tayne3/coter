@@ -42,7 +42,7 @@ static inline void test_data_reset(void) {
 }
 
 static inline void *test_job_publish(void *arg) {
-	ct_jobpool_ptr_t pool = (ct_jobpool_ptr_t)arg;
+	ct_jobpool_t *pool = (ct_jobpool_t *)arg;
 	for (size_t i = 0; i < test_data_size; i++) {
 		ct_jobpool_add(pool, test_job_routine, (void *)(uint64_t)i);
 	}
@@ -70,14 +70,13 @@ static inline void test_jobpool_add(size_t data_count, size_t task_count, size_t
 	test_data_reset();
 	test_end_number = 0;
 
-	ct_jobpool_ptr_t pool = ct_jobpool_create(task_count, job_count);
+	ct_jobpool_t *pool = ct_jobpool_create(task_count, job_count);
 	ctunit_assert_not_null(pool);
 
-	bool isok = false;
-
+	bool is_ok;
 	pthread_t thread;
-	isok = pthread_create(&thread, NULL, test_job_publish, pool) == 0;
-	ctunit_assert_true(isok);
+	is_ok = pthread_create(&thread, NULL, test_job_publish, pool) == 0;
+	ctunit_assert_true(is_ok);
 
 	// 等待结束 (超时时长: 10s)
 	bool is_timeout = false;
@@ -91,8 +90,8 @@ static inline void test_jobpool_add(size_t data_count, size_t task_count, size_t
 		ct_msleep(10);
 	}
 
-	isok = pthread_join(thread, NULL) == 0;
-	ctunit_assert_true(isok);
+	is_ok = pthread_join(thread, NULL) == 0;
+	ctunit_assert_true(is_ok);
 
 	pthread_mutex_lock(test_mutex);
 	ctunit_assert_uint32(test_end_number, test_data_size, CTUnit_Equal);

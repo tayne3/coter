@@ -230,11 +230,12 @@ static inline void test_items(void) {
 		size_t ret  = 0;
 		char  *ptr;
 
-		ct_forever {
+		for (;;) {
 			ptr = ct_rbuf_items(rbuf, size, &ret);
 			if (!ret) {
 				break;
 			}
+			ctunit_assert_not_null(ptr);
 			memcpy(&tmp[size], ptr, ret);
 			size += ret;
 		}
@@ -253,11 +254,12 @@ static inline void test_items(void) {
 		size_t ret  = 0;
 		char  *ptr;
 
-		ct_forever {
+		for (;;) {
 			ptr = ct_rbuf_items(rbuf, size, &ret);
 			if (!ret) {
 				break;
 			}
+			ctunit_assert_not_null(ptr);
 			memcpy(&tmp[size], ptr, ret);
 			size += ret;
 		}
@@ -276,11 +278,12 @@ static inline void test_items(void) {
 		size_t ret  = 0;
 		char  *ptr;
 
-		ct_forever {
+		for (;;) {
 			ptr = ct_rbuf_items(rbuf, size, &ret);
 			if (!ret) {
 				break;
 			}
+			ctunit_assert_not_null(ptr);
 			memcpy(&tmp[size], ptr, ret);
 			size += ret;
 		}
@@ -295,11 +298,12 @@ static inline void test_items(void) {
 			size_t ret = 0;
 			char  *ptr;
 
-			ct_forever {
+			for (;;) {
 				ptr = ct_rbuf_items(rbuf, size, &ret);
 				if (!ret) {
 					break;
 				}
+				ctunit_assert_not_null(ptr);
 				memcpy(&tmp[size], ptr, ret);
 				size += ret;
 			}

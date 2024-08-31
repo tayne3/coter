@@ -14,8 +14,8 @@
 extern "C" {
 #endif
 
+#include "base/ct_any.h"
 #include "base/ct_platform.h"
-#include "common/ct_any.h"
 
 // 排序比较函数类型 (返回值: true=触发交换, false=无操作)
 typedef bool (*ct_heap_sort_t)(const ct_any_buf_t, const ct_any_buf_t);
@@ -54,8 +54,8 @@ typedef struct ct_heap {
  * @param self 最小堆/最大堆-变量指针
  */
 #define ct_heap_foreach(it, index, type, self)                                                 \
-	for (index = 0, it = (type)(uint64_t) & (self)->_all[index].d; index < ct_heap_size(self); \
-		 index++, it   = (type)(uint64_t) & (self)->_all[index].d)
+	for (index = 0, it = (type)(uint64_t)(&(self)->_all[index].d); index < ct_heap_size(self); \
+		 index++, it   = (type)(uint64_t)(&(self)->_all[index].d))
 
 /**
  * @brief 最小堆/最大堆-遍历
@@ -69,21 +69,21 @@ typedef struct ct_heap {
 		 index++, it   = (type*)(self)->_all[index].d.ptr)
 
 // 初始化堆
-CT_API void ct_heap_init(ct_heap_buf_t self, ct_any_t* all, size_t max, ct_heap_sort_t sort);
+CT_API void ct_heap_init(ct_heap_buf_t self, ct_any_t* all, size_t max, ct_heap_sort_t sort) __ct_nonnull(1, 2);
 // 向上调整堆
-CT_API void ct_heap_up(ct_heap_buf_t self, size_t index);
+CT_API void ct_heap_up(ct_heap_buf_t self, size_t index) __ct_nonnull(1);
 // 向下调整堆
-CT_API void ct_heap_down(ct_heap_buf_t self, size_t index);
+CT_API void ct_heap_down(ct_heap_buf_t self, size_t index) __ct_nonnull(1);
 // 重新排序
-CT_API void ct_heap_reorder(ct_heap_buf_t self);
+CT_API void ct_heap_reorder(ct_heap_buf_t self) __ct_nonnull(1);
 // 插入元素
-CT_API void ct_heap_insert(ct_heap_buf_t self, ct_any_t data);
+CT_API void ct_heap_insert(ct_heap_buf_t self, ct_any_t data) __ct_nonnull(1, 2);
 // 移除堆顶元素
-CT_API void ct_heap_remove(ct_heap_buf_t self);
+CT_API void ct_heap_remove(ct_heap_buf_t self) __ct_nonnull(1);
 // 获取并移除堆顶元素
-CT_API ct_any_t ct_heap_take(ct_heap_buf_t self);
+CT_API ct_any_t ct_heap_take(ct_heap_buf_t self) __ct_nonnull(1);
 // 拷贝所有元素到目标堆
-CT_API bool ct_heap_copy(ct_heap_buf_t self, ct_heap_t* target);
+CT_API bool ct_heap_copy(ct_heap_buf_t self, ct_heap_t* target) __ct_nonnull(1, 2);
 
 #ifdef __cplusplus
 }

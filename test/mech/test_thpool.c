@@ -65,7 +65,6 @@ static inline void test_thpool_add(size_t data_count) {
 	for (size_t i = 0; i < test_data_size; i++) {
 		ret = ct_thpool_add(pool, NULL, test_job_run, (void *)(uint64_t)i);
 		ctunit_assert_ret(ret, "i = %zu/%zu", i, test_data_size);
-		// sched_yield();
 	}
 
 	// 等待结束 (最多等待 5s)

@@ -12,8 +12,9 @@
 #define TEST_THREAD_NUMBER 3
 #define TEST_DATA_NUMBER   10000
 
-static bool test_result[TEST_THREAD_NUMBER][TEST_DATA_NUMBER] = {{0}};
-static bool is_exit[TEST_THREAD_NUMBER]                       = {0};
+static ct_evmsg_center_ptr_t test_center                                       = NULL;
+static bool                  test_result[TEST_THREAD_NUMBER][TEST_DATA_NUMBER] = {{0}};
+static bool                  is_exit[TEST_THREAD_NUMBER]                       = {0};
 
 // 模拟事件处理函数
 static inline bool test_evmsg_handler(ct_evmsg_t *msg, void *userdata);
@@ -21,27 +22,27 @@ static inline bool test_evmsg_handler(ct_evmsg_t *msg, void *userdata);
 static inline void *test_evmsg_publish(void *arg);
 
 int main(void) {
+	bool      is_ok;
 	pthread_t threads[TEST_THREAD_NUMBER];
 
 	// 创建任务池
-	ct_jobpool_ptr_t jobpool = ct_jobpool_global(16, 50);
-	// 初始化事件消息中枢
-	ct_evmsg_mgr_init();
-	// 订阅事件
-	ct_evmsg_subscribe(1, test_evmsg_handler, NULL);
+	ct_jobpool_t *jobpool = ct_jobpool_create(16, 50);
 
-	bool isok = false;
+	// 初始化事件消息中枢
+	test_center = ct_evmsg_center_create(jobpool);
+	// 订阅事件
+	ct_evmsg_subscribe(test_center, 1, test_evmsg_handler, NULL);
 
 	// 创建线程
 	for (int i = 0; i < TEST_THREAD_NUMBER; i++) {
-		isok = pthread_create(&threads[i], NULL, test_evmsg_publish, (void *)(uint64_t)i) == 0;
-		ctunit_assert_true(isok, "id = %d/%d", i, TEST_THREAD_NUMBER);
+		is_ok = pthread_create(&threads[i], NULL, test_evmsg_publish, (void *)(uint64_t)i) == 0;
+		ctunit_assert_true(is_ok, "id = %d/%d", i, TEST_THREAD_NUMBER);
 	}
 
 	// 调度事件管理
 	for (int count = 0, n = 0; n < 1000; n++) {
 		ct_msleep(10);
-		ct_evmsg_schedule();  // 事件消息调度
+		ct_evmsg_center_schedule(test_center);  // 事件消息调度
 		if (is_exit[count]) {
 			if (++count == TEST_THREAD_NUMBER) {
 				break;
@@ -49,8 +50,9 @@ int main(void) {
 		}
 	}
 
-	ct_evmsg_schedule();     // 事件消息中枢调度
-	ct_evmsg_mgr_destroy();  // 销毁事件消息中枢
+	ct_evmsg_center_schedule(test_center);  // 事件消息中枢调度
+	ct_evmsg_center_destroy(test_center);   // 销毁事件消息中枢
+	test_center = NULL;
 
 	// 等待线程结束
 	for (int i = 0; i < TEST_THREAD_NUMBER; i++) {
@@ -81,7 +83,7 @@ static inline bool test_evmsg_handler(ct_evmsg_t *msg, void *userdata) {
 	ctunit_assert_false(test_result[msg->id][index]);
 	test_result[msg->id][index] = true;
 	return false;
-	ct_unused(userdata);
+	(void)(userdata);
 }
 
 static inline void *test_evmsg_publish(void *arg) {
@@ -92,7 +94,7 @@ static inline void *test_evmsg_publish(void *arg) {
 	for (int i = 0; i < TEST_DATA_NUMBER; i++) {
 		msg.data = &i;
 		msg.size = sizeof(int);
-		ct_evmsg_publish(&msg);
+		ct_evmsg_publish(test_center, &msg);
 		sched_yield();
 	}
 

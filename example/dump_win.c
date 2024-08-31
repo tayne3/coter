@@ -305,12 +305,12 @@ void print_thread_stack_trace(HANDLE process, HANDLE thread, DWORD threadId) {
 
 		if (pSymFromAddr(process, stackframe.AddrPC.Offset, &displacement, pSymbol)) {
 			if (pSymGetLineFromAddr64(process, stackframe.AddrPC.Offset, &lineDisplacement, &line)) {
-				cerror_n("%s()\n\t%s:%lu +0x%llx\n", pSymbol->Name, line.FileName, line.LineNumber, displacement);
+				cerror_n("%s()\n\t%s:%lu +0x%I64x\n", pSymbol->Name, line.FileName, line.LineNumber, displacement);
 			} else {
-				cerror_n("%s()\n\t?? +0x%llx\n", pSymbol->Name, displacement);
+				cerror_n("%s()\n\t?? +0x%I64x\n", pSymbol->Name, displacement);
 			}
 		} else {
-			cerror_n("\t0x%llx\n", stackframe.AddrPC.Offset);
+			cerror_n("\t0x%I64x\n", stackframe.AddrPC.Offset);
 		}
 	}
 	cerror_n(STR_NEWLINE);
@@ -321,7 +321,7 @@ void print_thread_stack_trace(HANDLE process, HANDLE thread, DWORD threadId) {
 void print_all_thread_stack_traces(void) {
 	HANDLE hThreadSnap = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
 	if (hThreadSnap == INVALID_HANDLE_VALUE) {
-		printf("Failed to create thread snapshot\n");
+		cerror_n("Failed to create thread snapshot\n");
 		return;
 	}
 
@@ -329,7 +329,7 @@ void print_all_thread_stack_traces(void) {
 	te32.dwSize = sizeof(THREADENTRY32);
 
 	if (!Thread32First(hThreadSnap, &te32)) {
-		printf("Failed to get first thread\n");
+		cerror_n("Failed to get first thread\n");
 		CloseHandle(hThreadSnap);
 		return;
 	}
