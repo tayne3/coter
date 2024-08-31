@@ -30,7 +30,7 @@
 #define test_detail_fatal(__logger, ...)   CTLogger_HandleDetail(Fatal, (__logger), __VA_ARGS__)
 
 #define TEST_THREADS     20
-#define TEST_THREAD_DATA 10000
+#define TEST_THREAD_DATA 100000
 
 static FILE*           g_file_with_log      = NULL;
 static FILE*           g_file_without_log   = NULL;

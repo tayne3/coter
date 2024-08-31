@@ -78,6 +78,7 @@ void ct_log_printer_put(ct_log_printer_t *self, char *buf, size_t size) {
 	ct_list_t put_head[1];
 	ct_list_init(put_head);
 	pthread_mutex_lock(&self->producer_mutex);
+	
 	do {
 		const size_t written = ct_bytes_write(self->producer_buffer, buf, size);
 		buf += written;

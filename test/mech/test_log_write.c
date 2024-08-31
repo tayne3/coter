@@ -114,7 +114,7 @@ static inline void test_write_performance_comparison(void) {
 			.disable_save      = false,
 			.file_dir          = "test_log_out",
 			.file_name         = "with_log",
-			.file_cache_size   = 4096,
+			.file_cache_size   = 10 * 1024,
 			.file_size_max     = 10 * 1024 * 1024,
 			.file_count_max    = 1,
 			.autosave_interval = 3600,
