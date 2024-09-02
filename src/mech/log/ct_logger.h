@@ -76,10 +76,11 @@ CT_API void ct_logger_schedule(ct_logger_t *logger) __ct_nonnull(1);
  * @brief 处理日志
  *
  * @param logger 日志器
+ * @param level 日志级别
  * @param buf 缓冲区
  * @param size 缓冲区大小
  */
-CT_API void ct_logger_handle(ct_logger_t *logger, char *buf, size_t size) __ct_nonnull(1, 2);
+CT_API void ct_logger_handle(ct_logger_t *logger, int level, char *buf, size_t size) __ct_nonnull(1, 3);
 
 #ifdef __cplusplus
 }

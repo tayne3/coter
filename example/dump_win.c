@@ -149,7 +149,7 @@ LONG WINAPI MyUnhandledExceptionFilter(EXCEPTION_POINTERS *exp) {
 
 	WriteDump(exp, dumpFileName);
 
-	cerror("dump file saved to: %s" STR_NEWLINE, dumpFileName);
+	log_error("dump file saved to: %s" STR_NEWLINE, dumpFileName);
 	app_exit(EXIT_FAILURE, "crash");
 	return EXCEPTION_EXECUTE_HANDLER;
 }
@@ -223,7 +223,7 @@ static inline void WriteDump(EXCEPTION_POINTERS *exp, const char *path) {
 BOOL InitializeDbgHelp(void) {
 	HMODULE hDbgHelp = LoadLibraryW(L"Dbghelp.dll");
 	if (!hDbgHelp) {
-		cerror("failed to load Dbghelp.dll\n");
+		log_error("failed to load Dbghelp.dll\n");
 		return FALSE;
 	}
 
@@ -237,7 +237,7 @@ BOOL InitializeDbgHelp(void) {
 
 	if (!pSymInitialize || !pSymCleanup || !pSymFunctionTableAccess64 || !pSymGetModuleBase64 || !pStackWalk64 ||
 		!pSymFromAddr || !pSymGetLineFromAddr64) {
-		cerror("failed to get function addresses from Dbghelp.dll\n");
+		log_error("failed to get function addresses from Dbghelp.dll\n");
 		FreeLibrary(hDbgHelp);
 		return FALSE;
 	}
@@ -253,7 +253,7 @@ void print_thread_stack_trace(HANDLE process, HANDLE thread, DWORD threadId) {
 
 	// Get thread context without suspending the thread
 	if (!GetThreadContext(thread, &context)) {
-		cerror("failed to get thread context for thread %lu." STR_NEWLINE, threadId);
+		log_error("failed to get thread context for thread %lu." STR_NEWLINE, threadId);
 		return;
 	}
 
@@ -282,7 +282,7 @@ void print_thread_stack_trace(HANDLE process, HANDLE thread, DWORD threadId) {
 #endif
 
 	EnterCriticalSection(&gCriticalSection);
-	cerror_n("thread %lu [running]:" STR_NEWLINE, threadId);
+	log_error_n("thread %lu [running]:" STR_NEWLINE, threadId);
 	for (int i = 0; i < TRACE_MAX_STACK_FRAMES; i++) {
 		BOOL result = pStackWalk64(image, process, thread, &stackframe, &context, NULL, pSymFunctionTableAccess64,
 								   pSymGetModuleBase64, NULL);
@@ -303,15 +303,15 @@ void print_thread_stack_trace(HANDLE process, HANDLE thread, DWORD threadId) {
 
 		if (pSymFromAddr(process, stackframe.AddrPC.Offset, &displacement, pSymbol)) {
 			if (pSymGetLineFromAddr64(process, stackframe.AddrPC.Offset, &lineDisplacement, &line)) {
-				cerror_n("%s()\n\t%s:%lu +0x%I64x\n", pSymbol->Name, line.FileName, line.LineNumber, displacement);
+				log_error_n("%s()\n\t%s:%lu +0x%I64x\n", pSymbol->Name, line.FileName, line.LineNumber, displacement);
 			} else {
-				cerror_n("%s()\n\t?? +0x%I64x\n", pSymbol->Name, displacement);
+				log_error_n("%s()\n\t?? +0x%I64x\n", pSymbol->Name, displacement);
 			}
 		} else {
-			cerror_n("\t0x%I64x\n", stackframe.AddrPC.Offset);
+			log_error_n("\t0x%I64x\n", stackframe.AddrPC.Offset);
 		}
 	}
-	cerror_n(STR_NEWLINE);
+	log_error_n(STR_NEWLINE);
 	LeaveCriticalSection(&gCriticalSection);
 }
 
@@ -319,7 +319,7 @@ void print_thread_stack_trace(HANDLE process, HANDLE thread, DWORD threadId) {
 void print_all_thread_stack_traces(void) {
 	HANDLE hThreadSnap = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
 	if (hThreadSnap == INVALID_HANDLE_VALUE) {
-		cerror_n("Failed to create thread snapshot\n");
+		log_error_n("Failed to create thread snapshot\n");
 		return;
 	}
 
@@ -327,7 +327,7 @@ void print_all_thread_stack_traces(void) {
 	te32.dwSize = sizeof(THREADENTRY32);
 
 	if (!Thread32First(hThreadSnap, &te32)) {
-		cerror_n("Failed to get first thread\n");
+		log_error_n("Failed to get first thread\n");
 		CloseHandle(hThreadSnap);
 		return;
 	}

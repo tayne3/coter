@@ -53,13 +53,13 @@ void exception_init(void) {
 	struct rlimit core_limit;
 	getrlimit(RLIMIT_CORE, &core_limit);
 	if (core_limit.rlim_cur == 0) {
-		cverbose("core dump is disabled, attempting to enable it.\n");
+		log_verbose("core dump is disabled, attempting to enable it.\n");
 
 		core_limit.rlim_cur = RLIM_INFINITY;
 		core_limit.rlim_max = RLIM_INFINITY;
 
 		if (setrlimit(RLIMIT_CORE, &core_limit) == -1) {
-			cwarning("set core dump size limit failed: %s.\n", strerror(errno));
+			log_warning("set core dump size limit failed: %s.\n", strerror(errno));
 			return;
 		}
 	}
@@ -68,9 +68,9 @@ void exception_init(void) {
 	FILE* fp = popen("sysctl -n kernel.core_pattern", "r");
 	if (fp != NULL) {
 		if (fgets(path, sizeof(path) - 1, fp) != NULL) {
-			cwarning("core dump path: %s", path);
+			log_warning("core dump path: %s", path);
 		} else {
-			cerror("get core dump path failed.\n");
+			log_error("get core dump path failed.\n");
 		}
 		pclose(fp);
 	}
@@ -92,11 +92,11 @@ static void generate_backtrace(void) {
 		exit(EXIT_FAILURE);
 	}
 
-	cerror_n("thread %p [running]:\n", pthread_self());
+	log_error_n("thread %p [running]:\n", pthread_self());
 	for (int i = 0; i < count; i++) {
-		cerror_n("%s\n", symbols[i]);
+		log_error_n("%s\n", symbols[i]);
 	}
-	cerror_n("\n");
+	log_error_n("\n");
 
 	free(symbols);
 }

@@ -91,7 +91,7 @@ CT_API void ct_logger_schedule(ct_logger_t* logger) {
 	}
 }
 
-void ct_logger_handle(ct_logger_t* logger, char* buf, size_t size) {
+void ct_logger_handle(ct_logger_t* logger, int level, char* buf, size_t size) {
 	assert(logger);
 	assert(buf);
 	if (logger->printer) {
@@ -103,6 +103,8 @@ void ct_logger_handle(ct_logger_t* logger, char* buf, size_t size) {
 	if (logger->callback) {
 		ct_log_callback_put(logger->callback, buf, size);
 	}
+	return;
+	ct_unused(level);
 }
 
 // -------------------------[STATIC DEFINITION]-------------------------
@@ -114,12 +116,12 @@ static inline void mgr_initialize(void) {
 }
 
 static inline void mgr_destroy(void) {
-	if (g_bytepool) {
-		ct_bytepool_destroy(g_bytepool);
-		g_bytepool = NULL;
-	}
 	if (g_printer) {
 		ct_log_printer_destroy(g_printer);
 		g_printer = NULL;
+	}
+	if (g_bytepool) {
+		ct_bytepool_destroy(g_bytepool);
+		g_bytepool = NULL;
 	}
 }

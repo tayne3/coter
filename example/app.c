@@ -155,9 +155,9 @@ void app_crash(int code, const char* msg) {
 
 static inline void app_occurred(const excep_t* excep) {
 	if (excep == NULL) {
-		cerror("error occurred (unknown)." STR_NEWLINE);
+		log_error("error occurred (unknown)." STR_NEWLINE);
 	} else {
-		cerror("error occurred (%s)." STR_NEWLINE, excep->msg);
+		log_error("error occurred (%s)." STR_NEWLINE, excep->msg);
 	}
 }
 
@@ -165,12 +165,12 @@ static inline void app_welcome(void) {
 	char                str[CT_DATETIME_FMT_BUFLEN];
 	const ct_datetime_t now = ct_datetime_now();
 	ct_datetime_fmt(&now, str);
-	ctrace("application start at '%s'." STR_NEWLINE, str);
+	log_trace("application start at '%s'." STR_NEWLINE, str);
 }
 
 static inline void app_goobye(void) {
 	char                str[CT_DATETIME_FMT_BUFLEN];
 	const ct_datetime_t now = ct_datetime_now();
 	ct_datetime_fmt(&now, str);
-	ctrace("application exit at '%s'." STR_NEWLINE, str);
+	log_trace("application exit at '%s'." STR_NEWLINE, str);
 }
