@@ -23,15 +23,15 @@
 #define TRACE_MAX_FUNCTION_NAME_LENGTH 1024
 
 // Function pointer types for DbgHelp functions
-typedef BOOL(WINAPI *SymInitializeFunc)(HANDLE, PCSTR, BOOL);
-typedef BOOL(WINAPI *SymCleanupFunc)(HANDLE);
-typedef PVOID(WINAPI *SymFunctionTableAccess64Func)(HANDLE, DWORD64);
-typedef DWORD64(WINAPI *SymGetModuleBase64Func)(HANDLE, DWORD64);
-typedef BOOL(WINAPI *StackWalk64Func)(DWORD, HANDLE, HANDLE, LPSTACKFRAME64, PVOID, PREAD_PROCESS_MEMORY_ROUTINE64,
-									  PFUNCTION_TABLE_ACCESS_ROUTINE64, PGET_MODULE_BASE_ROUTINE64,
-									  PTRANSLATE_ADDRESS_ROUTINE64);
-typedef BOOL(WINAPI *SymFromAddrFunc)(HANDLE, DWORD64, PDWORD64, PSYMBOL_INFO);
-typedef BOOL(WINAPI *SymGetLineFromAddr64Func)(HANDLE, DWORD64, PDWORD, PIMAGEHLP_LINE64);
+typedef WINBOOL (*SymInitializeFunc)(HANDLE, PCSTR, BOOL);
+typedef WINBOOL (*SymCleanupFunc)(HANDLE);
+typedef PVOID (*SymFunctionTableAccess64Func)(HANDLE, DWORD64);
+typedef DWORD64 (*SymGetModuleBase64Func)(HANDLE, DWORD64);
+typedef WINBOOL (*StackWalk64Func)(DWORD, HANDLE, HANDLE, LPSTACKFRAME64, PVOID, PREAD_PROCESS_MEMORY_ROUTINE64,
+								   PFUNCTION_TABLE_ACCESS_ROUTINE64, PGET_MODULE_BASE_ROUTINE64,
+								   PTRANSLATE_ADDRESS_ROUTINE64);
+typedef WINBOOL (*SymFromAddrFunc)(HANDLE, DWORD64, PDWORD64, PSYMBOL_INFO);
+typedef WINBOOL (*SymGetLineFromAddr64Func)(HANDLE, DWORD64, PDWORD, PIMAGEHLP_LINE64);
 
 // Global variables to store function pointers
 SymInitializeFunc            pSymInitialize;
@@ -166,15 +166,18 @@ BOOL WINAPI MyConsoleCtrlHandler(DWORD CtrlType) {
 static inline void miniDumpWriteDump(HANDLE hProcess, DWORD ProcessId, HANDLE hFile,
 									 CONST PMINIDUMP_EXCEPTION_INFORMATION ExceptionParam,
 									 CONST PMINIDUMP_CALLBACK_INFORMATION  CallbackParam) {
-	typedef HRESULT(WINAPI * MiniDumpWriteDumpPtr)(
-		HANDLE hProcess, DWORD ProcessId, HANDLE hFile, MINIDUMP_TYPE DumpType,
-		CONST PMINIDUMP_EXCEPTION_INFORMATION ExceptionParam, CONST PMINIDUMP_USER_STREAM_INFORMATION UserStreamParam,
-		CONST PMINIDUMP_CALLBACK_INFORMATION CallbackParam);
+	typedef WINBOOL (*MiniDumpWriteDumpPtr)(HANDLE hProcess, DWORD ProcessId, HANDLE hFile, MINIDUMP_TYPE DumpType,
+											CONST PMINIDUMP_EXCEPTION_INFORMATION   ExceptionParam,
+											CONST PMINIDUMP_USER_STREAM_INFORMATION UserStreamParam,
+											CONST PMINIDUMP_CALLBACK_INFORMATION    CallbackParam);
 
 	HMODULE module = LoadLibraryW(L"Dbghelp.dll");
 	if (module) {
 		MiniDumpWriteDumpPtr mini_dump_write_dump;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
 		mini_dump_write_dump = (MiniDumpWriteDumpPtr)GetProcAddress(module, "MiniDumpWriteDump");
+#pragma GCC diagnostic pop
 		if (mini_dump_write_dump) {
 			mini_dump_write_dump(hProcess, ProcessId, hFile, (MINIDUMP_TYPE)80, ExceptionParam, NULL, CallbackParam);
 		}
@@ -226,7 +229,9 @@ BOOL InitializeDbgHelp(void) {
 		log_error("failed to load Dbghelp.dll\n");
 		return FALSE;
 	}
-
+	
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
 	pSymInitialize            = (SymInitializeFunc)GetProcAddress(hDbgHelp, "SymInitialize");
 	pSymCleanup               = (SymCleanupFunc)GetProcAddress(hDbgHelp, "SymCleanup");
 	pSymFunctionTableAccess64 = (SymFunctionTableAccess64Func)GetProcAddress(hDbgHelp, "SymFunctionTableAccess64");
@@ -234,7 +239,7 @@ BOOL InitializeDbgHelp(void) {
 	pStackWalk64              = (StackWalk64Func)GetProcAddress(hDbgHelp, "StackWalk64");
 	pSymFromAddr              = (SymFromAddrFunc)GetProcAddress(hDbgHelp, "SymFromAddr");
 	pSymGetLineFromAddr64     = (SymGetLineFromAddr64Func)GetProcAddress(hDbgHelp, "SymGetLineFromAddr64");
-
+#pragma GCC diagnostic pop
 	if (!pSymInitialize || !pSymCleanup || !pSymFunctionTableAccess64 || !pSymGetModuleBase64 || !pStackWalk64 ||
 		!pSymFromAddr || !pSymGetLineFromAddr64) {
 		log_error("failed to get function addresses from Dbghelp.dll\n");
