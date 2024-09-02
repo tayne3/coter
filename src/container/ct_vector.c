@@ -8,8 +8,6 @@
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
-#define STR_CURRTITLE "[ct_vector]"
-
 #define CT_VECTOR_ITEM(self, idx) (&(self)->_all[idx * (self)->_byte])  // 动态数组-指定元素
 #define CT_VECTOR_MAX(self)       ((self)->_max)                        // 动态数组-最大容量
 #define CT_VECTOR_SIZE(self)      ((self)->_size)                       // 动态数组-当前大小

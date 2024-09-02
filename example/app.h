@@ -9,14 +9,7 @@
 extern "C" {
 #endif
 
-#define CTLog_StyleUser CTLog_StyleBrief
-
-#include "base/ct_platform.h"
-#include "mech/ct_log.h"
-
-#define cerror printf
-#define cerror_n printf
-#define ctrace printf
+#include "log.h"
 
 /**
  * @brief 应用实例

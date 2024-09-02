@@ -14,8 +14,6 @@
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
-#define STR_CURRTITLE "[ct_evmsg]"
-
 #define CTEvMsgType_Itself     0                        // 事件消息类型-中枢自身事件
 #define CTEvMsgType_Max        64                       // 事件消息类型-上限值
 #define CTEVMSGTYPE_ISVALID(x) ((x) < CTEvMsgType_Max)  // 事件消息类型是否有效

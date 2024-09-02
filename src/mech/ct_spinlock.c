@@ -11,8 +11,6 @@
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
-#define STR_CURRTITLE "[ct_spinlock]"
-
 #define CT_SPINLOCK_SPIN_MAX 1024UL
 
 // -------------------------[GLOBAL DEFINITION]-------------------------

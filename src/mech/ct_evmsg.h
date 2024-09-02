@@ -15,7 +15,7 @@ extern "C" {
 struct ct_jobpool;
 
 // 事件消息中枢
-typedef struct ct_evmsg_center *ct_evmsg_center_ptr_t;
+typedef struct ct_evmsg_center ct_evmsg_center_t, *ct_evmsg_center_ptr_t;
 
 /**
  * @brief 初始化事件消息中枢

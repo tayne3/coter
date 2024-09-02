@@ -14,8 +14,6 @@
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
-#define STR_CURRTITLE "[ct_jobpool]"
-
 /**
  * @brief 任务池工作
  */
@@ -99,7 +97,7 @@ ct_jobpool_t* ct_jobpool_create(size_t thread_max, size_t job_max) {
 			sched_yield();
 		} else {
 			free(unit);
-			printf(STR_CURRTITLE " failed to create thread" STR_NEWLINE);
+			fprintf(stderr, "failed to create thread" STR_NEWLINE);
 		}
 	}
 

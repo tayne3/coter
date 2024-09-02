@@ -16,8 +16,6 @@
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
-#define STR_CURRTITLE "[ct_logger]"
-
 ct_bytepool_t*        g_bytepool;                 /**< 全局字节池 */
 ct_log_printer_t*     g_printer;                  /**< 全局打印器 */
 static pthread_once_t g_once = PTHREAD_ONCE_INIT; /**< 初始化互斥锁 */

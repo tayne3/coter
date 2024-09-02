@@ -8,8 +8,6 @@
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
-#define STR_CURRTITLE "[ct_datetime]"
-
 #define IS_LEAP_YEAR(year) (((year) % 4 == 0 && (year) % 100 != 0) || (year) % 400 == 0)
 
 static const char* s_weekdays[] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
@@ -151,7 +149,7 @@ char* ct_datetime_gmtime_fmt(time_t t, char* buf) {
 	struct tm* tm = gmtime(&t);
 	// strftime(buf, CT_GMTIME_FMT_BUFLEN, "%a, %d %b %Y %H:%M:%S GMT", tm);
 	sprintf(buf, CT_GMTIME_FMT, s_weekdays[tm->tm_wday], tm->tm_mday, s_months[tm->tm_mon], tm->tm_year + 1900,
-			   tm->tm_hour, tm->tm_min, tm->tm_sec);
+			tm->tm_hour, tm->tm_min, tm->tm_sec);
 	return buf;
 }
 

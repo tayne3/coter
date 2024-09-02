@@ -12,8 +12,6 @@
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
-#define STR_CURRTITLE "[ct_heap]"
-
 #define CT_HEAP_INDEX_PARENT(i)     ((i - 1) >> 1)                                     // 获取父节点的索引
 #define CT_HEAP_INDEX_LEFT(i)       ((i << 1) + 1)                                     // 获取左子节点的索引
 #define CT_HEAP_INDEX_RIGHT(i)      ((i + 1) << 1)                                     // 获取右子节点的索引

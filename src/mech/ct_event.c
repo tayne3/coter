@@ -10,8 +10,6 @@
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
-#define STR_CURRTITLE "[ct_event]"
-
 #define CT_EVENT_IDS_FORM(id) (1ULL << ((id) - 1))  // 根据编号获取事件id
 
 // 添加事件

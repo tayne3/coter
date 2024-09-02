@@ -1,3 +1,3 @@
 
-add_executable(coter_example main.c app.c dump_win.c dump_unix.c)
-target_link_libraries(coter_example coter::coter)
+add_executable(ctex main.c app.c log.c dump_win.c dump_unix.c)
+target_link_libraries(ctex coter::coter)

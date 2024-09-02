@@ -12,8 +12,6 @@
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
-#define STR_CURRTITLE "[ct_thpool]"
-
 /**
  * @brief 线程池工作
  */
@@ -174,7 +172,7 @@ int ct_thpool_add(ct_thpool_ptr_t self, pthread_attr_t* attr, ct_thpool_routine_
 		ct_list_remove(unit->list);
 		pthread_mutex_unlock(self->resident_mutex);
 		free(unit);
-		fprintf(stderr, STR_CURRTITLE " failed to create thread" STR_NEWLINE);
+		fprintf(stderr, "failed to create thread" STR_NEWLINE);
 	}
 
 	return ret;

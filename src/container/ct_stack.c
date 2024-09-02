@@ -12,8 +12,6 @@
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
-#define STR_CURRTITLE "[ct_stack]"
-
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
 void ct_stack_init(ct_stack_buf_t self, ct_any_t* buffer, size_t max) {

@@ -12,8 +12,6 @@
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
-#define STR_CURRTITLE "[ct_list]"
-
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
 void ct_list_init(ct_list_buf_t self) {

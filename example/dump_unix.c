@@ -16,8 +16,6 @@
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
-#define STR_CURRTITLE "[dump_unix]"
-
 #define TRACE_MAX_STACK_FRAMES 100
 
 /**
@@ -37,8 +35,6 @@ void print_stack_trace(void) {
 	generate_backtrace();
 }
 
-#include <unistd.h>
-
 void exception_init(void) {
 	struct sigaction sa;
 	sa.sa_handler = signal_handler;
@@ -57,10 +53,26 @@ void exception_init(void) {
 	struct rlimit core_limit;
 	getrlimit(RLIMIT_CORE, &core_limit);
 	if (core_limit.rlim_cur == 0) {
-		printf("Core dump is disabled. Enabling it...\n");
+		cverbose("core dump is disabled, attempting to enable it.\n");
+
 		core_limit.rlim_cur = RLIM_INFINITY;
 		core_limit.rlim_max = RLIM_INFINITY;
-		setrlimit(RLIMIT_CORE, &core_limit);
+
+		if (setrlimit(RLIMIT_CORE, &core_limit) == -1) {
+			cwarning("set core dump size limit failed: %s.\n", strerror(errno));
+			return;
+		}
+	}
+
+	char  path[1035];
+	FILE* fp = popen("sysctl -n kernel.core_pattern", "r");
+	if (fp != NULL) {
+		if (fgets(path, sizeof(path) - 1, fp) != NULL) {
+			cwarning("core dump path: %s", path);
+		} else {
+			cerror("get core dump path failed.\n");
+		}
+		pclose(fp);
 	}
 }
 
@@ -80,11 +92,11 @@ static void generate_backtrace(void) {
 		exit(EXIT_FAILURE);
 	}
 
-	cerror_n("thread %p [running]:" STR_NEWLINE, pthread_self());
+	cerror_n("thread %p [running]:\n", pthread_self());
 	for (int i = 0; i < count; i++) {
 		cerror_n("%s\n", symbols[i]);
 	}
-	cerror_n(STR_NEWLINE);
+	cerror_n("\n");
 
 	free(symbols);
 }

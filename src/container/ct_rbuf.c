@@ -12,8 +12,6 @@
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
-#define STR_CURRTITLE "[ct_rbuf]"
-
 #define CT_RBUF_INDEX_INC(self, x) ((x) + 1 >= (self)->_max ? 0 : (x) + 1)           // 环形缓冲区-索引 递增
 #define CT_RBUF_INDEX_DEC(self, x) ((x) == 0 ? (self)->_max - 1 : (x) - 1)           // 环形缓冲区-索引 递减
 #define CT_RBUF_INDEX_CAL(self, x) ((x) >= (self)->_max ? (x) % (self)->_max : (x))  // 环形缓冲区-索引 计算实际值

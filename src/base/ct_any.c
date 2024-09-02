@@ -10,8 +10,6 @@
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
-#define STR_CURRTITLE "[ct_any]"
-
 // 空
 const ct_any_t ct_any_null = CT_ANY_INIT_INVALID;
 

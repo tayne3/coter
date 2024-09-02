@@ -10,8 +10,6 @@
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
-#define STR_CURRTITLE "[ct_bytes]"
-
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
 ct_bytes_t *ct_bytes_create(size_t capacity) {

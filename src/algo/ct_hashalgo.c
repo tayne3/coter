@@ -8,8 +8,6 @@
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
-#define STR_CURRTITLE "[ct_hashalgo]"
-
 /**
  * @brief 将字节数组转换为64位无符号整数
  * @param array 输入的字节数组

@@ -10,8 +10,6 @@
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
-#define STR_CURRTITLE "[ct_log_timecache]"
-
 /**
  * @brief 日志时间缓存结构体
  *

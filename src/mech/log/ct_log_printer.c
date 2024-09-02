@@ -12,8 +12,6 @@
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
-#define STR_CURRTITLE "[ct_log_printer]"
-
 /**
  * @struct ct_log_printer
  * @brief 日志打印器

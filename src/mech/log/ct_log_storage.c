@@ -13,8 +13,6 @@
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
-#define STR_CURRTITLE "[ct_log_storage]"
-
 #ifdef CT_OS_WIN
 typedef struct _stat ct_stat_t;
 #define ct_stat _stat

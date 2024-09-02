@@ -19,8 +19,6 @@
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
-#define STR_CURRTITLE "[dump_win]"
-
 #define TRACE_MAX_STACK_FRAMES         1024
 #define TRACE_MAX_FUNCTION_NAME_LENGTH 1024
 
@@ -151,7 +149,7 @@ LONG WINAPI MyUnhandledExceptionFilter(EXCEPTION_POINTERS *exp) {
 
 	WriteDump(exp, dumpFileName);
 
-	cerror(STR_CURRTITLE " dump file saved to: %s" STR_NEWLINE, dumpFileName);
+	cerror("dump file saved to: %s" STR_NEWLINE, dumpFileName);
 	app_exit(EXIT_FAILURE, "crash");
 	return EXCEPTION_EXECUTE_HANDLER;
 }
@@ -225,7 +223,7 @@ static inline void WriteDump(EXCEPTION_POINTERS *exp, const char *path) {
 BOOL InitializeDbgHelp(void) {
 	HMODULE hDbgHelp = LoadLibraryW(L"Dbghelp.dll");
 	if (!hDbgHelp) {
-		cerror(STR_CURRTITLE " failed to load Dbghelp.dll\n");
+		cerror("failed to load Dbghelp.dll\n");
 		return FALSE;
 	}
 
@@ -239,7 +237,7 @@ BOOL InitializeDbgHelp(void) {
 
 	if (!pSymInitialize || !pSymCleanup || !pSymFunctionTableAccess64 || !pSymGetModuleBase64 || !pStackWalk64 ||
 		!pSymFromAddr || !pSymGetLineFromAddr64) {
-		cerror(STR_CURRTITLE " failed to get function addresses from Dbghelp.dll\n");
+		cerror("failed to get function addresses from Dbghelp.dll\n");
 		FreeLibrary(hDbgHelp);
 		return FALSE;
 	}
@@ -255,7 +253,7 @@ void print_thread_stack_trace(HANDLE process, HANDLE thread, DWORD threadId) {
 
 	// Get thread context without suspending the thread
 	if (!GetThreadContext(thread, &context)) {
-		cerror(STR_CURRTITLE " failed to get thread context for thread %lu." STR_NEWLINE, threadId);
+		cerror("failed to get thread context for thread %lu." STR_NEWLINE, threadId);
 		return;
 	}
 

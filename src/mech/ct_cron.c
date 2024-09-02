@@ -13,8 +13,6 @@
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
-#define STR_CURRTITLE "[ct_cron]"
-
 /**
  * @struct cron
  * @brief cron任务
@@ -201,7 +199,7 @@ ct_cron_id_t ct_cron_start(int minute, int hour, int day, int week, int month, c
 	// 判断启用数量是否达到上限 以及 可用链表是否为空
 	if (mgr_isfull() || ct_list_isempty(mgr->idle_list)) {
 		mgr_unlock();
-		// printf(STR_CURRTITLE " find idle cron error, cron is full." STR_NEWLINE);
+		// printf("find idle cron error, cron is full." STR_NEWLINE);
 		return CT_CRON_ID_NULL;
 	}
 	// 取出第一个可用cron任务
@@ -229,7 +227,7 @@ ct_cron_id_t ct_cron_start(int minute, int hour, int day, int week, int month, c
 
 void ct_cron_stop(ct_cron_id_t id) {
 	if (CT_CRON_ID_ISNULL(id)) {
-		// printf(STR_CURRTITLE " get cron error, cron id invalid: %" PRIu32 ". " STR_NEWLINE, id);
+		// printf("get cron error, cron id invalid: %" PRIu32 ". " STR_NEWLINE, id);
 		return;  // 无效ID
 	}
 
@@ -245,7 +243,7 @@ void ct_cron_stop(ct_cron_id_t id) {
 	}
 	if (!self || !self->is_active) {
 		mgr_unlock();
-		// printf(STR_CURRTITLE " get cron error, cron id %" PRIu32 " not found. " STR_NEWLINE, id);
+		// printf("get cron error, cron id %" PRIu32 " not found. " STR_NEWLINE, id);
 		return;
 	}
 

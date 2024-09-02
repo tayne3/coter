@@ -24,8 +24,6 @@
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
-#define STR_CURRTITLE "[ct_hash]"
-
 #define CT_HASH_SIZE(self)    ((self)->size)                 // 获取 哈希表 大小
 #define CT_HASH_MAX(self)     ((self)->max)                  // 获取 哈希表 最大容量
 #define CT_HASH_ISEMPTY(self) ((self)->size == 0)            // 判断 哈希表 是否为空

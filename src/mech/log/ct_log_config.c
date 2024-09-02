@@ -10,8 +10,6 @@
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
-#define STR_CURRTITLE "[ct_log_config]"
-
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
 void ct_log_config_default(ct_log_config_t* config) {
@@ -23,7 +21,8 @@ void ct_log_config_default(ct_log_config_t* config) {
 	config->disable_save = true;
 	memset(config->file_dir, 0, sizeof(config->file_dir));
 	memset(config->file_name, 0, sizeof(config->file_name));
-	config->file_size_max     = 1024 * 1024;
+	config->file_cache_size   = 4 * 1024;
+	config->file_size_max     = 4 * 1024 * 1024;
 	config->file_count_max    = 3;
 	config->autosave_interval = 3600;
 

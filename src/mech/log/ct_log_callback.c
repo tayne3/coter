@@ -12,8 +12,6 @@
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
-#define STR_CURRTITLE "[ct_log_callback]"
-
 /**
  * @struct ct_log_callback
  * @brief 日志回调器

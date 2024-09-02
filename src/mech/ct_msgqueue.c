@@ -11,8 +11,6 @@
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
-#define STR_CURRTITLE "[ct_msgqueue]"
-
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
 void ct_msgqueue_init(ct_msgqueue_buf_t self, void *buffer, size_t byte, size_t max) {
