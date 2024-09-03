@@ -24,10 +24,10 @@ typedef struct job {
 #define CT_THPOOL_JOB_INIT(_routine, _arg) {.routine = _routine, .arg = _arg}
 
 typedef struct unit {
-	ct_list_buf_t   list;    // 链表节点
-	ct_thpool_ptr_t thpool;  // 线程池
-	pthread_t       thread;  // 线程
-	job_buf_t       job;     // 工作
+	ct_list_buf_t list;    // 链表节点
+	ct_thpool_t*  thpool;  // 线程池
+	pthread_t     thread;  // 线程
+	job_buf_t     job;     // 工作
 } unit_t, unit_buf_t[1];
 
 /**
@@ -45,9 +45,9 @@ static inline void* ct_thpool_thread_do_resident(void* arg);
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
-ct_thpool_ptr_t ct_thpool_create(pthread_attr_t* attr) {
+ct_thpool_t* ct_thpool_create(pthread_attr_t* attr) {
 	// 创建线程池
-	ct_thpool_ptr_t self = (ct_thpool_ptr_t)malloc(sizeof(ct_thpool_t));
+	ct_thpool_t* self = (ct_thpool_t*)malloc(sizeof(ct_thpool_t));
 	assert(self);
 	// 初始化互斥锁
 	pthread_mutex_init(self->resident_mutex, NULL);
@@ -73,7 +73,7 @@ ct_thpool_ptr_t ct_thpool_create(pthread_attr_t* attr) {
 	return self;
 }
 
-void ct_thpool_destroy(ct_thpool_ptr_t self) {
+void ct_thpool_destroy(ct_thpool_t* self) {
 	assert(self);
 
 	for (;;) {
@@ -135,7 +135,7 @@ void ct_thpool_destroy(ct_thpool_ptr_t self) {
 	free(self);
 }
 
-int ct_thpool_add(ct_thpool_ptr_t self, pthread_attr_t* attr, ct_thpool_routine_t routine, void* arg) {
+int ct_thpool_add(ct_thpool_t* self, pthread_attr_t* attr, ct_thpool_routine_t routine, void* arg) {
 	assert(self);
 
 	unit_t* unit = NULL;
