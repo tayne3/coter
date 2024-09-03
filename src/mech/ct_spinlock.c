@@ -6,9 +6,6 @@
  */
 #include "ct_spinlock.h"
 
-#include <assert.h>
-#include <sched.h>
-
 // -------------------------[STATIC DECLARATION]-------------------------
 
 #define CT_SPINLOCK_SPIN_MAX 1024UL
@@ -34,7 +31,6 @@ int ct_spinlock_init(__ct_spinlock_ptr self) {
 int ct_spinlock_destroy(__ct_spinlock_ptr self) {
 	assert(self);
 #ifdef CT_SPINLOCK_USE_STDATOMIC
-	// atomic_flag_clear(&self->flag);
 	atomic_store_explicit(&self->flag, 0, memory_order_release);
 	return 0;
 #elif defined(CT_SPINLOCK_USE_GCC)
@@ -51,13 +47,10 @@ int ct_spinlock_destroy(__ct_spinlock_ptr self) {
 int ct_spinlock_lock(__ct_spinlock_ptr self) {
 	assert(self);
 #ifdef CT_SPINLOCK_USE_STDATOMIC
-	// uint32_t expected   = 0U;
 	uint_fast32_t expected   = 0U;
 	uint32_t      spin_count = 1U;
 
 	while (
-		// !atomic_compare_exchange_weak_explicit(&self->flag, &expected, 1, memory_order_acquire,
-		// memory_order_relaxed)) {
 		!atomic_compare_exchange_weak_explicit(&self->flag, &expected, 1, memory_order_acquire, memory_order_relaxed)) {
 		expected = 0U;
 		if (spin_count < CT_SPINLOCK_SPIN_MAX) {
@@ -105,12 +98,6 @@ int ct_spinlock_lock(__ct_spinlock_ptr self) {
 int ct_spinlock_try_lock(__ct_spinlock_ptr self) {
 	assert(self);
 #ifdef CT_SPINLOCK_USE_STDATOMIC
-	// uint32_t expected = 0;
-	// return atomic_compare_exchange_strong_explicit(&self->flag, &expected, 1, memory_order_acquire,
-	// 											   memory_order_relaxed) ?
-	// 		   0 :
-	// 		   -1;
-
 	uint_fast32_t expected = 0;
 	return atomic_compare_exchange_strong_explicit(&self->flag, &expected, 1, memory_order_acquire,
 												   memory_order_relaxed) ?
