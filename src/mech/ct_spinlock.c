@@ -65,14 +65,13 @@ int ct_spinlock_lock(__ct_spinlock_ptr self) {
 	return 0;
 #elif defined(CT_SPINLOCK_USE_GCC)
 	uint32_t spin_count = 1;
-	while (__atomic_test_and_set(&self->flag, __ATOMIC_ACQUIRE)) {
+	while (__sync_lock_test_and_set(&self->flag, 1)) {
 		if (spin_count < CT_SPINLOCK_SPIN_MAX) {
 			for (uint32_t i = 0; i < spin_count; i++) {
-				__builtin_ia32_pause();
+				CT_PAUSE();
 			}
 			spin_count <<= 1;
 		} else {
-			__builtin_ia32_pause();
 			sched_yield();
 		}
 	}
@@ -104,7 +103,7 @@ int ct_spinlock_try_lock(__ct_spinlock_ptr self) {
 			   0 :
 			   -1;
 #elif defined(CT_SPINLOCK_USE_GCC)
-	return __atomic_test_and_set(&self->flag, __ATOMIC_ACQUIRE) ? -1 : 0;
+	return __sync_lock_test_and_set(&self->flag, 1) ? -1 : 0;
 #elif defined(CT_SPINLOCK_USE_WIN32)
 	return InterlockedCompareExchange(&self->flag, 1L, 0L) == 0L ? 0 : -1;
 #else
@@ -119,7 +118,7 @@ int ct_spinlock_unlock(__ct_spinlock_ptr self) {
 	atomic_store_explicit(&self->flag, 0, memory_order_release);
 	return 0;
 #elif defined(CT_SPINLOCK_USE_GCC)
-	__atomic_clear(&self->flag, __ATOMIC_RELEASE);
+	__sync_lock_release(&self->flag);
 	return 0;
 #elif defined(CT_SPINLOCK_USE_WIN32)
 	InterlockedExchange(&self->flag, 0L);

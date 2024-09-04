@@ -33,12 +33,12 @@ typedef struct unit {
 /**
  * @brief 线程池
  */
-typedef struct ct_thpool {
+struct ct_thpool {
 	ct_list_buf_t   resident_list;      // 执行常驻任务的线程
 	ct_list_buf_t   recycle_list;       // 回收的线程
 	pthread_mutex_t resident_mutex[1];  // 互斥锁
 	pthread_attr_t  attr[1];            // 线程属性
-} ct_thpool_t;
+};
 
 // 线程执行函数-常驻
 static inline void* ct_thpool_thread_do_resident(void* arg);
