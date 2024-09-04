@@ -28,7 +28,7 @@ extern "C" {
 #define CTLog_LevelError   4  // 错误信息
 #define CTLog_LevelFatal   5  // 致命错误
 
-#define CTLog_StringVarBase "VBASE"
+#define CTLog_StringVerBose "VBASE"
 #define CTLog_StringDebug   "DEBUG"
 #define CTLog_StringTrace   "TRACE"
 #define CTLog_StringWarning "WARNG"
@@ -36,7 +36,7 @@ extern "C" {
 #define CTLog_StringFatal   "FATAL"
 
 // 日志样式字符串-起始
-#define CTLog_StyleVarBase "\x1B[32;2;4m"
+#define CTLog_StyleVerBose "\x1B[32;2;4m"
 #define CTLog_StyleDebug   "\x1B[32;2;4m"
 #define CTLog_StyleTrace   "\x1B[36;2;4m"
 #define CTLog_StyleWarning "\x1B[33;2;4m"
@@ -49,7 +49,7 @@ extern "C" {
 #if 0
 // XXX(level, level_str, style_start, style_end)
 #define CTLog_LevelMap(XXX)                                                          \
-	XXX(CTLog_LevelVerBose, CTLog_StringVarBase, CTLog_StyleVarBase, CTLog_StyleEnd) \
+	XXX(CTLog_LevelVerBose, CTLog_StringVerBose, CTLog_StyleVerBose, CTLog_StyleEnd) \
 	XXX(CTLog_LevelDebug, CTLog_StringDebug, CTLog_StyleDebug, CTLog_StyleEnd)       \
 	XXX(CTLog_LevelTrace, CTLog_StringTrace, CTLog_StyleTrace, CTLog_StyleEnd)       \
 	XXX(CTLog_LevelWarning, CTLog_StringWarning, CTLog_StyleWarning, CTLog_StyleEnd) \
