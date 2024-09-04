@@ -35,7 +35,7 @@ static struct app {
 	ct_msgqueue_t      exitMQ[1];   // 异常退出队列
 	ct_time_t          now;         // 当前时间 (秒级)
 	ct_time64_t        tick;        // 系统运行时间 (毫秒级)
-	ct_thpool_ptr_t    thpool;      // 全局线程池
+	ct_thpool_t*       thpool;      // 全局线程池
 	ct_jobpool_t*      jobpool;     // 全局任务池
 	ct_evmsg_center_t* evmsg;       // 事件消息中枢
 } gapp[1] = {{

@@ -8,21 +8,21 @@
 #include "ctunit.h"
 #include "mech/ct_log.h"
 
-#define test_basic_verbose(__logger, ...) CTLogger_HandleBasic(VarBase, (__logger), __VA_ARGS__)
+#define test_basic_verbose(__logger, ...) CTLogger_HandleBasic(VerBose, (__logger), __VA_ARGS__)
 #define test_basic_debug(__logger, ...)   CTLogger_HandleBasic(Debug, (__logger), __VA_ARGS__)
 #define test_basic_trace(__logger, ...)   CTLogger_HandleBasic(Trace, (__logger), __VA_ARGS__)
 #define test_basic_warning(__logger, ...) CTLogger_HandleBasic(Warning, (__logger), __VA_ARGS__)
 #define test_basic_error(__logger, ...)   CTLogger_HandleBasic(Error, (__logger), __VA_ARGS__)
 #define test_basic_fatal(__logger, ...)   CTLogger_HandleBasic(Fatal, (__logger), __VA_ARGS__)
 
-#define test_brief_verbose(__logger, ...) CTLogger_HandleBrief(VarBase, (__logger), __VA_ARGS__)
+#define test_brief_verbose(__logger, ...) CTLogger_HandleBrief(VerBose, (__logger), __VA_ARGS__)
 #define test_brief_debug(__logger, ...)   CTLogger_HandleBrief(Debug, (__logger), __VA_ARGS__)
 #define test_brief_trace(__logger, ...)   CTLogger_HandleBrief(Trace, (__logger), __VA_ARGS__)
 #define test_brief_warning(__logger, ...) CTLogger_HandleBrief(Warning, (__logger), __VA_ARGS__)
 #define test_brief_error(__logger, ...)   CTLogger_HandleBrief(Error, (__logger), __VA_ARGS__)
 #define test_brief_fatal(__logger, ...)   CTLogger_HandleBrief(Fatal, (__logger), __VA_ARGS__)
 
-#define test_detail_verbose(__logger, ...) CTLogger_HandleDetail(VarBase, (__logger), __VA_ARGS__)
+#define test_detail_verbose(__logger, ...) CTLogger_HandleDetail(VerBose, (__logger), __VA_ARGS__)
 #define test_detail_debug(__logger, ...)   CTLogger_HandleDetail(Debug, (__logger), __VA_ARGS__)
 #define test_detail_trace(__logger, ...)   CTLogger_HandleDetail(Trace, (__logger), __VA_ARGS__)
 #define test_detail_warning(__logger, ...) CTLogger_HandleDetail(Warning, (__logger), __VA_ARGS__)
@@ -122,7 +122,7 @@ static inline void test_callback_performance_comparison(void) {
 	// 创建 Logger
 	{
 		ct_log_config_t config = {
-			.level             = CTLog_LevelVarBase,
+			.level             = CTLog_LevelVerBose,
 			.disable_print     = true,
 			.disable_save      = true,
 			.callback_routine  = log_callback,

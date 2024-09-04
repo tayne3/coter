@@ -18,7 +18,7 @@ extern ct_logger_t* g_logger;
  *  日志输出宏 
  */
 
-#define log_verbose(...) CTLogger_HandleBrief(VarBase, g_logger, __VA_ARGS__)
+#define log_verbose(...) CTLogger_HandleBrief(VerBose, g_logger, __VA_ARGS__)
 #define log_debug(...)   CTLogger_HandleBrief(Debug, g_logger, __VA_ARGS__)
 #define log_trace(...)   CTLogger_HandleBrief(Trace, g_logger, __VA_ARGS__)
 #define log_warning(...) CTLogger_HandleBrief(Warning, g_logger, __VA_ARGS__)
@@ -29,7 +29,7 @@ extern ct_logger_t* g_logger;
  *  日志输出宏 (无样式)
  */
 
-#define log_verbose_n(...) CTLogger_HandleBasic(VarBase, g_logger, __VA_ARGS__)
+#define log_verbose_n(...) CTLogger_HandleBasic(VerBose, g_logger, __VA_ARGS__)
 #define log_debug_n(...)   CTLogger_HandleBasic(Debug, g_logger, __VA_ARGS__)
 #define log_trace_n(...)   CTLogger_HandleBasic(Trace, g_logger, __VA_ARGS__)
 #define log_warning_n(...) CTLogger_HandleBasic(Warning, g_logger, __VA_ARGS__)
@@ -40,7 +40,7 @@ extern ct_logger_t* g_logger;
  *  日志输出宏 (16进制)
  */
 
-#define log_verbose_hex(__buf, __len) CTLogger_HandleHex(VarBase, g_logger, __buf, __len)
+#define log_verbose_hex(__buf, __len) CTLogger_HandleHex(VerBose, g_logger, __buf, __len)
 #define log_debug_hex(__buf, __len)   CTLogger_HandleHex(Debug, g_logger, __buf, __len)
 #define log_trace_hex(__buf, __len)   CTLogger_HandleHex(Trace, g_logger, __buf, __len)
 #define log_warning_hex(__buf, __len) CTLogger_HandleHex(Warning, g_logger, __buf, __len)

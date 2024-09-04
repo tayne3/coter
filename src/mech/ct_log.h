@@ -7,7 +7,7 @@
  * @example
  * @code
  * extern ct_logger_t* logger;
- * #define log_verbose(__logger, ...) CTLogger_HandleBrief(VarBase, logger, __VA_ARGS__)
+ * #define log_verbose(__logger, ...) CTLogger_HandleBrief(VerBose, logger, __VA_ARGS__)
  * #define log_debug(__logger, ...)   CTLogger_HandleBrief(Debug, logger, __VA_ARGS__)
  * #define log_trace(__logger, ...)   CTLogger_HandleBrief(Trace, logger, __VA_ARGS__)
  * #define log_warning(__logger, ...) CTLogger_HandleBrief(Warning, logger, __VA_ARGS__)

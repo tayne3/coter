@@ -24,7 +24,7 @@ void log_init(void) {
 	if (g_logger == NULL) {
 		ct_log_config_t config;
 		ct_log_config_default(&config);
-		config.level = CTLog_LevelVarBase;
+		config.level = CTLog_LevelVerBose;
 		g_logger     = ct_logger_create(&config);
 		pthread_create(&lg_thread, NULL, lg_schedule_thread, NULL);
 	}

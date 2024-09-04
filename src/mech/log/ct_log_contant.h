@@ -21,7 +21,7 @@ extern "C" {
 #define CTLog_StyleUser CTLog_StyleBrief
 #endif
 
-#define CTLog_LevelVarBase 0  // 变量信息
+#define CTLog_LevelVerBose 0  // 变量信息
 #define CTLog_LevelDebug   1  // 调试信息
 #define CTLog_LevelTrace   2  // 跟踪信息
 #define CTLog_LevelWarning 3  // 警告信息
@@ -49,7 +49,7 @@ extern "C" {
 #if 0
 // XXX(level, level_str, style_start, style_end)
 #define CTLog_LevelMap(XXX)                                                          \
-	XXX(CTLog_LevelVarBase, CTLog_StringVarBase, CTLog_StyleVarBase, CTLog_StyleEnd) \
+	XXX(CTLog_LevelVerBose, CTLog_StringVarBase, CTLog_StyleVarBase, CTLog_StyleEnd) \
 	XXX(CTLog_LevelDebug, CTLog_StringDebug, CTLog_StyleDebug, CTLog_StyleEnd)       \
 	XXX(CTLog_LevelTrace, CTLog_StringTrace, CTLog_StyleTrace, CTLog_StyleEnd)       \
 	XXX(CTLog_LevelWarning, CTLog_StringWarning, CTLog_StyleWarning, CTLog_StyleEnd) \
