@@ -85,8 +85,12 @@ static inline void signal_handler(int sig) {
 static void generate_backtrace(void) {
 	void* buffer[TRACE_MAX_STACK_FRAMES];
 
-	const int count   = backtrace(buffer, TRACE_MAX_STACK_FRAMES);
-	char**    symbols = backtrace_symbols(buffer, count);
+	const int count = backtrace(buffer, TRACE_MAX_STACK_FRAMES);
+	if (count == 0) {
+		return;
+	}
+
+	char** symbols = backtrace_symbols(buffer, count);
 	if (!symbols) {
 		perror("backtrace symbols");
 		exit(EXIT_FAILURE);

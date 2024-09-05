@@ -36,12 +36,12 @@ extern "C" {
 #define CTLog_StringFatal   "FATAL"
 
 // 日志样式字符串-起始
-#define CTLog_StyleVerBose "\x1B[32;2;4m"
-#define CTLog_StyleDebug   "\x1B[32;2;4m"
-#define CTLog_StyleTrace   "\x1B[36;2;4m"
-#define CTLog_StyleWarning "\x1B[33;2;4m"
-#define CTLog_StyleError   "\x1B[31;2;4m"
-#define CTLog_StyleFatal   "\x1B[31;2;4m"
+#define CTLog_StyleVerBose "\x1B[32;2m"
+#define CTLog_StyleDebug   "\x1B[32;2m"
+#define CTLog_StyleTrace   "\x1B[36;2m"
+#define CTLog_StyleWarning "\x1B[33;2m"
+#define CTLog_StyleError   "\x1B[31;2m"
+#define CTLog_StyleFatal   "\x1B[31;2m"
 
 // 日志样式字符串-结束
 #define CTLog_StyleEnd "\x1B[0m"
