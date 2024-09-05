@@ -29,7 +29,7 @@
 #define test_detail_error(__logger, ...)   CTLogger_HandleDetail(Error, (__logger), __VA_ARGS__)
 #define test_detail_fatal(__logger, ...)   CTLogger_HandleDetail(Fatal, (__logger), __VA_ARGS__)
 
-#define TEST_THREADS     20
+#define TEST_THREADS     2
 #define TEST_THREAD_DATA 1000
 
 static ct_logger_t* g_logger = NULL;

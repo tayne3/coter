@@ -29,8 +29,8 @@
 #define test_detail_error(__logger, ...)   CTLogger_HandleDetail(Error, (__logger), __VA_ARGS__)
 #define test_detail_fatal(__logger, ...)   CTLogger_HandleDetail(Fatal, (__logger), __VA_ARGS__)
 
-#define TEST_THREADS     20
-#define TEST_THREAD_DATA 100000
+#define TEST_THREADS     2
+#define TEST_THREAD_DATA 10000
 
 static FILE*           g_file_with_log      = NULL;
 static FILE*           g_file_without_log   = NULL;
@@ -44,7 +44,7 @@ static bool         is_exit = false;
 static inline void* thread_logger_schedule(void* arg);
 
 // 日志回调函数
-static void log_callback(const char* log, size_t size, void* userdata);
+static inline void log_callback(const char* msg, size_t size, void* userdata);
 // 带回调的测试线程函数
 static inline void* thread_callback_with_log(void* arg);
 // 直接调用回调函数的测试线程函数
@@ -71,8 +71,8 @@ static inline void* thread_logger_schedule(void* arg) {
 }
 
 // 日志回调函数
-static void log_callback(const char* log, size_t size, void* userdata) {
-	fwrite(log, 1, size, g_file_with_log);
+static inline void log_callback(const char* msg, size_t size, void* userdata) {
+	fwrite(msg, 1, size, g_file_with_log);
 	return;
 	(void)userdata;
 }

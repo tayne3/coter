@@ -44,7 +44,7 @@ static inline void test_data_reset(void) {
 static inline void *test_job_publish(void *arg) {
 	ct_jobpool_t *pool = (ct_jobpool_t *)arg;
 	for (size_t i = 0; i < test_data_size; i++) {
-		ct_jobpool_add(pool, test_job_routine, (void *)(uint64_t)i);
+		ct_jobpool_add(pool, test_job_routine, (void *)(uintptr_t)i);
 	}
 
 	pthread_exit(NULL);
@@ -52,7 +52,7 @@ static inline void *test_job_publish(void *arg) {
 }
 
 static inline void test_job_routine(void *arg) {
-	const size_t idx = (size_t)(uint64_t)arg;
+	const size_t idx = (size_t)(uintptr_t)arg;
 	test_data[idx]   = true;
 
 	pthread_mutex_lock(test_mutex);

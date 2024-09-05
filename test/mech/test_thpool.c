@@ -42,7 +42,7 @@ static inline void test_data_reset(void) {
 }
 
 static inline void test_job_run(void *arg) {
-	const size_t idx = (size_t)(uint64_t)arg;
+	const size_t idx = (size_t)(uintptr_t)arg;
 	test_data[idx]   = true;
 
 	pthread_mutex_lock(test_mutex);
@@ -58,12 +58,12 @@ static inline void test_thpool_add(size_t data_count) {
 	test_data_reset();
 	test_end_number = 0;
 
-	ct_thpool_ptr_t pool = ct_thpool_create(NULL);
+	ct_thpool_t *pool = ct_thpool_create(NULL);
 	ctunit_assert_not_null(pool);
 
 	int ret = 0;
 	for (size_t i = 0; i < test_data_size; i++) {
-		ret = ct_thpool_add(pool, NULL, test_job_run, (void *)(uint64_t)i);
+		ret = ct_thpool_add(pool, NULL, test_job_run, (void *)(uintptr_t)i);
 		ctunit_assert_ret(ret, "i = %zu/%zu", i, test_data_size);
 	}
 

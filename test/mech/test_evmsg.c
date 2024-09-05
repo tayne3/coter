@@ -35,7 +35,7 @@ int main(void) {
 
 	// 创建线程
 	for (int i = 0; i < TEST_THREAD_NUMBER; i++) {
-		is_ok = pthread_create(&threads[i], NULL, test_evmsg_publish, (void *)(uint64_t)i) == 0;
+		is_ok = pthread_create(&threads[i], NULL, test_evmsg_publish, (void *)(uintptr_t)i) == 0;
 		ctunit_assert_true(is_ok, "id = %d/%d", i, TEST_THREAD_NUMBER);
 	}
 
@@ -79,15 +79,15 @@ static inline bool test_evmsg_handler(ct_evmsg_t *msg, void *userdata) {
 	ctunit_assert_uint8(msg->id, 0, CTUnit_GreaterEqual);
 	ctunit_assert_uint8(msg->id, TEST_THREAD_NUMBER, CTUnit_Less);
 
-	const int index = *(int *)msg->data;
-	ctunit_assert_false(test_result[msg->id][index]);
-	test_result[msg->id][index] = true;
+	const int result_index = *(int *)msg->data;
+	ctunit_assert_false(test_result[msg->id][result_index]);
+	test_result[msg->id][result_index] = true;
 	return false;
 	(void)(userdata);
 }
 
 static inline void *test_evmsg_publish(void *arg) {
-	const uint8_t id = (uint8_t)(uint64_t)arg;
+	const uint8_t id = (uint8_t)(uintptr_t)arg;
 	// 模拟事件数据
 	ct_evmsg_t msg = CT_EVMSG_MSG_INIT(1, id, NULL, 0);
 	// 发布事件

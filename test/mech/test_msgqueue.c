@@ -43,10 +43,10 @@ static inline void test_msgqueue(size_t data_size, size_t buffer_size) {
 
 	// 初始化测试数据
 	{
-		ct_random_buf_t random;
-		ct_random_init(random);
+		ct_random_buf_t ctrand;
+		ct_random_init(ctrand);
 		for (size_t i = 0; i < test_data_size; i++) {
-			test_data[i] = ct_random_int32(random, INT32_MIN, INT32_MAX);
+			test_data[i] = ct_random_int32(ctrand, INT32_MIN, INT32_MAX);
 		}
 	}
 
@@ -58,7 +58,7 @@ static inline void test_msgqueue(size_t data_size, size_t buffer_size) {
 
 	// 测试 enqueue 和 dequeue
 	{
-		bool is_ok;
+		bool      is_ok;
 		pthread_t thread;
 		is_ok = pthread_create(&thread, NULL, test_task_enqueue, msgqueue) == 0;
 		ctunit_assert_true(is_ok);

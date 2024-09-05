@@ -163,6 +163,10 @@ BOOL WINAPI MyConsoleCtrlHandler(DWORD CtrlType) {
 	return FALSE;
 }
 
+#if defined(__GNUC__) && (__GNUC__ >= 7)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
 static inline void miniDumpWriteDump(HANDLE hProcess, DWORD ProcessId, HANDLE hFile,
 									 CONST PMINIDUMP_EXCEPTION_INFORMATION ExceptionParam,
 									 CONST PMINIDUMP_CALLBACK_INFORMATION  CallbackParam) {
@@ -174,15 +178,15 @@ static inline void miniDumpWriteDump(HANDLE hProcess, DWORD ProcessId, HANDLE hF
 	HMODULE module = LoadLibraryW(L"Dbghelp.dll");
 	if (module) {
 		MiniDumpWriteDumpPtr mini_dump_write_dump;
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-function-type"
 		mini_dump_write_dump = (MiniDumpWriteDumpPtr)GetProcAddress(module, "MiniDumpWriteDump");
-#pragma GCC diagnostic pop
 		if (mini_dump_write_dump) {
 			mini_dump_write_dump(hProcess, ProcessId, hFile, (MINIDUMP_TYPE)80, ExceptionParam, NULL, CallbackParam);
 		}
 	}
 }
+#if defined(__GNUC__) && (__GNUC__ >= 7)
+#pragma GCC diagnostic pop
+#endif
 
 static inline BOOL CALLBACK MyMiniDumpCallback(PVOID pParam, const PMINIDUMP_CALLBACK_INPUT input,
 											   PMINIDUMP_CALLBACK_OUTPUT output) {
@@ -222,6 +226,10 @@ static inline void WriteDump(EXCEPTION_POINTERS *exp, const char *path) {
 	CloseHandle(h);
 }
 
+#if defined(__GNUC__) && (__GNUC__ >= 7)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
 // Function to initialize DbgHelp functions
 BOOL InitializeDbgHelp(void) {
 	HMODULE hDbgHelp = LoadLibraryW(L"Dbghelp.dll");
@@ -230,8 +238,6 @@ BOOL InitializeDbgHelp(void) {
 		return FALSE;
 	}
 	
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-function-type"
 	pSymInitialize            = (SymInitializeFunc)GetProcAddress(hDbgHelp, "SymInitialize");
 	pSymCleanup               = (SymCleanupFunc)GetProcAddress(hDbgHelp, "SymCleanup");
 	pSymFunctionTableAccess64 = (SymFunctionTableAccess64Func)GetProcAddress(hDbgHelp, "SymFunctionTableAccess64");
@@ -239,7 +245,6 @@ BOOL InitializeDbgHelp(void) {
 	pStackWalk64              = (StackWalk64Func)GetProcAddress(hDbgHelp, "StackWalk64");
 	pSymFromAddr              = (SymFromAddrFunc)GetProcAddress(hDbgHelp, "SymFromAddr");
 	pSymGetLineFromAddr64     = (SymGetLineFromAddr64Func)GetProcAddress(hDbgHelp, "SymGetLineFromAddr64");
-#pragma GCC diagnostic pop
 	if (!pSymInitialize || !pSymCleanup || !pSymFunctionTableAccess64 || !pSymGetModuleBase64 || !pStackWalk64 ||
 		!pSymFromAddr || !pSymGetLineFromAddr64) {
 		log_error("failed to get function addresses from Dbghelp.dll\n");
@@ -249,6 +254,9 @@ BOOL InitializeDbgHelp(void) {
 
 	return TRUE;
 }
+#if defined(__GNUC__) && (__GNUC__ >= 7)
+#pragma GCC diagnostic pop
+#endif
 
 // Function to print stack trace for a given thread
 void print_thread_stack_trace(HANDLE process, HANDLE thread, DWORD threadId) {

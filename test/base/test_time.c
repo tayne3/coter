@@ -54,13 +54,11 @@ static inline int change_system_time(time_t new_time) {
 	ft.dwHighDateTime = uli.HighPart;
 	FileTimeToSystemTime(&ft, &st);
 	return SetSystemTime(&st) ? 0 : -1;
-#elif HAVE_CLOCK_GETTIME
+#else
 	struct timeval tv;
 	tv.tv_sec  = new_time;
 	tv.tv_usec = 0;
 	return settimeofday(&tv, NULL);
-#else
-	return -1;
 #endif
 }
 

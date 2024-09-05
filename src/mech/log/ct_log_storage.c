@@ -305,26 +305,24 @@ static inline bool storage_file_init(ct_log_storage_t *self) {
 		if (last_index == -1) {
 			last_index = i;
 			last_st    = curr_st;
-			char *end  = strncpy(last_filename, curr_filename, curr_length);
-			*end       = '\0';
+			strncpy(last_filename, curr_filename, curr_length);
+			last_filename[sizeof(last_filename) - 1] = '\0';
 		} else if (last_st.st_mtime < curr_st.st_mtime) {
 			last_index = i;
 			last_st    = curr_st;
-			char *end  = strncpy(last_filename, curr_filename, curr_length);
-			*end       = '\0';
+			strncpy(last_filename, curr_filename, curr_length);
+			last_filename[sizeof(last_filename) - 1] = '\0';
 		}
 		if (first_index == -1) {
 			first_index = i;
 			first_st    = curr_st;
-			first_index = curr_length;
-			char *end   = strncpy(first_filename, curr_filename, curr_length);
-			*end        = '\0';
+			strncpy(first_filename, curr_filename, curr_length);
+			first_filename[sizeof(first_filename) - 1] = '\0';
 		} else if (first_st.st_mtime < curr_st.st_mtime) {
 			first_index = i;
 			first_st    = curr_st;
-			first_index = curr_length;
-			char *end   = strncpy(first_filename, curr_filename, curr_length);
-			*end        = '\0';
+			strncpy(first_filename, curr_filename, curr_length);
+			first_filename[sizeof(first_filename) - 1] = '\0';
 		}
 	}
 	if (last_index == -1) {

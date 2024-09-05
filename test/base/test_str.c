@@ -7,6 +7,10 @@
 #include "base/ct_platform.h"
 #include "ctunit.h"
 
+#if defined(__GNUC__) && (__GNUC__ >= 7)
+#pragma GCC diagnostic ignored "-Wformat-truncation"
+#endif
+
 static inline void test_snprintf(void);
 static inline void test_snprintf_s(void);
 
@@ -21,9 +25,6 @@ int main(void) {
 }
 
 static inline void test_snprintf(void) {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-truncation"
-
 	char buf[100];
 
 	{
@@ -67,14 +68,9 @@ static inline void test_snprintf(void) {
 		ctunit_assert_int(len, 8, CTUnit_Equal);
 		ctunit_assert_string(buf, "Truncate");
 	}
-
-#pragma GCC diagnostic pop
 }
 
 static inline void test_snprintf_s(void) {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-truncation"
-
 	char buf[100];
 
 	// 正常情况测试
@@ -142,6 +138,4 @@ static inline void test_snprintf_s(void) {
 		ctunit_assert_int(buf[4], 0, CTUnit_Equal);
 		ctunit_assert_int(buf[sizeof(buf) - 1], 0, CTUnit_Equal);
 	}
-	
-#pragma GCC diagnostic pop
 }

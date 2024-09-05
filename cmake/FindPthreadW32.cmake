@@ -5,7 +5,7 @@
 #   - PTHREADS_ROOT - Root directory of the Pthreads-w32 installation.
 #
 # This module will define the following variables:
-#   - PTHREAD_LIBS - The libraries needed for threading.
+#   - PTHREADS_LIBS - The libraries needed for threading.
 # ==============================================================================
 # 查找 Pthreads 库
 #
@@ -13,7 +13,7 @@
 #   - PTHREADS_ROOT - 指向 Pthreads-w32 安装的根目录。
 #
 # 此模块将输出以下变量：
-#   - PTHREAD_LIBS - 用于线程的库。
+#   - PTHREADS_LIBS - 用于线程的库。
 # ==============================================================================
 
 include(CheckIncludeFile)
@@ -27,7 +27,7 @@ if(NOT WIN32)
     find_package(Threads REQUIRED)
 
     if(CMAKE_USE_PTHREADS_INIT)
-        set(PTHREAD_LIBS ${CMAKE_THREAD_LIBS_INIT})
+        set(PTHREADS_LIBS ${CMAKE_THREAD_LIBS_INIT})
         message(STATUS "CMAKE_USE_PTHREADS_INIT: ${CMAKE_USE_PTHREADS_INIT}")
     else()
         message(FATAL_ERROR "Could not find pthread library. See README.Win32 for more information.")
@@ -39,7 +39,7 @@ endif()
 check_library_exists(pthreads pthread_create "" CMAKE_HAVE_PTHREADS_CREATE)
 if(CMAKE_HAVE_PTHREADS_CREATE)
     message(STATUS "CMAKE_HAVE_PTHREADS_CREATE: ${CMAKE_HAVE_PTHREADS_CREATE}")
-    set(PTHREAD_LIBS "-lpthreads")
+    set(PTHREADS_LIBS "-lpthreads")
     return()
 endif()
 
@@ -47,7 +47,7 @@ endif()
 check_library_exists(pthread pthread_create "" CMAKE_HAVE_PTHREAD_CREATE)
 if(CMAKE_HAVE_PTHREAD_CREATE)
     message(STATUS "CMAKE_HAVE_PTHREAD_CREATE: ${CMAKE_HAVE_PTHREAD_CREATE}")
-    set(PTHREAD_LIBS "-lpthread")
+    set(PTHREADS_LIBS "-lpthread")
     return()
 endif()
 
@@ -147,7 +147,7 @@ if(PTHREADS_FOUND)
         INTERFACE_COMPILE_DEFINITIONS "${PTHREADS_DEFINITIONS}"
         IMPORTED_LINK_INTERFACE_LANGUAGES "C"
     )
-    set(PTHREAD_LIBS pthreads-w32)
+    set(PTHREADS_LIBS pthreads-w32)
 
     if(PTHREADS_DLL)
         file(COPY ${PTHREADS_LIBRARIES} ${PTHREADS_DLL} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})

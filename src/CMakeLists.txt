@@ -1,4 +1,13 @@
 
+# if(NOT MSVC)
+#     set(CMAKE_REQUIRED_LIBRARIES "-pthread")
+# endif()
+
+set(PTHREADS_ROOT ${SUB_DIR}/pthreads-w32)
+include(FindPthreadW32)
+set(CMAKE_REQUIRED_LIBRARIES ${PTHREADS_LIBS})
+set(LIBS ${PTHREADS_LIBS})
+
 # see configure
 # Checks for header files
 project_check_header("stdbool.h")
@@ -28,6 +37,8 @@ project_check_function("setproctitle" "unistd.h")
 
 project_check_struct("struct timespec" "tv_sec" "time.h")
 
+project_check_library_function("rt" "clock_gettime" "")
+
 # 生成配置信息头文件
 configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/base/prefix/ct_config.h.in"
@@ -35,8 +46,17 @@ configure_file(
     @ONLY
 )
 
-set(PTHREADS_ROOT ${SUB_DIR}/pthreads-w32)
-include(FindPthreadW32)
+if(WIN32)
+    set(LIBS ${LIBS} secur32 crypt32 winmm iphlpapi ws2_32)
+    set(LIBS ${LIBS} dbghelp)
+endif()
+
+if(UNIX)
+    set(LIBS ${LIBS} pthread m dl)
+    if(CMAKE_COMPILER_IS_GNUCC)
+        set(LIBS ${LIBS} rt)
+    endif()
+endif()
 
 # 打印版本号
 message(STATUS "Coter version: ${PROJECT_VERSION}")
@@ -49,12 +69,10 @@ add_library(coter_obj OBJECT ${files})
 add_library(coter::obj ALIAS coter_obj)
 # 设置头文件查找路径
 target_include_directories(coter_obj PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
-# 添加导出宏
+# 添加宏
 target_compile_definitions(coter_obj PRIVATE DLL_EXPORT)
 # 链接库
-target_link_libraries(coter_obj PUBLIC 
-    ${PTHREAD_LIBS}
-)
+target_link_libraries(coter_obj PUBLIC ${LIBS})
 
 # 编译动态库
 if(COTER_BUILD_SHARED)
@@ -63,9 +81,7 @@ if(COTER_BUILD_SHARED)
     target_include_directories(coter_shared PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
     set_target_properties(coter_shared PROPERTIES OUTPUT_NAME coter)
     target_compile_definitions(coter_shared PRIVATE DLL_EXPORT)
-    target_link_libraries(coter_shared PUBLIC 
-        ${PTHREAD_LIBS}
-    )
+    target_link_libraries(coter_shared PUBLIC ${LIBS})
     if(NOT TARGET coter::coter)
         add_library(coter::coter ALIAS coter_shared)
     endif()
@@ -81,9 +97,7 @@ if(COTER_BUILD_STATIC)
     target_include_directories(coter_static PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
     set_target_properties(coter_static PROPERTIES OUTPUT_NAME coter)
     target_compile_definitions(coter_static PRIVATE DLL_EXPORT)
-    target_link_libraries(coter_static PUBLIC 
-        ${PTHREAD_LIBS}
-    )
+    target_link_libraries(coter_static PUBLIC ${LIBS})
     if(NOT TARGET coter::coter)
         add_library(coter::coter ALIAS coter_static)
     endif()
