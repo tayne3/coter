@@ -10,17 +10,17 @@
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
-ct_time64_t gettick_ms(void) {
+ct_time64_t getuptime_ms(void) {
 #ifdef CT_OS_WIN
 	return GetTickCount64();
 #elif HAVE_CLOCK_GETTIME
 	struct timespec ts;
 	clock_gettime(CLOCK_MONOTONIC, &ts);
-	return (ct_time64_t)ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
+	return (ct_time64_t)ts.tv_sec * 1000ULL + (ct_time64_t)ts.tv_nsec / 1000000ULL;
 #else
 	struct timeval tv;
 	gettimeofday(&tv, NULL);
-	return (ct_time64_t)tv.tv_sec * 1000 + tv.tv_usec / 1000;
+	return (ct_time64_t)tv.tv_sec * 1000ULL + (ct_time64_t)tv.tv_usec / 1000ULL;
 #endif
 }
 
@@ -37,17 +37,17 @@ ct_time64_t gethrtime_us(void) {
 		QueryPerformanceCounter(&count);
 		return (ct_time64_t)(count.QuadPart / (double)s_freq * 1000000);
 	}
-	return 0;
+	return 0ULL;
 #elif defined(CT_OS_SOLARIS)
-	return gethrtime() / 1000;
+	return (ct_time64_t)gethrtime() / 1000ULL;
 #elif HAVE_CLOCK_GETTIME
 	struct timespec ts;
 	clock_gettime(CLOCK_MONOTONIC, &ts);
-	return ts.tv_sec * (ct_time64_t)1000000 + ts.tv_nsec / 1000;
+	return (ct_time64_t)ts.tv_sec * 1000000ULL + (ct_time64_t)ts.tv_nsec / 1000ULL;
 #else
 	struct timeval tv;
 	gettimeofday(&tv, NULL);
-	return tv.tv_sec * (ct_time64_t)1000000 + tv.tv_usec;
+	return (ct_time64_t)tv.tv_sec * 1000000ULL + (ct_time64_t)tv.tv_usec;
 #endif
 }
 

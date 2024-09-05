@@ -1,11 +1,10 @@
 
-# if(NOT MSVC)
-#     set(CMAKE_REQUIRED_LIBRARIES "-pthread")
-# endif()
+if(NOT MSVC)
+    set(CMAKE_REQUIRED_LIBRARIES "-pthread")
+endif()
 
 set(PTHREADS_ROOT ${SUB_DIR}/pthreads-w32)
 include(FindPthreadW32)
-set(CMAKE_REQUIRED_LIBRARIES ${PTHREADS_LIBS})
 set(LIBS ${PTHREADS_LIBS})
 
 # see configure

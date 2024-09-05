@@ -64,35 +64,49 @@ static inline int change_system_time(time_t new_time) {
 
 // 测试用例: 验证时间戳递增
 static inline void test_timestamp_increment(void) {
-	ct_time64_t tick1 = gettick_ms();
-	ct_time64_t tick2 = gettick_ms();
+	ct_time64_t tick1 = getuptime_ms();
+	ct_time64_t tick2 = getuptime_ms();
 	ctunit_assert_uint64(tick2, tick1, CTUnit_GreaterEqual);
 }
 
 // 测试用例: 验证毫秒精度
 static inline void test_millisecond_precision(void) {
-	ct_time64_t start_tick = gettick_ms();
+
+	ct_time64_t start_tick, end_tick;
+
+	start_tick = getuptime_ms();
 #ifdef _WIN32
 	Sleep(100);  // Sleep for 100 milliseconds
 #else
 	usleep(100000);  // Sleep for 100 milliseconds
 #endif
-	ct_time64_t end_tick = gettick_ms();
+	end_tick = getuptime_ms();
 	// Allow some error
 	ctunit_assert_uint64(end_tick - start_tick, 80, CTUnit_GreaterEqual);
 	ctunit_assert_uint64(end_tick - start_tick, 120, CTUnit_Less);
+	
+	start_tick = getuptime_ms();
+#ifdef _WIN32
+	Sleep(200);  // Sleep for 200 milliseconds
+#else
+	usleep(200000);  // Sleep for 200 milliseconds
+#endif
+	end_tick = getuptime_ms();
+	// Allow some error
+	ctunit_assert_uint64(end_tick - start_tick, 160, CTUnit_GreaterEqual);
+	ctunit_assert_uint64(end_tick - start_tick, 240, CTUnit_Less);
 }
 
 // 测试用例: 验证不受系统时间影响
 static inline void test_unaffected_by_system_time(void) {
 	int ret;
 
-	ct_time64_t before_tick = gettick_ms();
+	ct_time64_t before_tick = getuptime_ms();
 	time_t      before_time = time(NULL);
 	ret                     = change_system_time(before_time + 3600);  // Adjust system time forward by 1 hour
 	ctunit_assert_ret(ret, "change system time failed");
 
-	ct_time64_t after_tick = gettick_ms();
+	ct_time64_t after_tick = getuptime_ms();
 	time_t      after_time = time(NULL);
 	change_system_time(after_time - 3600);  // Adjust system time back
 	ctunit_assert_ret(ret, "change system time failed");

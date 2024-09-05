@@ -146,7 +146,7 @@ static void test_bytepool_performance(void) {
 	bool        is_ok;
 
 	// 不使用字节池的情况
-	start = gettick_ms();
+	start = getuptime_ms();
 	for (int i = 0; i < TEST_THREADS; i++) {
 		is_ok = 0 == pthread_create(&threads[i], NULL, thread_func_without_pool, NULL);
 		ctunit_assert_true(is_ok);
@@ -155,13 +155,13 @@ static void test_bytepool_performance(void) {
 		is_ok = 0 == pthread_join(threads[i], NULL);
 		ctunit_assert_true(is_ok);
 	}
-	end                                 = gettick_ms();
+	end                                 = getuptime_ms();
 	const ct_time64_t time_without_pool = end - start;
 
 	// 使用字节池的情况
 	// ct_bytepool_t* pool = ct_bytepool_create(TEST_THREADS * 2, MAX_BUFFER_SIZE);
 	ct_bytepool_t* pool = ct_bytepool_create(1024, MAX_BUFFER_SIZE);
-	start               = gettick_ms();
+	start               = getuptime_ms();
 	for (int i = 0; i < TEST_THREADS; i++) {
 		is_ok = 0 == pthread_create(&threads[i], NULL, thread_func_with_pool, pool);
 		ctunit_assert_true(is_ok);
@@ -170,7 +170,7 @@ static void test_bytepool_performance(void) {
 		is_ok = 0 == pthread_join(threads[i], NULL);
 		ctunit_assert_true(is_ok);
 	}
-	end                              = gettick_ms();
+	end                              = getuptime_ms();
 	const ct_time64_t time_with_pool = end - start;
 	ct_bytepool_destroy(pool);
 

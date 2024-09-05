@@ -84,13 +84,15 @@ static struct ct_timer_manager {
 
 #define CT_TIMER_NULL (mgr->timer_null)  // 空定时器
 
-#define mgr_lock()    pthread_mutex_lock(mgr->lock)    // 锁定
-#define mgr_unlock()  pthread_mutex_unlock(mgr->lock)  // 解锁
-#define mgr_isempty() ct_heap_isempty(mgr->heap)       // 是否为空
-#define mgr_isfull()  ct_heap_isfull(mgr->heap)        // 是否已满
-#define mgr_max()     ct_heap_max(mgr->heap)           // 获取定时器最大容量
-#define mgr_size()    ct_heap_size(mgr->heap)          // 获取定时器总数
-#define mgr_reorder() ct_heap_reorder(mgr->heap)       // 重新排序
+#define mgr_lock()    pthread_mutex_lock(mgr->lock)                 // 锁定
+#define mgr_unlock()  pthread_mutex_unlock(mgr->lock)               // 解锁
+#define mgr_isempty() ct_heap_isempty(mgr->heap)                    // 是否为空
+#define mgr_isfull()  ct_heap_isfull(mgr->heap)                     // 是否已满
+#define mgr_max()     ct_heap_max(mgr->heap)                        // 获取定时器最大容量
+#define mgr_size()    ct_heap_size(mgr->heap)                       // 获取定时器总数
+#define mgr_reorder() ct_heap_reorder(mgr->heap)                    // 重新排序
+#define mgr_insert(t) ct_heap_insert(mgr->heap, CT_ANY_POINTER(t))  // 插入元素
+#define mgr_remove()  ct_heap_remove(mgr->heap)                     // 移除堆顶元素
 
 #define mgr_first()      ct_any_value_pointer(ct_heap_first(mgr->heap))  // 获取首个定时器
 #define mgr_first_take() ct_any_value_pointer(ct_heap_take(mgr->heap))   // 获取并移除首个定时器
@@ -124,7 +126,7 @@ static inline ct_timer_id_t tr_generate_id(ct_timer_t *self);
 // 添加定时器
 static inline void tr_add(ct_timer_t *self);
 // 刷新定时器触发时间
-static inline bool tr_trigger_refresh(ct_timer_t *self);
+static inline void tr_trigger_refresh(ct_timer_t *self);
 // 定时器是否触发
 static inline bool tr_istrigger(ct_timer_t *self);
 
@@ -159,8 +161,8 @@ bool ct_timer_mgr_schedule(ct_time64_t tick) {
 		mgr_unlock();
 		return true;  // 忙碌则直接返回
 	}
-	ct_timer_t *const it = mgr_take_trigger_timer();
-	if (!it->is_active) {
+	ct_timer_t *const self = mgr_take_trigger_timer();
+	if (!self->is_active) {
 		mgr_unlock();
 		return false;  // 没有待触发的定时器则直接返回
 	}
@@ -168,7 +170,7 @@ bool ct_timer_mgr_schedule(ct_time64_t tick) {
 	mgr_unlock();
 
 	// 添加异步工作
-	ct_jobpool_add(mgr->jobpool, mgr_trigger_callback, it);
+	ct_jobpool_add(mgr->jobpool, mgr_trigger_callback, self);
 	return true;
 }
 
@@ -179,33 +181,25 @@ ct_timer_id_t ct_timer_start(ct_time64_t interval, bool is_loop, bool is_now, ct
 		// printf("start timer error, timer interval is 0." STR_NEWLINE);
 		return CT_TIMER_ID_NULL;
 	}
+
 	mgr_lock();
-	// 判断启用数量是否达到上限 以及 可用链表是否为空
 	if (mgr_isfull() || ct_list_isempty(mgr->idle_list)) {
 		mgr_unlock();
 		// printf("start timer error, timer is full." STR_NEWLINE);
-		return CT_TIMER_ID_NULL;
+		return CT_TIMER_ID_NULL;  // 启用数量是否达到上限 / 可用链表是否为空
 	}
-	// 取出第一个可用定时器
-	ct_timer_t *self = ct_list_first_entry(mgr->idle_list, ct_timer_t, list);
-	// 生成并返回唯一的定时器id
-	const ct_timer_id_t id = tr_generate_id(self);
-	// 设置参数
-	self->is_loop  = is_loop;
-	self->callback = callback;
-	*self->arg     = arg;
-	// 是否立即执行
+	ct_timer_t         *self = ct_list_first_entry(mgr->idle_list, ct_timer_t, list);
+	const ct_timer_id_t id   = tr_generate_id(self);
+	self->is_loop            = is_loop;
+	self->callback           = callback;
+	*self->arg               = arg;
+
 	if (is_now) {
-		// 设置间隔
 		self->interval = 0;
-		// 添加定时器
 		tr_add(self);
-		// 设置间隔
 		self->interval = interval;
 	} else {
-		// 设置间隔
 		self->interval = interval;
-		// 添加定时器
 		tr_add(self);
 	}
 	mgr_unlock();
@@ -234,12 +228,9 @@ void ct_timer_stop(ct_timer_id_t id) {
 		return;
 	}
 
-	// 置为非激活状态
-	self->is_active = false;
-	// 重置触发时间
-	self->trigger_new = 0x00;
-	// 重新排序
-	mgr_reorder();
+	self->is_active   = false;  // 置为非激活状态
+	self->trigger_new = 0;      // 重置触发时间
+	mgr_reorder();              // 重新排序
 	mgr_unlock();
 }
 
@@ -263,26 +254,26 @@ static inline void tr_init(ct_timer_t *self, uint32_t idx) {
 
 static inline void mgr_trigger_callback(void *arg) {
 	assert(arg);
-	ct_timer_t *it = (ct_timer_t *)arg;
-	if (it->is_active) {
-		// ct_jobpool_add(mgr->jobpool, mgr_timer_callback, it);  // 添加异步工作
-		mgr_timer_callback(it);
+	ct_timer_t *self = (ct_timer_t *)arg;
+	if (self->is_active) {
+		// ct_jobpool_add(mgr->jobpool, mgr_timer_callback, self);  // 添加异步工作
+		mgr_timer_callback(self);
 	}
 
 	// 不断取出定时器并处理, 直到不存在定时器或者存在定时器不触发时停止
 	for (;;) {
 		mgr_lock();
-		it = mgr_take_trigger_timer();
-		if (!it->is_active) {
+		self = mgr_take_trigger_timer();
+		if (!self->is_active) {
 			mgr->is_busy = false;
 			mgr_unlock();
 			return;  // 没有待触发的定时器则直接返回
 		}
 		mgr_unlock();
 
-		if (it->is_active) {
-			// ct_jobpool_add(mgr->jobpool, mgr_timer_callback, it);  // 添加异步工作
-			mgr_timer_callback(it);
+		if (self->is_active) {
+			// ct_jobpool_add(mgr->jobpool, mgr_timer_callback, self);  // 添加异步工作
+			mgr_timer_callback(self);
 		}
 		sched_yield();
 	}
@@ -290,47 +281,36 @@ static inline void mgr_trigger_callback(void *arg) {
 
 static inline void mgr_timer_callback(void *arg) {
 	assert(arg);
-
-	ct_timer_t *it = (ct_timer_t *)arg;
-	it->callback(it->id, it->arg);
+	ct_timer_t *self = (ct_timer_t *)arg;
+	self->callback(self->id, self->arg);
 
 	mgr_lock();
-
-	// 是否为激活状态
-	if (!it->is_active) {
-		goto Close;
+	if (!self->is_active) {
+		goto Close;  // 非激活状态
 	}
-	// 是否为循环定时器
-	if (!it->is_loop) {
-		goto Close;
+	if (!self->is_loop) {
+		goto Close;  // 非循环定时器
 	}
-	// 计算并设置触发时间
-	if (!tr_trigger_refresh(it)) {
-		goto Close;
-	}
-	// 插入元素
-	ct_heap_insert(mgr->heap, CT_ANY_POINTER(it));
+	tr_trigger_refresh(self);
+	mgr_insert(self);
 	mgr_unlock();
 	return;
 
 Close:
 	// 重置定时器ID
-	CT_TIMER_ID_RESET(it);
+	CT_TIMER_ID_RESET(self);
 	// 插入到可用链表
-	ct_list_append(mgr->idle_list, it->list);
+	ct_list_append(mgr->idle_list, self->list);
 	mgr_unlock();
 }
 
 static inline ct_timer_t *mgr_take_trigger_timer(void) {
-	ct_timer_t *const it = mgr_first();
-	if (!it || !tr_istrigger(it)) {
+	ct_timer_t *const self = mgr_first();
+	if (!self || !tr_istrigger(self)) {
 		return CT_TIMER_NULL;
 	}
-
-	// 移除堆顶元素
-	ct_heap_remove(mgr->heap);
-
-	return it;
+	mgr_remove();
+	return self;
 }
 
 static inline ct_timer_id_t tr_generate_id(ct_timer_t *self) {
@@ -343,21 +323,19 @@ static inline ct_timer_id_t tr_generate_id(ct_timer_t *self) {
 }
 
 static inline void tr_add(ct_timer_t *self) {
-	// 计算并设置触发时间 (触发时间小于当前时间时,直接返回)
-	if (!tr_trigger_refresh(self)) {
-		return;
-	}
-	// 置为激活状态
-	self->is_active = true;
-	// 从可用链表中删除
-	ct_list_remove(self->list);
-	// 插入元素
-	ct_heap_insert(mgr->heap, CT_ANY_POINTER(self));
+	tr_trigger_refresh(self);    // 计算并设置触发时间
+	self->is_active = true;      // 置为激活状态
+	ct_list_remove(self->list);  // 从可用链表中删除
+	mgr_insert(self);            // 插入元素
 }
 
-static inline bool tr_trigger_refresh(ct_timer_t *self) {
-	self->trigger_new = mgr->time_tick + self->interval;
-	return self->trigger_new >= mgr->time_tick;
+static inline void tr_trigger_refresh(ct_timer_t *self) {
+	// self->trigger_new = mgr->time_tick + self->interval;
+	if (self->trigger_new == 0) {
+		self->trigger_new = mgr->time_tick + self->interval;
+	} else {
+		self->trigger_new += self->interval;
+	}
 }
 
 static inline bool tr_istrigger(ct_timer_t *self) {

@@ -39,23 +39,25 @@ typedef time_t ct_time_t;
 // 64位时间戳类型
 typedef uint64_t ct_time64_t;
 
-// get milliseconds since system start (if available).
-CT_API ct_time64_t gettick_ms(void);
+// get milliseconds since system startup. (if available)
+CT_API ct_time64_t getuptime_ms(void);
 // get time in milliseconds.
 static inline ct_time64_t gettimeofday_ms(void) {
 	struct timeval tv;
 	gettimeofday(&tv, NULL);
-	return tv.tv_sec * (ct_time64_t)1000 + tv.tv_usec / 1000;
+	return (ct_time64_t)tv.tv_sec * 1000ULL + (ct_time64_t)tv.tv_usec / 1000ULL;
 }
 // get time in microseconds.
 static inline ct_time64_t gettimeofday_us(void) {
 	struct timeval tv;
 	gettimeofday(&tv, NULL);
-	return tv.tv_sec * (ct_time64_t)1000000 + tv.tv_usec;
+	return (ct_time64_t)tv.tv_sec * 1000000ULL + (ct_time64_t)tv.tv_usec;
 }
 // get high-resolution time in microseconds.
 CT_API ct_time64_t gethrtime_us(void);
 
+// 获取当前系统运行时间 (ms)
+#define gettick_ms() getuptime_ms()
 // 获取当前秒级时间戳 (自纪元时间)
 #define ct_current_second() time(NULL)
 // 获取当前毫秒级时间戳 (自纪元时间)

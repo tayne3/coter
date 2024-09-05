@@ -129,7 +129,7 @@ static inline void test_write_performance_comparison(void) {
 	is_ok = 0 == pthread_create(&g_thread_logger, NULL, thread_logger_schedule, NULL);
 	ctunit_assert_true(is_ok);
 
-	start = gettick_ms();
+	start = getuptime_ms();
 	for (int i = 0; i < TEST_THREADS; i++) {
 		is_ok = 0 == pthread_create(&threads[i], NULL, thread_write_without_log, (void*)(uintptr_t)i);
 		ctunit_assert_true(is_ok);
@@ -138,10 +138,10 @@ static inline void test_write_performance_comparison(void) {
 		is_ok = 0 == pthread_join(threads[i], NULL);
 		ctunit_assert_true(is_ok);
 	}
-	end                        = gettick_ms();
+	end                        = getuptime_ms();
 	const int time_without_log = (int)(end - start);
 
-	start = gettick_ms();
+	start = getuptime_ms();
 	for (int i = 0; i < TEST_THREADS; i++) {
 		is_ok = 0 == pthread_create(&threads[i], NULL, thread_write_with_log, (void*)(uintptr_t)i);
 		ctunit_assert_true(is_ok);
@@ -150,7 +150,7 @@ static inline void test_write_performance_comparison(void) {
 		is_ok = 0 == pthread_join(threads[i], NULL);
 		ctunit_assert_true(is_ok);
 	}
-	end                     = gettick_ms();
+	end                     = getuptime_ms();
 	const int time_with_log = (int)(end - start);
 
 	is_exit = true;

@@ -136,7 +136,7 @@ static inline void test_callback_performance_comparison(void) {
 	ctunit_assert_true(is_ok);
 
 	// 测试直接调用回调函数的性能
-	start = gettick_ms();
+	start = getuptime_ms();
 	for (int i = 0; i < TEST_THREADS; i++) {
 		is_ok = 0 == pthread_create(&threads[i], NULL, thread_callback_without_log, NULL);
 		ctunit_assert_true(is_ok);
@@ -145,11 +145,11 @@ static inline void test_callback_performance_comparison(void) {
 		is_ok = 0 == pthread_join(threads[i], NULL);
 		ctunit_assert_true(is_ok);
 	}
-	end                             = gettick_ms();
+	end                             = getuptime_ms();
 	const int time_without_callback = (int)(end - start);
 
 	// 测试带日志回调的性能
-	start = gettick_ms();
+	start = getuptime_ms();
 	for (int i = 0; i < TEST_THREADS; i++) {
 		is_ok = 0 == pthread_create(&threads[i], NULL, thread_callback_with_log, NULL);
 		ctunit_assert_true(is_ok);
@@ -158,7 +158,7 @@ static inline void test_callback_performance_comparison(void) {
 		is_ok = 0 == pthread_join(threads[i], NULL);
 		ctunit_assert_true(is_ok);
 	}
-	end                          = gettick_ms();
+	end                          = getuptime_ms();
 	const int time_with_callback = (int)(end - start);
 
 	is_exit = true;
