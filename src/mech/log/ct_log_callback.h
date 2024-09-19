@@ -39,18 +39,25 @@ ct_log_callback_t *ct_log_callback_create(struct ct_bytepool *bytepool, const st
 void ct_log_callback_destroy(ct_log_callback_t *self) __ct_nonnull(1);
 
 /**
- * @brief 添加日志数据
+ * @brief 日志数据推送
  * @param self 日志回调器
  * @param bytes 字节数组
  */
-void ct_log_callback_put(ct_log_callback_t *self, char *buf, size_t size) __ct_nonnull(1, 2);
+void ct_log_callback_handle(ct_log_callback_t *self, char *buf, size_t size) __ct_nonnull(1, 2);
 
 /**
- * @brief 刷新日志回调器
+ * @brief 日志回调器刷新
  *
  * @param self 日志回调器
  */
 void ct_log_callback_flush(ct_log_callback_t *self) __ct_nonnull(1);
+
+/**
+ * @brief 日志回调器调度
+ *
+ * @param self 日志回调器
+ */
+void ct_log_callback_schedule(ct_log_callback_t *self) __ct_nonnull(1);
 
 #ifdef __cplusplus
 }

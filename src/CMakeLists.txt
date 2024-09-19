@@ -1,8 +1,4 @@
 
-if(NOT MSVC)
-    set(CMAKE_REQUIRED_LIBRARIES "-pthread")
-endif()
-
 set(PTHREADS_ROOT ${SUB_DIR}/pthreads-w32)
 include(FindPthreadW32)
 set(LIBS ${PTHREADS_LIBS})
@@ -23,6 +19,7 @@ project_check_header("sys/endian.h")
 project_check_function("gettid" "unistd.h")
 project_check_function("strlcpy" "string.h")
 project_check_function("strlcat" "string.h")
+project_check_function("memrchr" "string.h")
 project_check_function("clock_gettime" "time.h")
 project_check_function("gettimeofday" "sys/time.h")
 project_check_function("sem_timedwait" "semaphore.h")

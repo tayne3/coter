@@ -26,34 +26,49 @@ static pthread_key_t  timecache_key;
 static pthread_once_t timecache_key_once = PTHREAD_ONCE_INIT;
 
 /// 线程退出时清理缓存的回调函数
-static void ct_logger_thread_timecache_destroy(void *ptr);
+static void lt_thread_destroy(void *ptr);
 /// 创建线程本地存储键
-static void ct_logger_thread_timecache_create_key(void);
+static void lt_thread_create_key(void);
 /// 获取当前线程的时间缓存
-static ct_log_timecache_t *ct_logger_thread_timecache_get(void);
+static ct_log_timecache_t *lt_thread_get(void);
+/// 整数转字符串 (两位数)
+static inline void i2s_2(char **p, int value);
+/// 整数转字符串 (三位数)
+static inline void i2s_3(char **p, int value);
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
-void ct_logger_timecache_get(char tmstr[28]) {
-	ct_log_timecache_t *cache = ct_logger_thread_timecache_get();
+void ct_log_timecache_get(char tmstr[28]) {
+	ct_log_timecache_t *cache = lt_thread_get();
 
 	struct timeval tv;
 	gettimeofday(&tv, NULL);
 
+	char *p;
+
 	if (cache->accect_sec > 0) {
 		if (tv.tv_sec == cache->accect_sec) {
-			sprintf(cache->tmstr + 18, "%03d", (int)(tv.tv_usec / 1000));
+			// sprintf(cache->tmstr + 18, "%03d", (int)(tv.tv_usec / 1000));
+			p = &cache->tmstr[18];
+			i2s_3(&p, (int)(tv.tv_usec / 1000));
+
 			memcpy(tmstr, cache->tmstr, 23);
-			return;  // 同一秒内，只更新毫秒部分
+			return;  // 同一秒内，只更新毫秒部分 (%02d.%02d.%02d-%02d:%02d:%02d.[%03d])
 		}
 
 		const time_t diff_sec = tv.tv_sec - cache->accect_sec;
 		if (diff_sec + cache->_sys_sec < 60) {
 			cache->accect_sec = tv.tv_sec;
 			cache->_sys_sec += diff_sec;
-			sprintf(cache->tmstr + 15, "%02d.%03d", (int)cache->_sys_sec, (int)(tv.tv_usec / 1000));
+
+			// sprintf(cache->tmstr + 15, "%02d.%03d", (int)cache->_sys_sec, (int)(tv.tv_usec / 1000));
+			p = &cache->tmstr[15];
+			i2s_2(&p, (int)cache->_sys_sec);
+			p = &cache->tmstr[18];
+			i2s_3(&p, (int)(tv.tv_usec / 1000));
+
 			memcpy(tmstr, cache->tmstr, 23);
-			return;  // 同一分钟内，更新秒和毫秒部分
+			return;  // 同一分钟内，更新秒和毫秒部分 (%02d.%02d.%02d-%02d:%02d:[%02d.%03d])
 		}
 	}
 
@@ -62,28 +77,55 @@ void ct_logger_timecache_get(char tmstr[28]) {
 	cache->_sys_sec      = tm->tm_sec;
 	cache->_sys_min      = tm->tm_min;
 	cache->accect_sec    = tv.tv_sec;
-	sprintf(cache->tmstr, "%02d.%02d.%02d-%02d:%02d:%02d.%03d", tm->tm_year % 100, tm->tm_mon + 1, tm->tm_mday,
-			tm->tm_hour, tm->tm_min, tm->tm_sec, (int)(tv.tv_usec / 1000));
+
+	// sprintf(cache->tmstr, "%02d.%02d.%02d-%02d:%02d:%02d.%03d", tm->tm_year % 100, tm->tm_mon + 1, tm->tm_mday,
+	// 		tm->tm_hour, tm->tm_min, tm->tm_sec, (int)(tv.tv_usec / 1000));
+	p = cache->tmstr;
+	i2s_2(&p, tm->tm_year % 100);
+	*p++ = '.';
+	i2s_2(&p, tm->tm_mon + 1);
+	*p++ = '.';
+	i2s_2(&p, tm->tm_mday);
+	*p++ = '-';
+	i2s_2(&p, tm->tm_hour);
+	*p++ = ':';
+	i2s_2(&p, tm->tm_min);
+	*p++ = ':';
+	i2s_2(&p, tm->tm_sec);
+	*p++ = '.';
+	i2s_3(&p, (int)(tv.tv_usec / 1000));
+
 	memcpy(tmstr, cache->tmstr, 23);
-	return;  // 跨分钟或首次调用，重新生成完整时间字符串
+	return;  // 跨分钟或首次调用，重新生成完整时间字符串 ([%02d.%02d.%02d-%02d:%02d:%02d.%03d])
 }
 
 // -------------------------[STATIC DEFINITION]-------------------------
 
-static void ct_logger_thread_timecache_destroy(void *ptr) {
+static void lt_thread_destroy(void *ptr) {
 	free(ptr);
 }
 
-static void ct_logger_thread_timecache_create_key(void) {
-	pthread_key_create(&timecache_key, ct_logger_thread_timecache_destroy);
+static void lt_thread_create_key(void) {
+	pthread_key_create(&timecache_key, lt_thread_destroy);
 }
 
-static ct_log_timecache_t *ct_logger_thread_timecache_get(void) {
-	pthread_once(&timecache_key_once, ct_logger_thread_timecache_create_key);
+static ct_log_timecache_t *lt_thread_get(void) {
+	pthread_once(&timecache_key_once, lt_thread_create_key);
 	ct_log_timecache_t *cache = pthread_getspecific(timecache_key);
 	if (!cache) {
 		cache = calloc(1, sizeof(ct_log_timecache_t));
 		pthread_setspecific(timecache_key, cache);
 	}
 	return cache;
+}
+
+static inline void i2s_2(char **p, int value) {
+	*(*p)++ = '0' + value / 10;
+	*(*p)++ = '0' + value % 10;
+}
+
+static inline void i2s_3(char **p, int value) {
+	*(*p)++ = '0' + value / 100;
+	*(*p)++ = '0' + (value / 10) % 10;
+	*(*p)++ = '0' + value % 10;
 }

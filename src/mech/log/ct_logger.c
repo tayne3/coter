@@ -16,112 +16,188 @@
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
-ct_bytepool_t*        g_bytepool;                 /**< 全局字节池 */
-ct_log_printer_t*     g_printer;                  /**< 全局打印器 */
-static pthread_once_t g_once = PTHREAD_ONCE_INIT; /**< 初始化互斥锁 */
+struct ct_log_data {
+	int                     level;
+	bool                    disable_print;
+	struct ct_log_callback* callback;
+	struct ct_log_storage*  storage;
+};
 
-// 初始化
-static inline void mgr_initialize(void);
-// 销毁
-static inline void mgr_destroy(void);
+/**
+ * @brief 日志器结构体
+ */
+static struct ct_logger {
+	struct ct_bytepool*    bytepool;  /**< 字节池 */
+	struct ct_log_printer* printer;   /**< 打印器 */
+	struct ct_log_data*    datas;     /**< 私有数据 */
+	size_t                 type_size; /**< 日志类型数量 */
+} glogger[1] = {{
+	.bytepool  = NULL,
+	.printer   = NULL,
+	.datas     = NULL,
+	.type_size = 0,
+}};
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
-ct_logger_t* ct_logger_create(const struct ct_log_config* config) {
-	assert(config);
-	if (!g_bytepool) {
-		pthread_once(&g_once, mgr_initialize);
+int ct_log_init(ct_time64_t tick, size_t type_size, const ct_log_config_t* type_config) {
+	assert(type_size > 0);
+	assert(type_config);
+
+	ct_bytepool_t* bytepool = ct_bytepool_create(1024, 1024);
+	assert(bytepool);
+	if (!bytepool) {
+		goto Fail;
 	}
-	ct_logger_t* logger = (ct_logger_t*)malloc(sizeof(ct_logger_t));
-	if (!logger) {
-		return NULL;
+	struct ct_log_printer* printer = ct_log_printer_create(bytepool);
+	assert(bytepool);
+	if (!printer) {
+		goto Fail;
 	}
-	if (config->disable_print) {
-		logger->printer = NULL;
-	} else {
-		logger->printer = g_printer;
-	}
-	if (config->disable_save) {
-		logger->storage = NULL;
-	} else {
-		logger->storage = ct_log_storage_create(g_bytepool, config);
-	}
-	if (config->callback_routine == NULL) {
-		logger->callback = NULL;
-	} else {
-		logger->callback = ct_log_callback_create(g_bytepool, config);
+	struct ct_log_data* datas = (struct ct_log_data*)calloc(type_size, sizeof(struct ct_log_data));
+	assert(bytepool);
+	if (!datas) {
+		goto Fail;
 	}
 
-	logger->level    = config->level;
-	logger->bytepool = g_bytepool;
-	return logger;
-}
+	for (size_t i = 0; i < type_size; i++) {
+		const ct_log_config_t* config = &type_config[i];
+		struct ct_log_data*    data   = &datas[i];
 
-void ct_logger_destroy(ct_logger_t* logger) {
-	assert(logger);
+		data->disable_print = config->disable_print;
+		data->level         = config->level;
 
-	struct ct_log_printer*  printer  = logger->printer;
-	struct ct_log_callback* callback = logger->callback;
-	struct ct_log_storage*  storage  = logger->storage;
-	logger->printer                  = NULL;
-	logger->callback                 = NULL;
-	logger->storage                  = NULL;
+		if (config->disable_save) {
+			data->storage = NULL;
+		} else {
+			data->storage = ct_log_storage_create(tick, bytepool, config);
+			if (!data->storage) {
+				goto Fail;
+			}
+		}
+		if (config->callback_routine == NULL) {
+			data->callback = NULL;
+		} else {
+			data->callback = ct_log_callback_create(bytepool, config);
+			if (!data->callback) {
+				goto Fail;
+			}
+		}
+	}
+
+	glogger->bytepool = bytepool;
+	glogger->printer  = printer;
+	glogger->datas    = datas;
+	glogger->type_size = type_size;
+	return 0;
+
+Fail:
+	if (datas) {
+		for (size_t i = 0; i < type_size; i++) {
+			struct ct_log_data* data = &datas[i];
+			if (data->storage) {
+				ct_log_storage_destroy(data->storage);
+				data->storage = NULL;
+			}
+			if (data->callback) {
+				ct_log_callback_destroy(data->callback);
+				data->callback = NULL;
+			}
+		}
+		free(datas);
+		datas = NULL;
+	}
 	if (printer) {
-		ct_log_printer_flush(printer);
+		ct_log_printer_destroy(printer);
+		printer = NULL;
 	}
-	if (storage) {
-		ct_log_storage_destroy(storage);
+	if (bytepool) {
+		ct_bytepool_destroy(bytepool);
+		bytepool = NULL;
 	}
-	if (callback) {
-		ct_log_callback_destroy(callback);
-	}
-	free(logger);
+	return -1;
 }
 
-CT_API void ct_logger_schedule(ct_logger_t* logger) {
-	assert(logger);
-	if (logger->printer) {
-		ct_log_printer_flush(logger->printer);
+void ct_log_destroy(void) {
+	if (glogger->datas) {
+		for (size_t i = 0; i < glogger->type_size; i++) {
+			struct ct_log_data* data = &glogger->datas[i];
+			if (data->storage) {
+				ct_log_storage_destroy(data->storage);
+				data->storage = NULL;
+			}
+			if (data->callback) {
+				ct_log_callback_destroy(data->callback);
+				data->callback = NULL;
+			}
+		}
+		free(glogger->datas);
+		glogger->datas = NULL;
 	}
-	if (logger->storage) {
-		ct_log_storage_flush(logger->storage);
+	if (glogger->printer) {
+		ct_log_printer_destroy(glogger->printer);
+		glogger->printer = NULL;
 	}
-	if (logger->callback) {
-		ct_log_callback_flush(logger->callback);
+	if (glogger->bytepool) {
+		ct_bytepool_destroy(glogger->bytepool);
+		glogger->bytepool = NULL;
 	}
 }
 
-void ct_logger_handle(ct_logger_t* logger, int level, char* buf, size_t size) {
-	assert(logger);
+void ct_log_set_level(size_t type_id, int level) {
+	assert(type_id < glogger->type_size);
+	glogger->datas[type_id].level = level;
+}
+
+int ct_log_get_level(const size_t type_id) {
+	assert(type_id < glogger->type_size);
+	return glogger->datas[type_id].level;
+}
+
+void ct_log_schedule(ct_time64_t tick) {
+	ct_log_printer_schedule(glogger->printer);
+	for (size_t i = 0; i < glogger->type_size; i++) {
+		struct ct_log_data* data = &glogger->datas[i];
+		if (data->storage) {
+			ct_log_storage_schedule(data->storage, tick);
+		}
+		if (data->callback) {
+			ct_log_callback_schedule(data->callback);
+		}
+	}
+}
+
+void ct_log_flush(void) {
+	ct_log_printer_flush(glogger->printer);
+	for (size_t i = 0; i < glogger->type_size; i++) {
+		struct ct_log_data* data = &glogger->datas[i];
+		if (data->storage) {
+			ct_log_storage_flush(data->storage);
+		}
+		if (data->callback) {
+			ct_log_callback_flush(data->callback);
+		}
+	}
+}
+
+bool ct_log_is_enable(size_t type_id, int level) {
+	return type_id < glogger->type_size && glogger->datas[type_id].level <= level;
+}
+
+void ct_log_handle(size_t type_id, int level, char* buf, size_t size) {
 	assert(buf);
-	if (logger->printer) {
-		ct_log_printer_put(logger->printer, buf, size);
+	struct ct_log_data* data = &glogger->datas[type_id];
+	if (!data->disable_print) {
+		ct_log_printer_handle(glogger->printer, buf, size);
 	}
-	if (logger->storage) {
-		ct_log_storage_put(logger->storage, buf, size);
+	if (data->storage) {
+		ct_log_storage_handle(data->storage, buf, size);
 	}
-	if (logger->callback) {
-		ct_log_callback_put(logger->callback, buf, size);
+	if (data->callback) {
+		ct_log_callback_handle(data->callback, buf, size);
 	}
 	return;
 	ct_unused(level);
 }
 
 // -------------------------[STATIC DEFINITION]-------------------------
-
-static inline void mgr_initialize(void) {
-	g_bytepool = ct_bytepool_create(1024, 1024);
-	g_printer  = ct_log_printer_create(g_bytepool);
-	atexit(mgr_destroy);
-}
-
-static inline void mgr_destroy(void) {
-	if (g_printer) {
-		ct_log_printer_destroy(g_printer);
-		g_printer = NULL;
-	}
-	if (g_bytepool) {
-		ct_bytepool_destroy(g_bytepool);
-		g_bytepool = NULL;
-	}
-}

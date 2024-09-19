@@ -33,12 +33,14 @@ struct ct_log_storage {
 	int                 file_count_max;    /**< 文件数量限制 */
 	int                 autosave_interval; /**< 自动保存间隔 */
 
+	ct_time64_t next_save_time; /**< 最后保存时间 */
+
 	FILE *file;       /**< 文件指针 */
 	int   file_index; /**< 文件序号 */
 
 	ct_bytes_t     *producer_buffer; /**< 生产者缓冲区 */
 	pthread_mutex_t producer_mutex;  /**< 互斥锁 */
-	ct_list_t       filled_buffers;  /**< 已填充缓冲区列表 */
+	ct_list_t       filled_head;     /**< 已填充缓冲区列表 */
 	size_t          filled_size;     /**< 已填充缓冲区大小 */
 
 	ct_list_t        consumer_head;  /**< 消费者缓冲区列表 */
@@ -78,7 +80,8 @@ static inline bool storage_file_writable_set(const char *filename);
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
-ct_log_storage_t *ct_log_storage_create(struct ct_bytepool *bytepool, const struct ct_log_config *config) {
+ct_log_storage_t *ct_log_storage_create(ct_time64_t tick, struct ct_bytepool *bytepool,
+										const struct ct_log_config *config) {
 	assert(config);
 	assert(bytepool);
 	ct_log_storage_t *self = (ct_log_storage_t *)malloc(sizeof(ct_log_storage_t));
@@ -96,8 +99,9 @@ ct_log_storage_t *ct_log_storage_create(struct ct_bytepool *bytepool, const stru
 
 	self->producer_buffer = ct_bytepool_get(self->bytepool);
 	pthread_mutex_init(&self->producer_mutex, NULL);
-	ct_list_init(&self->filled_buffers);
-	self->filled_size = 0;
+	ct_list_init(&self->filled_head);
+	self->filled_size    = 0;
+	self->next_save_time = tick + (self->autosave_interval * 1000);
 
 	ct_list_init(&self->consumer_head);
 	pthread_mutex_init(&self->consumer_mutex, NULL);
@@ -111,11 +115,14 @@ ct_log_storage_t *ct_log_storage_create(struct ct_bytepool *bytepool, const stru
 void ct_log_storage_destroy(ct_log_storage_t *self) {
 	assert(self);
 
+	pthread_mutex_lock(&self->producer_mutex);
 	pthread_mutex_lock(&self->consumer_mutex);
-	ct_list_splice_next(&self->consumer_head, &self->filled_buffers);
+	ct_list_splice_next(&self->consumer_head, &self->filled_head);
 	ct_atomic_flag_clear(&self->consumer_flag);
 	pthread_mutex_unlock(&self->consumer_mutex);
-	ct_log_storage_flush(self);
+	pthread_mutex_unlock(&self->producer_mutex);
+
+	ct_log_storage_schedule(self, 0);
 
 	fwrite(ct_bytes_buffer(self->producer_buffer), 1, ct_bytes_size(self->producer_buffer), self->file);
 	ct_bytepool_put(self->bytepool, self->producer_buffer);
@@ -131,7 +138,7 @@ void ct_log_storage_destroy(ct_log_storage_t *self) {
 	free(self);
 }
 
-void ct_log_storage_put(ct_log_storage_t *self, char *buf, size_t size) {
+void ct_log_storage_handle(ct_log_storage_t *self, char *buf, size_t size) {
 	assert(self);
 	assert(buf);
 	assert(size > 0);
@@ -143,16 +150,15 @@ void ct_log_storage_put(ct_log_storage_t *self, char *buf, size_t size) {
 		size -= written;
 
 		if (ct_bytes_isfull(self->producer_buffer)) {
-			ct_list_append(&self->filled_buffers, self->producer_buffer->list);
+			ct_list_append(&self->filled_head, self->producer_buffer->list);
 			self->filled_size += ct_bytes_size(self->producer_buffer);
 			self->producer_buffer = ct_bytepool_get(self->bytepool);
-			ct_bytes_clear(self->producer_buffer);
 		}
 	} while (size > 0);
 
 	if ((int)self->filled_size >= self->file_cache_size) {
 		pthread_mutex_lock(&self->consumer_mutex);
-		ct_list_splice_next(&self->consumer_head, &self->filled_buffers);
+		ct_list_splice_next(&self->consumer_head, &self->filled_head);
 		ct_atomic_flag_clear(&self->consumer_flag);
 		pthread_mutex_unlock(&self->consumer_mutex);
 		self->filled_size = 0;
@@ -162,6 +168,30 @@ void ct_log_storage_put(ct_log_storage_t *self, char *buf, size_t size) {
 
 void ct_log_storage_flush(ct_log_storage_t *self) {
 	assert(self);
+
+	pthread_mutex_lock(&self->producer_mutex);
+	if (!ct_bytes_isempty(self->producer_buffer)) {
+		ct_list_append(&self->filled_head, self->producer_buffer->list);
+		self->filled_size += ct_bytes_size(self->producer_buffer);
+		self->producer_buffer = ct_bytepool_get(self->bytepool);
+	}
+	if (!ct_list_isempty(&self->filled_head)) {
+		pthread_mutex_lock(&self->consumer_mutex);
+		ct_list_splice_next(&self->consumer_head, &self->filled_head);
+		ct_list_init(&self->filled_head);
+		self->filled_size = 0;
+		ct_atomic_flag_clear(&self->consumer_flag);
+		pthread_mutex_unlock(&self->consumer_mutex);
+	}
+	pthread_mutex_unlock(&self->producer_mutex);
+}
+
+void ct_log_storage_schedule(ct_log_storage_t *self, ct_time64_t tick) {
+	assert(self);
+	if (tick >= self->next_save_time) {
+		self->next_save_time = tick + (self->autosave_interval * 1000);
+		ct_log_storage_flush(self);
+	}
 	if (ct_atomic_flag_test_and_set(&self->consumer_flag)) {
 		return;
 	}
@@ -409,11 +439,6 @@ static inline bool storage_folder_create_recursive(const char *path) {
 static inline bool storage_file_writable_set(const char *filename) {
 #ifdef CT_OS_WIN
 	DWORD attributes = GetFileAttributesA(filename);
-	// if (attributes == INVALID_FILE_ATTRIBUTES) {
-	// 	fprintf(stderr, "Error getting file attributes: %lu\n", GetLastError());
-	// 	return false;
-	// }
-
 	// 移除只读属性，确保文件可写
 	if (attributes != INVALID_FILE_ATTRIBUTES && (attributes & FILE_ATTRIBUTE_READONLY)) {
 		attributes &= ~FILE_ATTRIBUTE_READONLY;
