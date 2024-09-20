@@ -30,7 +30,7 @@ int main(void) {
 // -------------------------[STATIC DECLARATION]-------------------------
 
 static inline void main_timing_trigger(ct_timer_id_t id, const ct_any_buf_t arg) {
-	log_trace("timed trigger." STR_NEWLINE);
+	log_trace("timed trigger.\n");
 	ct_unused(id);
 	ct_unused(arg);
 }

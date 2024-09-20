@@ -1,3 +1,9 @@
+/**
+ * @file ct_bytepool.c
+ * @brief 字节池
+ * @author tayne3@dingtalk.com
+ * @date 2024.2.9
+ */
 #include "ct_bytepool.h"
 
 #include "base/ct_atomic.h"

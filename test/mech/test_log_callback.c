@@ -8,40 +8,39 @@
 #include "ctunit.h"
 #include "mech/ct_log.h"
 
-#define test_basic_verbose(__logger, ...) CTLogger_HandleBasic(VerBose, (__logger), __VA_ARGS__)
-#define test_basic_debug(__logger, ...)   CTLogger_HandleBasic(Debug, (__logger), __VA_ARGS__)
-#define test_basic_trace(__logger, ...)   CTLogger_HandleBasic(Trace, (__logger), __VA_ARGS__)
-#define test_basic_warning(__logger, ...) CTLogger_HandleBasic(Warning, (__logger), __VA_ARGS__)
-#define test_basic_error(__logger, ...)   CTLogger_HandleBasic(Error, (__logger), __VA_ARGS__)
-#define test_basic_fatal(__logger, ...)   CTLogger_HandleBasic(Fatal, (__logger), __VA_ARGS__)
+#define test_basic_verbose(...) CTLogger_HandleBasic(VerBose, 0, __VA_ARGS__)
+#define test_basic_debug(...)   CTLogger_HandleBasic(Debug, 0, __VA_ARGS__)
+#define test_basic_trace(...)   CTLogger_HandleBasic(Trace, 0, __VA_ARGS__)
+#define test_basic_warning(...) CTLogger_HandleBasic(Warning, 0, __VA_ARGS__)
+#define test_basic_error(...)   CTLogger_HandleBasic(Error, 0, __VA_ARGS__)
+#define test_basic_fatal(...)   CTLogger_HandleBasic(Fatal, 0, __VA_ARGS__)
 
-#define test_brief_verbose(__logger, ...) CTLogger_HandleBrief(VerBose, (__logger), __VA_ARGS__)
-#define test_brief_debug(__logger, ...)   CTLogger_HandleBrief(Debug, (__logger), __VA_ARGS__)
-#define test_brief_trace(__logger, ...)   CTLogger_HandleBrief(Trace, (__logger), __VA_ARGS__)
-#define test_brief_warning(__logger, ...) CTLogger_HandleBrief(Warning, (__logger), __VA_ARGS__)
-#define test_brief_error(__logger, ...)   CTLogger_HandleBrief(Error, (__logger), __VA_ARGS__)
-#define test_brief_fatal(__logger, ...)   CTLogger_HandleBrief(Fatal, (__logger), __VA_ARGS__)
+#define test_brief_verbose(...) CTLogger_HandleBrief(VerBose, 0, __VA_ARGS__)
+#define test_brief_debug(...)   CTLogger_HandleBrief(Debug, 0, __VA_ARGS__)
+#define test_brief_trace(...)   CTLogger_HandleBrief(Trace, 0, __VA_ARGS__)
+#define test_brief_warning(...) CTLogger_HandleBrief(Warning, 0, __VA_ARGS__)
+#define test_brief_error(...)   CTLogger_HandleBrief(Error, 0, __VA_ARGS__)
+#define test_brief_fatal(...)   CTLogger_HandleBrief(Fatal, 0, __VA_ARGS__)
 
-#define test_detail_verbose(__logger, ...) CTLogger_HandleDetail(VerBose, (__logger), __VA_ARGS__)
-#define test_detail_debug(__logger, ...)   CTLogger_HandleDetail(Debug, (__logger), __VA_ARGS__)
-#define test_detail_trace(__logger, ...)   CTLogger_HandleDetail(Trace, (__logger), __VA_ARGS__)
-#define test_detail_warning(__logger, ...) CTLogger_HandleDetail(Warning, (__logger), __VA_ARGS__)
-#define test_detail_error(__logger, ...)   CTLogger_HandleDetail(Error, (__logger), __VA_ARGS__)
-#define test_detail_fatal(__logger, ...)   CTLogger_HandleDetail(Fatal, (__logger), __VA_ARGS__)
+#define test_detail_verbose(...) CTLogger_HandleDetail(VerBose, 0, __VA_ARGS__)
+#define test_detail_debug(...)   CTLogger_HandleDetail(Debug, 0, __VA_ARGS__)
+#define test_detail_trace(...)   CTLogger_HandleDetail(Trace, 0, __VA_ARGS__)
+#define test_detail_warning(...) CTLogger_HandleDetail(Warning, 0, __VA_ARGS__)
+#define test_detail_error(...)   CTLogger_HandleDetail(Error, 0, __VA_ARGS__)
+#define test_detail_fatal(...)   CTLogger_HandleDetail(Fatal, 0, __VA_ARGS__)
 
 #define TEST_THREADS     2
-#define TEST_THREAD_DATA 10000
+#define TEST_THREAD_DATA 100000
 
 static FILE*           g_file_with_log      = NULL;
 static FILE*           g_file_without_log   = NULL;
 static pthread_mutex_t g_file_without_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-static ct_logger_t* g_logger = NULL;
-static pthread_t    g_thread_logger;
-static bool         is_exit = false;
+static pthread_t g_thread_logger;
+static bool      is_exit = false;
 
 // 日志调度线程函数
-static inline void* thread_logger_schedule(void* arg);
+static inline void* thread_log_schedule(void* arg);
 
 // 日志回调函数
 static inline void log_callback(const char* msg, size_t size, void* userdata);
@@ -59,10 +58,9 @@ int main(void) {
 	ctunit_pass();
 }
 
-static inline void* thread_logger_schedule(void* arg) {
-	ctunit_assert_not_null(g_logger);
+static inline void* thread_log_schedule(void* arg) {
 	for (; !is_exit;) {
-		ct_logger_schedule(g_logger);
+		ct_log_schedule(getuptime_ms());
 		ct_msleep(10);
 	}
 	pthread_exit(NULL);
@@ -79,9 +77,10 @@ static inline void log_callback(const char* msg, size_t size, void* userdata) {
 
 // 带回调的测试线程函数
 static inline void* thread_callback_with_log(void* arg) {
-	ctunit_assert_not_null(g_logger);
 	for (int i = 0; i < TEST_THREAD_DATA; i++) {
-		test_basic_trace(g_logger, "%s\n", "abcde-+=0123456789");
+		test_basic_trace("%04d/%05d/%06d/%07d %16p/%16p/%16p/%16p %10s/%11s/%12s/%13s %02x/%02x/%02x/%02x\n", 1234,
+						 1234, 1234, 1234, (void*)0xFFFF0000, (void*)0xFFFF0000, (void*)0xFFFF0000, (void*)0xFFFF0000,
+						 "test1", "test2", "test3", "test4", 0x00, 0x01, 0x02, 0x03);
 	}
 	pthread_exit(NULL);
 	return NULL;
@@ -93,7 +92,10 @@ static inline void* thread_callback_without_log(void* arg) {
 	for (int i = 0; i < TEST_THREAD_DATA; i++) {
 		pthread_mutex_lock(&g_file_without_mutex);
 		char buffer[1024];
-		int  size = snprintf(buffer, sizeof(buffer), "%s\n", "abcde-+=0123456789");
+		int  size = snprintf(buffer, sizeof(buffer),
+							 "%04d/%05d/%06d/%07d %16p/%16p/%16p/%16p %10s/%11s/%12s/%13s %02x/%02x/%02x/%02x\n", 1234,
+							 1234, 1234, 1234, (void*)0xFFFF0000, (void*)0xFFFF0000, (void*)0xFFFF0000,
+							 (void*)0xFFFF0000, "test1", "test2", "test3", "test4", 0x00, 0x01, 0x02, 0x03);
 		fwrite(buffer, 1, size, g_file_without_log);
 		pthread_mutex_unlock(&g_file_without_mutex);
 	}
@@ -128,11 +130,10 @@ static inline void test_callback_performance_comparison(void) {
 			.callback_routine  = log_callback,
 			.callback_userdata = NULL,
 		};
-		g_logger = ct_logger_create(&config);
-		ctunit_assert_not_null(g_logger);
+		ct_log_init(getuptime_ms(), 1, &config);
 	}
 
-	is_ok = 0 == pthread_create(&g_thread_logger, NULL, thread_logger_schedule, NULL);
+	is_ok = 0 == pthread_create(&g_thread_logger, NULL, thread_log_schedule, NULL);
 	ctunit_assert_true(is_ok);
 
 	// 测试直接调用回调函数的性能
@@ -165,8 +166,8 @@ static inline void test_callback_performance_comparison(void) {
 	is_ok   = 0 == pthread_join(g_thread_logger, NULL);
 	ctunit_assert_true(is_ok);
 
-	ct_logger_destroy(g_logger);
-	g_logger = NULL;
+	ct_log_flush();
+	ct_log_schedule(getuptime_ms());
 
 	fclose(g_file_with_log);
 	g_file_with_log = NULL;
@@ -175,6 +176,8 @@ static inline void test_callback_performance_comparison(void) {
 
 	ctunit_trace("Execution time: with log callback %d ms, without log callback %d ms\n", time_with_callback,
 				 time_without_callback);
+
+	ct_log_destroy();
 
 	// 打开文件
 	FILE* file_with_log    = fopen("test_log_out/callback_with_log.log", "r");

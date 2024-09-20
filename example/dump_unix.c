@@ -24,15 +24,29 @@
  */
 static inline void signal_handler(int sig);
 
-/**
- * @brief 生成并打印当前程序的堆栈跟踪信息
- */
-static void generate_backtrace(void);
-
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
 void print_stack_trace(void) {
-	generate_backtrace();
+	void* buffer[TRACE_MAX_STACK_FRAMES];
+
+	const int count = backtrace(buffer, TRACE_MAX_STACK_FRAMES);
+	if (count == 0) {
+		return;
+	}
+
+	char** symbols = backtrace_symbols(buffer, count);
+	if (!symbols) {
+		perror("backtrace symbols");
+		exit(EXIT_FAILURE);
+	}
+
+	log_error_n("thread %p [running]:\n", (void*)pthread_self());
+	for (int i = 0; i < count; i++) {
+		log_error_n("%s\n", symbols[i]);
+	}
+	log_error_n("\n");
+
+	free(symbols);
 }
 
 void exception_init(void) {
@@ -80,29 +94,6 @@ void exception_init(void) {
 
 static inline void signal_handler(int sig) {
 	app_crash(sig, strsignal(sig));
-}
-
-static void generate_backtrace(void) {
-	void* buffer[TRACE_MAX_STACK_FRAMES];
-
-	const int count = backtrace(buffer, TRACE_MAX_STACK_FRAMES);
-	if (count == 0) {
-		return;
-	}
-
-	char** symbols = backtrace_symbols(buffer, count);
-	if (!symbols) {
-		perror("backtrace symbols");
-		exit(EXIT_FAILURE);
-	}
-
-	log_error_n("thread %p [running]:\n", pthread_self());
-	for (int i = 0; i < count; i++) {
-		log_error_n("%s\n", symbols[i]);
-	}
-	log_error_n("\n");
-
-	free(symbols);
 }
 
 #endif

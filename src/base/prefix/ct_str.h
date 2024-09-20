@@ -116,6 +116,20 @@ static inline int ct_snprintf_s(char *__s, size_t __maxlen, const char *__format
 	return (result < 0) ? 0 : (result >= (int)__maxlen) ? (int)__maxlen - 1 : result;
 }
 
+#if HAVE_MEMRCHR
+#define ct_memrchr memrchr
+#else
+static inline void *ct_memrchr(const void *__s, int __c, size_t __n) {
+    const unsigned char *ptr = (const unsigned char *)__s + __n; 
+    while (__n--) {
+        if (*--ptr == (unsigned char)__c) {
+            return (void *)ptr;
+        }
+    }
+    return NULL;
+}
+#endif
+
 /**
  * @brief 获取文件路径中的文件名
  * @param path 文件路径

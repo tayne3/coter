@@ -17,7 +17,7 @@ extern "C" {
  *
  * @param tmstr 输出缓冲区，长度至少为28字节
  */
-CT_API void ct_logger_timecache_get(char tmstr[28]) __ct_nonnull(1);
+CT_API void ct_log_timecache_get(char tmstr[28]) __ct_nonnull(1);
 
 #ifdef __cplusplus
 }

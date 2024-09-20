@@ -60,7 +60,7 @@ app_ptr_t app_create(void) {
 	exception_init();                                                   // 初始化异常处理函数
 	ct_msgqueue_init(gapp->exitMQ, gapp->exitBuf, sizeof(excep_t), 1);  // 初始化异常退出队列
 	gapp->now     = ct_current_second();                                // 获取当前时间
-	gapp->tick    = getuptime_ms();                                       // 获取系统运行时间
+	gapp->tick    = getuptime_ms();                                     // 获取系统运行时间
 	gapp->jobpool = ct_jobpool_create(16, 50);                          // 创建全局任务池
 	gapp->thpool  = ct_thpool_create(NULL);                             // 创建全局线程池
 	gapp->evmsg   = ct_evmsg_center_create(gapp->jobpool);              // 初始化事件消息中枢
@@ -70,23 +70,16 @@ app_ptr_t app_create(void) {
 }
 
 int app_exec(app_ptr_t self) {
-	int count = 0;
-
 	self->tid    = pthread_self();
 	self->is_run = true;
 
-	if (setjmp(self->jmp) != 0) {
-		count = 10;
-	}
+	excep_t excep;
+	setjmp(self->jmp);
 
 	while (1) {
-		if (++count >= 10) {
-			count = 0;
-			excep_t excep;
-			if (ct_msgqueue_try_dequeue(gapp->exitMQ, &excep)) {
-				app_occurred(&excep);
-				break;
-			}
+		if (ct_msgqueue_try_dequeue(gapp->exitMQ, &excep)) {
+			app_occurred(&excep);
+			break;
 		}
 
 		gapp->now  = ct_current_second();
