@@ -6,7 +6,7 @@
  */
 #include "ctunit.h"
 #include "mech/ct_cron.h"
-#include "mech/ct_jobpool.h"
+#include "mech/ct_thpool.h"
 
 static ct_time_t mock_current_time = 0;
 
@@ -34,11 +34,11 @@ static inline void test_multiple_crons(void);
 
 int main(void) {
 	// 创建任务池
-	ct_jobpool_t *jobpool = ct_jobpool_create(2, 10);
-	ctunit_assert_not_null(jobpool);
+	ct_thpool_t *thpool = ct_thpool_create(64, NULL);
+	ctunit_assert_not_null(thpool);
 
 	// 初始化cron任务管理
-	ct_cron_mgr_init(mock_current_time, jobpool);
+	ct_cron_mgr_init(mock_current_time, thpool);
 
 	test_basic_functionality();
 	ctunit_trace("Finish! test_basic_functionality()\n");
@@ -62,7 +62,7 @@ int main(void) {
 	ctunit_trace("Finish! test_multiple_crons()\n");
 
 	// 销毁任务池
-	ct_jobpool_destroy(jobpool);
+	ct_thpool_destroy(thpool);
 
 	ctunit_pass();
 }

@@ -8,8 +8,8 @@
 
 #include "container/ct_heap.h"
 #include "container/ct_list.h"
-#include "mech/ct_jobpool.h"
 #include "mech/ct_log.h"
+#include "mech/ct_thpool.h"
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
@@ -73,14 +73,14 @@ static struct ct_cron_manager {
 	ct_heap_buf_t   heap;                      // 最小堆
 	cron_buf_t      cron_null;                 // 空cron任务
 	ct_time_t       time_now;                  // 当前时间
-	ct_jobpool_t   *jobpool;                   // 任务池
+	ct_thpool_t    *thpool;                    // 任务池
 	ct_cron_id_t    ident_count;               // ID计数
 	bool            is_busy;                   // 是否忙碌
 	int             correct;                   // 修正计数
 } mgr[1] = {{
 	.lock        = {PTHREAD_MUTEX_INITIALIZER},
 	.time_now    = 0,
-	.jobpool     = NULL,
+	.thpool      = NULL,
 	.ident_count = 0,
 	.is_busy     = false,
 	.correct     = 0,
@@ -135,8 +135,8 @@ static inline bool tr_istrigger(cron_t *self);
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
-void ct_cron_mgr_init(ct_time_t now, struct ct_jobpool *jobpool) {
-	assert(jobpool);
+void ct_cron_mgr_init(ct_time_t now, struct ct_thpool *thpool) {
+	assert(thpool);
 	// 初始化最小堆
 	ct_heap_init(mgr->heap, mgr->heap_buffer, CT_CRON_MAX, tr_sorting);
 	// 初始化可用cron任务链表
@@ -153,7 +153,7 @@ void ct_cron_mgr_init(ct_time_t now, struct ct_jobpool *jobpool) {
 	}
 
 	mgr->time_now = now;
-	mgr->jobpool  = jobpool;
+	mgr->thpool   = thpool;
 }
 
 bool ct_cron_mgr_schedule(ct_time_t now) {
@@ -171,7 +171,7 @@ bool ct_cron_mgr_schedule(ct_time_t now) {
 		mgr->is_busy = true;
 		mgr_unlock();
 		// 添加异步工作
-		ct_jobpool_add(mgr->jobpool, mgr_correct_callback, NULL);
+		ct_thpool_submit(mgr->thpool, mgr_correct_callback, NULL);
 		return true;
 	}
 	cron_t *const it = mgr_take_trigger_cron();
@@ -183,7 +183,7 @@ bool ct_cron_mgr_schedule(ct_time_t now) {
 	mgr_unlock();
 
 	// 添加异步工作
-	ct_jobpool_add(mgr->jobpool, mgr_trigger_callback, it);
+	ct_thpool_submit(mgr->thpool, mgr_trigger_callback, it);
 	return true;
 }
 
@@ -348,7 +348,7 @@ static inline void mgr_trigger_callback(void *arg) {
 	assert(arg);
 	cron_t *it = (cron_t *)arg;
 	if (it->is_active) {
-		// ct_jobpool_add(mgr->jobpool, mgr_cron_callback, it);  // 添加异步工作
+		// ct_thpool_submit(mgr->thpool, mgr_cron_callback, it);  // 添加异步工作
 		mgr_cron_callback(it);
 	}
 
@@ -358,7 +358,7 @@ static inline void mgr_trigger_callback(void *arg) {
 		if (mgr->correct > 0) {
 			mgr_unlock();
 			// 添加异步工作
-			ct_jobpool_add(mgr->jobpool, mgr_correct_callback, NULL);
+			ct_thpool_submit(mgr->thpool, mgr_correct_callback, NULL);
 			return;
 		}
 
@@ -371,7 +371,7 @@ static inline void mgr_trigger_callback(void *arg) {
 		mgr_unlock();
 
 		if (it->is_active) {
-			// ct_jobpool_add(mgr->jobpool, mgr_cron_callback, it);  // 添加异步工作
+			// ct_thpool_submit(mgr->thpool, mgr_cron_callback, it);  // 添加异步工作
 			mgr_cron_callback(it);
 		}
 		sched_yield();

@@ -129,7 +129,7 @@ void ct_jobpool_destroy(ct_jobpool_t* self) {
 	free(self);
 }
 
-void ct_jobpool_add(ct_jobpool_t* self, ct_jobpool_routine_t routine, void* arg) {
+void ct_jobpool_submit(ct_jobpool_t* self, ct_jobpool_routine_t routine, void* arg) {
 	assert(self);
 	assert(routine);
 

@@ -41,9 +41,9 @@ CT_API ct_bytes_t* ct_bytepool_get(ct_bytepool_t* self) __ct_nonnull(1);
 /**
  * @brief 将字节数组放回字节池
  * @param self 字节池指针
- * @param box 要放回的字节数组指针
+ * @param bytes 要放回的字节数组指针
  */
-CT_API void ct_bytepool_put(ct_bytepool_t* self, ct_bytes_t* box) __ct_nonnull(1);
+CT_API void ct_bytepool_put(ct_bytepool_t* self, ct_bytes_t* bytes) __ct_nonnull(1);
 
 #ifdef __cplusplus
 }

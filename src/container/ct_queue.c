@@ -69,4 +69,21 @@ bool ct_queue_head(ct_queue_buf_t self, void* item) {
 	return true;
 }
 
+int ct_queue_traverse(ct_queue_buf_t self, int (*callback)(void* item, void* arg), void* item, void* arg) {
+	assert(self);
+	assert(self->_byte);
+	assert(callback);
+
+	size_t index = self->_head;
+	for (size_t i = 0; i < self->_size; i++) {
+		memcpy(item, CT_QUEUE_ITEM(self, index), self->_byte);
+		const int ret = callback(item, arg);
+		if (ret) {
+			return ret;
+		}
+		index = CT_QUEUE_INDEX_INC(self, index);
+	}
+	return 0;
+}
+
 // -------------------------[STATIC DEFINITION]-------------------------
