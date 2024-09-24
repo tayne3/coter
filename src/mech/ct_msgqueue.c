@@ -28,6 +28,10 @@ void ct_msgqueue_close(ct_msgqueue_buf_t self) {
 	}
 
 	pthread_mutex_lock(self->mutex);
+	if (self->is_shut) {
+		pthread_mutex_unlock(self->mutex);
+		return;
+	}
 	self->is_shut = true;
 	pthread_cond_broadcast(self->not_empty);
 	pthread_cond_broadcast(self->not_full);
@@ -36,10 +40,8 @@ void ct_msgqueue_close(ct_msgqueue_buf_t self) {
 
 void ct_msgqueue_destroy(ct_msgqueue_buf_t self) {
 	assert(self);
-	if (!self->is_shut) {
-		ct_msgqueue_close(self);
-	}
 
+	ct_msgqueue_close(self);
 	pthread_cond_destroy(self->not_full);
 	pthread_cond_destroy(self->not_empty);
 	pthread_mutex_destroy(self->mutex);
@@ -65,11 +67,16 @@ bool ct_msgqueue_isfull(ct_msgqueue_buf_t self) {
 
 bool ct_msgqueue_enqueue(ct_msgqueue_buf_t self, const void *item) {
 	assert(self);
+	assert(item);
 	if (self->is_shut) {
 		return false;
 	}
 
 	pthread_mutex_lock(self->mutex);
+	if (self->is_shut) {
+		pthread_mutex_unlock(self->mutex);
+		return false;
+	}
 	for (; ct_queue_isfull(self->queue);) {
 		if (pthread_cond_wait(self->not_full, self->mutex) != 0) {
 			pthread_mutex_unlock(self->mutex);
@@ -89,11 +96,16 @@ bool ct_msgqueue_enqueue(ct_msgqueue_buf_t self, const void *item) {
 
 bool ct_msgqueue_dequeue(ct_msgqueue_buf_t self, void *item) {
 	assert(self);
+	assert(item);
 	if (self->is_shut) {
 		return false;
 	}
 
 	pthread_mutex_lock(self->mutex);
+	if (self->is_shut) {
+		pthread_mutex_unlock(self->mutex);
+		return false;
+	}
 	for (; ct_queue_isempty(self->queue);) {
 		if (pthread_cond_wait(self->not_empty, self->mutex) != 0) {
 			pthread_mutex_unlock(self->mutex);
@@ -113,6 +125,7 @@ bool ct_msgqueue_dequeue(ct_msgqueue_buf_t self, void *item) {
 
 bool ct_msgqueue_try_enqueue(ct_msgqueue_buf_t self, const void *item) {
 	assert(self);
+	assert(item);
 	if (self->is_shut) {
 		return false;
 	}
@@ -134,6 +147,7 @@ bool ct_msgqueue_try_enqueue(ct_msgqueue_buf_t self, const void *item) {
 
 bool ct_msgqueue_try_dequeue(ct_msgqueue_buf_t self, void *item) {
 	assert(self);
+	assert(item);
 	if (self->is_shut) {
 		return false;
 	}

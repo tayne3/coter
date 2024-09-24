@@ -15,7 +15,7 @@ static int        test_result[TEST_THREAD_COUNT] = {0};
 static ct_event_t event_a                        = CT_EVENT_INITIALIZER;
 static ct_event_t event_b                        = CT_EVENT_INITIALIZER;
 
-// 辅助函数:发送事件
+// 辅助函数: 发送事件
 static inline void* send_events(void* arg);
 // 测试基本功能
 static inline void test_basic_functionality(void);

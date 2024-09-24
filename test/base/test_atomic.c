@@ -124,9 +124,14 @@ static inline void test_atomic_flag(void) {
 
 	ctunit_assert_bool(ct_atomic_flag_test_and_set(&flag), false);
 	ctunit_assert_bool(ct_atomic_flag_test_and_set(&flag), true);
+	ctunit_assert_bool(ct_atomic_flag_test_and_set(&flag), true);
+	ctunit_assert_bool(ct_atomic_flag_test_and_set(&flag), true);
 
 	CT_ATOMIC_FLAG_CLEAR(&flag);
 	ctunit_assert_bool(ct_atomic_flag_test_and_set(&flag), false);
+	ctunit_assert_bool(ct_atomic_flag_test_and_set(&flag), true);
+	ctunit_assert_bool(ct_atomic_flag_test_and_set(&flag), true);
+	ctunit_assert_bool(ct_atomic_flag_test_and_set(&flag), true);
 }
 
 // 测试案例: 原子递增和递减

@@ -17,10 +17,6 @@ extern "C" {
 #define CTLog_StyleBrief  1  // 简洁信息
 #define CTLog_StyleDetail 2  // 详细信息
 
-#ifndef CTLog_StyleUser
-#define CTLog_StyleUser CTLog_StyleBrief
-#endif
-
 #define CTLog_LevelVerBose 0  // 变量信息
 #define CTLog_LevelDebug   1  // 调试信息
 #define CTLog_LevelTrace   2  // 跟踪信息
@@ -45,17 +41,6 @@ extern "C" {
 
 // 日志样式字符串-结束
 #define CTLog_StyleEnd "\x1B[0m"
-
-#if 0
-// XXX(level, level_str, style_start, style_end)
-#define CTLog_LevelMap(XXX)                                                          \
-	XXX(CTLog_LevelVerBose, CTLog_StringVerBose, CTLog_StyleVerBose, CTLog_StyleEnd) \
-	XXX(CTLog_LevelDebug, CTLog_StringDebug, CTLog_StyleDebug, CTLog_StyleEnd)       \
-	XXX(CTLog_LevelTrace, CTLog_StringTrace, CTLog_StyleTrace, CTLog_StyleEnd)       \
-	XXX(CTLog_LevelWarning, CTLog_StringWarning, CTLog_StyleWarning, CTLog_StyleEnd) \
-	XXX(CTLog_LevelError, CTLog_StringError, CTLog_StyleError, CTLog_StyleEnd)       \
-	XXX(CTLog_LevelFatal, CTLog_StringFatal, CTLog_StyleFatal, CTLog_StyleEnd)
-#endif
 
 #ifdef __cplusplus
 }

@@ -62,7 +62,7 @@ app_ptr_t app_create(void) {
 	gapp->now     = ct_current_second();                                // 获取当前时间
 	gapp->tick    = getuptime_ms();                                     // 获取系统运行时间
 	gapp->jobpool = ct_jobpool_create(16, 50);                          // 创建全局任务池
-	gapp->thpool  = ct_thpool_create(NULL);                             // 创建全局线程池
+	gapp->thpool  = ct_thpool_create(64, NULL);                         // 创建全局线程池
 	gapp->evmsg   = ct_evmsg_center_create(gapp->jobpool);              // 初始化事件消息中枢
 	ct_timer_mgr_init(gapp->tick, gapp->jobpool);                       // 初始化定时器中枢
 	ct_cron_mgr_init(gapp->now / 1000, gapp->jobpool);                  // 初始化cron任务中枢
