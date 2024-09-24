@@ -273,7 +273,7 @@ static inline void test_performance_comparison(void) {
 		start = getuptime_ms();
 
 		for (int i = 0; i < NUM_TASKS; i++) {
-			ct_jobpool_add(jobpool, sample_task, &counter_jobpool);
+			ct_jobpool_submit(jobpool, sample_task, &counter_jobpool);
 		}
 
 		// 等待所有任务完成
@@ -294,12 +294,11 @@ static inline void test_performance_comparison(void) {
 		ctunit_trace("With JobPool: %" PRIu64 "ms\n", duration_with_jobpool);
 
 		ct_jobpool_destroy(jobpool);
-		
+
 		// 验证计数器结果
 		ctunit_assert_true(counter_jobpool.count == NUM_TASKS);
 		pthread_mutex_destroy(&counter_jobpool.mutex);
 	}
-
 
 	// ------------------- 不使用线程池 -------------------
 
@@ -352,7 +351,7 @@ static inline void test_performance_comparison(void) {
 	{
 		ct_thpool_config_t config;
 		ct_thpool_default_config(&config);
-		ct_thpool_t* pool   = ct_thpool_create(128, &config);
+		ct_thpool_t* pool = ct_thpool_create(128, &config);
 		ctunit_assert_true(pool != NULL);
 
 		counter_t counter_pool;
@@ -383,7 +382,7 @@ static inline void test_performance_comparison(void) {
 		ct_thpool_destroy(pool);
 
 		ctunit_trace("With thread pool: %" PRIu64 "ms\n", duration_with_pool);
-		
+
 		// 验证计数器结果
 		ctunit_assert_true(counter_pool.count == NUM_TASKS);
 		pthread_mutex_destroy(&counter_pool.mutex);
@@ -394,26 +393,26 @@ static inline void test_performance_comparison(void) {
 }
 
 int main(void) {
-	// test_create_destroy();
-	// ctunit_trace("Finish! test_create_destroy;\n");
+	test_create_destroy();
+	ctunit_trace("Finish! test_create_destroy();\n");
 
-	// test_submit_execute();
-	// ctunit_trace("Finish! test_submit_execute();\n");
+	test_submit_execute();
+	ctunit_trace("Finish! test_submit_execute();\n");
 
-	// test_submit_null_task();
-	// ctunit_trace("Finish! test_submit_null_task();\n");
+	test_submit_null_task();
+	ctunit_trace("Finish! test_submit_null_task();\n");
 
-	// test_capacity_limit();
-	// ctunit_trace("Finish! test_capacity_limit();\n");
+	test_capacity_limit();
+	ctunit_trace("Finish! test_capacity_limit();\n");
 
-	// test_non_blocking();
-	// ctunit_trace("Finish! test_non_blocking();\n");
+	test_non_blocking();
+	ctunit_trace("Finish! test_non_blocking();\n");
 
-	// test_concurrent_submit();
-	// ctunit_trace("Finish! test_concurrent_submit();\n");
+	test_concurrent_submit();
+	ctunit_trace("Finish! test_concurrent_submit();\n");
 
-	// test_close_behavior();
-	// ctunit_trace("Finish! test_close_behavior();\n");
+	test_close_behavior();
+	ctunit_trace("Finish! test_close_behavior();\n");
 
 	test_performance_comparison();
 	ctunit_trace("Finish! test_performance_comparison();\n");

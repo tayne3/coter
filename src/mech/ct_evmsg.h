@@ -12,16 +12,16 @@ extern "C" {
 
 #include "base/ct_platform.h"
 
-struct ct_jobpool;
+struct ct_thpool;
 
 // 事件消息中枢
 typedef struct ct_evmsg_center ct_evmsg_center_t, *ct_evmsg_center_ptr_t;
 
 /**
  * @brief 初始化事件消息中枢
- * @param jobpool 任务池
+ * @param thpool 任务池
  */
-CT_API ct_evmsg_center_ptr_t ct_evmsg_center_create(struct ct_jobpool *jobpool) __ct_nonnull(1);
+CT_API ct_evmsg_center_ptr_t ct_evmsg_center_create(struct ct_thpool *thpool) __ct_nonnull(1);
 
 /**
  * @brief 销毁事件消息中枢

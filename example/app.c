@@ -16,7 +16,6 @@
 #include "excep.h"
 #include "mech/ct_cron.h"
 #include "mech/ct_evmsg.h"
-#include "mech/ct_jobpool.h"
 #include "mech/ct_log.h"
 #include "mech/ct_msgqueue.h"
 #include "mech/ct_thpool.h"
@@ -36,13 +35,11 @@ static struct app {
 	ct_time_t          now;         // 当前时间 (秒级)
 	ct_time64_t        tick;        // 系统运行时间 (毫秒级)
 	ct_thpool_t*       thpool;      // 全局线程池
-	ct_jobpool_t*      jobpool;     // 全局任务池
 	ct_evmsg_center_t* evmsg;       // 事件消息中枢
 } gapp[1] = {{
-	.is_run  = false,
-	.thpool  = NULL,
-	.jobpool = NULL,
-	.evmsg   = NULL,
+	.is_run = false,
+	.thpool = NULL,
+	.evmsg  = NULL,
 }};
 
 // 异常发生
@@ -59,13 +56,12 @@ app_ptr_t app_create(void) {
 	app_welcome();                                                      // 输出启动信息
 	exception_init();                                                   // 初始化异常处理函数
 	ct_msgqueue_init(gapp->exitMQ, gapp->exitBuf, sizeof(excep_t), 1);  // 初始化异常退出队列
-	gapp->now     = ct_current_second();                                // 获取当前时间
-	gapp->tick    = getuptime_ms();                                     // 获取系统运行时间
-	gapp->jobpool = ct_jobpool_create(16, 50);                          // 创建全局任务池
-	gapp->thpool  = ct_thpool_create(64, NULL);                         // 创建全局线程池
-	gapp->evmsg   = ct_evmsg_center_create(gapp->jobpool);              // 初始化事件消息中枢
-	ct_timer_mgr_init(gapp->tick, gapp->jobpool);                       // 初始化定时器中枢
-	ct_cron_mgr_init(gapp->now / 1000, gapp->jobpool);                  // 初始化cron任务中枢
+	gapp->now    = ct_current_second();                                 // 获取当前时间
+	gapp->tick   = getuptime_ms();                                      // 获取系统运行时间
+	gapp->thpool = ct_thpool_create(64, NULL);                          // 创建全局线程池
+	gapp->evmsg  = ct_evmsg_center_create(gapp->thpool);                // 初始化事件消息中枢
+	ct_timer_mgr_init(gapp->tick, gapp->thpool);                        // 初始化定时器中枢
+	ct_cron_mgr_init(gapp->now / 1000, gapp->thpool);                   // 初始化cron任务中枢
 	return gapp;
 }
 
@@ -91,7 +87,6 @@ int app_exec(app_ptr_t self) {
 	}
 
 	// ct_thpool_destroy(self->thpool);    // 销毁线程池
-	// ct_jobpool_destroy(self->jobpool);  // 销毁任务池
 
 	app_goobye();  // 输出结束信息
 	log_deinit();  // 日志反初始化

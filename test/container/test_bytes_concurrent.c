@@ -45,67 +45,7 @@ typedef struct {
  * @brief 初始化缓冲池
  * @param pool 待初始化的缓冲池
  */
-static void init_buffer_pool(buffer_pool_t* pool);
-
-/**
- * @brief 销毁缓冲池
- * @param pool 待销毁的缓冲池
- */
-static void destroy_buffer_pool(buffer_pool_t* pool);
-
-/**
- * @brief 生产者线程函数
- * @param arg 测试上下文
- * @return NULL
- */
-static void* producer_thread_func(void* arg);
-
-/**
- * @brief 消费者线程函数
- * @param arg 测试上下文
- * @return NULL
- */
-static void* consumer_thread_func(void* arg);
-
-/**
- * @brief 从空闲池中获取一个缓冲区
- * @param pool 缓冲池
- * @return 获取的缓冲区
- */
-static ct_bytes_t* get_free_buffer(buffer_pool_t* pool);
-
-/**
- * @brief 将填满的缓冲区返回到已填充池
- * @param pool 缓冲池
- * @param buffer 已填充的缓冲区
- */
-static void return_filled_buffer(buffer_pool_t* pool, ct_bytes_t* buffer);
-
-/**
- * @brief 生产一个数据块
- * @param ctx 测试上下文
- */
-static void produce_chunk(test_context_t* ctx);
-
-/**
- * @brief 消费数据块
- * @param ctx 测试上下文
- */
-static void consume_chunks(test_context_t* ctx);
-
-/**
- * @brief 并发字节数组测试
- */
-static void test_bytes_concurrent(void);
-
-int main(void) {
-	test_bytes_concurrent();
-	ctunit_trace("Finish! test_bytes_concurrent();\n");
-
-	ctunit_pass();
-}
-
-static void init_buffer_pool(buffer_pool_t* pool) {
+static inline void init_buffer_pool(buffer_pool_t* pool) {
 	ct_list_init(&pool->free_buffers);
 	ct_list_init(&pool->filled_buffers);
 	pthread_mutex_init(&pool->mutex, NULL);
@@ -114,30 +54,21 @@ static void init_buffer_pool(buffer_pool_t* pool) {
 	pool->index        = 0;
 }
 
-static void destroy_buffer_pool(buffer_pool_t* pool) {
+/**
+ * @brief 销毁缓冲池
+ * @param pool 待销毁的缓冲池
+ */
+static inline void destroy_buffer_pool(buffer_pool_t* pool) {
 	pthread_mutex_destroy(&pool->mutex);
 	pthread_cond_destroy(&pool->cond);
 }
 
-static void* producer_thread_func(void* arg) {
-	test_context_t* ctx = (test_context_t*)arg;
-	for (int i = 0; i < ITERATIONS_PER_THREAD; i++) {
-		produce_chunk(ctx);
-		sched_yield();
-	}
-	return NULL;
-}
-
-static void* consumer_thread_func(void* arg) {
-	test_context_t* ctx = (test_context_t*)arg;
-	while (!ctx->test_complete) {
-		consume_chunks(ctx);
-		sched_yield();
-	}
-	return NULL;
-}
-
-static ct_bytes_t* get_free_buffer(buffer_pool_t* pool) {
+/**
+ * @brief 从空闲池中获取一个缓冲区
+ * @param pool 缓冲池
+ * @return 获取的缓冲区
+ */
+static inline ct_bytes_t* get_free_buffer(buffer_pool_t* pool) {
 	pthread_mutex_lock(&pool->mutex);
 	ct_bytes_t* buffer;
 	if (ct_list_isempty(&pool->free_buffers)) {
@@ -150,7 +81,12 @@ static ct_bytes_t* get_free_buffer(buffer_pool_t* pool) {
 	return buffer;
 }
 
-static void return_filled_buffer(buffer_pool_t* pool, ct_bytes_t* buffer) {
+/**
+ * @brief 将填满的缓冲区返回到已填充池
+ * @param pool 缓冲池
+ * @param buffer 已填充的缓冲区
+ */
+static inline void return_filled_buffer(buffer_pool_t* pool, ct_bytes_t* buffer) {
 	pthread_mutex_lock(&pool->mutex);
 	ct_list_append(&pool->filled_buffers, buffer->list);
 	pool->total_chunks++;
@@ -158,7 +94,11 @@ static void return_filled_buffer(buffer_pool_t* pool, ct_bytes_t* buffer) {
 	pthread_mutex_unlock(&pool->mutex);
 }
 
-static void produce_chunk(test_context_t* ctx) {
+/**
+ * @brief 生产一个数据块
+ * @param ctx 测试上下文
+ */
+static inline void produce_chunk(test_context_t* ctx) {
 	const char* write_ptr = ctx->sample_data;
 	size_t      remaining = CHUNK_SIZE;
 
@@ -188,7 +128,11 @@ static void produce_chunk(test_context_t* ctx) {
 	pthread_mutex_unlock(&ctx->mutex);
 }
 
-static void consume_chunks(test_context_t* ctx) {
+/**
+ * @brief 消费数据块
+ * @param ctx 测试上下文
+ */
+static inline void consume_chunks(test_context_t* ctx) {
 	pthread_mutex_lock(&ctx->filled_pool->mutex);
 	while (ct_list_isempty(&ctx->filled_pool->filled_buffers) && !ctx->test_complete) {
 		pthread_cond_wait(&ctx->filled_pool->cond, &ctx->filled_pool->mutex);
@@ -221,7 +165,38 @@ static void consume_chunks(test_context_t* ctx) {
 	pthread_mutex_unlock(&ctx->free_pool->mutex);
 }
 
-static void test_bytes_concurrent(void) {
+/**
+ * @brief 生产者线程函数
+ * @param arg 测试上下文
+ * @return NULL
+ */
+static inline void* producer_thread_func(void* arg) {
+	test_context_t* ctx = (test_context_t*)arg;
+	for (int i = 0; i < ITERATIONS_PER_THREAD; i++) {
+		produce_chunk(ctx);
+		sched_yield();
+	}
+	return NULL;
+}
+
+/**
+ * @brief 消费者线程函数
+ * @param arg 测试上下文
+ * @return NULL
+ */
+static inline void* consumer_thread_func(void* arg) {
+	test_context_t* ctx = (test_context_t*)arg;
+	while (!ctx->test_complete) {
+		consume_chunks(ctx);
+		sched_yield();
+	}
+	return NULL;
+}
+
+/**
+ * @brief 并发字节数组测试
+ */
+static inline void test_bytes_concurrent(void) {
 	test_context_t ctx;
 	buffer_pool_t  free_pool, filled_pool;
 
@@ -283,4 +258,11 @@ static void test_bytes_concurrent(void) {
 	size_t expected_chunks = (total_bytes / BUFFER_SIZE) + (total_bytes % BUFFER_SIZE ? 1 : 0);
 	ctunit_assert_uint32(filled_pool.total_chunks, expected_chunks, CTUnit_Equal);
 	ctunit_assert_uint32(free_pool.total_chunks, expected_chunks, CTUnit_Equal);
+}
+
+int main(void) {
+	test_bytes_concurrent();
+	ctunit_trace("Finish! test_bytes_concurrent();\n");
+
+	ctunit_pass();
 }

@@ -10,7 +10,7 @@
 #include "container/ct_heap.h"
 #include "container/ct_list.h"
 #include "ct_msgqueue.h"
-#include "mech/ct_jobpool.h"
+#include "mech/ct_thpool.h"
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
@@ -39,7 +39,7 @@ struct ct_evmsg_center {
 	ct_list_buf_t         subscriber_list[CTEvMsgType_Max];  // 订阅者链表
 	ct_evmsg_t            msg_buffer[CTEVMSG_MSG_MAX];       // 事件消息缓冲区
 	ct_msgqueue_t         msgqueue[1];                       // 事件消息队列
-	ct_jobpool_t         *jobpool;                           // 任务池
+	ct_thpool_t          *thpool;                            // 任务池
 	ct_evmsg_subscriber_t subscriber_itself;                 // 事件中枢自身订阅者
 	ct_evmsg_t            msg[1];                            // 正在处理的事件消息
 };
@@ -51,8 +51,8 @@ static inline void ct_evmsg_callback(void *arg);
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
-ct_evmsg_center_ptr_t ct_evmsg_center_create(struct ct_jobpool *jobpool) {
-	assert(jobpool);
+ct_evmsg_center_ptr_t ct_evmsg_center_create(struct ct_thpool *thpool) {
+	assert(thpool);
 	ct_evmsg_center_ptr_t center = (ct_evmsg_center_ptr_t)malloc(sizeof(struct ct_evmsg_center));
 	if (!center) {
 		return NULL;
@@ -74,7 +74,7 @@ ct_evmsg_center_ptr_t ct_evmsg_center_create(struct ct_jobpool *jobpool) {
 	ct_list_append(center->subscriber_list[CTEvMsgType_Itself], center->subscriber_itself.list);
 
 	center->is_busy = false;
-	center->jobpool = jobpool;
+	center->thpool  = thpool;
 	return center;
 }
 
@@ -120,7 +120,7 @@ void ct_evmsg_center_schedule(ct_evmsg_center_ptr_t center) {
 	// 设置忙碌状态
 	center->is_busy = true;
 	// 添加异步工作
-	ct_jobpool_add(center->jobpool, ct_evmsg_callback, center);
+	ct_thpool_submit(center->thpool, ct_evmsg_callback, center);
 }
 
 void ct_evmsg_subscribe(ct_evmsg_center_ptr_t center, uint8_t type, ct_evmsg_handler_t handler, void *userdata) {
