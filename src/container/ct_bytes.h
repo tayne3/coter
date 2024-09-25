@@ -19,7 +19,6 @@ extern "C" {
  */
 typedef struct ct_bytes {
 	ct_list_t list[1];    ///< 链表节点
-	char     *read_pos;   ///< 读取头指针
 	char     *write_pos;  ///< 写入头指针
 	size_t    cap;        ///< 容量
 	char      buffer[1];  ///< 缓冲区 (柔性数组)
@@ -29,7 +28,7 @@ typedef struct ct_bytes {
 #define ct_bytes_size(self)      (size_t)((self)->write_pos - (self)->buffer)
 #define ct_bytes_capacity(self)  ((self)->cap)
 #define ct_bytes_available(self) (size_t)(((self)->buffer + (self)->cap) - (self)->write_pos)
-#define ct_bytes_clear(self)     ((self)->read_pos = (self)->write_pos = (self)->buffer)
+#define ct_bytes_clear(self)     ((self)->write_pos = (self)->buffer)
 #define ct_bytes_isempty(self)   ((self)->write_pos == (self)->buffer)
 #define ct_bytes_isfull(self)    ((self)->write_pos == ((self)->buffer + (self)->cap))
 
@@ -63,15 +62,6 @@ CT_API void ct_bytes_destroy(ct_bytes_t *self) __ct_nonnull(1);
  * @return 实际写入的数据长度
  */
 CT_API size_t ct_bytes_write(ct_bytes_t *self, const void *data, size_t length) __ct_nonnull(1, 2);
-
-/**
- * @brief 字节数组-读取数据
- * @param self 字节数组
- * @param data 读取缓冲区
- * @param max_length 读取缓冲区的最大长度
- * @return 实际读取的数据长度
- */
-CT_API size_t ct_bytes_read(ct_bytes_t *self, void *data, size_t max_length) __ct_nonnull(1, 2);
 
 #ifdef __cplusplus
 }

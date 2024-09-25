@@ -41,12 +41,12 @@ typedef struct ct_packet {
 	uint16_t _max;     // 所有操作的最大空间 (单位: byte)
 } ct_packet_t, ct_packet_buf_t[1];
 
-#define PACKET_BOX_INIT(__buffer, __max) \
-	{                                    \
-		._buffer = (__buffer),           \
-		._past   = 0,                    \
-		._total  = 0,                    \
-		._max    = (__max),              \
+#define CT_PACKET_INIT(__buffer, __max) \
+	{                                   \
+		._buffer = (__buffer),          \
+		._past   = 0,                   \
+		._total  = 0,                   \
+		._max    = (__max),             \
 	}
 
 #define ct_packet_max(self)              ((self)->_max)                     // 获取 最大大小

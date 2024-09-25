@@ -10,8 +10,7 @@
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
-void ct_packet_init(ct_packet_buf_t self, uint8_t *_buffer, uint16_t _max)
-{
+void ct_packet_init(ct_packet_buf_t self, uint8_t *_buffer, uint16_t _max) {
 	assert(self);
 	self->_buffer = _buffer;
 	self->_total  = 0;
@@ -19,15 +18,13 @@ void ct_packet_init(ct_packet_buf_t self, uint8_t *_buffer, uint16_t _max)
 	self->_max    = _max;
 }
 
-void ct_packet_reset(ct_packet_buf_t self)
-{
+void ct_packet_reset(ct_packet_buf_t self) {
 	assert(self);
 	self->_total = 0;
 	self->_past  = 0;
 }
 
-void ct_packet_clean(ct_packet_buf_t self)
-{
+void ct_packet_clean(ct_packet_buf_t self) {
 	assert(self);
 	assert(self->_buffer);
 	memset(self->_buffer, 0, self->_total);
@@ -35,8 +32,7 @@ void ct_packet_clean(ct_packet_buf_t self)
 	self->_past  = 0;
 }
 
-uint8_t ct_packet_get_u8(const ct_packet_buf_t self, uint16_t offset)
-{
+uint8_t ct_packet_get_u8(const ct_packet_buf_t self, uint16_t offset) {
 	assert(self);
 	assert(self->_buffer);
 	assert(offset + self->_past + 1 <= self->_total);
@@ -48,8 +44,7 @@ uint8_t ct_packet_get_u8(const ct_packet_buf_t self, uint16_t offset)
 	return self->_buffer[offset + self->_past];
 }
 
-uint16_t ct_packet_get_u16(const ct_packet_buf_t self, uint16_t offset, ct_endian_t endian)
-{
+uint16_t ct_packet_get_u16(const ct_packet_buf_t self, uint16_t offset, ct_endian_t endian) {
 	assert(self);
 	assert(self->_buffer);
 	assert(offset + self->_past + 2 <= self->_total);
@@ -68,8 +63,7 @@ uint16_t ct_packet_get_u16(const ct_packet_buf_t self, uint16_t offset, ct_endia
 	return value;
 }
 
-uint32_t ct_packet_get_u32(const ct_packet_buf_t self, uint16_t offset, ct_endian_t endian)
-{
+uint32_t ct_packet_get_u32(const ct_packet_buf_t self, uint16_t offset, ct_endian_t endian) {
 	assert(self);
 	assert(self->_buffer);
 	assert(offset + self->_past + 4 <= self->_total);
@@ -90,8 +84,7 @@ uint32_t ct_packet_get_u32(const ct_packet_buf_t self, uint16_t offset, ct_endia
 	return value;
 }
 
-float ct_packet_get_float(const ct_packet_buf_t self, uint16_t offset, ct_endian_t endian)
-{
+float ct_packet_get_float(const ct_packet_buf_t self, uint16_t offset, ct_endian_t endian) {
 	assert(self);
 	assert(self->_buffer);
 	assert(offset + self->_past + 4 <= self->_total);
@@ -116,8 +109,7 @@ float ct_packet_get_float(const ct_packet_buf_t self, uint16_t offset, ct_endian
 	return v.f;
 }
 
-uint8_t ct_packet_take_u8(ct_packet_buf_t self)
-{
+uint8_t ct_packet_take_u8(ct_packet_buf_t self) {
 	assert(self);
 	assert(self->_buffer);
 	assert(self->_past + 1 <= self->_total);
@@ -131,8 +123,7 @@ uint8_t ct_packet_take_u8(ct_packet_buf_t self)
 	return value;
 }
 
-uint16_t ct_packet_take_u16(ct_packet_buf_t self, ct_endian_t endian)
-{
+uint16_t ct_packet_take_u16(ct_packet_buf_t self, ct_endian_t endian) {
 	assert(self);
 	assert(self->_buffer);
 	assert(self->_past + 2 <= self->_total);
@@ -152,8 +143,7 @@ uint16_t ct_packet_take_u16(ct_packet_buf_t self, ct_endian_t endian)
 	return value;
 }
 
-uint32_t ct_packet_take_u32(ct_packet_buf_t self, ct_endian_t endian)
-{
+uint32_t ct_packet_take_u32(ct_packet_buf_t self, ct_endian_t endian) {
 	assert(self);
 	assert(self->_buffer);
 	assert(self->_past + 4 <= self->_total);
@@ -175,8 +165,7 @@ uint32_t ct_packet_take_u32(ct_packet_buf_t self, ct_endian_t endian)
 	return value;
 }
 
-float ct_packet_take_float(ct_packet_buf_t self, ct_endian_t endian)
-{
+float ct_packet_take_float(ct_packet_buf_t self, ct_endian_t endian) {
 	assert(self);
 	assert(self->_buffer);
 	assert(self->_past + 4 <= self->_total);
@@ -202,8 +191,7 @@ float ct_packet_take_float(ct_packet_buf_t self, ct_endian_t endian)
 	return v.f;
 }
 
-void ct_packet_skip(ct_packet_buf_t self, uint16_t length)
-{
+void ct_packet_skip(ct_packet_buf_t self, uint16_t length) {
 	assert(self);
 	assert(self->_buffer);
 	assert(self->_past + length <= self->_total);
@@ -215,8 +203,7 @@ void ct_packet_skip(ct_packet_buf_t self, uint16_t length)
 	self->_past += length;
 }
 
-void ct_packet_set_u8(ct_packet_buf_t self, uint16_t offset, uint8_t value)
-{
+void ct_packet_set_u8(ct_packet_buf_t self, uint16_t offset, uint8_t value) {
 	assert(self);
 	assert(self->_buffer);
 	assert(offset + self->_past + 1 <= self->_max);
@@ -233,8 +220,7 @@ void ct_packet_set_u8(ct_packet_buf_t self, uint16_t offset, uint8_t value)
 	}
 }
 
-void ct_packet_set_u16(ct_packet_buf_t self, uint16_t offset, uint16_t value, ct_endian_t endian)
-{
+void ct_packet_set_u16(ct_packet_buf_t self, uint16_t offset, uint16_t value, ct_endian_t endian) {
 	assert(self);
 	assert(self->_buffer);
 	assert(offset + self->_past + 2 <= self->_max);
@@ -257,8 +243,7 @@ void ct_packet_set_u16(ct_packet_buf_t self, uint16_t offset, uint16_t value, ct
 	}
 }
 
-void ct_packet_set_u32(ct_packet_buf_t self, uint16_t offset, uint32_t value, ct_endian_t endian)
-{
+void ct_packet_set_u32(ct_packet_buf_t self, uint16_t offset, uint32_t value, ct_endian_t endian) {
 	assert(self);
 	assert(self->_buffer);
 	assert(offset + self->_past + 4 <= self->_max);
@@ -285,8 +270,7 @@ void ct_packet_set_u32(ct_packet_buf_t self, uint16_t offset, uint32_t value, ct
 	}
 }
 
-void ct_packet_set_float(ct_packet_buf_t self, uint16_t offset, float value, ct_endian_t endian)
-{
+void ct_packet_set_float(ct_packet_buf_t self, uint16_t offset, float value, ct_endian_t endian) {
 	assert(self);
 	assert(self->_buffer);
 	assert(offset + self->_past + 4 <= self->_max);
@@ -320,8 +304,7 @@ void ct_packet_set_float(ct_packet_buf_t self, uint16_t offset, float value, ct_
 	}
 }
 
-void ct_packet_put_u8(ct_packet_buf_t self, uint8_t value)
-{
+void ct_packet_put_u8(ct_packet_buf_t self, uint8_t value) {
 	assert(self);
 	assert(self->_buffer);
 
@@ -335,8 +318,7 @@ void ct_packet_put_u8(ct_packet_buf_t self, uint8_t value)
 	self->_total += 1;
 }
 
-void ct_packet_put_u16(ct_packet_buf_t self, uint16_t value, ct_endian_t endian)
-{
+void ct_packet_put_u16(ct_packet_buf_t self, uint16_t value, ct_endian_t endian) {
 	assert(self);
 	assert(self->_buffer);
 
@@ -356,8 +338,7 @@ void ct_packet_put_u16(ct_packet_buf_t self, uint16_t value, ct_endian_t endian)
 	self->_total += 2;
 }
 
-void ct_packet_put_u32(ct_packet_buf_t self, uint32_t value, ct_endian_t endian)
-{
+void ct_packet_put_u32(ct_packet_buf_t self, uint32_t value, ct_endian_t endian) {
 	assert(self);
 	assert(self->_buffer);
 
@@ -381,8 +362,7 @@ void ct_packet_put_u32(ct_packet_buf_t self, uint32_t value, ct_endian_t endian)
 	self->_total += 4;
 }
 
-void ct_packet_put_float(ct_packet_buf_t self, float value, ct_endian_t endian)
-{
+void ct_packet_put_float(ct_packet_buf_t self, float value, ct_endian_t endian) {
 	assert(self);
 	assert(self->_buffer);
 
@@ -413,16 +393,14 @@ void ct_packet_put_float(ct_packet_buf_t self, float value, ct_endian_t endian)
 	self->_total += 4;
 }
 
-void ct_packet_over(ct_packet_buf_t self)
-{
+void ct_packet_over(ct_packet_buf_t self) {
 	assert(self);
 	assert(self->_buffer);
 
 	self->_past = self->_total;
 }
 
-uint16_t ct_packet_get_u8s(const ct_packet_buf_t self, uint16_t offset, uint8_t *buffer, uint16_t max)
-{
+uint16_t ct_packet_get_u8s(const ct_packet_buf_t self, uint16_t offset, uint8_t *buffer, uint16_t max) {
 	assert(self);
 	assert(self->_buffer);
 
@@ -438,8 +416,7 @@ uint16_t ct_packet_get_u8s(const ct_packet_buf_t self, uint16_t offset, uint8_t 
 }
 
 uint16_t ct_packet_get_u16s(const ct_packet_buf_t self, uint16_t offset, uint16_t *buffer, uint16_t max,
-							 ct_endian_t endian)
-{
+							ct_endian_t endian) {
 	assert(self);
 	assert(self->_buffer);
 
@@ -466,8 +443,7 @@ uint16_t ct_packet_get_u16s(const ct_packet_buf_t self, uint16_t offset, uint16_
 }
 
 uint16_t ct_packet_get_u32s(const ct_packet_buf_t self, uint16_t offset, uint32_t *buffer, uint16_t max,
-							 ct_endian_t endian)
-{
+							ct_endian_t endian) {
 	assert(self);
 	assert(self->_buffer);
 
@@ -496,13 +472,11 @@ uint16_t ct_packet_get_u32s(const ct_packet_buf_t self, uint16_t offset, uint32_
 }
 
 uint16_t ct_packet_get_floats(const ct_packet_buf_t self, uint16_t offset, float *buffer, uint16_t max,
-							   ct_endian_t endian)
-{
+							  ct_endian_t endian) {
 	return ct_packet_get_u32s(self, offset, (uint32_t *)buffer, max, endian);
 }
 
-uint16_t ct_packet_take_u8s(ct_packet_buf_t self, uint8_t *buffer, uint16_t max)
-{
+uint16_t ct_packet_take_u8s(ct_packet_buf_t self, uint8_t *buffer, uint16_t max) {
 	assert(self);
 	assert(self->_buffer);
 
@@ -520,8 +494,7 @@ uint16_t ct_packet_take_u8s(ct_packet_buf_t self, uint8_t *buffer, uint16_t max)
 	return max;  // 返回取出的元素数量
 }
 
-uint16_t ct_packet_take_u16s(ct_packet_buf_t self, uint16_t *buffer, uint16_t max, ct_endian_t endian)
-{
+uint16_t ct_packet_take_u16s(ct_packet_buf_t self, uint16_t *buffer, uint16_t max, ct_endian_t endian) {
 	assert(self);
 	assert(self->_buffer);
 
@@ -548,8 +521,7 @@ uint16_t ct_packet_take_u16s(ct_packet_buf_t self, uint16_t *buffer, uint16_t ma
 	return max;  // 返回取出的元素数量
 }
 
-uint16_t ct_packet_take_u32s(ct_packet_buf_t self, uint32_t *buffer, uint16_t max, ct_endian_t endian)
-{
+uint16_t ct_packet_take_u32s(ct_packet_buf_t self, uint32_t *buffer, uint16_t max, ct_endian_t endian) {
 	assert(self);
 	assert(self->_buffer);
 
@@ -578,13 +550,11 @@ uint16_t ct_packet_take_u32s(ct_packet_buf_t self, uint32_t *buffer, uint16_t ma
 	return max;  // 返回取出的元素数量
 }
 
-uint16_t ct_packet_take_floats(ct_packet_buf_t self, float *buffer, uint16_t max, ct_endian_t endian)
-{
+uint16_t ct_packet_take_floats(ct_packet_buf_t self, float *buffer, uint16_t max, ct_endian_t endian) {
 	return ct_packet_take_u32s(self, (uint32_t *)buffer, max, endian);
 }
 
-uint16_t ct_packet_put_u8s(ct_packet_buf_t self, const uint8_t *buffer, uint16_t length)
-{
+uint16_t ct_packet_put_u8s(ct_packet_buf_t self, const uint8_t *buffer, uint16_t length) {
 	assert(self);
 	assert(self->_buffer);
 
@@ -597,8 +567,7 @@ uint16_t ct_packet_put_u8s(ct_packet_buf_t self, const uint8_t *buffer, uint16_t
 	return length;
 }
 
-uint16_t ct_packet_put_u16s(ct_packet_buf_t self, const uint16_t *buffer, uint16_t length, ct_endian_t endian)
-{
+uint16_t ct_packet_put_u16s(ct_packet_buf_t self, const uint16_t *buffer, uint16_t length, ct_endian_t endian) {
 	assert(self);
 	assert(self->_buffer);
 
@@ -622,8 +591,7 @@ uint16_t ct_packet_put_u16s(ct_packet_buf_t self, const uint16_t *buffer, uint16
 	return length;  // 返回写入的元素数量
 }
 
-uint16_t ct_packet_put_u32s(ct_packet_buf_t self, const uint32_t *buffer, uint16_t length, ct_endian_t endian)
-{
+uint16_t ct_packet_put_u32s(ct_packet_buf_t self, const uint32_t *buffer, uint16_t length, ct_endian_t endian) {
 	assert(self);
 	assert(self->_buffer);
 
@@ -651,8 +619,7 @@ uint16_t ct_packet_put_u32s(ct_packet_buf_t self, const uint32_t *buffer, uint16
 	return length;  // 返回写入的元素数量
 }
 
-uint16_t ct_packet_put_floats(ct_packet_buf_t self, const float *buffer, uint16_t length, ct_endian_t endian)
-{
+uint16_t ct_packet_put_floats(ct_packet_buf_t self, const float *buffer, uint16_t length, ct_endian_t endian) {
 	return ct_packet_put_u32s(self, (const uint32_t *)buffer, length, endian);
 }
 
