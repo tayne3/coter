@@ -5,7 +5,7 @@
  * @date 2023.12.18
  */
 #include "ctunit.h"
-#include "mech/ct_jobpool.h"
+#include "mech/ct_thpool.h"
 #include "mech/ct_timer.h"
 
 static ct_time64_t mock_current_time = 0;
@@ -170,12 +170,12 @@ static inline void test_restart_timer(void) {
 }
 
 int main(void) {
-	// 创建任务池
-	ct_jobpool_t *jobpool = ct_jobpool_create(2, 10);
-	ctunit_assert_not_null(jobpool);
+	// 创建线程池
+	ct_thpool_t *thpool = ct_thpool_create(2, NULL);
+	ctunit_assert_not_null(thpool);
 
 	// 初始化定时器中枢
-	ct_timer_mgr_init(mock_current_time, jobpool);
+	ct_timer_mgr_init(mock_current_time, thpool);
 
 	test_basic_functionality();
 	ctunit_trace("Finish! test_basic_functionality()\n");
@@ -198,8 +198,8 @@ int main(void) {
 	test_restart_timer();
 	ctunit_trace("Finish! test_restart_timer()\n");
 
-	// 销毁任务池
-	ct_jobpool_destroy(jobpool);
+	// 销毁线程池
+	ct_thpool_destroy(thpool);
 
 	ctunit_pass();
 }

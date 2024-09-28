@@ -7,7 +7,7 @@
 #include "base/ct_platform.h"
 #include "ctunit.h"
 #include "mech/ct_evmsg.h"
-#include "mech/ct_jobpool.h"
+#include "mech/ct_thpool.h"
 
 #define TEST_THREAD_NUMBER 3
 #define TEST_DATA_NUMBER   10000
@@ -51,10 +51,11 @@ int main(void) {
 	pthread_t threads[TEST_THREAD_NUMBER];
 
 	// 创建任务池
-	ct_jobpool_t *jobpool = ct_jobpool_create(16, 50);
+	ct_thpool_t *thpool = ct_thpool_create(64, NULL);
+	ctunit_assert_not_null(thpool);
 
 	// 初始化事件消息中枢
-	test_center = ct_evmsg_center_create(jobpool);
+	test_center = ct_evmsg_center_create(thpool);
 	// 订阅事件
 	ct_evmsg_subscribe(test_center, 1, test_evmsg_handler, NULL);
 
@@ -93,7 +94,7 @@ int main(void) {
 	}
 
 	// 销毁任务池
-	ct_jobpool_destroy(jobpool);
+	ct_thpool_destroy(thpool);
 
 	ctunit_pass();
 }
