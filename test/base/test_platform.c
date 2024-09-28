@@ -7,19 +7,6 @@
 #include "base/ct_platform.h"
 #include "ctunit.h"
 
-static inline void test_offset_of(void);
-static inline void test_container_of(void);
-
-int main(void) {
-	test_offset_of();
-	ctunit_trace("Finish! test_offset_of();\n");
-
-	test_container_of();
-	ctunit_trace("Finish! test_container_of();\n");
-
-	ctunit_pass();
-}
-
 static inline void test_offset_of(void) {
 	struct TestStruct {
         char   a;
@@ -99,4 +86,14 @@ static inline void test_container_of(void) {
 	struct TestStruct *container_ptr5 = CONTAINER_OF(&test_array[1].c, struct TestStruct, c);
 	ctunit_assert_pointer(container_ptr5, &test_array[1], "Case 5: original = %p, container = %p\n",
 						  (void *)&test_array[1], (void *)container_ptr5);
+}
+
+int main(void) {
+	test_offset_of();
+	ctunit_trace("Finish! test_offset_of();\n");
+
+	test_container_of();
+	ctunit_trace("Finish! test_container_of();\n");
+
+	ctunit_pass();
 }

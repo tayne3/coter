@@ -8,23 +8,6 @@
 #include "container/ct_vector.h"
 #include "ctunit.h"
 
-static inline void test_vector_resize(void);
-static inline void test_vector_get(void);
-static inline void test_vector_at(void);
-
-int main(void) {
-	test_vector_resize();
-	ctunit_trace("Finish! test_vector_resize();\n");
-
-	test_vector_get();
-	ctunit_trace("Finish! test_vector_get();\n");
-
-	test_vector_at();
-	ctunit_trace("Finish! test_vector_at();\n");
-
-	ctunit_pass();
-}
-
 static inline void test_vector_resize(void) {
 	ct_vector_buf_t vec;
 	ct_vector_init(vec, sizeof(int), 10);
@@ -116,4 +99,17 @@ static inline void test_vector_at(void) {
 	}
 
 	ct_vector_destroy(vec);
+}
+
+int main(void) {
+	test_vector_resize();
+	ctunit_trace("Finish! test_vector_resize();\n");
+
+	test_vector_get();
+	ctunit_trace("Finish! test_vector_get();\n");
+
+	test_vector_at();
+	ctunit_trace("Finish! test_vector_at();\n");
+
+	ctunit_pass();
 }

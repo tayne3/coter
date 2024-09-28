@@ -8,44 +8,7 @@
 #include "container/ct_queue.h"
 #include "ctunit.h"
 
-// 回调结果
-typedef struct {
-	int sum;
-	int count;
-} traverse_result_t;
-
 // 测试初始化
-static inline void test_queue_init(void);
-// 测试入队
-static inline void test_queue_enqueue(void);
-// 测试出队
-static inline void test_queue_dequeue(void);
-// 测试队头
-static inline void test_queue_head(void);
-// 辅助函数: 遍历回调
-static inline int traverse_callback(void* item, void* arg);
-// 测试遍历
-static inline void test_queue_traverse(void);
-
-int main(void) {
-	test_queue_init();
-	ctunit_trace("Finish! test_queue_init();\n");
-
-	test_queue_enqueue();
-	ctunit_trace("Finish! test_queue_enqueue();\n");
-
-	test_queue_dequeue();
-	ctunit_trace("Finish! test_queue_dequeue();\n");
-
-	test_queue_head();
-	ctunit_trace("Finish! test_queue_head();\n");
-
-	test_queue_traverse();
-	ctunit_trace("Finish! test_queue_traverse();\n");
-
-	ctunit_pass();
-}
-
 static inline void test_queue_init(void) {
 	ct_queue_t   queue;
 	uint32_t     buffer[1000];
@@ -65,6 +28,7 @@ static inline void test_queue_init(void) {
 	}
 }
 
+// 测试入队
 static inline void test_queue_enqueue(void) {
 	ct_queue_t    queue;
 	int32_t       buffer[777];
@@ -96,6 +60,7 @@ static inline void test_queue_enqueue(void) {
 	ctunit_assert_true(!ct_queue_isfull(&queue));
 }
 
+// 测试出队
 static inline void test_queue_dequeue(void) {
 	ct_queue_t     queue;
 	uint64_t       buffer[777];
@@ -143,6 +108,7 @@ static inline void test_queue_dequeue(void) {
 	ctunit_assert_true(!ct_queue_isfull(&queue));
 }
 
+// 测试队头
 static inline void test_queue_head(void) {
 	ct_queue_t   queue;
 	int          buffer[777];
@@ -186,6 +152,13 @@ static inline void test_queue_head(void) {
 	ctunit_assert_true(!ct_queue_isfull(&queue));
 }
 
+// 回调结果
+typedef struct {
+	int sum;
+	int count;
+} traverse_result_t;
+
+// 辅助函数: 遍历回调
 static inline int traverse_callback(void* item, void* arg) {
 	traverse_result_t* res = (traverse_result_t*)arg;
 	if (item && res) {
@@ -195,6 +168,7 @@ static inline int traverse_callback(void* item, void* arg) {
 	return 0;
 }
 
+// 测试遍历
 static inline void test_queue_traverse(void) {
 	ct_queue_t   queue;
 	int          buffer[10];
@@ -291,4 +265,23 @@ static inline void test_queue_traverse(void) {
 		ctunit_assert_int(result.sum, 0, CTUnit_Equal);
 		ctunit_assert_int(result.count, 0, CTUnit_Equal);
 	}
+}
+
+int main(void) {
+	test_queue_init();
+	ctunit_trace("Finish! test_queue_init();\n");
+
+	test_queue_enqueue();
+	ctunit_trace("Finish! test_queue_enqueue();\n");
+
+	test_queue_dequeue();
+	ctunit_trace("Finish! test_queue_dequeue();\n");
+
+	test_queue_head();
+	ctunit_trace("Finish! test_queue_head();\n");
+
+	test_queue_traverse();
+	ctunit_trace("Finish! test_queue_traverse();\n");
+
+	ctunit_pass();
 }

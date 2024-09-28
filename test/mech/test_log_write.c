@@ -37,22 +37,6 @@ static pthread_t g_thread_logger;
 static bool      is_exit = false;
 
 // 日志调度线程函数
-static inline void* thread_log_schedule(void* arg);
-
-// 带日志的测试线程函数
-static inline void* thread_write_with_log(void* arg);
-// 不带日志的测试线程函数
-static inline void* thread_write_without_log(void* arg);
-// 写入性能对比测试函数
-static inline void test_write_performance_comparison(void);
-
-int main(void) {
-	test_write_performance_comparison();
-	ctunit_trace("Finish! test_write_performance_comparison();\n");
-
-	ctunit_pass();
-}
-
 static inline void* thread_log_schedule(void* arg) {
 	for (; !is_exit;) {
 		ct_log_schedule(getuptime_ms());
@@ -63,6 +47,7 @@ static inline void* thread_log_schedule(void* arg) {
 	(void)arg;
 }
 
+// 带日志的测试线程函数
 static inline void* thread_write_with_log(void* arg) {
 	for (int i = 0; i < TEST_THREAD_DATA; i++) {
 		test_basic_trace("%04d/%05d/%06d/%07d %16p/%16p/%16p/%16p %10s/%11s/%12s/%13s %02x/%02x/%02x/%02x\n", 1234,
@@ -74,6 +59,7 @@ static inline void* thread_write_with_log(void* arg) {
 	(void)arg;
 }
 
+// 不带日志的测试线程函数
 static inline void* thread_write_without_log(void* arg) {
 	ctunit_assert_not_null(g_file);
 	for (int i = 0; i < TEST_THREAD_DATA; i++) {
@@ -86,6 +72,7 @@ static inline void* thread_write_without_log(void* arg) {
 	(void)arg;
 }
 
+// 写入性能对比测试函数
 static inline void test_write_performance_comparison(void) {
 	pthread_t   threads[TEST_THREADS];
 	ct_time64_t start, end;
@@ -208,4 +195,11 @@ static inline void test_write_performance_comparison(void) {
 
 	fclose(file_with_log);
 	fclose(file_without_log);
+}
+
+int main(void) {
+	test_write_performance_comparison();
+	ctunit_trace("Finish! test_write_performance_comparison();\n");
+
+	ctunit_pass();
 }

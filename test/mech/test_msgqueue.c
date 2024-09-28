@@ -12,23 +12,17 @@
 static size_t test_data_size = 0;
 static int   *test_data;
 
-static inline void  test_msgqueue(size_t data_size, size_t buffer_size);
-static inline void *test_task_enqueue(void *arg);
+static inline void *test_task_enqueue(void *arg) {
+	ct_msgqueue_t *msgqueue = (ct_msgqueue_t *)arg;
+	for (size_t i = 0; i < test_data_size;) {
+		for (size_t n = 0; n < 1000 && i < test_data_size; n++, i++) {
+			ct_msgqueue_enqueue(msgqueue, &test_data[i]);
+		}
+		sched_yield();
+	}
 
-int main(void) {
-	test_msgqueue(10, 1);
-	ctunit_trace("Finish! test_msgqueue(10, 1);\n");
-
-	test_msgqueue(1, 10);
-	ctunit_trace("Finish! test_msgqueue(1, 10);\n");
-
-	test_msgqueue(500, 10);
-	ctunit_trace("Finish! test_msgqueue(500, 10);\n");
-
-	test_msgqueue(500, 500);
-	ctunit_trace("Finish! test_msgqueue(500, 500);\n");
-
-	ctunit_pass();
+	pthread_exit(NULL);
+	return NULL;
 }
 
 static inline void test_msgqueue(size_t data_size, size_t buffer_size) {
@@ -127,15 +121,18 @@ static inline void test_msgqueue(size_t data_size, size_t buffer_size) {
 	free(test_buffer);
 }
 
-static inline void *test_task_enqueue(void *arg) {
-	ct_msgqueue_t *msgqueue = (ct_msgqueue_t *)arg;
-	for (size_t i = 0; i < test_data_size;) {
-		for (size_t n = 0; n < 1000 && i < test_data_size; n++, i++) {
-			ct_msgqueue_enqueue(msgqueue, &test_data[i]);
-		}
-		sched_yield();
-	}
+int main(void) {
+	test_msgqueue(10, 1);
+	ctunit_trace("Finish! test_msgqueue(10, 1);\n");
 
-	pthread_exit(NULL);
-	return NULL;
+	test_msgqueue(1, 10);
+	ctunit_trace("Finish! test_msgqueue(1, 10);\n");
+
+	test_msgqueue(500, 10);
+	ctunit_trace("Finish! test_msgqueue(500, 10);\n");
+
+	test_msgqueue(500, 500);
+	ctunit_trace("Finish! test_msgqueue(500, 500);\n");
+
+	ctunit_pass();
 }

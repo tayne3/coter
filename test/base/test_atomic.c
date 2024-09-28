@@ -14,67 +14,8 @@
 
 // 测试原子递增和递减的计数器
 ct_atomic_t test_counter = CT_ATOMIC_VAR_INIT(0);
-
 ct_atomic_t shared_counter = CT_ATOMIC_VAR_INIT(0);
-
 ct_atomic_t test_value = CT_ATOMIC_VAR_INIT(0);
-
-// 辅助函数: 原子递增的线程函数
-static inline void* increment_thread(void* arg);
-// 辅助函数: 原子递减的线程函数
-static inline void* decrement_thread(void* arg);
-// 辅助函数: 原子递增的线程函数
-static inline void* atomic_inc_thread(void* arg);
-// 辅助函数: 原子递减的线程函数
-static inline void* atomic_dec_thread(void* arg);
-
-// 测试案例: 原子标志
-static inline void test_atomic_flag(void);
-// 测试案例: 原子递增和递减
-static inline void test_atomic_inc_dec(void);
-// 测试案例: 原子加法和减法
-static inline void test_atomic_add_sub(void);
-// 测试案例: 原子加载和存储操作
-static inline void test_atomic_load_store(void);
-// 测试案例: 多线程环境下的原子操作
-static inline void test_atomic_operations_multi_threaded(void);
-// 测试案例: 边界条件
-static inline void test_boundary_conditions(void);
-
-// // 测试案例: 原子比较和交换
-// static inline void test_atomic_compare_exchange_weak(void);
-// // 辅助函数: 原子比较和交换的线程函数
-// static inline void* test_atomic_increment_thread(void* arg);
-// // 测试案例: 原子比较和交换并发测试
-// static inline void test_atomic_compare_exchange_weak_concurrent(void);
-
-int main(void) {
-	test_atomic_flag();
-	ctunit_trace("Finish! test_atomic_flag();\n");
-
-	test_atomic_inc_dec();
-	ctunit_trace("Finish! test_atomic_inc_dec();\n");
-
-	test_atomic_add_sub();
-	ctunit_trace("Finish! test_atomic_add_sub();\n");
-
-	test_atomic_load_store();
-	ctunit_trace("Finish! test_atomic_load_store();\n");
-
-	test_atomic_operations_multi_threaded();
-	ctunit_trace("Finish! test_atomic_operations_multi_threaded();\n");
-
-	test_boundary_conditions();
-	ctunit_trace("Finish! test_boundary_conditions();\n");
-
-	// test_atomic_compare_exchange_weak();
-	// ctunit_trace("Finish! test_atomic_compare_exchange_weak();\n");
-
-	// test_atomic_compare_exchange_weak_concurrent();
-	// ctunit_trace("Finish! test_atomic_compare_exchange_weak_concurrent();\n");
-
-	ctunit_pass();
-}
 
 static inline void* increment_thread(void* arg) {
 	for (int i = 0; i < NUM_ITERATIONS; i++) {
@@ -263,45 +204,24 @@ static inline void test_boundary_conditions(void) {
 	}
 }
 
-// static inline void test_atomic_compare_exchange_weak(void) {
-// 	ct_atomic_t value    = CT_ATOMIC_VAR_INIT(10);
-// 	long        expected = 10;
-// 	long        desired  = 20;
+int main(void) {
+	test_atomic_flag();
+	ctunit_trace("Finish! test_atomic_flag();\n");
 
-// 	// 测试成功的情况
-// 	ctunit_assert_true(ct_atomic_cas(&value, &expected, desired));
-// 	ctunit_assert_int64(CT_ATOMIC_LOAD(&value), 20, CTUnit_Equal);
+	test_atomic_inc_dec();
+	ctunit_trace("Finish! test_atomic_inc_dec();\n");
 
-// 	// 测试失败的情况
-// 	expected = 10;
-// 	ctunit_assert_true(ct_atomic_cas(&value, &expected, 30) == false);
-// 	ctunit_assert_true(expected == 20);                // expected 应该被更新为当前值
-// 	ctunit_assert_true(ct_atomic_load(&value) == 20);  // value 不应该改变
-// }
+	test_atomic_add_sub();
+	ctunit_trace("Finish! test_atomic_add_sub();\n");
 
-// static inline void* test_atomic_increment_thread(void* arg) {
-// 	for (int i = 0; i < NUM_ITERATIONS; ++i) {
-// 		long expected, desired;
-// 		do {
-// 			expected = ct_atomic_load(&shared_counter);
-// 			desired  = expected + 1;
-// 		} while (!ct_atomic_cas(&shared_counter, &expected, desired));
-// 	}
-// 	pthread_exit(NULL);
-// 	return NULL;
-// 	(void)arg;
-// }
+	test_atomic_load_store();
+	ctunit_trace("Finish! test_atomic_load_store();\n");
 
-// static inline void test_atomic_compare_exchange_weak_concurrent(void) {
-// 	pthread_t threads[NUM_THREADS];
+	test_atomic_operations_multi_threaded();
+	ctunit_trace("Finish! test_atomic_operations_multi_threaded();\n");
 
-// 	for (int i = 0; i < NUM_THREADS; ++i) {
-// 		pthread_create(&threads[i], NULL, test_atomic_increment_thread, NULL);
-// 	}
+	test_boundary_conditions();
+	ctunit_trace("Finish! test_boundary_conditions();\n");
 
-// 	for (int i = 0; i < NUM_THREADS; ++i) {
-// 		pthread_join(threads[i], NULL);
-// 	}
-
-// 	ctunit_assert_true(ct_atomic_load(&shared_counter) == NUM_THREADS * NUM_ITERATIONS);
-// }
+	ctunit_pass();
+}

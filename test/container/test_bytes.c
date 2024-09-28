@@ -14,40 +14,6 @@ static ct_bytes_t* small_bytes = NULL;
 static ct_bytes_t* large_bytes = NULL;
 
 // 测试初始化
-static inline void test_init(void);
-// 测试基本操作
-static inline void test_basic_operations(void);
-// 测试边界情况
-static inline void test_edge_cases(void);
-// 测试多次操作
-static inline void test_multiple_operations(void);
-// 测试特殊情况
-static inline void test_special_cases(void);
-// 测试内存管理
-static inline void test_memory_management(void);
-
-int main(void) {
-	test_init();
-	ctunit_trace("Finish! test_init();\n");
-
-	test_basic_operations();
-	ctunit_trace("Finish! test_basic_operations();\n");
-
-	test_edge_cases();
-	ctunit_trace("Finish! test_edge_cases();\n");
-
-	test_multiple_operations();
-	ctunit_trace("Finish! test_multiple_operations();\n");
-
-	test_special_cases();
-	ctunit_trace("Finish! test_special_cases();\n");
-
-	test_memory_management();
-	ctunit_trace("Finish! test_memory_management();\n");
-
-	ctunit_pass();
-}
-
 static inline void test_init(void) {
 	ctunit_assert_null(small_bytes);
 	ctunit_assert_null(large_bytes);
@@ -81,6 +47,7 @@ static inline void test_init(void) {
 	ctunit_assert_uint32(ct_bytes_available(large_bytes), TEST_LARGE_SIZE - 4, CTUnit_Equal);
 }
 
+// 测试基本操作
 static inline void test_basic_operations(void) {
 	ctunit_assert_not_null(small_bytes);
 	ctunit_assert_not_null(large_bytes);
@@ -111,6 +78,7 @@ static inline void test_basic_operations(void) {
 	ctunit_assert_uint32(read_len, 0, CTUnit_Equal);
 }
 
+// 测试边界情况
 static inline void test_edge_cases(void) {
 	ctunit_assert_not_null(small_bytes);
 	ctunit_assert_not_null(large_bytes);
@@ -140,6 +108,7 @@ static inline void test_edge_cases(void) {
 	ctunit_assert_uint32(read_len, TEST_SMALL_SIZE, CTUnit_Equal);
 }
 
+// 测试多次操作
 static inline void test_multiple_operations(void) {
 	ctunit_assert_not_null(small_bytes);
 	ctunit_assert_not_null(large_bytes);
@@ -162,7 +131,7 @@ static inline void test_multiple_operations(void) {
 	// 交替进行读写操作
 	ct_bytes_clear(small_bytes);
 	write_len = ct_bytes_write(small_bytes, "AB", 2);
-	read_len    = ct_bytes_read(small_bytes, buffer, 1);
+	read_len  = ct_bytes_read(small_bytes, buffer, 1);
 	write_len += ct_bytes_write(small_bytes, "CD", 2);
 	read_len += ct_bytes_read(small_bytes, buffer + 1, 3);
 	ctunit_assert_uint32(write_len, 4, CTUnit_Equal);
@@ -170,6 +139,7 @@ static inline void test_multiple_operations(void) {
 	ctunit_assert_string_n(buffer, "ABCD", 4);
 }
 
+// 测试特殊情况
 static inline void test_special_cases(void) {
 	ctunit_assert_not_null(small_bytes);
 	ctunit_assert_not_null(large_bytes);
@@ -194,6 +164,7 @@ static inline void test_special_cases(void) {
 	ctunit_assert_uint32(read_len, 0, CTUnit_Equal);
 }
 
+// 测试内存管理
 static inline void test_memory_management(void) {
 	ctunit_assert_not_null(small_bytes);
 	ctunit_assert_not_null(large_bytes);
@@ -213,4 +184,26 @@ static inline void test_memory_management(void) {
 	ct_bytes_destroy(large_bytes);
 	small_bytes = NULL;
 	large_bytes = NULL;
+}
+
+int main(void) {
+	test_init();
+	ctunit_trace("Finish! test_init();\n");
+
+	test_basic_operations();
+	ctunit_trace("Finish! test_basic_operations();\n");
+
+	test_edge_cases();
+	ctunit_trace("Finish! test_edge_cases();\n");
+
+	test_multiple_operations();
+	ctunit_trace("Finish! test_multiple_operations();\n");
+
+	test_special_cases();
+	ctunit_trace("Finish! test_special_cases();\n");
+
+	test_memory_management();
+	ctunit_trace("Finish! test_memory_management();\n");
+
+	ctunit_pass();
 }

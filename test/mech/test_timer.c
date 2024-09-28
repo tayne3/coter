@@ -11,62 +11,6 @@
 static ct_time64_t mock_current_time = 0;
 
 // 定时器调度, 并模拟时间流逝
-static inline void timer_schedule_mock(ct_time64_t ms);
-// 重置模拟时间
-static inline void reset_mock_time(void);
-// 定时器回调函数
-static inline void timer_callback(ct_timer_id_t id, const ct_any_buf_t arg);
-
-// 测试基本功能
-static inline void test_basic_functionality(void);
-// 测试单次定时器
-static inline void test_single_timer(void);
-// 测试重复定时器
-static inline void test_repeating_timer(void);
-// 测试精确定时器
-static inline void test_precise_timer(void);
-// 测试边界条件
-static inline void test_zero_millisecond_timer(void);
-// 测试多个定时器同时运行
-static inline void test_multiple_timers(void);
-// 测试停止后重新启动定时器
-static inline void test_restart_timer(void);
-
-int main(void) {
-	// 创建任务池
-	ct_jobpool_t *jobpool = ct_jobpool_create(2, 10);
-	ctunit_assert_not_null(jobpool);
-
-	// 初始化定时器中枢
-	ct_timer_mgr_init(mock_current_time, jobpool);
-
-	test_basic_functionality();
-	ctunit_trace("Finish! test_basic_functionality()\n");
-
-	test_single_timer();
-	ctunit_trace("Finish! test_single_timer()\n");
-
-	test_repeating_timer();
-	ctunit_trace("Finish! test_repeating_timer()\n");
-
-	test_precise_timer();
-	ctunit_trace("Finish! test_precise_timer()\n");
-
-	test_zero_millisecond_timer();
-	ctunit_trace("Finish! test_zero_millisecond_timer()\n");
-
-	test_multiple_timers();
-	ctunit_trace("Finish! test_multiple_timers()\n");
-
-	test_restart_timer();
-	ctunit_trace("Finish! test_restart_timer()\n");
-
-	// 销毁任务池
-	ct_jobpool_destroy(jobpool);
-
-	ctunit_pass();
-}
-
 static inline void timer_schedule_mock(ct_time64_t ms) {
 	for (;;) {
 		if (ct_timer_mgr_schedule(mock_current_time)) {
@@ -86,6 +30,7 @@ static inline void timer_schedule_mock(ct_time64_t ms) {
 	}
 }
 
+// 重置模拟时间
 static inline void reset_mock_time(void) {
 	mock_current_time = 0;
 	ct_timer_mgr_schedule(mock_current_time);
@@ -222,4 +167,39 @@ static inline void test_restart_timer(void) {
 	timer_schedule_mock(150);
 	ctunit_assert_int(count, 3, CTUnit_Equal);
 	ct_timer_stop(timer_id);
+}
+
+int main(void) {
+	// 创建任务池
+	ct_jobpool_t *jobpool = ct_jobpool_create(2, 10);
+	ctunit_assert_not_null(jobpool);
+
+	// 初始化定时器中枢
+	ct_timer_mgr_init(mock_current_time, jobpool);
+
+	test_basic_functionality();
+	ctunit_trace("Finish! test_basic_functionality()\n");
+
+	test_single_timer();
+	ctunit_trace("Finish! test_single_timer()\n");
+
+	test_repeating_timer();
+	ctunit_trace("Finish! test_repeating_timer()\n");
+
+	test_precise_timer();
+	ctunit_trace("Finish! test_precise_timer()\n");
+
+	test_zero_millisecond_timer();
+	ctunit_trace("Finish! test_zero_millisecond_timer()\n");
+
+	test_multiple_timers();
+	ctunit_trace("Finish! test_multiple_timers()\n");
+
+	test_restart_timer();
+	ctunit_trace("Finish! test_restart_timer()\n");
+
+	// 销毁任务池
+	ct_jobpool_destroy(jobpool);
+
+	ctunit_pass();
 }

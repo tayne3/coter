@@ -8,66 +8,6 @@
 #include "mech/ct_cron.h"
 
 // 测试用例：每分钟执行
-static inline void test_cron_minutely(void);
-// 测试用例：每小时执行
-static inline void test_cron_hourly(void);
-// 测试用例：每天执行
-static inline void test_cron_daily(void);
-// 测试用例：每周执行
-static inline void test_cron_weekly(void);
-// 测试用例：每月执行
-static inline void test_cron_monthly(void);
-// 测试用例：每年执行
-static inline void test_cron_yearly(void);
-// 测试用例：无效参数
-static inline void test_invalid_params(void);
-// 测试用例：跨月份边界
-static inline void test_cross_month_boundary(void);
-// 测试用例：跨年份边界
-static inline void test_cross_year_boundary(void);
-// 测试用例：闰年2月29日
-static inline void test_leap_year(void);
-// 测试用例：非闰年2月29日
-static inline void test_non_leap_year(void);
-
-int main(void) {
-	test_cron_minutely();
-	ctunit_trace("Finish! test_cron_minutely();\n");
-
-	test_cron_hourly();
-	ctunit_trace("Finish! test_cron_hourly();\n");
-
-	test_cron_daily();
-	ctunit_trace("Finish! test_cron_daily();\n");
-
-	test_cron_weekly();
-	ctunit_trace("Finish! test_cron_weekly();\n");
-
-	test_cron_monthly();
-	ctunit_trace("Finish! test_cron_monthly();\n");
-
-	test_cron_yearly();
-	ctunit_trace("Finish! test_cron_yearly();\n");
-
-	test_invalid_params();
-	ctunit_trace("Finish! test_invalid_params();\n");
-
-	test_cross_month_boundary();
-	ctunit_trace("Finish! test_cross_month_boundary();\n");
-
-	test_cross_year_boundary();
-	ctunit_trace("Finish! test_cross_year_boundary();\n");
-
-	test_leap_year();
-	ctunit_trace("Finish! test_leap_year();\n");
-
-	test_non_leap_year();
-	ctunit_trace("Finish! test_non_leap_year();\n");
-
-	ctunit_pass();
-}
-
-// 测试用例：每分钟执行
 static inline void test_cron_minutely(void) {
 	const time_t before = 946656000;       // 初始时间为: 2000-01-01 00:00:00
 	const time_t after  = 946656000 + 60;  // 预期下一分钟：2000-01-01 00:01:00
@@ -165,4 +105,41 @@ static inline void test_non_leap_year(void) {
 	const time_t next   = ct_cron_next_timeout(before, 0, 0, 29, -1, -1);
 
 	ctunit_assert_int64(after, next, CTUnit_Equal);
+}
+
+int main(void) {
+	test_cron_minutely();
+	ctunit_trace("Finish! test_cron_minutely();\n");
+
+	test_cron_hourly();
+	ctunit_trace("Finish! test_cron_hourly();\n");
+
+	test_cron_daily();
+	ctunit_trace("Finish! test_cron_daily();\n");
+
+	test_cron_weekly();
+	ctunit_trace("Finish! test_cron_weekly();\n");
+
+	test_cron_monthly();
+	ctunit_trace("Finish! test_cron_monthly();\n");
+
+	test_cron_yearly();
+	ctunit_trace("Finish! test_cron_yearly();\n");
+
+	test_invalid_params();
+	ctunit_trace("Finish! test_invalid_params();\n");
+
+	test_cross_month_boundary();
+	ctunit_trace("Finish! test_cross_month_boundary();\n");
+
+	test_cross_year_boundary();
+	ctunit_trace("Finish! test_cross_year_boundary();\n");
+
+	test_leap_year();
+	ctunit_trace("Finish! test_leap_year();\n");
+
+	test_non_leap_year();
+	ctunit_trace("Finish! test_non_leap_year();\n");
+
+	ctunit_pass();
 }

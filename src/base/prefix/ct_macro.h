@@ -131,10 +131,12 @@ typedef bool ct_endian_t;
 	defined(__ARMEL__) || defined(__THUMBEL__) || defined(__AARCH64EL__) || defined(_MIPSEL) || defined(__MIPSEL) || \
 	defined(__MIPSEL__) || defined(__MIPS64EL)
 #	define CTEndian_System CTEndian_Little
+# 	define CTEndian_SystemLittle 1
 # elif (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__) || defined(__BIG_ENDIAN__) ||      \
 	(defined(__BYTE_ORDER) && __BYTE_ORDER == __BIG_ENDIAN) || defined(__ARMEB__) || defined(__THUMBEB__) || \
 	defined(__AARCH64EB__) || defined(_MIBSEB) || defined(__MIBSEB) || defined(__MIBSEB__) || defined(__MIPS64EB)
 #	define CTEndian_System CTEndian_Big
+#	define CTEndian_SystemBig 1
 # else
 #	define CTEndian_System ((*(unsigned char *)&(unsigned int){1}) == 0)
 # endif

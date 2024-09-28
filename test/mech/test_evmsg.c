@@ -16,10 +16,35 @@ static ct_evmsg_center_ptr_t test_center                                       =
 static bool                  test_result[TEST_THREAD_NUMBER][TEST_DATA_NUMBER] = {{0}};
 static bool                  is_exit[TEST_THREAD_NUMBER]                       = {0};
 
-// 模拟事件处理函数
-static inline bool test_evmsg_handler(ct_evmsg_t *msg, void *userdata);
-// 测试事件发布
-static inline void *test_evmsg_publish(void *arg);
+static inline bool test_evmsg_handler(ct_evmsg_t *msg, void *userdata) {
+	ctunit_assert_not_null(msg);
+	ctunit_assert_not_null(msg->data);
+	ctunit_assert_uint8(msg->id, 0, CTUnit_GreaterEqual);
+	ctunit_assert_uint8(msg->id, TEST_THREAD_NUMBER, CTUnit_Less);
+
+	const int result_index = *(int *)msg->data;
+	ctunit_assert_false(test_result[msg->id][result_index]);
+	test_result[msg->id][result_index] = true;
+	return false;
+	(void)(userdata);
+}
+
+static inline void *test_evmsg_publish(void *arg) {
+	const uint8_t id = (uint8_t)(uintptr_t)arg;
+	// 模拟事件数据
+	ct_evmsg_t msg = CT_EVMSG_MSG_INIT(1, id, NULL, 0);
+	// 发布事件
+	for (int i = 0; i < TEST_DATA_NUMBER; i++) {
+		msg.data = &i;
+		msg.size = sizeof(int);
+		ct_evmsg_publish(test_center, &msg);
+		sched_yield();
+	}
+
+	is_exit[id] = true;
+	pthread_exit(NULL);
+	return NULL;
+}
 
 int main(void) {
 	bool      is_ok;
@@ -71,34 +96,4 @@ int main(void) {
 	ct_jobpool_destroy(jobpool);
 
 	ctunit_pass();
-}
-
-static inline bool test_evmsg_handler(ct_evmsg_t *msg, void *userdata) {
-	ctunit_assert_not_null(msg);
-	ctunit_assert_not_null(msg->data);
-	ctunit_assert_uint8(msg->id, 0, CTUnit_GreaterEqual);
-	ctunit_assert_uint8(msg->id, TEST_THREAD_NUMBER, CTUnit_Less);
-
-	const int result_index = *(int *)msg->data;
-	ctunit_assert_false(test_result[msg->id][result_index]);
-	test_result[msg->id][result_index] = true;
-	return false;
-	(void)(userdata);
-}
-
-static inline void *test_evmsg_publish(void *arg) {
-	const uint8_t id = (uint8_t)(uintptr_t)arg;
-	// 模拟事件数据
-	ct_evmsg_t msg = CT_EVMSG_MSG_INIT(1, id, NULL, 0);
-	// 发布事件
-	for (int i = 0; i < TEST_DATA_NUMBER; i++) {
-		msg.data = &i;
-		msg.size = sizeof(int);
-		ct_evmsg_publish(test_center, &msg);
-		sched_yield();
-	}
-
-	is_exit[id] = true;
-	pthread_exit(NULL);
-	return NULL;
 }

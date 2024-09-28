@@ -40,24 +40,6 @@ static pthread_t g_thread_logger;
 static bool      is_exit = false;
 
 // 日志调度线程函数
-static inline void* thread_log_schedule(void* arg);
-
-// 日志回调函数
-static inline void log_callback(const char* msg, size_t size, void* userdata);
-// 带回调的测试线程函数
-static inline void* thread_callback_with_log(void* arg);
-// 直接调用回调函数的测试线程函数
-static inline void* thread_callback_without_log(void* arg);
-// 回调性能对比测试函数
-static inline void test_callback_performance_comparison(void);
-
-int main(void) {
-	test_callback_performance_comparison();
-	ctunit_trace("Finish! test_callback_performance_comparison();\n");
-
-	ctunit_pass();
-}
-
 static inline void* thread_log_schedule(void* arg) {
 	for (; !is_exit;) {
 		ct_log_schedule(getuptime_ms());
@@ -104,6 +86,7 @@ static inline void* thread_callback_without_log(void* arg) {
 	(void)arg;
 }
 
+// 回调性能对比测试函数
 static inline void test_callback_performance_comparison(void) {
 	pthread_t   threads[TEST_THREADS];
 	ct_time64_t start, end;
@@ -222,4 +205,11 @@ static inline void test_callback_performance_comparison(void) {
 
 	fclose(file_with_log);
 	fclose(file_without_log);
+}
+
+int main(void) {
+	test_callback_performance_comparison();
+	ctunit_trace("Finish! test_callback_performance_comparison();\n");
+
+	ctunit_pass();
 }

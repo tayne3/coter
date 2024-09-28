@@ -15,15 +15,6 @@
 static char test_keys[TEST_NUMBER][64];
 static char test_values[TEST_NUMBER][64];
 
-static inline void test_hash_basic(void);
-
-int main(void) {
-	test_hash_basic();
-	ctunit_trace("Finish! test_hash_basic();\n");
-
-	ctunit_pass();
-}
-
 static inline void test_hash_basic(void) {
 	ct_hash_buf_t chash;
 	ct_hash_init_s(chash, 1, true, ct_any_methods_default);
@@ -128,4 +119,11 @@ static inline void test_hash_basic(void) {
 	}
 
 	ct_hash_destroy(chash);
+}
+
+int main(void) {
+	test_hash_basic();
+	ctunit_trace("Finish! test_hash_basic();\n");
+
+	ctunit_pass();
 }

@@ -9,15 +9,6 @@
 
 #define TEST_HASH_NUMBER 100
 
-static inline int test_hash_siphash(void);
-
-int main(void) {
-	test_hash_siphash();
-	ctunit_trace("Finish! test_hash_siphash();\n");
-
-	ctunit_pass();
-}
-
 static inline int test_hash_siphash(void) {
 	const uint64_t vectors[64] = {
 		0x726fdb47dd0e0e31ULL, 0x74f839c593dc67fdULL, 0x0d6c8009d9a94f5aULL, 0x85676696d7fb7e2dULL,
@@ -56,4 +47,11 @@ static inline int test_hash_siphash(void) {
 	}
 
 	return 0;
+}
+
+int main(void) {
+	test_hash_siphash();
+	ctunit_trace("Finish! test_hash_siphash();\n");
+
+	ctunit_pass();
 }

@@ -394,26 +394,26 @@ static inline void test_performance_comparison(void) {
 }
 
 int main(void) {
-	// test_create_destroy();
-	// ctunit_trace("Finish! test_create_destroy;\n");
+	test_create_destroy();
+	ctunit_trace("Finish! test_create_destroy;\n");
 
-	// test_submit_execute();
-	// ctunit_trace("Finish! test_submit_execute();\n");
+	test_submit_execute();
+	ctunit_trace("Finish! test_submit_execute();\n");
 
-	// test_submit_null_task();
-	// ctunit_trace("Finish! test_submit_null_task();\n");
+	test_submit_null_task();
+	ctunit_trace("Finish! test_submit_null_task();\n");
 
-	// test_capacity_limit();
-	// ctunit_trace("Finish! test_capacity_limit();\n");
+	test_capacity_limit();
+	ctunit_trace("Finish! test_capacity_limit();\n");
 
-	// test_non_blocking();
-	// ctunit_trace("Finish! test_non_blocking();\n");
+	test_non_blocking();
+	ctunit_trace("Finish! test_non_blocking();\n");
 
-	// test_concurrent_submit();
-	// ctunit_trace("Finish! test_concurrent_submit();\n");
+	test_concurrent_submit();
+	ctunit_trace("Finish! test_concurrent_submit();\n");
 
-	// test_close_behavior();
-	// ctunit_trace("Finish! test_close_behavior();\n");
+	test_close_behavior();
+	ctunit_trace("Finish! test_close_behavior();\n");
 
 	test_performance_comparison();
 	ctunit_trace("Finish! test_performance_comparison();\n");

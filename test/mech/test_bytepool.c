@@ -18,36 +18,6 @@
 #define MEMORY_LEAK_ITERATIONS 10000
 
 // 基本功能测试
-static void test_bytepool_basic_operations(void);
-// 边界情况测试
-static void test_bytepool_edge_cases(void);
-// 并发测试
-static void test_bytepool_concurrency(void);
-// 性能对比测试
-static void test_bytepool_performance(void);
-
-// 线程函数
-static void* thread_func_with_pool(void* arg);
-static void* thread_func_without_pool(void* arg);
-
-int main(void) {
-	srand((unsigned int)time(NULL));  // 初始化随机数生成器
-
-	test_bytepool_basic_operations();
-	ctunit_trace("Finish! test_bytepool_basic_operations();\n");
-
-	test_bytepool_edge_cases();
-	ctunit_trace("Finish! test_bytepool_edge_cases();\n");
-
-	test_bytepool_concurrency();
-	ctunit_trace("Finish! test_bytepool_concurrency();\n");
-
-	test_bytepool_performance();
-	ctunit_trace("Finish! test_bytepool_performance();\n");
-
-	ctunit_pass();
-}
-
 static void test_bytepool_basic_operations(void) {
 	ct_bytepool_t* pool = ct_bytepool_create(10, 100);
 	ctunit_assert_not_null(pool);
@@ -86,6 +56,7 @@ static void test_bytepool_basic_operations(void) {
 	ct_bytepool_destroy(pool);
 }
 
+// 边界情况测试
 static void test_bytepool_edge_cases(void) {
 	// 测试创建最小池
 	ct_bytepool_t* small_pool = ct_bytepool_create(1, MIN_BUFFER_SIZE);
@@ -108,6 +79,34 @@ static void test_bytepool_edge_cases(void) {
 
 	ct_bytepool_put(large_pool, large_bytes);
 	ct_bytepool_destroy(large_pool);
+}
+
+// 辅助函数
+static void* thread_func_with_pool(void* arg) {
+	ct_bytepool_t* pool = (ct_bytepool_t*)arg;
+	for (int i = 0; i < TEST_ITERATIONS; i++) {
+		ct_bytes_t* bytes = ct_bytepool_get(pool);
+		ctunit_assert_not_null(bytes);
+
+		sched_yield();
+		// ct_msleep(2);
+		ct_bytepool_put(pool, bytes);
+	}
+	return NULL;
+}
+
+// 辅助函数
+static void* thread_func_without_pool(void* arg) {
+	for (int i = 0; i < TEST_ITERATIONS; i++) {
+		char* buffer = (char*)malloc(MAX_BUFFER_SIZE);
+		ctunit_assert_not_null(buffer);
+
+		sched_yield();
+		// ct_msleep(2);
+		free(buffer);
+	}
+	return NULL;
+	(void)arg;
 }
 
 // 并发测试
@@ -140,6 +139,7 @@ static void test_bytepool_concurrency(void) {
 	ct_bytepool_destroy(pool);
 }
 
+// 性能对比测试
 static void test_bytepool_performance(void) {
 	pthread_t   threads[TEST_THREADS];
 	ct_time64_t start, end;
@@ -179,28 +179,20 @@ static void test_bytepool_performance(void) {
 	// ctunit_assert_true(time_with_pool < time_without_pool);
 }
 
-static void* thread_func_with_pool(void* arg) {
-	ct_bytepool_t* pool        = (ct_bytepool_t*)arg;
-	for (int i = 0; i < TEST_ITERATIONS; i++) {
-		ct_bytes_t* bytes = ct_bytepool_get(pool);
-		ctunit_assert_not_null(bytes);
+int main(void) {
+	srand((unsigned int)time(NULL));  // 初始化随机数生成器
 
-		sched_yield();
-		// ct_msleep(2);
-		ct_bytepool_put(pool, bytes);
-	}
-	return NULL;
-}
+	test_bytepool_basic_operations();
+	ctunit_trace("Finish! test_bytepool_basic_operations();\n");
 
-static void* thread_func_without_pool(void* arg) {
-	for (int i = 0; i < TEST_ITERATIONS; i++) {
-		char* buffer = (char*)malloc(MAX_BUFFER_SIZE);
-		ctunit_assert_not_null(buffer);
+	test_bytepool_edge_cases();
+	ctunit_trace("Finish! test_bytepool_edge_cases();\n");
 
-		sched_yield();
-		// ct_msleep(2);
-		free(buffer);
-	}
-	return NULL;
-	(void)arg;
+	test_bytepool_concurrency();
+	ctunit_trace("Finish! test_bytepool_concurrency();\n");
+
+	test_bytepool_performance();
+	ctunit_trace("Finish! test_bytepool_performance();\n");
+
+	ctunit_pass();
 }

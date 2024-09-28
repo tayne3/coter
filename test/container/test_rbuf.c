@@ -14,45 +14,6 @@ static char          test_buf[TEST_BUF_SIZE + 1];
 static ct_rbuf_buf_t rbuf;
 
 // 测试初始化
-static inline void test_init(void);
-// 测试 put/take 单元素操作
-static inline void test_put_take(void);
-// 测试清空操作
-static inline void test_clear(void);
-// 测试满和空条件
-static inline void test_full_empty(void);
-// 测试 puts/takes 多元素操作
-static inline void test_puts_takes(void);
-// 测试 gets/remove 多元素操作
-static inline void test_gets_remove(void);
-// 测试 分段获取操作
-static inline void test_items(void);
-
-int main(void) {
-	test_init();
-	ctunit_trace("Finish! test_init();\n");
-
-	test_put_take();
-	ctunit_trace("Finish! test_put_take();\n");
-
-	test_clear();
-	ctunit_trace("Finish! test_clear();\n");
-
-	test_full_empty();
-	ctunit_trace("Finish! test_full_empty();\n");
-
-	test_puts_takes();
-	ctunit_trace("Finish! test_puts_takes();\n");
-
-	test_gets_remove();
-	ctunit_trace("Finish! test_gets_remove();\n");
-
-	test_items();
-	ctunit_trace("Finish! test_items();\n");
-
-	ctunit_pass();
-}
-
 static inline void test_init(void) {
 	ct_rbuf_init(rbuf, test_buf, sizeof(char), TEST_BUF_SIZE);
 	ctunit_assert_uint32(ct_rbuf_max(rbuf), TEST_BUF_SIZE, CTUnit_Equal);
@@ -61,6 +22,7 @@ static inline void test_init(void) {
 	ctunit_assert_false(ct_rbuf_isfull(rbuf));
 }
 
+// 测试 put/take 单元素操作
 static inline void test_put_take(void) {
 	ctunit_assert_true(ct_rbuf_isempty(rbuf));
 	ct_rbuf_clear(rbuf);
@@ -97,6 +59,7 @@ static inline void test_put_take(void) {
 	}
 }
 
+// 测试清空操作
 static inline void test_clear(void) {
 	ctunit_assert_true(ct_rbuf_isempty(rbuf));
 	ct_rbuf_clear(rbuf);
@@ -110,6 +73,7 @@ static inline void test_clear(void) {
 	ctunit_assert_true(ct_rbuf_isempty(rbuf));
 }
 
+// 测试满和空条件
 static inline void test_full_empty(void) {
 	ctunit_assert_true(ct_rbuf_isempty(rbuf));
 	ct_rbuf_clear(rbuf);
@@ -126,6 +90,7 @@ static inline void test_full_empty(void) {
 	ctunit_assert_true(ct_rbuf_isempty(rbuf));
 }
 
+// 测试 puts/takes 多元素操作
 static inline void test_puts_takes(void) {
 	ctunit_assert_true(ct_rbuf_isempty(rbuf));
 	ct_rbuf_clear(rbuf);
@@ -151,6 +116,7 @@ static inline void test_puts_takes(void) {
 	ct_rbuf_clear(rbuf);
 }
 
+// 测试 gets/remove 多元素操作
 static inline void test_gets_remove(void) {
 	ctunit_assert_true(ct_rbuf_isempty(rbuf));
 	ct_rbuf_clear(rbuf);
@@ -210,6 +176,7 @@ static inline void test_gets_remove(void) {
 	ct_rbuf_clear(rbuf);
 }
 
+// 测试 分段获取操作
 static inline void test_items(void) {
 	ctunit_assert_true(ct_rbuf_isempty(rbuf));
 	ct_rbuf_clear(rbuf);
@@ -314,4 +281,29 @@ static inline void test_items(void) {
 	}
 
 	ct_rbuf_clear(rbuf);
+}
+
+int main(void) {
+	test_init();
+	ctunit_trace("Finish! test_init();\n");
+
+	test_put_take();
+	ctunit_trace("Finish! test_put_take();\n");
+
+	test_clear();
+	ctunit_trace("Finish! test_clear();\n");
+
+	test_full_empty();
+	ctunit_trace("Finish! test_full_empty();\n");
+
+	test_puts_takes();
+	ctunit_trace("Finish! test_puts_takes();\n");
+
+	test_gets_remove();
+	ctunit_trace("Finish! test_gets_remove();\n");
+
+	test_items();
+	ctunit_trace("Finish! test_items();\n");
+
+	ctunit_pass();
 }
