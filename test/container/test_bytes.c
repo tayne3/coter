@@ -50,52 +50,51 @@ static inline void test_init(void) {
 // 测试基本操作
 static inline void test_basic_operations(void) {
 	ctunit_assert_not_null(small_bytes);
-	ctunit_assert_not_null(large_bytes);
-
 	ct_bytes_clear(small_bytes);
-	ct_bytes_clear(large_bytes);
+	ctunit_assert_true(ct_bytes_isempty(small_bytes));
+	ctunit_assert_false(ct_bytes_isfull(small_bytes));
 
-	char   buffer[TEST_SMALL_SIZE];
-	size_t write_len, read_len;
+	char*  byte_buffer = ct_bytes_buffer(small_bytes);
+	size_t write_len;
 
 	// 写入和读取单个字节
 	write_len = ct_bytes_write(small_bytes, "A", 1);
 	ctunit_assert_uint32(write_len, 1, CTUnit_Equal);
-	read_len = ct_bytes_read(small_bytes, buffer, 1);
-	ctunit_assert_uint32(read_len, 1, CTUnit_Equal);
-	ctunit_assert_char(buffer[0], 'A');
+	ctunit_assert_uint32(ct_bytes_size(small_bytes), 1, CTUnit_Equal);
+	ctunit_assert_false(ct_bytes_isempty(small_bytes));
+	ctunit_assert_false(ct_bytes_isfull(small_bytes));
+	ctunit_assert_char(byte_buffer[0], 'A');
 
 	// 写入和读取多个字节
 	write_len = ct_bytes_write(small_bytes, "Hello", 5);
 	ctunit_assert_uint32(write_len, 5, CTUnit_Equal);
-	read_len = ct_bytes_read(small_bytes, buffer, 5);
-	ctunit_assert_uint32(read_len, 5, CTUnit_Equal);
-	ctunit_assert_string_n(buffer, "Hello", 5);
+	ctunit_assert_uint32(ct_bytes_size(small_bytes), 6, CTUnit_Equal);
+	ctunit_assert_false(ct_bytes_isempty(small_bytes));
+	ctunit_assert_false(ct_bytes_isfull(small_bytes));
+	ctunit_assert_string_n(&byte_buffer[1], "Hello", 5);
 
 	// 清空操作
 	ct_bytes_clear(small_bytes);
-	read_len = ct_bytes_read(small_bytes, buffer, 1);
-	ctunit_assert_uint32(read_len, 0, CTUnit_Equal);
+	ctunit_assert_uint32(ct_bytes_size(small_bytes), 0, CTUnit_Equal);
+	ctunit_assert_true(ct_bytes_isempty(small_bytes));
+	ctunit_assert_false(ct_bytes_isfull(small_bytes));
 }
 
 // 测试边界情况
 static inline void test_edge_cases(void) {
 	ctunit_assert_not_null(small_bytes);
-	ctunit_assert_not_null(large_bytes);
-
 	ct_bytes_clear(small_bytes);
-	ct_bytes_clear(large_bytes);
+	ctunit_assert_true(ct_bytes_isempty(small_bytes));
+	ctunit_assert_false(ct_bytes_isfull(small_bytes));
 
-	char   buffer[TEST_SMALL_SIZE];
-	size_t write_len, read_len;
+	size_t write_len;
 
 	// 写入空数据
 	write_len = ct_bytes_write(small_bytes, "", 0);
 	ctunit_assert_uint32(write_len, 0, CTUnit_Equal);
-
-	// 读取空缓冲区
-	read_len = ct_bytes_read(small_bytes, buffer, 1);
-	ctunit_assert_uint32(read_len, 0, CTUnit_Equal);
+	ctunit_assert_uint32(ct_bytes_size(small_bytes), 0, CTUnit_Equal);
+	ctunit_assert_true(ct_bytes_isempty(small_bytes));
+	ctunit_assert_false(ct_bytes_isfull(small_bytes));
 
 	// 写入超过容量的数据
 	char large_data[TEST_SMALL_SIZE * 2];
@@ -103,52 +102,60 @@ static inline void test_edge_cases(void) {
 	write_len = ct_bytes_write(small_bytes, large_data, TEST_SMALL_SIZE * 2);
 	ctunit_assert_uint32(write_len, TEST_SMALL_SIZE, CTUnit_Equal);
 
-	// 读取超过可用数据的长度
-	read_len = ct_bytes_read(small_bytes, buffer, TEST_SMALL_SIZE * 2);
-	ctunit_assert_uint32(read_len, TEST_SMALL_SIZE, CTUnit_Equal);
+	ctunit_assert_uint32(ct_bytes_size(small_bytes), TEST_SMALL_SIZE, CTUnit_Equal);
+	ctunit_assert_false(ct_bytes_isempty(small_bytes));
+	ctunit_assert_true(ct_bytes_isfull(small_bytes));
 }
 
 // 测试多次操作
 static inline void test_multiple_operations(void) {
 	ctunit_assert_not_null(small_bytes);
-	ctunit_assert_not_null(large_bytes);
-
 	ct_bytes_clear(small_bytes);
-	ct_bytes_clear(large_bytes);
+	ctunit_assert_true(ct_bytes_isempty(small_bytes));
+	ctunit_assert_false(ct_bytes_isfull(small_bytes));
 
-	char   buffer[TEST_SMALL_SIZE];
-	size_t write_len, read_len;
+	char*  byte_buffer = ct_bytes_buffer(small_bytes);
+	size_t write_len;
 
-	// 多次写入后再读取
+	// 多次写入
 	ct_bytes_clear(small_bytes);
 	write_len = ct_bytes_write(small_bytes, "Hello", 5);
 	write_len += ct_bytes_write(small_bytes, " World", 6);
 	ctunit_assert_uint32(write_len, 11, CTUnit_Equal);
-	read_len = ct_bytes_read(small_bytes, buffer, 11);
-	ctunit_assert_uint32(read_len, 11, CTUnit_Equal);
-	ctunit_assert_string_n(buffer, "Hello World", 11);
+
+	ctunit_assert_uint32(ct_bytes_size(small_bytes), 11, CTUnit_Equal);
+	ctunit_assert_false(ct_bytes_isempty(small_bytes));
+	ctunit_assert_false(ct_bytes_isfull(small_bytes));
+	ctunit_assert_string_n(byte_buffer, "Hello World", 11);
 
 	// 交替进行读写操作
 	ct_bytes_clear(small_bytes);
 	write_len = ct_bytes_write(small_bytes, "AB", 2);
-	read_len  = ct_bytes_read(small_bytes, buffer, 1);
+	ctunit_assert_uint32(write_len, 2, CTUnit_Equal);
+
+	ctunit_assert_uint32(ct_bytes_size(small_bytes), 2, CTUnit_Equal);
+	ctunit_assert_false(ct_bytes_isempty(small_bytes));
+	ctunit_assert_false(ct_bytes_isfull(small_bytes));
+	ctunit_assert_string_n(byte_buffer, "AB", 2);
+
 	write_len += ct_bytes_write(small_bytes, "CD", 2);
-	read_len += ct_bytes_read(small_bytes, buffer + 1, 3);
 	ctunit_assert_uint32(write_len, 4, CTUnit_Equal);
-	ctunit_assert_uint32(read_len, 4, CTUnit_Equal);
-	ctunit_assert_string_n(buffer, "ABCD", 4);
+
+	ctunit_assert_uint32(ct_bytes_size(small_bytes), 4, CTUnit_Equal);
+	ctunit_assert_false(ct_bytes_isempty(small_bytes));
+	ctunit_assert_false(ct_bytes_isfull(small_bytes));
+	ctunit_assert_string_n(byte_buffer, "ABCD", 4);
 }
 
 // 测试特殊情况
 static inline void test_special_cases(void) {
 	ctunit_assert_not_null(small_bytes);
-	ctunit_assert_not_null(large_bytes);
-
 	ct_bytes_clear(small_bytes);
-	ct_bytes_clear(large_bytes);
+	ctunit_assert_true(ct_bytes_isempty(small_bytes));
+	ctunit_assert_false(ct_bytes_isfull(small_bytes));
 
-	char   buffer[TEST_SMALL_SIZE];
-	size_t write_len, read_len;
+	char* byte_buffer = ct_bytes_buffer(small_bytes);
+	size_t write_len;
 
 	// 写满缓冲区后再写入
 	ct_bytes_clear(small_bytes);
@@ -157,11 +164,10 @@ static inline void test_special_cases(void) {
 	write_len = ct_bytes_write(small_bytes, "B", 1);
 	ctunit_assert_uint32(write_len, 0, CTUnit_Equal);
 
-	// 读空缓冲区后再读取
-	read_len = ct_bytes_read(small_bytes, buffer, TEST_SMALL_SIZE);
-	ctunit_assert_uint32(read_len, TEST_SMALL_SIZE, CTUnit_Equal);
-	read_len = ct_bytes_read(small_bytes, buffer, 1);
-	ctunit_assert_uint32(read_len, 0, CTUnit_Equal);
+	ctunit_assert_uint32(ct_bytes_size(small_bytes), TEST_SMALL_SIZE, CTUnit_Equal);
+	ctunit_assert_false(ct_bytes_isempty(small_bytes));
+	ctunit_assert_true(ct_bytes_isfull(small_bytes));
+	ctunit_assert_string_n(byte_buffer, "AAAAAAAAAAAAAAAA", TEST_SMALL_SIZE);
 }
 
 // 测试内存管理
