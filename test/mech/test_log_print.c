@@ -35,25 +35,7 @@
 static pthread_t g_thread_logger;
 static bool      is_exit = false;
 
-// 日志调度线程函数
-static inline void* thread_log_schedule(void* arg);
-
-// 带日志的测试线程函数
-static inline void* thread_print_with_basic_log(void* arg);
-static inline void* thread_print_with_brief_log(void* arg);
-static inline void* thread_print_with_detail_log(void* arg);
-// 不带日志的测试线程函数
-static inline void* thread_print_without_log(void* arg);
-// 打印性能对比测试函数
-static inline void test_print_performance_comparison(void);
-
-int main(void) {
-	test_print_performance_comparison();
-	ctunit_trace("Finish! test_print_performance_comparison();\n");
-
-	ctunit_pass();
-}
-
+// 辅助函数: 日志调度线程函数
 static inline void* thread_log_schedule(void* arg) {
 	for (; !is_exit;) {
 		ct_log_schedule(getuptime_ms());
@@ -64,6 +46,7 @@ static inline void* thread_log_schedule(void* arg) {
 	(void)arg;
 }
 
+// 辅助函数: 带日志的测试线程函数
 static inline void* thread_print_with_basic_log(void* arg) {
 	for (int i = 0; i < TEST_THREAD_DATA; i++) {
 		test_basic_trace("%04d/%05d/%06d/%07d %16p/%16p/%16p/%16p %10s/%11s/%12s/%13s %02x/%02x/%02x/%02x\n", 1234,
@@ -75,6 +58,7 @@ static inline void* thread_print_with_basic_log(void* arg) {
 	(void)arg;
 }
 
+// 辅助函数: 带日志的测试线程函数
 static inline void* thread_print_with_brief_log(void* arg) {
 	for (int i = 0; i < TEST_THREAD_DATA; i++) {
 		test_brief_trace("%04d/%05d/%06d/%07d %16p/%16p/%16p/%16p %10s/%11s/%12s/%13s %02x/%02x/%02x/%02x\n", 1234,
@@ -86,6 +70,7 @@ static inline void* thread_print_with_brief_log(void* arg) {
 	(void)arg;
 }
 
+// 辅助函数: 带日志的测试线程函数
 static inline void* thread_print_with_detail_log(void* arg) {
 	for (int i = 0; i < TEST_THREAD_DATA; i++) {
 		test_detail_trace("%04d/%05d/%06d/%07d %16p/%16p/%16p/%16p %10s/%11s/%12s/%13s %02x/%02x/%02x/%02x\n", 1234,
@@ -97,6 +82,7 @@ static inline void* thread_print_with_detail_log(void* arg) {
 	(void)arg;
 }
 
+// 辅助函数: 不带日志的测试线程函数
 static inline void* thread_print_without_log(void* arg) {
 	for (int i = 0; i < TEST_THREAD_DATA; i++) {
 		printf("%04d/%05d/%06d/%07d %16p/%16p/%16p/%16p %10s/%11s/%12s/%13s %02x/%02x/%02x/%02x\n", 1234, 1234, 1234,
@@ -108,6 +94,7 @@ static inline void* thread_print_without_log(void* arg) {
 	(void)arg;
 }
 
+// 性能对比测试
 static inline void test_print_performance_comparison(void) {
 	pthread_t   threads[TEST_THREADS];
 	ct_time64_t start, end;
@@ -203,4 +190,11 @@ static inline void test_print_performance_comparison(void) {
 		time_without_log, time_with_basic_log, time_with_brief_log, time_with_detail_log);
 
 	ct_log_destroy();
+}
+
+int main(void) {
+	test_print_performance_comparison();
+	ctunit_trace("Finish! test_print_performance_comparison();\n");
+
+	ctunit_pass();
 }

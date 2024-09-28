@@ -8,6 +8,8 @@
 
 #include "base/ct_atomic.h"
 
+// -------------------------[STATIC DECLARATION]-------------------------
+
 struct ct_bytepool {
 	ct_list_t       box_list[1];   // 字节数组链表
 	size_t          box_capacity;  // 字节数组容量
@@ -15,6 +17,8 @@ struct ct_bytepool {
 	ct_atomic_t     size;          // 池大小
 	pthread_mutex_t lock;          // 自旋锁
 };
+
+// -------------------------[GLOBAL DEFINITION]-------------------------
 
 ct_bytepool_t *ct_bytepool_create(size_t max_size, size_t bytes_capacity) {
 	struct ct_bytepool *self = (struct ct_bytepool *)malloc(sizeof(struct ct_bytepool));
@@ -82,3 +86,5 @@ void ct_bytepool_put(ct_bytepool_t *self, ct_bytes_t *bytes) {
 		ct_bytes_destroy(bytes);
 	}
 }
+
+// -------------------------[STATIC DEFINITION]-------------------------

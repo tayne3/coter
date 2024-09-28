@@ -6,67 +6,11 @@
  */
 #include "ctunit.h"
 #include "mech/ct_cron.h"
-#include "mech/ct_jobpool.h"
+#include "mech/ct_thpool.h"
 
 static ct_time_t mock_current_time = 0;
 
 // cron任务调度，并模拟时间流逝
-static inline void cron_schedule_mock(ct_time_t seconds);
-// 重置模拟时间
-static inline void reset_mock_time(void);
-// cron任务回调函数
-static inline void cron_callback(ct_cron_id_t id, const ct_any_buf_t arg);
-
-// 测试基本功能
-static inline void test_basic_functionality(void);
-// 测试每分钟执行的cron任务
-static inline void test_every_minute_cron(void);
-// 测试每小时执行的cron任务
-static inline void test_hourly_cron(void);
-// 测试每天执行的cron任务
-static inline void test_daily_cron(void);
-// 测试每周执行的cron任务
-static inline void test_weekly_cron(void);
-// 测试每月执行的cron任务
-static inline void test_monthly_cron(void);
-// 测试多个cron任务同时运行
-static inline void test_multiple_crons(void);
-
-int main(void) {
-	// 创建任务池
-	ct_jobpool_t *jobpool = ct_jobpool_create(2, 10);
-	ctunit_assert_not_null(jobpool);
-
-	// 初始化cron任务管理
-	ct_cron_mgr_init(mock_current_time, jobpool);
-
-	test_basic_functionality();
-	ctunit_trace("Finish! test_basic_functionality()\n");
-
-	test_every_minute_cron();
-	ctunit_trace("Finish! test_every_minute_cron()\n");
-
-	test_hourly_cron();
-	ctunit_trace("Finish! test_hourly_cron()\n");
-
-	test_daily_cron();
-	ctunit_trace("Finish! test_daily_cron()\n");
-
-	test_weekly_cron();
-	ctunit_trace("Finish! test_weekly_cron()\n");
-
-	test_monthly_cron();
-	ctunit_trace("Finish! test_monthly_cron()\n");
-
-	test_multiple_crons();
-	ctunit_trace("Finish! test_multiple_crons()\n");
-
-	// 销毁任务池
-	ct_jobpool_destroy(jobpool);
-
-	ctunit_pass();
-}
-
 static inline void cron_schedule_mock(ct_time_t seconds) {
 	for (;;) {
 		if (ct_cron_mgr_schedule(mock_current_time)) {
@@ -81,6 +25,7 @@ static inline void cron_schedule_mock(ct_time_t seconds) {
 	}
 }
 
+// 重置模拟时间
 static inline void reset_mock_time(void) {
 	mock_current_time = 0;
 	ct_cron_mgr_schedule(mock_current_time);
@@ -198,4 +143,39 @@ static inline void test_multiple_crons(void) {
 	ct_cron_stop(cron_ids[0]);
 	ct_cron_stop(cron_ids[1]);
 	ct_cron_stop(cron_ids[2]);
+}
+
+int main(void) {
+	// 创建线程池
+	ct_thpool_t *thpool  = ct_thpool_create(2, NULL);
+	ctunit_assert_not_null(thpool);
+
+	// 初始化cron任务管理
+	ct_cron_mgr_init(mock_current_time, thpool);
+
+	test_basic_functionality();
+	ctunit_trace("Finish! test_basic_functionality()\n");
+
+	test_every_minute_cron();
+	ctunit_trace("Finish! test_every_minute_cron()\n");
+
+	test_hourly_cron();
+	ctunit_trace("Finish! test_hourly_cron()\n");
+
+	test_daily_cron();
+	ctunit_trace("Finish! test_daily_cron()\n");
+
+	test_weekly_cron();
+	ctunit_trace("Finish! test_weekly_cron()\n");
+
+	test_monthly_cron();
+	ctunit_trace("Finish! test_monthly_cron()\n");
+
+	test_multiple_crons();
+	ctunit_trace("Finish! test_multiple_crons()\n");
+
+	// 销毁线程池     
+	ct_thpool_destroy(thpool);
+
+	ctunit_pass();
 }

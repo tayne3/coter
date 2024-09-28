@@ -7,7 +7,7 @@
 #include "base/ct_platform.h"
 #include "ctunit.h"
 #include "mech/ct_evmsg.h"
-#include "mech/ct_jobpool.h"
+#include "mech/ct_thpool.h"
 
 #define TEST_THREAD_NUMBER 3
 #define TEST_DATA_NUMBER   10000
@@ -16,20 +16,46 @@ static ct_evmsg_center_ptr_t test_center                                       =
 static bool                  test_result[TEST_THREAD_NUMBER][TEST_DATA_NUMBER] = {{0}};
 static bool                  is_exit[TEST_THREAD_NUMBER]                       = {0};
 
-// 模拟事件处理函数
-static inline bool test_evmsg_handler(ct_evmsg_t *msg, void *userdata);
-// 测试事件发布
-static inline void *test_evmsg_publish(void *arg);
+static inline bool test_evmsg_handler(ct_evmsg_t *msg, void *userdata) {
+	ctunit_assert_not_null(msg);
+	ctunit_assert_not_null(msg->data);
+	ctunit_assert_uint8(msg->id, 0, CTUnit_GreaterEqual);
+	ctunit_assert_uint8(msg->id, TEST_THREAD_NUMBER, CTUnit_Less);
+
+	const int result_index = *(int *)msg->data;
+	ctunit_assert_false(test_result[msg->id][result_index]);
+	test_result[msg->id][result_index] = true;
+	return false;
+	(void)(userdata);
+}
+
+static inline void *test_evmsg_publish(void *arg) {
+	const uint8_t id = (uint8_t)(uintptr_t)arg;
+	// 模拟事件数据
+	ct_evmsg_t msg = CT_EVMSG_MSG_INIT(1, id, NULL, 0);
+	// 发布事件
+	for (int i = 0; i < TEST_DATA_NUMBER; i++) {
+		msg.data = &i;
+		msg.size = sizeof(int);
+		ct_evmsg_publish(test_center, &msg);
+		sched_yield();
+	}
+
+	is_exit[id] = true;
+	pthread_exit(NULL);
+	return NULL;
+}
 
 int main(void) {
 	bool      is_ok;
 	pthread_t threads[TEST_THREAD_NUMBER];
 
 	// 创建任务池
-	ct_jobpool_t *jobpool = ct_jobpool_create(16, 50);
+	ct_thpool_t *thpool = ct_thpool_create(64, NULL);
+	ctunit_assert_not_null(thpool);
 
 	// 初始化事件消息中枢
-	test_center = ct_evmsg_center_create(jobpool);
+	test_center = ct_evmsg_center_create(thpool);
 	// 订阅事件
 	ct_evmsg_subscribe(test_center, 1, test_evmsg_handler, NULL);
 
@@ -68,37 +94,7 @@ int main(void) {
 	}
 
 	// 销毁任务池
-	ct_jobpool_destroy(jobpool);
+	ct_thpool_destroy(thpool);
 
 	ctunit_pass();
-}
-
-static inline bool test_evmsg_handler(ct_evmsg_t *msg, void *userdata) {
-	ctunit_assert_not_null(msg);
-	ctunit_assert_not_null(msg->data);
-	ctunit_assert_uint8(msg->id, 0, CTUnit_GreaterEqual);
-	ctunit_assert_uint8(msg->id, TEST_THREAD_NUMBER, CTUnit_Less);
-
-	const int result_index = *(int *)msg->data;
-	ctunit_assert_false(test_result[msg->id][result_index]);
-	test_result[msg->id][result_index] = true;
-	return false;
-	(void)(userdata);
-}
-
-static inline void *test_evmsg_publish(void *arg) {
-	const uint8_t id = (uint8_t)(uintptr_t)arg;
-	// 模拟事件数据
-	ct_evmsg_t msg = CT_EVMSG_MSG_INIT(1, id, NULL, 0);
-	// 发布事件
-	for (int i = 0; i < TEST_DATA_NUMBER; i++) {
-		msg.data = &i;
-		msg.size = sizeof(int);
-		ct_evmsg_publish(test_center, &msg);
-		sched_yield();
-	}
-
-	is_exit[id] = true;
-	pthread_exit(NULL);
-	return NULL;
 }

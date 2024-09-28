@@ -48,7 +48,6 @@ void ct_log_timecache_get(char tmstr[28]) {
 
 	if (cache->accect_sec > 0) {
 		if (tv.tv_sec == cache->accect_sec) {
-			// sprintf(cache->tmstr + 18, "%03d", (int)(tv.tv_usec / 1000));
 			p = &cache->tmstr[18];
 			i2s_3(&p, (int)(tv.tv_usec / 1000));
 
@@ -61,7 +60,6 @@ void ct_log_timecache_get(char tmstr[28]) {
 			cache->accect_sec = tv.tv_sec;
 			cache->_sys_sec += diff_sec;
 
-			// sprintf(cache->tmstr + 15, "%02d.%03d", (int)cache->_sys_sec, (int)(tv.tv_usec / 1000));
 			p = &cache->tmstr[15];
 			i2s_2(&p, (int)cache->_sys_sec);
 			p = &cache->tmstr[18];
@@ -78,8 +76,6 @@ void ct_log_timecache_get(char tmstr[28]) {
 	cache->_sys_min      = tm->tm_min;
 	cache->accect_sec    = tv.tv_sec;
 
-	// sprintf(cache->tmstr, "%02d.%02d.%02d-%02d:%02d:%02d.%03d", tm->tm_year % 100, tm->tm_mon + 1, tm->tm_mday,
-	// 		tm->tm_hour, tm->tm_min, tm->tm_sec, (int)(tv.tv_usec / 1000));
 	p = cache->tmstr;
 	i2s_2(&p, tm->tm_year % 100);
 	*p++ = '.';

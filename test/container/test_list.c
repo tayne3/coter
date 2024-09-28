@@ -7,51 +7,13 @@
 #include "container/ct_list.h"
 #include "ctunit.h"
 
-// 测试函数：ct_list_foreach_entry
+// 测试函数: ct_list_foreach_entry
 typedef struct my_struct {
 	ct_list_buf_t list;
 	int           data;
 } my_struct_t;
 
 // 测试函数: 链表基本操作
-static inline void test_list_basic(void);
-// 测试函数：链表操作
-static inline void test_list_operations(void);
-// 测试函数：链表拼接
-static inline void test_list_splice(void);
-// 测试函数：ct_list_foreach
-static inline void test_list_foreach(void);
-static inline void test_list_foreach_entry(void);
-// 测试函数：ct_list_foreach_entry_from
-static inline void test_list_foreach_entry_from(void);
-// 测试函数：ct_list_foreach_entry_safe
-static inline void test_list_foreach_entry_safe(void);
-
-int main(void) {
-	test_list_basic();
-	ctunit_trace("Finish! test_list_init();\n");
-
-	test_list_operations();
-	ctunit_trace("Finish! test_list_operations();\n");
-
-	test_list_splice();
-	ctunit_trace("Finish! test_list_splice();\n");
-
-	test_list_foreach();
-	ctunit_trace("Finish! test_list_foreach();\n");
-
-	test_list_foreach_entry();
-	ctunit_trace("Finish! test_list_foreach_entry();\n");
-
-	test_list_foreach_entry_from();
-	ctunit_trace("Finish! test_list_foreach_entry_from();\n");
-
-	test_list_foreach_entry_safe();
-	ctunit_trace("Finish! test_list_foreach_entry_safe();\n");
-
-	ctunit_pass();
-}
-
 static inline void test_list_basic(void) {
 	ct_list_buf_t head;
 	ct_list_init(head);
@@ -132,6 +94,7 @@ static inline void test_list_basic(void) {
 	ctunit_assert_uint32(ct_list_size(head), 0, CTUnit_Equal);
 }
 
+// 测试函数: 链表操作
 static inline void test_list_operations(void) {
 	ct_list_buf_t head, node1, node2, node3, node4;
 
@@ -222,6 +185,7 @@ static inline void test_list_operations(void) {
 	ctunit_assert_pointer(ct_list_last(head), head);
 }
 
+// 测试函数: 链表拼接
 static inline void test_list_splice(void) {
 	ct_list_buf_t head1, head2, head3;
 	ct_list_buf_t node1, node2, node3, node4, node5, node6;
@@ -294,7 +258,7 @@ static inline void test_list_splice(void) {
 	ct_list_remove(node6);
 	ctunit_assert_true(ct_list_isempty(head1));
 
-	// 测试边界情况：空链表
+	// 测试边界情况: 空链表
 	ct_list_buf_t empty_head;
 	ct_list_init(empty_head);
 
@@ -307,7 +271,7 @@ static inline void test_list_splice(void) {
 	ctunit_assert_uint32(ct_list_size(empty_head), 0, CTUnit_Equal);
 }
 
-// 测试函数：ct_list_foreach
+// 测试函数: ct_list_foreach
 static inline void test_list_foreach(void) {
 	ct_list_buf_t head;
 	ct_list_init(head);
@@ -325,6 +289,7 @@ static inline void test_list_foreach(void) {
 	ctunit_assert_true(count == 2);
 }
 
+// 测试函数: test_list_foreach_entry
 static inline void test_list_foreach_entry(void) {
 	ct_list_buf_t head;
 	ct_list_init(head);
@@ -346,7 +311,7 @@ static inline void test_list_foreach_entry(void) {
 	ctunit_assert_true(sum == 3);
 }
 
-// 测试函数：ct_list_foreach_entry_from
+// 测试函数: ct_list_foreach_entry_from
 static inline void test_list_foreach_entry_from(void) {
 	ct_list_buf_t head;
 	ct_list_init(head);
@@ -382,7 +347,7 @@ static inline void test_list_foreach_entry_from(void) {
 	ctunit_assert_true(sum == 0);
 }
 
-// 测试函数：ct_list_foreach_entry_safe
+// 测试函数: ct_list_foreach_entry_safe
 static inline void test_list_foreach_entry_safe(void) {
 	ct_list_buf_t head;
 	ct_list_init(head);
@@ -400,4 +365,29 @@ static inline void test_list_foreach_entry_safe(void) {
 	}
 	ctunit_assert_true(sum == 3);
 	ctunit_assert_true(ct_list_isempty(head));
+}
+
+int main(void) {
+	test_list_basic();
+	ctunit_trace("Finish! test_list_init();\n");
+
+	test_list_operations();
+	ctunit_trace("Finish! test_list_operations();\n");
+
+	test_list_splice();
+	ctunit_trace("Finish! test_list_splice();\n");
+
+	test_list_foreach();
+	ctunit_trace("Finish! test_list_foreach();\n");
+
+	test_list_foreach_entry();
+	ctunit_trace("Finish! test_list_foreach_entry();\n");
+
+	test_list_foreach_entry_from();
+	ctunit_trace("Finish! test_list_foreach_entry_from();\n");
+
+	test_list_foreach_entry_safe();
+	ctunit_trace("Finish! test_list_foreach_entry_safe();\n");
+
+	ctunit_pass();
 }

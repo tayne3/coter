@@ -11,6 +11,9 @@ if(MSVC)
     # set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /DEBUG /OPT:REF /OPT:ICF")
     # set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} /DEBUG /OPT:REF /OPT:ICF")
 else()
+    if(MINGW)
+      add_compile_options(-Wno-format)
+    endif()
     add_compile_options(
         -Wall                               # 启用常见警告
         -Wextra                             # 启用额外警告

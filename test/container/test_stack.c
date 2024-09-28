@@ -7,27 +7,6 @@
 #include "container/ct_stack.h"
 #include "ctunit.h"
 
-static inline int test_stack_init(void);
-static inline int test_stack_push(void);
-static inline int test_stack_pop(void);
-static inline int test_stack_top(void);
-
-int main(void) {
-	test_stack_init();
-	ctunit_trace("Finish! test_stack_init();\n");
-
-	test_stack_push();
-	ctunit_trace("Finish! test_stack_push();\n");
-
-	test_stack_pop();
-	ctunit_trace("Finish! test_stack_pop();\n");
-
-	test_stack_top();
-	ctunit_trace("Finish! test_stack_top();\n");
-
-	ctunit_pass();
-}
-
 static inline int test_stack_init(void) {
 	ct_stack_t   stack;
 	ct_any_t     buffer[1000];
@@ -171,4 +150,20 @@ static inline int test_stack_top(void) {
 	ctunit_assert_true(!ct_stack_isfull(&stack));
 
 	return 0;
+}
+
+int main(void) {
+	test_stack_init();
+	ctunit_trace("Finish! test_stack_init();\n");
+
+	test_stack_push();
+	ctunit_trace("Finish! test_stack_push();\n");
+
+	test_stack_pop();
+	ctunit_trace("Finish! test_stack_pop();\n");
+
+	test_stack_top();
+	ctunit_trace("Finish! test_stack_top();\n");
+
+	ctunit_pass();
 }

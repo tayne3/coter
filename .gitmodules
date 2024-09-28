@@ -1,3 +1,3 @@
-[submodule "sub/ctunit"]
-	path = sub/ctunit
+[submodule "3rd/ctunit"]
+	path = 3rd/ctunit
 	url = http://192.168.1.47:3000/tayne3/ctunit.git

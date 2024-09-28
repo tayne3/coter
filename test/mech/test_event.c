@@ -16,33 +16,6 @@ static ct_event_t event_a                        = CT_EVENT_INITIALIZER;
 static ct_event_t event_b                        = CT_EVENT_INITIALIZER;
 
 // 辅助函数:发送事件
-static inline void* send_events(void* arg);
-// 测试基本功能
-static inline void test_basic_functionality(void);
-// 测试边界条件
-static inline void test_boundary_conditions(void);
-// 测试并发
-static inline void test_concurrency(void);
-// 测试非阻塞行为
-static inline void test_non_blocking(void);
-
-int main(void) {
-	test_basic_functionality();
-	ctunit_trace("Finish! test_basic_functionality();\n");
-
-	test_boundary_conditions();
-	ctunit_trace("Finish! test_boundary_conditions();\n");
-
-	test_concurrency();
-	ctunit_trace("Finish! test_concurrency();\n");
-
-	test_non_blocking();
-	ctunit_trace("Finish! test_non_blocking();\n");
-
-	ctunit_pass();
-}
-
-// 辅助函数:发送事件
 static inline void* send_events(void* arg) {
 	const ct_event_id_t id_send = (ct_event_id_t)(uintptr_t)arg + 1;
 	ctunit_assert_true(ct_event_id_isvalid(id_send));
@@ -181,4 +154,20 @@ static inline void test_non_blocking(void) {
 	ct_event_send(&event, CT_EVENT_ID_MIN, ct_any_null);
 	id = ct_event_try_receive(&event);
 	ctunit_assert_uint8(id, CT_EVENT_ID_MIN, CTUnit_Equal);
+}
+
+int main(void) {
+	test_basic_functionality();
+	ctunit_trace("Finish! test_basic_functionality();\n");
+
+	test_boundary_conditions();
+	ctunit_trace("Finish! test_boundary_conditions();\n");
+
+	test_concurrency();
+	ctunit_trace("Finish! test_concurrency();\n");
+
+	test_non_blocking();
+	ctunit_trace("Finish! test_non_blocking();\n");
+
+	ctunit_pass();
 }

@@ -8,42 +8,6 @@
 #include "ctunit.h"
 
 // 辅助函数: 修改系统时间 (需要管理员权限)
-static inline int change_system_time(time_t new_time);
-// 测试用例: 验证时间戳递增
-static inline void test_timestamp_increment(void);
-// 测试用例: 验证毫秒精度
-static inline void test_millisecond_precision(void);
-// 测试用例: 验证不受系统时间影响
-static inline void test_unaffected_by_system_time(void);
-
-int main(int argc, char *argv[]) {
-	bool is_quiet = false;
-	for (int i = 1; i < argc; i++) {
-		if (strncmp(argv[i], "-q", 2) == 0) {
-			is_quiet = true;
-			break;
-		}
-	}
-
-	ctunit_trace("Warning: About to change system time, please ensure you have administrator privileges\n");
-	if (!is_quiet) {
-		ctunit_trace("Press Enter to continue...");
-		getchar();
-	}
-
-	test_timestamp_increment();
-	ctunit_trace("Finish! test_timestamp_increment();\n");
-
-	test_millisecond_precision();
-	ctunit_trace("Finish! test_millisecond_precision();\n");
-
-	test_unaffected_by_system_time();
-	ctunit_trace("Finish! test_unaffected_by_system_time();\n");
-
-	ctunit_pass();
-}
-
-// 辅助函数: 修改系统时间 (需要管理员权限)
 static inline int change_system_time(time_t new_time) {
 #ifdef _WIN32
 	SYSTEMTIME     st;
@@ -116,4 +80,31 @@ static inline void test_unaffected_by_system_time(void) {
 
 	// Allow 1 second error
 	ctunit_assert_uint64(after_tick - before_tick, 1000, CTUnit_Less);
+}
+
+int main(int argc, char *argv[]) {
+	bool is_quiet = false;
+	for (int i = 1; i < argc; i++) {
+		if (strncmp(argv[i], "-q", 2) == 0) {
+			is_quiet = true;
+			break;
+		}
+	}
+
+	ctunit_trace("Warning: About to change system time, please ensure you have administrator privileges\n");
+	if (!is_quiet) {
+		ctunit_trace("Press Enter to continue...");
+		getchar();
+	}
+
+	test_timestamp_increment();
+	ctunit_trace("Finish! test_timestamp_increment();\n");
+
+	test_millisecond_precision();
+	ctunit_trace("Finish! test_millisecond_precision();\n");
+
+	test_unaffected_by_system_time();
+	ctunit_trace("Finish! test_unaffected_by_system_time();\n");
+
+	ctunit_pass();
 }

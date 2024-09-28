@@ -11,19 +11,6 @@
 #pragma GCC diagnostic ignored "-Wformat-truncation"
 #endif
 
-static inline void test_snprintf(void);
-static inline void test_snprintf_s(void);
-
-int main(void) {
-	test_snprintf();
-	ctunit_trace("Finish! test_snprintf();\n");
-
-	test_snprintf_s();
-	ctunit_trace("Finish! test_snprintf_s();\n");
-
-	ctunit_pass();
-}
-
 static inline void test_snprintf(void) {
 	char buf[100];
 
@@ -138,4 +125,14 @@ static inline void test_snprintf_s(void) {
 		ctunit_assert_int(buf[4], 0, CTUnit_Equal);
 		ctunit_assert_int(buf[sizeof(buf) - 1], 0, CTUnit_Equal);
 	}
+}
+
+int main(void) {
+	test_snprintf();
+	ctunit_trace("Finish! test_snprintf();\n");
+
+	test_snprintf_s();
+	ctunit_trace("Finish! test_snprintf_s();\n");
+
+	ctunit_pass();
 }

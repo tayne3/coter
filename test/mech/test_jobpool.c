@@ -16,23 +16,13 @@ static size_t          test_data_size           = 0;
 static size_t          test_end_number          = 0;
 static pthread_mutex_t test_mutex[1]            = {PTHREAD_MUTEX_INITIALIZER};
 
-static inline void  test_data_reset(void);
-static inline void *test_job_publish(void *arg);
-static inline void  test_job_routine(void *arg);
-static inline void  test_jobpool_add(size_t data_count, size_t task_count, size_t job_count);
+static inline void test_job_routine(void *arg) {
+	const size_t idx = (size_t)(uintptr_t)arg;
+	test_data[idx]   = true;
 
-int main(void) {
-	test_jobpool_add(10, 1, 10);
-	ctunit_trace("Finish! test_jobpool_add(10, 1, 10);\n");
-
-	test_jobpool_add(10, 10, 1);
-	ctunit_trace("Finish! test_jobpool_add(10, 10, 1);\n");
-
-	test_jobpool_add(500, 50, 50);
-	ctunit_trace("Finish! test_jobpool_add(500, 50, 50);\n");
-
-	pthread_mutex_destroy(test_mutex);
-	ctunit_pass();
+	pthread_mutex_lock(test_mutex);
+	test_end_number++;
+	pthread_mutex_unlock(test_mutex);
 }
 
 static inline void test_data_reset(void) {
@@ -42,22 +32,13 @@ static inline void test_data_reset(void) {
 }
 
 static inline void *test_job_publish(void *arg) {
-	ct_jobpool_t *pool = (ct_jobpool_t *)arg;
+	ct_jobpool_t *jobpool = (ct_jobpool_t *)arg;
 	for (size_t i = 0; i < test_data_size; i++) {
-		ct_jobpool_add(pool, test_job_routine, (void *)(uintptr_t)i);
+		ct_jobpool_submit(jobpool, test_job_routine, (void *)(uintptr_t)i);
 	}
 
 	pthread_exit(NULL);
 	return NULL;
-}
-
-static inline void test_job_routine(void *arg) {
-	const size_t idx = (size_t)(uintptr_t)arg;
-	test_data[idx]   = true;
-
-	pthread_mutex_lock(test_mutex);
-	test_end_number++;
-	pthread_mutex_unlock(test_mutex);
 }
 
 static inline void test_jobpool_add(size_t data_count, size_t task_count, size_t job_count) {
@@ -70,12 +51,12 @@ static inline void test_jobpool_add(size_t data_count, size_t task_count, size_t
 	test_data_reset();
 	test_end_number = 0;
 
-	ct_jobpool_t *pool = ct_jobpool_create(task_count, job_count);
-	ctunit_assert_not_null(pool);
+	ct_jobpool_t *jobpool = ct_jobpool_create(task_count, job_count);
+	ctunit_assert_not_null(jobpool);
 
-	bool is_ok;
+	bool      is_ok;
 	pthread_t thread;
-	is_ok = pthread_create(&thread, NULL, test_job_publish, pool) == 0;
+	is_ok = pthread_create(&thread, NULL, test_job_publish, jobpool) == 0;
 	ctunit_assert_true(is_ok);
 
 	// 等待结束 (超时时长: 10s)
@@ -97,7 +78,21 @@ static inline void test_jobpool_add(size_t data_count, size_t task_count, size_t
 	ctunit_assert_uint32(test_end_number, test_data_size, CTUnit_Equal);
 	pthread_mutex_unlock(test_mutex);
 
-	ct_jobpool_destroy(pool);
+	ct_jobpool_destroy(jobpool);
 
 	ctunit_assert_uint32(test_end_number, test_data_size, CTUnit_Equal);
+}
+
+int main(void) {
+	test_jobpool_add(10, 1, 10);
+	ctunit_trace("Finish! test_jobpool_add(10, 1, 10);\n");
+
+	test_jobpool_add(10, 10, 1);
+	ctunit_trace("Finish! test_jobpool_add(10, 10, 1);\n");
+
+	test_jobpool_add(500, 50, 50);
+	ctunit_trace("Finish! test_jobpool_add(500, 50, 50);\n");
+
+	pthread_mutex_destroy(test_mutex);
+	ctunit_pass();
 }

@@ -8,39 +8,6 @@
 #include "base/ct_random.h"
 #include "ctunit.h"
 
-static inline void test_random_bool(uint64_t test_number);
-static inline void test_random_uint8(uint64_t test_number);
-static inline void test_random_uint16(uint64_t test_number);
-static inline void test_random_uint32(uint64_t test_number);
-static inline void test_random_uint64(uint64_t test_number);
-static inline void test_random_float(uint64_t test_number);
-static inline void test_random_double(uint64_t test_number);
-
-int main(void) {
-	test_random_bool(10000);
-	ctunit_trace("Finish! test_random_bool(10000);\n");
-
-	test_random_uint8(10000);
-	ctunit_trace("Finish! test_random_uint8(10000);\n");
-
-	test_random_uint16(10000);
-	ctunit_trace("Finish! test_random_uint16(10000);\n");
-
-	test_random_uint32(10000);
-	ctunit_trace("Finish! test_random_uint32(10000);\n");
-
-	test_random_uint64(10000);
-	ctunit_trace("Finish! test_random_uint64(10000);\n");
-
-	test_random_float(10000);
-	ctunit_trace("Finish! test_random_float(10000);\n");
-
-	test_random_double(10000);
-	ctunit_trace("Finish! test_random_double(10000);\n");
-
-	ctunit_pass();
-}
-
 static inline void test_random_bool(uint64_t test_number) {
 	// 初始化随机数生成器
 	ct_random_buf_t state;
@@ -246,4 +213,29 @@ static inline void test_random_double(uint64_t test_number) {
 	}
 
 	ctunit_assert_true(is_ok);
+}
+
+int main(void) {
+	test_random_bool(10000);
+	ctunit_trace("Finish! test_random_bool(10000);\n");
+
+	test_random_uint8(10000);
+	ctunit_trace("Finish! test_random_uint8(10000);\n");
+
+	test_random_uint16(10000);
+	ctunit_trace("Finish! test_random_uint16(10000);\n");
+
+	test_random_uint32(10000);
+	ctunit_trace("Finish! test_random_uint32(10000);\n");
+
+	test_random_uint64(10000);
+	ctunit_trace("Finish! test_random_uint64(10000);\n");
+
+	test_random_float(10000);
+	ctunit_trace("Finish! test_random_float(10000);\n");
+
+	test_random_double(10000);
+	ctunit_trace("Finish! test_random_double(10000);\n");
+
+	ctunit_pass();
 }

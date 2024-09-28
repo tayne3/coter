@@ -1,7 +1,7 @@
 # 设置 cmake 最低版本
 cmake_minimum_required(VERSION 3.5)
 # 设置项目属性
-project(coter VERSION 0.4.0.0 LANGUAGES C)
+project(coter VERSION 0.5.1.0 LANGUAGES C)
 
 # 是否编译示例与测试程序
 option(COTER_BUILD_EXAMPLE "build example program" OFF)
@@ -19,8 +19,8 @@ include(ToolchainWindows)
 
 # 导入子目录: 源码
 add_subdirectory(src)
-# 导入子目录: 子项目
-add_subdirectory(sub)
+# 导入子目录: 第三方库
+add_subdirectory(3rd)
 
 # 导入子目录: 测试
 if(COTER_BUILD_TEST)

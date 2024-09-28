@@ -9,8 +9,8 @@
 #include "base/ct_time.h"
 #include "container/ct_heap.h"
 #include "container/ct_list.h"
-#include "mech/ct_jobpool.h"
 #include "mech/ct_log.h"
+#include "mech/ct_thpool.h"
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
@@ -71,13 +71,13 @@ static struct ct_timer_manager {
 	ct_heap_buf_t   heap;                        // 最小堆
 	ct_timer_buf_t  timer_null;                  // 空定时器
 	ct_time64_t     time_tick;                   // 运行时间
-	ct_jobpool_t   *jobpool;                     // 任务池
+	ct_thpool_t    *thpool;                      // 任务池
 	ct_timer_id_t   ident_count;                 // ID计数
 	bool            is_busy;                     // 是否忙碌
 } mgr[1] = {{
 	.lock        = {PTHREAD_MUTEX_INITIALIZER},
 	.time_tick   = 0,
-	.jobpool     = NULL,
+	.thpool      = NULL,
 	.ident_count = 0,
 	.is_busy     = false,
 }};
@@ -132,8 +132,8 @@ static inline bool tr_istrigger(ct_timer_t *self);
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
-void ct_timer_mgr_init(ct_time64_t tick, struct ct_jobpool *jobpool) {
-	assert(jobpool);
+void ct_timer_mgr_init(ct_time64_t tick, struct ct_thpool *thpool) {
+	assert(thpool);
 	// 初始化最小堆
 	ct_heap_init(mgr->heap, mgr->heap_buffer, CT_TIMER_MAX, tr_sorting);
 	// 初始化可用定时器链表
@@ -150,7 +150,7 @@ void ct_timer_mgr_init(ct_time64_t tick, struct ct_jobpool *jobpool) {
 	}
 
 	mgr->time_tick = tick;
-	mgr->jobpool   = jobpool;
+	mgr->thpool    = thpool;
 }
 
 bool ct_timer_mgr_schedule(ct_time64_t tick) {
@@ -170,7 +170,7 @@ bool ct_timer_mgr_schedule(ct_time64_t tick) {
 	mgr_unlock();
 
 	// 添加异步工作
-	ct_jobpool_add(mgr->jobpool, mgr_trigger_callback, self);
+	ct_thpool_submit(mgr->thpool, mgr_trigger_callback, self);
 	return true;
 }
 
@@ -256,7 +256,7 @@ static inline void mgr_trigger_callback(void *arg) {
 	assert(arg);
 	ct_timer_t *self = (ct_timer_t *)arg;
 	if (self->is_active) {
-		// ct_jobpool_add(mgr->jobpool, mgr_timer_callback, self);  // 添加异步工作
+		// ct_thpool_submit(mgr->thpool, mgr_timer_callback, self);  // 添加异步工作
 		mgr_timer_callback(self);
 	}
 
@@ -272,7 +272,7 @@ static inline void mgr_trigger_callback(void *arg) {
 		mgr_unlock();
 
 		if (self->is_active) {
-			// ct_jobpool_add(mgr->jobpool, mgr_timer_callback, self);  // 添加异步工作
+			// ct_thpool_submit(mgr->thpool, mgr_timer_callback, self);  // 添加异步工作
 			mgr_timer_callback(self);
 		}
 		sched_yield();

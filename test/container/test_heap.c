@@ -8,24 +8,6 @@
 #include "container/ct_heap.h"
 #include "ctunit.h"
 
-static inline bool ct_heap_sort_func(const ct_any_buf_t a, const ct_any_buf_t b);
-static inline int  test_heap_init(void);
-static inline int  test_heap_insert(void);
-static inline int  test_heap_remove(void);
-
-int main(void) {
-	test_heap_init();
-	ctunit_trace("Finish! test_heap_init();\n");
-
-	test_heap_insert();
-	ctunit_trace("Finish! test_heap_insert();\n");
-
-	test_heap_remove();
-	ctunit_trace("Finish! test_heap_remove();\n");
-
-	ctunit_pass();
-}
-
 static inline bool ct_heap_sort_func(const ct_any_buf_t a, const ct_any_buf_t b) {
 	return a->d->i <= b->d->i;
 }
@@ -134,4 +116,17 @@ static inline int test_heap_remove(void) {
 	ctunit_assert_true(!ct_heap_isfull(&heap));
 
 	return 0;
+}
+
+int main(void) {
+	test_heap_init();
+	ctunit_trace("Finish! test_heap_init();\n");
+
+	test_heap_insert();
+	ctunit_trace("Finish! test_heap_insert();\n");
+
+	test_heap_remove();
+	ctunit_trace("Finish! test_heap_remove();\n");
+
+	ctunit_pass();
 }

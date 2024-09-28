@@ -66,6 +66,17 @@ CT_API bool ct_queue_dequeue(ct_queue_buf_t self, void* item) __ct_nonnull(1, 2)
  */
 CT_API bool ct_queue_head(ct_queue_buf_t self, void* item) __ct_nonnull(1, 2);
 
+/**
+ * @brief 遍历队列中的每个元素并执行回调函数
+ *
+ * @param self 队列实例
+ * @param callback 回调函数, 返回非0值则停止遍历
+ * @param arg 回调函数的参数
+ * @return 遍历执行结果
+ */
+CT_API int ct_queue_traverse(ct_queue_buf_t self, int (*callback)(void* item, void* arg), void* item, void* arg)
+	__ct_nonnull(1, 2);
+
 #ifdef __cplusplus
 }
 #endif
