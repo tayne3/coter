@@ -44,25 +44,23 @@ int ct_log_init(ct_time64_t tick, size_t type_size, const ct_log_config_t* type_
 	assert(type_size > 0);
 	assert(type_config);
 
-	ct_bytepool_t* bytepool = ct_bytepool_create(1024, 1024);
-	assert(bytepool);
-	if (!bytepool) {
-		goto Fail;
+	glogger->bytepool = ct_bytepool_create(1024, 1024);
+	if (!glogger->bytepool) {
+		return -1;
 	}
-	struct ct_log_printer* printer = ct_log_printer_create(bytepool);
-	assert(bytepool);
-	if (!printer) {
-		goto Fail;
+	glogger->printer = ct_log_printer_create(glogger->bytepool);
+	if (!glogger->printer) {
+		return -1;
 	}
-	struct ct_log_data* datas = (struct ct_log_data*)calloc(type_size, sizeof(struct ct_log_data));
-	assert(bytepool);
-	if (!datas) {
-		goto Fail;
+	glogger->datas = (struct ct_log_data*)calloc(type_size, sizeof(struct ct_log_data));
+	if (!glogger->datas) {
+		return -1;
 	}
 
+	glogger->type_size = type_size;
 	for (size_t i = 0; i < type_size; i++) {
 		const ct_log_config_t* config = &type_config[i];
-		struct ct_log_data*    data   = &datas[i];
+		struct ct_log_data*    data   = &glogger->datas[i];
 
 		data->disable_print = config->disable_print;
 		data->level         = config->level;
@@ -70,52 +68,21 @@ int ct_log_init(ct_time64_t tick, size_t type_size, const ct_log_config_t* type_
 		if (config->disable_save) {
 			data->storage = NULL;
 		} else {
-			data->storage = ct_log_storage_create(tick, bytepool, config);
+			data->storage = ct_log_storage_create(tick, glogger->bytepool, config);
 			if (!data->storage) {
-				goto Fail;
+				return -1;
 			}
 		}
 		if (config->callback_routine == NULL) {
 			data->callback = NULL;
 		} else {
-			data->callback = ct_log_callback_create(bytepool, config);
+			data->callback = ct_log_callback_create(glogger->bytepool, config);
 			if (!data->callback) {
-				goto Fail;
+				return -1;
 			}
 		}
 	}
-
-	glogger->bytepool = bytepool;
-	glogger->printer  = printer;
-	glogger->datas    = datas;
-	glogger->type_size = type_size;
 	return 0;
-
-Fail:
-	if (datas) {
-		for (size_t i = 0; i < type_size; i++) {
-			struct ct_log_data* data = &datas[i];
-			if (data->storage) {
-				ct_log_storage_destroy(data->storage);
-				data->storage = NULL;
-			}
-			if (data->callback) {
-				ct_log_callback_destroy(data->callback);
-				data->callback = NULL;
-			}
-		}
-		free(datas);
-		datas = NULL;
-	}
-	if (printer) {
-		ct_log_printer_destroy(printer);
-		printer = NULL;
-	}
-	if (bytepool) {
-		ct_bytepool_destroy(bytepool);
-		bytepool = NULL;
-	}
-	return -1;
 }
 
 void ct_log_destroy(void) {

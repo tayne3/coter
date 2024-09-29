@@ -22,7 +22,7 @@ extern "C" {
  * @param len 缓冲区长度
  * @return 更新后的缓冲区长度
  */
-size_t ct_base64_update(uint8_t input_byte, char *buf, size_t len);
+CT_API size_t ct_base64_update(uint8_t input_byte, char *buf, size_t len);
 
 /**
  * @brief 结束base64编码，获取最终结果
@@ -30,7 +30,7 @@ size_t ct_base64_update(uint8_t input_byte, char *buf, size_t len);
  * @param len 缓冲区长度
  * @return 编码后的结果长度
  */
-size_t ct_base64_final(char *buf, size_t len);
+CT_API size_t ct_base64_final(char *buf, size_t len);
 
 /**
  * @brief 对输入数据进行base64编码
@@ -40,7 +40,7 @@ size_t ct_base64_final(char *buf, size_t len);
  * @param len 缓冲区长度
  * @return 编码后的结果长度
  */
-size_t ct_base64_encode(const uint8_t *p, size_t n, char *buf, size_t len);
+CT_API size_t ct_base64_encode(const uint8_t *p, size_t n, char *buf, size_t len);
 
 /**
  * @brief 对输入数据进行base64解码
@@ -50,7 +50,7 @@ size_t ct_base64_encode(const uint8_t *p, size_t n, char *buf, size_t len);
  * @param len 缓冲区长度
  * @return 解码后的结果长度
  */
-size_t ct_base64_decode(const char *src, size_t n, char *dst, size_t len);
+CT_API size_t ct_base64_decode(const char *src, size_t n, char *dst, size_t len);
 
 #ifdef __cplusplus
 }

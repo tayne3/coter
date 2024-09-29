@@ -74,14 +74,14 @@ int ct_queue_traverse(ct_queue_buf_t self, int (*callback)(void* item, void* arg
 	assert(self->_byte);
 	assert(callback);
 
-	size_t index = self->_head;
+	size_t idx = self->_head;
 	for (size_t i = 0; i < self->_size; i++) {
-		memcpy(item, CT_QUEUE_ITEM(self, index), self->_byte);
+		memcpy(item, CT_QUEUE_ITEM(self, idx), self->_byte);
 		const int ret = callback(item, arg);
 		if (ret) {
 			return ret;
 		}
-		index = CT_QUEUE_INDEX_INC(self, index);
+		idx = CT_QUEUE_INDEX_INC(self, idx);
 	}
 	return 0;
 }

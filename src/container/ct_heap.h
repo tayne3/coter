@@ -38,42 +38,42 @@ typedef struct ct_heap {
 	ct_heap_sort_t _sort;  // 排序比较函数
 } ct_heap_t, ct_heap_buf_t[1];
 
-#define ct_heap_size(self)        ((self)->_size)                                          // 获取 堆 大小
-#define ct_heap_max(self)         ((self)->_max)                                           // 获取 堆 最大容量
-#define ct_heap_isempty(self)     ((self)->_size == 0)                                     // 判断 堆 是否为空
-#define ct_heap_isfull(self)      ((self)->_size >= (self)->_max)                          // 判断 堆 是否已满
-#define ct_heap_data(self, index) ((self)->_all[index])                                    // 获取 堆 指定元素
-#define ct_heap_first(self)       (ct_heap_isempty(self) ? ct_any_null : (self)->_all[0])  // 获取 堆 堆顶元素
-#define ct_heap_clear(self)       ((self)->_size = 0)                                      // 清空 堆 所有元素
+#define ct_heap_size(self)      ((self)->_size)                                          // 获取 堆 大小
+#define ct_heap_max(self)       ((self)->_max)                                           // 获取 堆 最大容量
+#define ct_heap_isempty(self)   ((self)->_size == 0)                                     // 判断 堆 是否为空
+#define ct_heap_isfull(self)    ((self)->_size >= (self)->_max)                          // 判断 堆 是否已满
+#define ct_heap_data(self, idx) ((self)->_all[idx])                                      // 获取 堆 指定元素
+#define ct_heap_first(self)     (ct_heap_isempty(self) ? ct_any_null : (self)->_all[0])  // 获取 堆 堆顶元素
+#define ct_heap_clear(self)     ((self)->_size = 0)                                      // 清空 堆 所有元素
 
 /**
  * @brief 最小堆/最大堆-遍历
  * @param it 元素指针
- * @param index 元素索引
+ * @param idx 元素索引
  * @param type 元素类型
  * @param self 最小堆/最大堆-变量指针
  */
-#define ct_heap_foreach(it, index, type, self)                                                 \
-	for (index = 0, it = (type)(uint64_t)(&(self)->_all[index].d); index < ct_heap_size(self); \
-		 index++, it   = (type)(uint64_t)(&(self)->_all[index].d))
+#define ct_heap_foreach(it, idx, type, self)                                             \
+	for (idx = 0, it = (type)(uint64_t)(&(self)->_all[idx].d); idx < ct_heap_size(self); \
+		 idx++, it   = (type)(uint64_t)(&(self)->_all[idx].d))
 
 /**
  * @brief 最小堆/最大堆-遍历
  * @param it 元素指针
- * @param index 元素索引
+ * @param idx 元素索引
  * @param type 元素类型
  * @param self 最小堆/最大堆-变量指针
  */
-#define ct_heap_foreach_p(it, index, type, self)                                       \
-	for (index = 0, it = (type*)(self)->_all[index].d.ptr; index < ct_heap_size(self); \
-		 index++, it   = (type*)(self)->_all[index].d.ptr)
+#define ct_heap_foreach_p(it, idx, type, self)                                   \
+	for (idx = 0, it = (type*)(self)->_all[idx].d.ptr; idx < ct_heap_size(self); \
+		 idx++, it   = (type*)(self)->_all[idx].d.ptr)
 
 // 初始化堆
 CT_API void ct_heap_init(ct_heap_buf_t self, ct_any_t* all, size_t max, ct_heap_sort_t sort) __ct_nonnull(1, 2);
 // 向上调整堆
-CT_API void ct_heap_up(ct_heap_buf_t self, size_t index) __ct_nonnull(1);
+CT_API void ct_heap_up(ct_heap_buf_t self, size_t idx) __ct_nonnull(1);
 // 向下调整堆
-CT_API void ct_heap_down(ct_heap_buf_t self, size_t index) __ct_nonnull(1);
+CT_API void ct_heap_down(ct_heap_buf_t self, size_t idx) __ct_nonnull(1);
 // 重新排序
 CT_API void ct_heap_reorder(ct_heap_buf_t self) __ct_nonnull(1);
 // 插入元素

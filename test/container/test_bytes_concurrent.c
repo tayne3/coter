@@ -26,7 +26,7 @@ typedef struct {
 	pthread_mutex_t mutex;          /**< 互斥锁 */
 	pthread_cond_t  cond;           /**< 条件变量 */
 	size_t          total_chunks;   /**< 总数据块数 */
-	size_t          index;          /**< 当前索引 */
+	size_t          idx;            /**< 当前索引 */
 } buffer_pool_t;
 
 /**
@@ -51,7 +51,7 @@ static void init_buffer_pool(buffer_pool_t* pool) {
 	pthread_mutex_init(&pool->mutex, NULL);
 	pthread_cond_init(&pool->cond, NULL);
 	pool->total_chunks = 0;
-	pool->index        = 0;
+	pool->idx          = 0;
 }
 
 /**
@@ -117,9 +117,9 @@ static void consume_chunks(test_context_t* ctx) {
 	size_t   buffer_size = ct_bytes_size(buffer);
 
 	for (size_t i = 0; i < buffer_size; i++) {
-		ctunit_assert_uint8(buffer_data[i], 0x31 + ctx->filled_pool->index, CTUnit_Equal);
-		if (++ctx->filled_pool->index >= CHUNK_SIZE) {
-			ctx->filled_pool->index = 0;
+		ctunit_assert_uint8(buffer_data[i], 0x31 + ctx->filled_pool->idx, CTUnit_Equal);
+		if (++ctx->filled_pool->idx >= CHUNK_SIZE) {
+			ctx->filled_pool->idx = 0;
 		}
 	}
 
@@ -152,9 +152,9 @@ static void produce_chunk(test_context_t* ctx) {
 
 			// 检查数据
 			for (size_t i = 0; i < buffer_size; i++) {
-				ctunit_assert_uint8(buffer_data[i], 0x31 + ctx->free_pool->index, CTUnit_Equal);
-				if (++ctx->free_pool->index >= CHUNK_SIZE) {
-					ctx->free_pool->index = 0;
+				ctunit_assert_uint8(buffer_data[i], 0x31 + ctx->free_pool->idx, CTUnit_Equal);
+				if (++ctx->free_pool->idx >= CHUNK_SIZE) {
+					ctx->free_pool->idx = 0;
 				}
 			}
 
@@ -192,8 +192,6 @@ static void* consumer_thread_func(void* arg) {
 	}
 	return NULL;
 }
-
-
 
 /**
  * @brief 并发字节数组测试
