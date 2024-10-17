@@ -218,6 +218,25 @@ CT_API float ct_random_float(ct_random_buf_t self, float min, float max) __ct_th
  */
 CT_API double ct_random_double(ct_random_buf_t self, double min, double max) __ct_throw __ct_nonnull(1);
 
+/**
+ * @brief 生成指定长度的随机字符串
+ *
+ * @param self 随机数句柄
+ * @param str 用于存储生成的随机字符串的缓冲区
+ * @param length 要生成的随机字符串的长度
+ *
+ * @note 生成的字符串将包含大小写字母和数字
+ *
+ * @code
+ * ct_random_buf_t rng;
+ * ct_random_init(rng);
+ * char session_id[33];  // 32 个字符 + 1 个 null 终止符
+ * ct_random_string(rng, session_id, 32);
+ * printf("Random session ID: %s\n", session_id);
+ * @endcode
+ */
+CT_API void ct_random_string(ct_random_buf_t self, char* str, size_t length) __ct_throw __ct_nonnull(1, 2);
+
 #ifdef __cplusplus
 }
 #endif

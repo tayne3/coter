@@ -114,6 +114,17 @@ double ct_random_double(ct_random_buf_t self, double min, double max) {
 	return min + value * (max - min);
 }
 
+void ct_random_string(ct_random_buf_t self, char* str, size_t length) {
+	assert(self);
+	assert(str);
+	const char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+	for (size_t i = 0; i < length; ++i) {
+		str[i] = charset[ct_random_uint8(self, 0, sizeof(charset) - 1)];
+	}
+	str[length] = '\0';  // 添加 null 终止符
+}
+
 // -------------------------[STATIC DEFINITION]-------------------------
 
 static inline uint64_t ct_random_rotl(uint64_t x, int k) {
