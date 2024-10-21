@@ -52,6 +52,8 @@ typedef struct ct_packet {
 #define ct_packet_max(self)              ((self)->_max)                     // 获取 最大大小
 #define ct_packet_set_max(self, __max)   ((self)->_max = (__max))           // 设置 最大大小
 #define ct_packet_set_size(self, __size) ((self)->_total = (__size))        // 设置 总长度
+#define ct_packet_add_size(self, __size) ((self)->_total += (__size))       // 增加 总长度
+#define ct_packet_sub_size(self, __size) ((self)->_total -= (__size))       // 减少 总长度
 #define ct_packet_past(self)             ((self)->_past)                    // 获取 已用空间
 #define ct_packet_set_past(self, __last) ((self)->_past = (__last))         // 设置 已用空间
 #define ct_packet_add_past(self, __n)    ((self)->_past += (__n))           // 增加 已用空间
