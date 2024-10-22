@@ -22,7 +22,7 @@ static inline void* lg_schedule_thread(void* arg);
 void log_init(void) {
 	ct_log_config_t config;
 	ct_log_config_default(&config);
-	config.level = CTLog_LevelVerBose;
+	config.level = CTLog_LevelVerbose;
 
 	ct_log_init(getuptime_ms(), 1, &config);
 	pthread_create(&lg_thread, NULL, lg_schedule_thread, NULL);

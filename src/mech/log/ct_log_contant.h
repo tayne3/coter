@@ -17,14 +17,14 @@ extern "C" {
 #define CTLog_StyleBrief  1  // 简洁信息
 #define CTLog_StyleDetail 2  // 详细信息
 
-#define CTLog_LevelVerBose 0  // 变量信息
+#define CTLog_LevelVerbose 0  // 变量信息
 #define CTLog_LevelDebug   1  // 调试信息
 #define CTLog_LevelTrace   2  // 跟踪信息
 #define CTLog_LevelWarning 3  // 警告信息
 #define CTLog_LevelError   4  // 错误信息
 #define CTLog_LevelFatal   5  // 致命错误
 
-#define CTLog_StringVerBose "VBASE"
+#define CTLog_StringVerbose "VBOSE"
 #define CTLog_StringDebug   "DEBUG"
 #define CTLog_StringTrace   "TRACE"
 #define CTLog_StringWarning "WARNG"
@@ -32,7 +32,7 @@ extern "C" {
 #define CTLog_StringFatal   "FATAL"
 
 // 日志样式字符串-起始
-#define CTLog_StyleVerBose "\x1B[32;2m"
+#define CTLog_StyleVerbose "\x1B[32;2m"
 #define CTLog_StyleDebug   "\x1B[32;2m"
 #define CTLog_StyleTrace   "\x1B[36;2m"
 #define CTLog_StyleWarning "\x1B[33;2m"

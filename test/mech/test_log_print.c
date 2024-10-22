@@ -8,21 +8,21 @@
 #include "ctunit.h"
 #include "mech/ct_log.h"
 
-#define test_basic_verbose(...) CTLogger_HandleBasic(VerBose, 0, __VA_ARGS__)
+#define test_basic_verbose(...) CTLogger_HandleBasic(Verbose, 0, __VA_ARGS__)
 #define test_basic_debug(...)   CTLogger_HandleBasic(Debug, 0, __VA_ARGS__)
 #define test_basic_trace(...)   CTLogger_HandleBasic(Trace, 0, __VA_ARGS__)
 #define test_basic_warning(...) CTLogger_HandleBasic(Warning, 0, __VA_ARGS__)
 #define test_basic_error(...)   CTLogger_HandleBasic(Error, 0, __VA_ARGS__)
 #define test_basic_fatal(...)   CTLogger_HandleBasic(Fatal, 0, __VA_ARGS__)
 
-#define test_brief_verbose(...) CTLogger_HandleBrief(VerBose, 0, __VA_ARGS__)
+#define test_brief_verbose(...) CTLogger_HandleBrief(Verbose, 0, __VA_ARGS__)
 #define test_brief_debug(...)   CTLogger_HandleBrief(Debug, 0, __VA_ARGS__)
 #define test_brief_trace(...)   CTLogger_HandleBrief(Trace, 0, __VA_ARGS__)
 #define test_brief_warning(...) CTLogger_HandleBrief(Warning, 0, __VA_ARGS__)
 #define test_brief_error(...)   CTLogger_HandleBrief(Error, 0, __VA_ARGS__)
 #define test_brief_fatal(...)   CTLogger_HandleBrief(Fatal, 0, __VA_ARGS__)
 
-#define test_detail_verbose(...) CTLogger_HandleDetail(VerBose, 0, __VA_ARGS__)
+#define test_detail_verbose(...) CTLogger_HandleDetail(Verbose, 0, __VA_ARGS__)
 #define test_detail_debug(...)   CTLogger_HandleDetail(Debug, 0, __VA_ARGS__)
 #define test_detail_trace(...)   CTLogger_HandleDetail(Trace, 0, __VA_ARGS__)
 #define test_detail_warning(...) CTLogger_HandleDetail(Warning, 0, __VA_ARGS__)
@@ -103,7 +103,7 @@ static inline void test_print_performance_comparison(void) {
 	// 创建 Logger
 	{
 		ct_log_config_t config = {
-			.level         = CTLog_LevelVerBose,
+			.level         = CTLog_LevelVerbose,
 			.disable_print = false,
 
 			.disable_save      = true,
@@ -120,8 +120,8 @@ static inline void test_print_performance_comparison(void) {
 		const int ret = ct_log_init(getuptime_ms(), 1, &config);
 		ctunit_assert_ret(ret);
 
-		ctunit_assert_true(ct_log_is_enable(0, CTLog_LevelVerBose));
-		ctunit_assert_false(ct_log_is_enable(1, CTLog_LevelVerBose));
+		ctunit_assert_true(ct_log_is_enable(0, CTLog_LevelVerbose));
+		ctunit_assert_false(ct_log_is_enable(1, CTLog_LevelVerbose));
 	}
 
 	is_ok = 0 == pthread_create(&g_thread_logger, NULL, thread_log_schedule, NULL);
