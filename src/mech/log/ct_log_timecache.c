@@ -53,20 +53,20 @@ void ct_log_timecache_get(char tmstr[28]) {
 
 			memcpy(tmstr, cache->tmstr, 23);
 			return;  // 同一秒内，只更新毫秒部分 (%02d.%02d.%02d-%02d:%02d:%02d.[%03d])
-		}
+		} else if (tv.tv_sec > cache->accect_sec) {
+			const time_t diff_sec = tv.tv_sec - cache->accect_sec;
+			if (diff_sec + cache->_sys_sec < 60) {
+				cache->accect_sec = tv.tv_sec;
+				cache->_sys_sec += diff_sec;
 
-		const time_t diff_sec = tv.tv_sec - cache->accect_sec;
-		if (diff_sec + cache->_sys_sec < 60) {
-			cache->accect_sec = tv.tv_sec;
-			cache->_sys_sec += diff_sec;
+				p = &cache->tmstr[15];
+				i2s_2(&p, (int)cache->_sys_sec);
+				p = &cache->tmstr[18];
+				i2s_3(&p, (int)(tv.tv_usec / 1000));
 
-			p = &cache->tmstr[15];
-			i2s_2(&p, (int)cache->_sys_sec);
-			p = &cache->tmstr[18];
-			i2s_3(&p, (int)(tv.tv_usec / 1000));
-
-			memcpy(tmstr, cache->tmstr, 23);
-			return;  // 同一分钟内，更新秒和毫秒部分 (%02d.%02d.%02d-%02d:%02d:[%02d.%03d])
+				memcpy(tmstr, cache->tmstr, 23);
+				return;  // 同一分钟内，更新秒和毫秒部分 (%02d.%02d.%02d-%02d:%02d:[%02d.%03d])
+			}
 		}
 	}
 
