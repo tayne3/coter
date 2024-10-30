@@ -124,10 +124,10 @@ void ct_md5_final(ct_md5_buf_t self, uint8_t digest[16]) {
 #define MD5STEP(f, w, x, y, z, data, s) (w += f(x, y, z) + data, w = w << s | w >> (32 - s), w += x)
 
 static inline void ct_md5_byte_reverse(uint8_t *buf, unsigned longs) {
-#ifdef CTEndian_SystemLittle
-	return;
 	ct_unused(buf);
 	ct_unused(longs);
+#ifdef CTEndian_SystemLittle
+	return;
 #else
 #if !defined(CTEndian_SystemBig)
 	if (CTEndian_System == CTEndian_Big) {

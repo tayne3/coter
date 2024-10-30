@@ -148,7 +148,6 @@ static inline void any_methods_ctor_default(ct_any_buf_t src, const ct_any_buf_t
 }
 
 static inline void any_methods_dtor_default(ct_any_buf_t src) {
-	return;
 	ct_unused(src);
 }
 

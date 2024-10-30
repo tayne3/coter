@@ -153,6 +153,7 @@ bool ct_log_is_enable(size_t type_id, int level) {
 
 void ct_log_handle(size_t type_id, int level, char* buf, size_t size) {
 	assert(buf);
+	ct_unused(level);
 	struct ct_log_data* data = &glogger->datas[type_id];
 	if (!data->disable_print) {
 		ct_log_printer_handle(glogger->printer, buf, size);
@@ -163,8 +164,6 @@ void ct_log_handle(size_t type_id, int level, char* buf, size_t size) {
 	if (data->callback) {
 		ct_log_callback_handle(data->callback, buf, size);
 	}
-	return;
-	ct_unused(level);
 }
 
 // -------------------------[STATIC DEFINITION]-------------------------

@@ -40,11 +40,11 @@ void print_stack_trace(void) {
 		exit(EXIT_FAILURE);
 	}
 
-	log_error_n("thread %p [running]:\n", (void*)pthread_self());
+	logE_n("thread %p [running]:\n", (void*)pthread_self());
 	for (int i = 0; i < count; i++) {
-		log_error_n("%s\n", symbols[i]);
+		logE_n("%s\n", symbols[i]);
 	}
-	log_error_n("\n");
+	logE_n("\n");
 
 	free(symbols);
 }
@@ -67,13 +67,13 @@ void exception_init(void) {
 	struct rlimit core_limit;
 	getrlimit(RLIMIT_CORE, &core_limit);
 	if (core_limit.rlim_cur == 0) {
-		log_verbose("core dump is disabled, attempting to enable it.\n");
+		logV("core dump is disabled, attempting to enable it.\n");
 
 		core_limit.rlim_cur = RLIM_INFINITY;
 		core_limit.rlim_max = RLIM_INFINITY;
 
 		if (setrlimit(RLIMIT_CORE, &core_limit) == -1) {
-			log_warning("set core dump size limit failed: %s.\n", strerror(errno));
+			logW("set core dump size limit failed: %s.\n", strerror(errno));
 			return;
 		}
 	}
@@ -82,9 +82,9 @@ void exception_init(void) {
 	FILE* fp = popen("sysctl -n kernel.core_pattern", "r");
 	if (fp != NULL) {
 		if (fgets(path, sizeof(path) - 1, fp) != NULL) {
-			log_warning("core dump path: %s", path);
+			logW("core dump path: %s", path);
 		} else {
-			log_error("get core dump path failed.\n");
+			logE("get core dump path failed.\n");
 		}
 		pclose(fp);
 	}
@@ -93,7 +93,7 @@ void exception_init(void) {
 // -------------------------[STATIC DEFINITION]-------------------------
 
 static inline void signal_handler(int sig) {
-	app_crash(sig, strsignal(sig));
+	gapp_crash(sig, strsignal(sig));
 }
 
 #endif

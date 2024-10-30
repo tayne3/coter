@@ -9,10 +9,14 @@
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
+// 退出前执行
+static void main_atexit_exec(void);
+// 异步执行
+static void main_async_exec(void* arg);
 // 程序定时触发
-static inline void main_timing_trigger(ct_timer_id_t id, const ct_any_buf_t arg);
+static void main_timing_trigger(ct_timer_id_t id, const ct_any_buf_t arg);
 // 程序定时退出
-static inline void main_timing_exit(ct_timer_id_t id, const ct_any_buf_t arg);
+static void main_timing_exit(ct_timer_id_t id, const ct_any_buf_t arg);
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
@@ -21,22 +25,33 @@ static inline void main_timing_exit(ct_timer_id_t id, const ct_any_buf_t arg);
  * @return 程序退出状态
  */
 int main(void) {
-	app_ptr_t app = app_create();
+	gapp_t* app = gapp_create();
+	global_atexit(main_atexit_exec);
+	global_async(main_async_exec, NULL);
 	ct_timer_start(1000, true, true, main_timing_trigger, ct_any_null);  // 定时触发
 	ct_timer_start(5000, false, false, main_timing_exit, ct_any_null);   // 定时退出
-	return app_exec(app);
+	return gapp_exec(app);
 }
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
-static inline void main_timing_trigger(ct_timer_id_t id, const ct_any_buf_t arg) {
-	log_trace("timed trigger.\n");
-	ct_unused(id);
-	ct_unused(arg);
+static void main_atexit_exec(void) {
+	logT("atexit exec.\n");
 }
 
-static inline void main_timing_exit(ct_timer_id_t id, const ct_any_buf_t arg) {
-	app_exit(EXIT_FAILURE, "timed exit");
+static void main_async_exec(void* arg) {
+	ct_unused(arg);
+	logT("async exec.\n");
+}
+
+static void main_timing_trigger(ct_timer_id_t id, const ct_any_buf_t arg) {
 	ct_unused(id);
 	ct_unused(arg);
+	logT("timed trigger.\n");
+}
+
+static void main_timing_exit(ct_timer_id_t id, const ct_any_buf_t arg) {
+	ct_unused(id);
+	ct_unused(arg);
+	global_exit(EXIT_FAILURE, "timed exit");
 }

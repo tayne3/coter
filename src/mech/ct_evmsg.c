@@ -185,7 +185,6 @@ static inline bool ct_evmsg_handler(ct_evmsg_buf_t msg, void *userdata) {
 	}
 
 	return true;
-	ct_unused(userdata);
 }
 
 static inline void ct_evmsg_callback(void *arg) {
@@ -219,6 +218,4 @@ static inline void ct_evmsg_callback(void *arg) {
 
 	// 重置忙碌状态
 	center->is_busy = false;
-	return;
-	ct_unused(arg);
 }

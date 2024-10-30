@@ -420,6 +420,7 @@ static inline cron_t *mgr_take_trigger_cron(void) {
 }
 
 static inline void mgr_correct_callback(void *arg) {
+	ct_unused(arg);
 	mgr_lock();
 
 	// 获取cron任务数量
@@ -456,8 +457,6 @@ Finish:
 	mgr->correct--;
 	mgr->is_busy = false;
 	mgr_unlock();
-	return;
-	ct_unused(arg);
 }
 
 static inline ct_cron_id_t tr_generate_id(cron_t *self) {
