@@ -1,6 +1,6 @@
 
 string(TOLOWER "${CMAKE_SYSTEM_NAME}" SYSTEM_NAME)					# 系统名称
-set(SUB_DIR ${CMAKE_SOURCE_DIR}/sub)								# 子项目路径
+set(THIRD_DIR ${CMAKE_SOURCE_DIR}/3rd)								# 第三方库路径
 set(BIN_DIR ${CMAKE_SOURCE_DIR}/bin)								# 二进制路径
 set(OUTPUT_DIR_DEBUG ${BIN_DIR}/debug-${SYSTEM_NAME})				# 调试版本输出路径
 set(OUTPUT_DIR_RELEASE ${BIN_DIR}/release-${SYSTEM_NAME})			# 发布版本输出路径

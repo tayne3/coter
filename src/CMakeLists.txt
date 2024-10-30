@@ -1,5 +1,5 @@
 
-set(PTHREADS_ROOT ${SUB_DIR}/pthreads-w32)
+set(PTHREADS_ROOT ${THIRD_DIR}/pthreads-w32)
 include(FindPthreadW32)
 set(LIBS ${PTHREADS_LIBS})
 
@@ -32,7 +32,6 @@ project_check_function("setproctitle" "unistd.h")
 # project_check_function("pthread_mutex_timedlock" "pthread.h")
 
 project_check_struct("struct timespec" "tv_sec" "time.h")
-
 project_check_library_function("rt" "clock_gettime" "")
 
 # 生成配置信息头文件
