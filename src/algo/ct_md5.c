@@ -1,8 +1,6 @@
 /**
  * @file ct_md5.c
  * @brief MD5加密算法
- * @author tayne3@dingtalk.com
- * @date 2023.11.17
  * @note
  *  This code implements the MD5 message-digest algorithm.
  *  The algorithm is due to Ron Rivest.  This code was
@@ -36,7 +34,7 @@ static inline void ct_md5_transform(uint32_t buf[4], uint32_t const in[16]);
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
-void ct_md5_init(ct_md5_buf_t self) {
+void ct_md5_init(ct_md5_ctx_t * self) {
 	self->buf[0] = 0x67452301;
 	self->buf[1] = 0xefcdab89;
 	self->buf[2] = 0x98badcfe;
@@ -46,7 +44,7 @@ void ct_md5_init(ct_md5_buf_t self) {
 	self->bits[1] = 0;
 }
 
-void ct_md5_update(ct_md5_buf_t self, const void *data, size_t len) {
+void ct_md5_update(ct_md5_ctx_t * self, const void *data, size_t len) {
 	const uint8_t *buf = data;
 
 	{
@@ -85,7 +83,7 @@ void ct_md5_update(ct_md5_buf_t self, const void *data, size_t len) {
 	memcpy(self->in, buf, len);
 }
 
-void ct_md5_final(ct_md5_buf_t self, uint8_t digest[16]) {
+void ct_md5_final(ct_md5_ctx_t * self, uint8_t digest[16]) {
 	{
 		unsigned int count = (self->bits[0] >> 3) & 0x3F;
 		uint8_t     *p     = self->in + count;

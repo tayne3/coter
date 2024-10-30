@@ -1,8 +1,6 @@
 /**
  * @file ct_md5.h
  * @brief MD5加密算法
- * @author tayne3@dingtalk.com
- * @date 2023.11.17
  */
 #ifndef _CT_MD5_H
 #define _CT_MD5_H
@@ -31,7 +29,7 @@ extern "C" {
  *         return false;
  *     }
  *
- *     ct_md5_buf_t md5;
+ *     ct_md5_ctx_t * md5;
  *     char   buffer[1024];
  *     int    ret = 0;
  *
@@ -49,11 +47,11 @@ extern "C" {
  * }
  * @endcode
  */
-typedef struct ct_md5 {
+typedef struct {
 	uint32_t buf[4];
 	uint32_t bits[2];
 	uint8_t  in[64];
-} ct_md5_t, ct_md5_buf_t[1];
+} ct_md5_ctx_t;
 
 /**
  * @brief 用于初始化 MD5算法的上下文
@@ -62,7 +60,7 @@ typedef struct ct_md5 {
  * @note
  * 在进行MD5计算之前，需要先对MD5上下文进行初始化。
  */
-CT_API void ct_md5_init(ct_md5_buf_t self);
+CT_API void ct_md5_init(ct_md5_ctx_t *self);
 
 /**
  * @brief 更新 MD5算法上下文
@@ -76,7 +74,7 @@ CT_API void ct_md5_init(ct_md5_buf_t self);
  * 该函数的作用是将新的数据块添加到 MD5上下文中，以便在后续的计算中使用。
  * 它会将输入数据块与之前已经处理过的数据块进行合并，更新MD5上下文的状态。
  */
-CT_API void ct_md5_update(ct_md5_buf_t self, const void *data, size_t len);
+CT_API void ct_md5_update(ct_md5_ctx_t *self, const void *data, size_t len);
 
 /**
  * @brief 结束 MD5算法计算，获取最终结果
@@ -85,7 +83,7 @@ CT_API void ct_md5_update(ct_md5_buf_t self, const void *data, size_t len);
  * @note
  * 该函数用于结束 MD5算法的计算，并获取最终的MD5摘要。
  */
-CT_API void ct_md5_final(ct_md5_buf_t self, uint8_t digest[16]);
+CT_API void ct_md5_final(ct_md5_ctx_t *self, uint8_t digest[16]);
 
 #ifdef __cplusplus
 }

@@ -40,14 +40,14 @@ static const struct ct_md5_test {
 static inline int test_cmd5(void) {
 	uint8_t buffer[16];
 
-	for (int i = 0, size = ct_arrsize(ct_md5_test_all); i < size; i++) {
+	const int size = (int)ct_arrsize(ct_md5_test_all);
+	for (int i = 0; i < size; i++) {
 		const struct ct_md5_test* it = &ct_md5_test_all[i];
-		{
-			ct_md5_buf_t md;
-			ct_md5_init(md);
-			ct_md5_update(md, it->data, strlen(it->data));
-			ct_md5_final(md, buffer);
-		}
+
+		ct_md5_ctx_t ctx;
+		ct_md5_init(&ctx);
+		ct_md5_update(&ctx, it->data, strlen(it->data));
+		ct_md5_final(&ctx, buffer);
 		ctunit_assert_string_hex(buffer, it->target, 16, "i=%d", i);
 	}
 
