@@ -116,17 +116,50 @@ static inline int ct_snprintf_s(char *__s, size_t __maxlen, const char *__format
 	return (result < 0) ? 0 : (result >= (int)__maxlen) ? (int)__maxlen - 1 : result;
 }
 
+/**
+ * @brief 安全拷贝字符串
+ *
+ * @param __s 目标缓冲区
+ * @param __maxlen 目标缓冲区最大长度
+ * @param __src 源字符串
+ * @param __n 要复制的最大字符数
+ * @return 成功时返回写入字符数 (不含结尾空字符);
+ *         参数无效或发生截断时返回-1
+ */
+static inline int ct_strncpy_s(char *__s, size_t __maxlen, const char *__src, size_t __n) {
+	size_t i, len;
+	
+	if (__s == NULL || __maxlen == 0) {
+		return -1;
+	}
+	if (__src == NULL || __n == 0) {
+		__s[0] = '\0';
+		return -1;
+	}
+
+	len = CT_MIN(__maxlen - 1, __n);
+	for (i = 0; i < len && __src[i] != '\0'; i++) {
+		__s[i] = __src[i];
+	}
+	__s[i] = '\0';
+
+	if (i < __n && __src[i] != '\0') {
+		return -1;
+	}
+	return (int)i;
+}
+
 #if HAVE_MEMRCHR
 #define ct_memrchr memrchr
 #else
 static inline void *ct_memrchr(const void *__s, int __c, size_t __n) {
-    const unsigned char *ptr = (const unsigned char *)__s + __n; 
-    while (__n--) {
-        if (*--ptr == (unsigned char)__c) {
-            return (void *)ptr;
-        }
-    }
-    return NULL;
+	const unsigned char *ptr = (const unsigned char *)__s + __n;
+	while (__n--) {
+		if (*--ptr == (unsigned char)__c) {
+			return (void *)ptr;
+		}
+	}
+	return NULL;
 }
 #endif
 

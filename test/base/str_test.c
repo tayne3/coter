@@ -127,12 +127,73 @@ static inline void test_snprintf_s(void) {
 	}
 }
 
+static inline void test_strncpy_s(void) {
+	char buf[20];
+
+	// 正常拷贝测试
+	{
+		int len = ct_strncpy_s(buf, sizeof(buf), "Hello", 5);
+		ctunit_assert_int(len, 5, CTUnit_Equal);
+		ctunit_assert_string(buf, "Hello");
+	}
+
+	// 拷贝长度小于源字符串长度，未截断
+	{
+		int len = ct_strncpy_s(buf, sizeof(buf), "Hello, World!", 5);
+		ctunit_assert_int(len, 5, CTUnit_Equal);
+		ctunit_assert_string(buf, "Hello");
+	}
+
+	// 拷贝长度等于源字符串长度
+	{
+		int len = ct_strncpy_s(buf, sizeof(buf), "Test", 4);
+		ctunit_assert_int(len, 4, CTUnit_Equal);
+		ctunit_assert_string(buf, "Test");
+	}
+
+	// 拷贝长度大于源字符串长度
+	{
+		int len = ct_strncpy_s(buf, sizeof(buf), "Hi", 5);
+		ctunit_assert_int(len, 2, CTUnit_Equal);
+		ctunit_assert_string(buf, "Hi");
+	}
+
+	// 缓冲区大小不足，发生截断
+	{
+		int len = ct_strncpy_s(buf, 5, "This is a long string", 10);
+		ctunit_assert_int(len, -1, CTUnit_Equal);
+	}
+
+	// 目标缓冲区为 NULL
+	{
+		int len = ct_strncpy_s(NULL, 10, "Test", 4);
+		ctunit_assert_int(len, -1, CTUnit_Equal);
+	}
+
+	// 源字符串为 NULL
+	{
+		int len = ct_strncpy_s(buf, sizeof(buf), NULL, 5);
+		ctunit_assert_int(len, -1, CTUnit_Equal);
+		ctunit_assert_string(buf, "");
+	}
+
+	// 拷贝零长度
+	{
+		int len = ct_strncpy_s(buf, sizeof(buf), "Test", 0);
+		ctunit_assert_int(len, -1, CTUnit_Equal);
+		ctunit_assert_string(buf, "");
+	}
+}
+
 int main(void) {
 	test_snprintf();
 	ctunit_trace("Finish! test_snprintf();\n");
 
 	test_snprintf_s();
 	ctunit_trace("Finish! test_snprintf_s();\n");
+
+	test_strncpy_s();
+	ctunit_trace("Finish! test_strncpy_s();\n");
 
 	ctunit_pass();
 }
