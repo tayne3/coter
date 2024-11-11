@@ -122,9 +122,29 @@ CT_API uint32_t ct_packet_get_u32(const ct_packet_buf_t self, uint16_t offset, c
  * @param self 报文缓冲盒子 对象指针
  * @param offset 偏移字节数
  * @param endian 字节序
+ * @return uint64_t 读取的数据
+ */
+CT_API uint64_t ct_packet_get_u64(const ct_packet_buf_t self, uint16_t offset, ct_endian_t endian) __ct_nonnull(1);
+
+/**
+ * @brief 获取数据 (数据不变)
+ *
+ * @param self 报文缓冲盒子 对象指针
+ * @param offset 偏移字节数
+ * @param endian 字节序
  * @return float 读取的数据
  */
 CT_API float ct_packet_get_float(const ct_packet_buf_t self, uint16_t offset, ct_endian_t endian) __ct_nonnull(1);
+
+/**
+ * @brief 获取数据 (数据不变)
+ *
+ * @param self 报文缓冲盒子 对象指针
+ * @param offset 偏移字节数
+ * @param endian 字节序
+ * @return double 读取的数据
+ */
+CT_API double ct_packet_get_double(const ct_packet_buf_t self, uint16_t offset, ct_endian_t endian) __ct_nonnull(1);
 
 /**
  * @brief 填充数据
@@ -162,10 +182,32 @@ CT_API void ct_packet_set_u32(ct_packet_buf_t self, uint16_t offset, uint32_t va
  *
  * @param self 报文缓冲盒子 对象指针
  * @param offset 偏移字节数
+ * @param value uint64_t 数据
+ * @param endian 字节序
+ */
+CT_API void ct_packet_set_u64(ct_packet_buf_t self, uint16_t offset, uint64_t value, ct_endian_t endian)
+	__ct_nonnull(1);
+
+/**
+ * @brief 填充数据
+ *
+ * @param self 报文缓冲盒子 对象指针
+ * @param offset 偏移字节数
  * @param value float 数据
  * @param endian 字节序
  */
 CT_API void ct_packet_set_float(ct_packet_buf_t self, uint16_t offset, float value, ct_endian_t endian) __ct_nonnull(1);
+
+/**
+ * @brief 填充数据
+ *
+ * @param self 报文缓冲盒子 对象指针
+ * @param offset 偏移字节数
+ * @param value double 数据
+ * @param endian 字节序
+ */
+CT_API void ct_packet_set_double(ct_packet_buf_t self, uint16_t offset, double value, ct_endian_t endian)
+	__ct_nonnull(1);
 
 /**
  * @brief 放入数据 (尾插数据)
@@ -197,10 +239,28 @@ CT_API void ct_packet_put_u32(ct_packet_buf_t self, uint32_t value, ct_endian_t 
  * @brief 放入数据 (尾插数据)
  *
  * @param self 报文缓冲盒子 对象指针
+ * @param value uint64_t 数据
+ * @param endian 字节序
+ */
+CT_API void ct_packet_put_u64(ct_packet_buf_t self, uint64_t value, ct_endian_t endian) __ct_nonnull(1);
+
+/**
+ * @brief 放入数据 (尾插数据)
+ *
+ * @param self 报文缓冲盒子 对象指针
  * @param value float 数据
  * @param endian 字节序
  */
 CT_API void ct_packet_put_float(ct_packet_buf_t self, float value, ct_endian_t endian) __ct_nonnull(1);
+
+/**
+ * @brief 放入数据 (尾插数据)
+ *
+ * @param self 报文缓冲盒子 对象指针
+ * @param value double 数据
+ * @param endian 字节序
+ */
+CT_API void ct_packet_put_double(ct_packet_buf_t self, double value, ct_endian_t endian) __ct_nonnull(1);
 
 /**
  * @brief 结束操作, 将已用空间置为总长度
@@ -240,9 +300,27 @@ CT_API uint32_t ct_packet_take_u32(ct_packet_buf_t self, ct_endian_t endian) __c
  *
  * @param self 报文缓冲盒子 对象指针
  * @param endian 字节序
+ * @return uint64_t 数据
+ */
+CT_API uint64_t ct_packet_take_u64(ct_packet_buf_t self, ct_endian_t endian) __ct_nonnull(1);
+
+/**
+ * @brief 取出数据 (数据移动)
+ *
+ * @param self 报文缓冲盒子 对象指针
+ * @param endian 字节序
  * @return float 数据
  */
 CT_API float ct_packet_take_float(ct_packet_buf_t self, ct_endian_t endian) __ct_nonnull(1);
+
+/**
+ * @brief 取出数据 (数据移动)
+ *
+ * @param self 报文缓冲盒子 对象指针
+ * @param endian 字节序
+ * @return double 数据
+ */
+CT_API double ct_packet_take_double(ct_packet_buf_t self, ct_endian_t endian) __ct_nonnull(1);
 
 /**
  * @brief 跳过指定长度的数据
@@ -295,6 +373,19 @@ CT_API uint16_t ct_packet_get_u32s(const ct_packet_buf_t self, uint16_t offset, 
  *
  * @param self 报文缓冲盒子 对象指针
  * @param offset 偏移字节数
+ * @param buffer uint64_t 缓冲区
+ * @param max uint64_t 缓冲区长度
+ * @param endian 字节序
+ * @return uint16_t 读取的元素数量
+ */
+CT_API uint16_t ct_packet_get_u64s(const ct_packet_buf_t self, uint16_t offset, uint64_t *buffer, uint16_t max,
+								   ct_endian_t endian) __ct_nonnull(1);
+
+/**
+ * @brief 获取数据 (数据不变)
+ *
+ * @param self 报文缓冲盒子 对象指针
+ * @param offset 偏移字节数
  * @param buffer float 缓冲区
  * @param max float 缓冲区长度
  * @param endian 字节序
@@ -302,6 +393,20 @@ CT_API uint16_t ct_packet_get_u32s(const ct_packet_buf_t self, uint16_t offset, 
  */
 CT_API uint16_t ct_packet_get_floats(const ct_packet_buf_t self, uint16_t offset, float *buffer, uint16_t max,
 									 ct_endian_t endian) __ct_nonnull(1);
+
+/**
+ * @brief 获取数据 (数据不变)
+ *
+ * @param self 报文缓冲盒子 对象指针
+ * @param offset 偏移字节数
+ * @param buffer double 缓冲区
+ * @param max double 缓冲区长度
+ * @param endian 字节序
+ * @return uint16_t 读取的元素数量
+ */
+CT_API uint16_t ct_packet_get_doubles(const ct_packet_buf_t self, uint16_t offset, double *buffer, uint16_t max,
+									  ct_endian_t endian) __ct_nonnull(1);
+
 /**
  * @brief 取出数据 (数据移动)
  *
@@ -340,6 +445,18 @@ CT_API uint16_t ct_packet_take_u32s(ct_packet_buf_t self, uint32_t *buffer, uint
  * @brief 取出数据 (数据移动)
  *
  * @param self 报文缓冲盒子 对象指针
+ * @param buffer uint64_t 缓冲区
+ * @param max uint64_t 缓冲区长度
+ * @param endian 字节序
+ * @return uint16_t 取出的元素数量
+ */
+CT_API uint16_t ct_packet_take_u64s(ct_packet_buf_t self, uint64_t *buffer, uint16_t max, ct_endian_t endian)
+	__ct_nonnull(1);
+
+/**
+ * @brief 取出数据 (数据移动)
+ *
+ * @param self 报文缓冲盒子 对象指针
  * @param buffer float 缓冲区
  * @param max float 缓冲区长度
  * @param endian 字节序
@@ -347,6 +464,19 @@ CT_API uint16_t ct_packet_take_u32s(ct_packet_buf_t self, uint32_t *buffer, uint
  */
 CT_API uint16_t ct_packet_take_floats(ct_packet_buf_t self, float *buffer, uint16_t max, ct_endian_t endian)
 	__ct_nonnull(1);
+
+/**
+ * @brief 取出数据 (数据移动)
+ *
+ * @param self 报文缓冲盒子 对象指针
+ * @param buffer double 缓冲区
+ * @param max double 缓冲区长度
+ * @param endian 字节序
+ * @return uint16_t 取出的元素数量
+ */
+CT_API uint16_t ct_packet_take_doubles(ct_packet_buf_t self, double *buffer, uint16_t max, ct_endian_t endian)
+	__ct_nonnull(1);
+
 /**
  * @brief 放入数据 (尾插数据)
  *
@@ -385,12 +515,36 @@ CT_API uint16_t ct_packet_put_u32s(ct_packet_buf_t self, const uint32_t *buffer,
  * @brief 放入数据 (尾插数据)
  *
  * @param self 报文缓冲盒子 对象指针
+ * @param buffer uint64_t 缓冲区
+ * @param length uint64_t 缓冲区长度
+ * @param endian 字节序
+ * @return uint16_t 写入的元素数量
+ */
+CT_API uint16_t ct_packet_put_u64s(ct_packet_buf_t self, const uint64_t *buffer, uint16_t length, ct_endian_t endian)
+	__ct_nonnull(1);
+
+/**
+ * @brief 放入数据 (尾插数据)
+ *
+ * @param self 报文缓冲盒子 对象指针
  * @param buffer float 缓冲区
  * @param length float 缓冲区长度
  * @param endian 字节序
  * @return uint16_t 写入的元素数量
  */
 CT_API uint16_t ct_packet_put_floats(ct_packet_buf_t self, const float *buffer, uint16_t length, ct_endian_t endian)
+	__ct_nonnull(1);
+
+/**
+ * @brief 放入数据 (尾插数据)
+ *
+ * @param self 报文缓冲盒子 对象指针
+ * @param buffer double 缓冲区
+ * @param length double 缓冲区长度
+ * @param endian 字节序
+ * @return uint16_t 写入的元素数量
+ */
+CT_API uint16_t ct_packet_put_doubles(ct_packet_buf_t self, const double *buffer, uint16_t length, ct_endian_t endian)
 	__ct_nonnull(1);
 
 #ifdef __cplusplus

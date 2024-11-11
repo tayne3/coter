@@ -139,6 +139,7 @@ typedef bool ct_endian_t;
 #	define CTEndian_SystemBig 1
 # else
 #	define CTEndian_System ((*(unsigned char *)&(unsigned int){1}) == 0)
+#	define CTEndian_SystemUnknown 1
 # endif
 
 // // null
