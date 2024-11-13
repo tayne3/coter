@@ -19,29 +19,29 @@ void *ct_reverse_memcpy(void *dest, const void *src, size_t n) {
 	}
 
 	size_t multiple;
-	size_t remainder;
+	size_t remain;
 
 	const uint8_t *s = (const uint8_t *)src;
 	uint8_t       *d = (uint8_t *)dest;
 
 	if (n < sizeof(uint64_t)) {
-		multiple  = 0;
-		remainder = n;
+		multiple = 0;
+		remain   = n;
 	} else {
-		multiple  = n / sizeof(uint64_t);
-		remainder = n % sizeof(uint64_t);
+		multiple = n / sizeof(uint64_t);
+		remain   = n % sizeof(uint64_t);
 	}
 
 	// 处理尾部不足8字节的部分
-	if (remainder > 0) {
-		for (size_t i = 0; i < remainder; i++) {
+	if (remain > 0) {
+		for (size_t i = 0; i < remain; i++) {
 			d[i] = s[n - 1 - i];
 		}
 	}
 
 	if (multiple > 0) {
-		n -= remainder;
-		d += remainder;
+		n -= remain;
+		d += remain;
 		s += n;
 
 		for (size_t i = 0; i < multiple; i++) {
