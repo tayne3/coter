@@ -1,5 +1,6 @@
 /**
  * @file log.h
+ * @brief 日志宏
  * @author tayne3@dingtalk.com
  * @date 2024.2.6
  */
@@ -40,21 +41,6 @@ extern "C" {
 #define logW_hex(__buf, __len) CTLogger_HandleHex(Warning, LogType_Default, __buf, __len)
 #define logE_hex(__buf, __len) CTLogger_HandleHex(Error, LogType_Default, __buf, __len)
 #define logF_hex(__buf, __len) CTLogger_HandleHex(Fatal, LogType_Default, __buf, __len)
-
-/**
- * @brief 初始化日志系统
- */
-int glog_init(void);
-
-/**
- * @brief 反初始化日志系统
- */
-void glog_deinit(void);
-
-/**
- * @brief 日志调度线程函数
- */
-void *glog_run(void *arg);
 
 #ifdef __cplusplus
 }

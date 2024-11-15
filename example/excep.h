@@ -1,5 +1,6 @@
 /**
  * @file excep.h
+ * @brief 异常信息
  * @author tayne3@dingtalk.com
  * @date 2024.2.6
  */

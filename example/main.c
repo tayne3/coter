@@ -20,10 +20,6 @@ static void main_timing_exit(ct_timer_id_t id, const ct_any_buf_t arg);
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
-/**
- * @brief 主函数
- * @return 程序退出状态
- */
 int main(void) {
 	gapp_t* app = gapp_create();
 	global_atexit(main_atexit_exec);

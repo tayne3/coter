@@ -1,5 +1,6 @@
 /**
  * @file app.h
+ * @brief Application 实例
  * @author tayne3@dingtalk.com
  * @date 2024.2.6
  */
@@ -28,13 +29,6 @@ gapp_t* gapp_create(void);
  * @return int 返回异常标志的值
  */
 int gapp_exec(gapp_t* self);
-
-/**
- * @brief 应用崩溃
- * @param code 退出状态码
- * @param msg 退出消息
- */
-void gapp_crash(int code, const char* msg);
 
 /**
  * @brief 应用退出处理
