@@ -21,7 +21,7 @@ extern "C" {
  * @return 实际写入的字符数 (不包括结尾的 null)
  * @note 内部使用
  */
-int __ct_threadcache_basic(char buffer[1024], const char *fmt, ...);
+CT_API int __ct_threadcache_basic(char buffer[1024], const char *fmt, ...);
 
 /**
  * @brief 封装日志消息 (简短样式)
@@ -33,7 +33,7 @@ int __ct_threadcache_basic(char buffer[1024], const char *fmt, ...);
  * @return 实际写入的字符数 (不包括结尾的 null)
  * @note 内部使用
  */
-int __ct_threadcache_brief(char buffer[1024], const char *info, const char *fmt, ...);
+CT_API int __ct_threadcache_brief(char buffer[1024], const char *info, const char *fmt, ...);
 
 /**
  * @brief 封装日志消息 (详细样式)
@@ -47,7 +47,8 @@ int __ct_threadcache_brief(char buffer[1024], const char *info, const char *fmt,
  * @return 实际写入的字符数 (不包括结尾的 null)
  * @note 内部使用
  */
-int __ct_threadcache_detail(char buffer[1024], const char *file, int line, const char *info, const char *fmt, ...);
+CT_API int __ct_threadcache_detail(char buffer[1024], const char *file, int line, const char *info, const char *fmt,
+								   ...);
 
 #ifdef __cplusplus
 }
