@@ -334,7 +334,7 @@ typedef struct ct_context {
 #   define __ct_throw
 # endif
 // 标记函数可能引发异常
-# if !defined __cplusplus  && __GNUC_PREREQ (2,8)
+# if !defined __cplusplus && __GNUC_PREREQ (2,8)
 #   define __ct_thrownl 							__THROWNL
 # else
 #   define __ct_thrownl
