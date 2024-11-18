@@ -110,10 +110,14 @@ static inline int ct_snprintf_s(char *__s, size_t __maxlen, const char *__format
 	if (result == -1) {
 		return (int)(__maxlen - 1);
 	}
+#else
+	if (result == -1) {
+		return 0;
+	}
 #endif
 
 	// 返回实际写入的字符数 (不包括结尾的 null)
-	return (result < 0) ? 0 : (result >= (int)__maxlen) ? (int)__maxlen - 1 : result;
+	return (result >= (int)__maxlen) ? (int)__maxlen - 1 : result;
 }
 
 /**
@@ -128,7 +132,7 @@ static inline int ct_snprintf_s(char *__s, size_t __maxlen, const char *__format
  */
 static inline int ct_strncpy_s(char *__s, size_t __maxlen, const char *__src, size_t __n) {
 	size_t i, len;
-	
+
 	if (__s == NULL || __maxlen == 0) {
 		return -1;
 	}
@@ -153,9 +157,9 @@ static inline int ct_strncpy_s(char *__s, size_t __maxlen, const char *__src, si
 #define ct_memrchr memrchr
 #else
 static inline void *ct_memrchr(const void *__s, int __c, size_t __n) {
-	const unsigned char *ptr = (const unsigned char *)__s + __n;
+	const uint8_t *ptr = (const uint8_t *)__s + __n;
 	while (__n--) {
-		if (*--ptr == (unsigned char)__c) {
+		if (*--ptr == (uint8_t)__c) {
 			return (void *)ptr;
 		}
 	}

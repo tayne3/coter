@@ -17,12 +17,12 @@ extern "C" {
 
 /* 日志输出宏 */
 
-#define logV(...) CTLogger_HandleBrief(Verbose, LogType_Default, __VA_ARGS__)
-#define logD(...) CTLogger_HandleBrief(Debug, LogType_Default, __VA_ARGS__)
-#define logT(...) CTLogger_HandleBrief(Trace, LogType_Default, __VA_ARGS__)
-#define logW(...) CTLogger_HandleBrief(Warning, LogType_Default, __VA_ARGS__)
-#define logE(...) CTLogger_HandleBrief(Error, LogType_Default, __VA_ARGS__)
-#define logF(...) CTLogger_HandleBrief(Fatal, LogType_Default, __VA_ARGS__)
+#define logV(...) CTLogger_HandleDetail(Verbose, LogType_Default, __VA_ARGS__)
+#define logD(...) CTLogger_HandleDetail(Debug, LogType_Default, __VA_ARGS__)
+#define logT(...) CTLogger_HandleDetail(Trace, LogType_Default, __VA_ARGS__)
+#define logW(...) CTLogger_HandleDetail(Warning, LogType_Default, __VA_ARGS__)
+#define logE(...) CTLogger_HandleDetail(Error, LogType_Default, __VA_ARGS__)
+#define logF(...) CTLogger_HandleDetail(Fatal, LogType_Default, __VA_ARGS__)
 
 /* 日志输出宏 (无样式) */
 

@@ -19,10 +19,6 @@ typedef struct ct_log_message {
 	ct_atomic_t reference; /**< 引用计数 */
 } ct_log_message_t;
 
-// static inline void ct_log_message_init(ct_log_message_t *self) {
-// 	self->reference = CT_ATOMIC_VAR_INIT(1);
-// }
-
 #ifdef __cplusplus
 }
 #endif

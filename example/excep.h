@@ -10,6 +10,8 @@
 extern "C" {
 #endif
 
+#include "base/ct_platform.h"
+
 // 异常信息
 typedef struct excep {
 	int         code;
@@ -18,6 +20,7 @@ typedef struct excep {
 } excep_t;
 
 #define EXCEP_INIT(code, msg, is_sig) {code, msg, is_sig}
+#define EXCEP_NULL                    {-1, STR_NULL, false}
 
 #ifdef __cplusplus
 }

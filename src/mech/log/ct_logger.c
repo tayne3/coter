@@ -87,7 +87,9 @@ int ct_log_init(ct_time64_t tick, size_t type_size, const ct_log_config_t* type_
 
 void ct_log_destroy(void) {
 	if (glogger->datas) {
-		for (size_t i = 0; i < glogger->type_size; i++) {
+		size_t size        = glogger->type_size;
+		glogger->type_size = 0;
+		for (size_t i = 0; i < size; i++) {
 			struct ct_log_data* data = &glogger->datas[i];
 			if (data->storage) {
 				ct_log_storage_destroy(data->storage);

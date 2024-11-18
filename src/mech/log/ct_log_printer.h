@@ -51,6 +51,11 @@ void ct_log_printer_handle(ct_log_printer_t *self, char *buf, size_t size) __ct_
  */
 void ct_log_printer_flush(ct_log_printer_t *self) __ct_nonnull(1);
 
+/**
+ * @brief 日志打印器调度
+ *
+ * @param self 日志打印器
+ */
 void ct_log_printer_schedule(ct_log_printer_t *self) __ct_nonnull(1);
 
 #ifdef __cplusplus

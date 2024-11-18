@@ -180,9 +180,16 @@ int gapp_exec(gapp_t* self) {
 Fail:
 	ct_msgqueue_destroy(gapp->exitMQ);  // 销毁异常退出队列
 	ap_goobye();                        // 输出结束信息
-	ap_atexit_exec();                   // 执行退出回调
-
 	ct_evmsg_center_destroy(gapp->evmsgCenter);
+
+#ifdef CT_OS_WIN
+	WaitForSingleObject(gapp->catchThread, INFINITE);
+#else
+	pthread_join(gapp->catchThread, NULL);
+	pthread_join(gapp->signalThread, NULL);
+#endif
+
+	ap_atexit_exec();  // 执行退出回调
 	exit(EXIT_FAILURE);
 	return EXIT_FAILURE;
 }
@@ -336,7 +343,7 @@ LONG WINAPI MyUnhandledExceptionFilter(EXCEPTION_POINTERS* exp) {
 }
 #else
 static void ap_signal_handler(int sig) {
-	gapp_crash(sig, strsignal(sig), true);
+	ap_crash(sig, strsignal(sig), true);
 }
 
 static void* ap_signal_thread(void* arg) {
@@ -347,12 +354,28 @@ static void* ap_signal_thread(void* arg) {
 	sigaddset(&set, SIGABRT);
 	sigaddset(&set, SIGBUS);
 
-	const int ret = sigwait(&set);
-	if (ret == -1) {
-		gapp_crash(EXIT_FAILURE, strerror(errno), false);
-	} else {
-		gapp_crash(ret, strsignal(ret), true);
+	struct timespec timeout;
+	timeout.tv_sec  = 1;
+	timeout.tv_nsec = 0;
+
+	excep_t   excep = EXCEP_NULL;
+	siginfo_t info;
+	for (; !gapp->isShutdown;) {
+		if (sigtimedwait(&set, &info, &timeout) == -1) {
+			continue;
+		}
+		excep.code   = info.si_signo;
+		excep.msg    = strsignal(info.si_signo);
+		excep.is_sig = true;
+		if (ct_msgqueue_enqueue(gapp->exitMQ, &excep)) {
+			break;
+		} else {
+			ap_occurred(&excep);
+			ap_log_deinit();
+			exit(EXIT_FAILURE);
+		}
 	}
+
 	pthread_exit(NULL);
 	return NULL;
 	ct_unused(arg);
