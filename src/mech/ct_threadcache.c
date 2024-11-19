@@ -106,13 +106,19 @@ int __ct_threadcache_detail(char buffer[1024], const char *file, int line, const
 	ct_threadcache_t *cache = tc_thread_get();
 	tc_update_tmstr(cache);
 
-	size_t      _file_length = strlen(file);
-	const char *_filename    = 1 + (const char *)ct_memrchr(file, STR_SEPARATOR_CHAR, _file_length);
-	_file_length -= _filename - (file);
-	const char *_dot = (const char *)ct_memrchr(_filename, '.', _file_length);
+	if (cache->last_file != file) {
+		size_t      _file_length = strlen(file);
+		const char *_filename    = 1 + (const char *)ct_memrchr(file, STR_SEPARATOR_CHAR, _file_length);
+		_file_length -= _filename - (file);
+		const char *_dot = (const char *)ct_memrchr(_filename, '.', _file_length);
 
-	const int prefix_size = sprintf(buffer, info, cache->tm_str, cache->tid_str,
-									(_dot ? (int)(_dot - _filename) : (int)strlen(_filename)), _filename, line);
+		cache->last_file        = file;
+		cache->_filename_length = _dot ? (int)(_dot - _filename) : (int)strlen(_filename);
+		cache->_filename        = _filename;
+	}
+
+	const int prefix_size =
+		sprintf(buffer, info, cache->tm_str, cache->tid_str, cache->_filename_length, cache->_filename, line);
 
 	int     result;
 	va_list args;
@@ -158,6 +164,9 @@ static ct_threadcache_t *tc_thread_get(void) {
 		cache->tid = pthread_self();
 		sprintf(cache->tid_str, "%08lX", cache->tid);
 #endif
+		cache->last_file        = NULL;
+		cache->_filename        = NULL;
+		cache->_filename_length = 0;
 		pthread_setspecific(timecache_key, cache);
 	}
 	return cache;
@@ -185,7 +194,6 @@ static void tc_update_tmstr(ct_threadcache_t *cache) {
 			p = &cache->tm_str[18];
 			i2s_3(&p, (int)(tv.tv_usec / 1000));
 
-			// memcpy(tmstr, cache->tm_str, 24);
 			return;  // 同一秒内，只更新毫秒部分 (%02d.%02d.%02d-%02d:%02d:%02d.[%03d])
 		} else if (tv.tv_sec > cache->accect_sec) {
 			const time_t diff_sec = tv.tv_sec - cache->accect_sec;
@@ -198,7 +206,6 @@ static void tc_update_tmstr(ct_threadcache_t *cache) {
 				p = &cache->tm_str[18];
 				i2s_3(&p, (int)(tv.tv_usec / 1000));
 
-				// memcpy(tmstr, cache->tm_str, 24);
 				return;  // 同一分钟内，更新秒和毫秒部分 (%02d.%02d.%02d-%02d:%02d:[%02d.%03d])
 			}
 		}
@@ -225,6 +232,5 @@ static void tc_update_tmstr(ct_threadcache_t *cache) {
 	*p++ = '.';
 	i2s_3(&p, (int)(tv.tv_usec / 1000));
 
-	// memcpy(tmstr, cache->tm_str, 24);
 	return;  // 跨分钟或首次调用，重新生成完整时间字符串 ([%02d.%02d.%02d-%02d:%02d:%02d.%03d])
 }
