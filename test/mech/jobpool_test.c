@@ -37,7 +37,6 @@ static inline void *test_job_publish(void *arg) {
 		ct_jobpool_submit(jobpool, test_job_routine, (void *)(uintptr_t)i);
 	}
 
-	pthread_exit(NULL);
 	return NULL;
 }
 

@@ -252,7 +252,6 @@ static inline void test_close_behavior(void) {
 // 不使用线程池的任务函数
 static inline void* thread_task(void* arg) {
 	sample_task(arg);
-	pthread_exit(NULL);
 	return NULL;
 }
 

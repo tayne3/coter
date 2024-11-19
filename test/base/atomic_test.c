@@ -22,7 +22,6 @@ static inline void* increment_thread(void* arg) {
 		CT_ATOMIC_INC(&test_counter);
 		CT_ATOMIC_INC(&test_counter);
 	}
-	pthread_exit(NULL);
 	return NULL;
 	(void)arg;
 }
@@ -32,7 +31,6 @@ static inline void* decrement_thread(void* arg) {
 		CT_ATOMIC_DEC(&test_counter);
 		CT_ATOMIC_DEC(&test_counter);
 	}
-	pthread_exit(NULL);
 	return NULL;
 	(void)arg;
 }
@@ -43,7 +41,6 @@ static inline void* atomic_inc_thread(void* arg) {
 		CT_ATOMIC_SUB(&test_value, 3);
 		CT_ATOMIC_ADD(&test_value, 5);
 	}
-	pthread_exit(NULL);
 	return NULL;
 	(void)arg;
 }
@@ -54,7 +51,6 @@ static inline void* atomic_dec_thread(void* arg) {
 		CT_ATOMIC_ADD(&test_value, 7);
 		CT_ATOMIC_SUB(&test_value, 4);
 	}
-	pthread_exit(NULL);
 	return NULL;
 	(void)arg;
 }

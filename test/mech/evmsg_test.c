@@ -42,7 +42,6 @@ static inline void *test_evmsg_publish(void *arg) {
 	}
 
 	is_exit[id] = true;
-	pthread_exit(NULL);
 	return NULL;
 }
 

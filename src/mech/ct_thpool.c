@@ -346,7 +346,6 @@ static inline void* ctl_worker_thread(void* arg) {
 	pthread_cond_signal(pool->worker_cond);
 	pthread_mutex_unlock(pool->worker_mutex);
 
-	pthread_exit(NULL);
 	return NULL;
 }
 
@@ -406,6 +405,5 @@ static inline void* ctl_monitor_thread(void* arg) {
 		ct_msleep(50);
 	}
 
-	pthread_exit(NULL);
 	return NULL;
 }

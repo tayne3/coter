@@ -180,7 +180,6 @@ int gapp_exec(gapp_t* self) {
 Fail:
 	ct_msgqueue_destroy(gapp->exitMQ);  // 销毁异常退出队列
 	ap_goobye();                        // 输出结束信息
-	ct_evmsg_center_destroy(gapp->evmsgCenter);
 
 #ifdef CT_OS_WIN
 	WaitForSingleObject(gapp->catchThread, INFINITE);
@@ -190,6 +189,9 @@ Fail:
 #endif
 
 	ap_atexit_exec();  // 执行退出回调
+
+	ct_evmsg_center_destroy(gapp->evmsgCenter);
+	pthread_mutex_destroy(&gapp->atExitMutex);
 	exit(EXIT_FAILURE);
 	return EXIT_FAILURE;
 }
@@ -376,7 +378,6 @@ static void* ap_signal_thread(void* arg) {
 		}
 	}
 
-	pthread_exit(NULL);
 	return NULL;
 	ct_unused(arg);
 }

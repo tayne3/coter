@@ -21,7 +21,6 @@ static inline void *test_task_enqueue(void *arg) {
 		sched_yield();
 	}
 
-	pthread_exit(NULL);
 	return NULL;
 }
 

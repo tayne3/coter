@@ -154,6 +154,5 @@ static inline void* ct_jobpool_thread_do_regular(void* arg) {
 		CT_PAUSE();  // 避免独占CPU
 	}
 
-	pthread_exit(NULL);
 	return NULL;
 }

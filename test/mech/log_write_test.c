@@ -42,7 +42,6 @@ static inline void* thread_log_schedule(void* arg) {
 		ct_log_schedule(getuptime_ms());
 		ct_msleep(10);
 	}
-	pthread_exit(NULL);
 	return NULL;
 	(void)arg;
 }
@@ -54,7 +53,6 @@ static inline void* thread_write_with_log(void* arg) {
 						 1234, 1234, 1234, (void*)0xFFFF0000, (void*)0xFFFF0000, (void*)0xFFFF0000, (void*)0xFFFF0000,
 						 "test1", "test2", "test3", "test4", 0x00, 0x01, 0x02, 0x03);
 	}
-	pthread_exit(NULL);
 	return NULL;
 	(void)arg;
 }
@@ -67,7 +65,6 @@ static inline void* thread_write_without_log(void* arg) {
 				1234, 1234, (void*)0xFFFF0000, (void*)0xFFFF0000, (void*)0xFFFF0000, (void*)0xFFFF0000, "test1",
 				"test2", "test3", "test4", 0x00, 0x01, 0x02, 0x03);
 	}
-	pthread_exit(NULL);
 	return NULL;
 	(void)arg;
 }
