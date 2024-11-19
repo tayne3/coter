@@ -1077,8 +1077,8 @@ static void test_packet_u8s(void) {
 	ct_packet_init(packet, buffer, MAX_BUFFER_SIZE);
 
 	{
-		const uint16_t written = ct_packet_put_u8s(packet, test_array, 5);
-		ctunit_assert_uint16(5, written, CTUnit_Equal);
+		const uint16_t write_result = ct_packet_put_u8s(packet, test_array, 5);
+		ctunit_assert_uint16(5, write_result, CTUnit_Equal);
 		ctunit_assert_uint16(5, ct_packet_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(5, ct_packet_total_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(0, ct_packet_past(packet), CTUnit_Equal);
@@ -1088,8 +1088,8 @@ static void test_packet_u8s(void) {
 
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read = ct_packet_get_u8s(packet, 0, read_array, 10);
-		ctunit_assert_uint16(5, read, CTUnit_Equal);
+		const uint16_t read_result = ct_packet_get_u8s(packet, 0, read_array, 10);
+		ctunit_assert_uint16(5, read_result, CTUnit_Equal);
 		ctunit_assert_uint16(5, ct_packet_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(5, ct_packet_total_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(0, ct_packet_past(packet), CTUnit_Equal);
@@ -1102,8 +1102,8 @@ static void test_packet_u8s(void) {
 	}
 
 	{
-		const uint16_t written = ct_packet_put_u8s(packet, test_array, 5);
-		ctunit_assert_uint16(5, written, CTUnit_Equal);
+		const uint16_t write_result = ct_packet_put_u8s(packet, test_array, 5);
+		ctunit_assert_uint16(5, write_result, CTUnit_Equal);
 		ctunit_assert_uint16(10, ct_packet_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(10, ct_packet_total_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(0, ct_packet_past(packet), CTUnit_Equal);
@@ -1113,9 +1113,9 @@ static void test_packet_u8s(void) {
 
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read = ct_packet_get_u8s(packet, 0, read_array, 10);
+		const uint16_t read_result = ct_packet_get_u8s(packet, 0, read_array, 10);
 		ctunit_assert_uint16(10, ct_packet_size(packet), CTUnit_Equal);
-		ctunit_assert_uint16(10, read, CTUnit_Equal);
+		ctunit_assert_uint16(10, read_result, CTUnit_Equal);
 
 		for (uint16_t i = 0; i < 5; i++) {
 			ctunit_assert_uint8(test_array[i], read_array[i], CTUnit_Equal);
@@ -1129,8 +1129,8 @@ static void test_packet_u8s(void) {
 		for (uint16_t end = start + 1; end < 10; end++) {
 			memset(read_array, 0, sizeof(read_array));
 			const uint16_t read_length = end - start;
-			const uint16_t read        = ct_packet_get_u8s(packet, start, read_array, read_length);
-			ctunit_assert_uint16(read_length, read, CTUnit_Equal);
+			const uint16_t read_result = ct_packet_get_u8s(packet, start, read_array, read_length);
+			ctunit_assert_uint16(read_length, read_result, CTUnit_Equal);
 			ctunit_assert_uint16(10, ct_packet_size(packet), CTUnit_Equal);
 			ctunit_assert_uint16(10, ct_packet_total_size(packet), CTUnit_Equal);
 			ctunit_assert_uint16(0, ct_packet_past(packet), CTUnit_Equal);
@@ -1146,8 +1146,8 @@ static void test_packet_u8s(void) {
 
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read = ct_packet_take_u8s(packet, read_array, 10);
-		ctunit_assert_uint16(10, read, CTUnit_Equal);
+		const uint16_t read_result = ct_packet_take_u8s(packet, read_array, 10);
+		ctunit_assert_uint16(10, read_result, CTUnit_Equal);
 		ctunit_assert_uint16(0, ct_packet_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(10, ct_packet_total_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(10, ct_packet_past(packet), CTUnit_Equal);
@@ -1172,8 +1172,8 @@ static void test_packet_u16s(void) {
 
 	// put: big endian
 	{
-		const uint16_t written = ct_packet_put_u16s(packet, test_array, 5, CTEndian_Big);
-		ctunit_assert_uint16(5, written, CTUnit_Equal);
+		const uint16_t write_result = ct_packet_put_u16s(packet, test_array, 5, CTEndian_Big);
+		ctunit_assert_uint16(5, write_result, CTUnit_Equal);
 		ctunit_assert_uint16(10, ct_packet_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(10, ct_packet_total_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(0, ct_packet_past(packet), CTUnit_Equal);
@@ -1182,8 +1182,8 @@ static void test_packet_u16s(void) {
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read = ct_packet_get_u16s(packet, 0, read_array, 10, CTEndian_Big);
-		ctunit_assert_uint16(5, read, CTUnit_Equal);
+		const uint16_t read_result = ct_packet_get_u16s(packet, 0, read_array, 10, CTEndian_Big);
+		ctunit_assert_uint16(5, read_result, CTUnit_Equal);
 		ctunit_assert_uint16(10, ct_packet_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(10, ct_packet_total_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(0, ct_packet_past(packet), CTUnit_Equal);
@@ -1197,8 +1197,8 @@ static void test_packet_u16s(void) {
 
 	// put: little endian
 	{
-		const uint16_t written = ct_packet_put_u16s(packet, test_array, 5, CTEndian_Little);
-		ctunit_assert_uint16(5, written, CTUnit_Equal);
+		const uint16_t write_result = ct_packet_put_u16s(packet, test_array, 5, CTEndian_Little);
+		ctunit_assert_uint16(5, write_result, CTUnit_Equal);
 		ctunit_assert_uint16(20, ct_packet_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(20, ct_packet_total_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(0, ct_packet_past(packet), CTUnit_Equal);
@@ -1207,8 +1207,8 @@ static void test_packet_u16s(void) {
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read = ct_packet_get_u16s(packet, 0, read_array, 5, CTEndian_Big);
-		ctunit_assert_uint16(5, read, CTUnit_Equal);
+		const uint16_t read_result = ct_packet_get_u16s(packet, 0, read_array, 5, CTEndian_Big);
+		ctunit_assert_uint16(5, read_result, CTUnit_Equal);
 		ctunit_assert_uint16(20, ct_packet_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(20, ct_packet_total_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(0, ct_packet_past(packet), CTUnit_Equal);
@@ -1221,8 +1221,8 @@ static void test_packet_u16s(void) {
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read = ct_packet_get_u16s(packet, 0, read_array, 10, CTEndian_Little);
-		ctunit_assert_uint16(10, read, CTUnit_Equal);
+		const uint16_t read_result = ct_packet_get_u16s(packet, 0, read_array, 10, CTEndian_Little);
+		ctunit_assert_uint16(10, read_result, CTUnit_Equal);
 		ctunit_assert_uint16(20, ct_packet_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(20, ct_packet_total_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(0, ct_packet_past(packet), CTUnit_Equal);
@@ -1239,8 +1239,9 @@ static void test_packet_u16s(void) {
 			if (start < 5) {
 				memset(read_array, 0, sizeof(read_array));
 				const uint16_t read_length = end - start;
-				const uint16_t read = ct_packet_get_u16s(packet, start << 1, read_array, read_length, CTEndian_Big);
-				ctunit_assert_uint16(read_length, read, CTUnit_Equal);
+				const uint16_t read_result =
+					ct_packet_get_u16s(packet, start << 1, read_array, read_length, CTEndian_Big);
+				ctunit_assert_uint16(read_length, read_result, CTUnit_Equal);
 				ctunit_assert_uint16(20, ct_packet_size(packet), CTUnit_Equal);
 				ctunit_assert_uint16(20, ct_packet_total_size(packet), CTUnit_Equal);
 				ctunit_assert_uint16(0, ct_packet_past(packet), CTUnit_Equal);
@@ -1256,8 +1257,9 @@ static void test_packet_u16s(void) {
 			if (end >= 5) {
 				memset(read_array, 0, sizeof(read_array));
 				const uint16_t read_length = end - start;
-				const uint16_t read = ct_packet_get_u16s(packet, start << 1, read_array, read_length, CTEndian_Little);
-				ctunit_assert_uint16(read_length, read, CTUnit_Equal);
+				const uint16_t read_result =
+					ct_packet_get_u16s(packet, start << 1, read_array, read_length, CTEndian_Little);
+				ctunit_assert_uint16(read_length, read_result, CTUnit_Equal);
 				ctunit_assert_uint16(20, ct_packet_size(packet), CTUnit_Equal);
 				ctunit_assert_uint16(20, ct_packet_total_size(packet), CTUnit_Equal);
 				ctunit_assert_uint16(0, ct_packet_past(packet), CTUnit_Equal);
@@ -1279,8 +1281,8 @@ static void test_packet_u16s(void) {
 	// take: big endian
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read = ct_packet_take_u16s(packet, read_array, 5, CTEndian_Big);
-		ctunit_assert_uint16(5, read, CTUnit_Equal);
+		const uint16_t read_result = ct_packet_take_u16s(packet, read_array, 5, CTEndian_Big);
+		ctunit_assert_uint16(5, read_result, CTUnit_Equal);
 		ctunit_assert_uint16(10, ct_packet_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(20, ct_packet_total_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(10, ct_packet_past(packet), CTUnit_Equal);
@@ -1295,8 +1297,8 @@ static void test_packet_u16s(void) {
 	// take: little endian
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read = ct_packet_take_u16s(packet, read_array, 5, CTEndian_Little);
-		ctunit_assert_uint16(5, read, CTUnit_Equal);
+		const uint16_t read_result = ct_packet_take_u16s(packet, read_array, 5, CTEndian_Little);
+		ctunit_assert_uint16(5, read_result, CTUnit_Equal);
 		ctunit_assert_uint16(0, ct_packet_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(20, ct_packet_total_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(20, ct_packet_past(packet), CTUnit_Equal);
@@ -1318,8 +1320,8 @@ static void test_packet_u32s(void) {
 
 	// put: big endian
 	{
-		const uint16_t written = ct_packet_put_u32s(packet, test_array, 5, CTEndian_Big);
-		ctunit_assert_uint16(5, written, CTUnit_Equal);
+		const uint16_t write_result = ct_packet_put_u32s(packet, test_array, 5, CTEndian_Big);
+		ctunit_assert_uint16(5, write_result, CTUnit_Equal);
 		ctunit_assert_uint16(20, ct_packet_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(20, ct_packet_total_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(0, ct_packet_past(packet), CTUnit_Equal);
@@ -1328,8 +1330,8 @@ static void test_packet_u32s(void) {
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read = ct_packet_get_u32s(packet, 0, read_array, 10, CTEndian_Big);
-		ctunit_assert_uint16(5, read, CTUnit_Equal);
+		const uint16_t read_result = ct_packet_get_u32s(packet, 0, read_array, 10, CTEndian_Big);
+		ctunit_assert_uint16(5, read_result, CTUnit_Equal);
 		ctunit_assert_uint16(20, ct_packet_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(20, ct_packet_total_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(0, ct_packet_past(packet), CTUnit_Equal);
@@ -1343,8 +1345,8 @@ static void test_packet_u32s(void) {
 
 	// put: little endian
 	{
-		const uint16_t written = ct_packet_put_u32s(packet, test_array, 5, CTEndian_Little);
-		ctunit_assert_uint16(5, written, CTUnit_Equal);
+		const uint16_t write_result = ct_packet_put_u32s(packet, test_array, 5, CTEndian_Little);
+		ctunit_assert_uint16(5, write_result, CTUnit_Equal);
 		ctunit_assert_uint16(40, ct_packet_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(40, ct_packet_total_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(0, ct_packet_past(packet), CTUnit_Equal);
@@ -1353,8 +1355,8 @@ static void test_packet_u32s(void) {
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read = ct_packet_get_u32s(packet, 0, read_array, 10, CTEndian_Big);
-		ctunit_assert_uint16(10, read, CTUnit_Equal);
+		const uint16_t read_result = ct_packet_get_u32s(packet, 0, read_array, 10, CTEndian_Big);
+		ctunit_assert_uint16(10, read_result, CTUnit_Equal);
 		ctunit_assert_uint16(40, ct_packet_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(40, ct_packet_total_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(0, ct_packet_past(packet), CTUnit_Equal);
@@ -1367,8 +1369,8 @@ static void test_packet_u32s(void) {
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read = ct_packet_get_u32s(packet, 0, read_array, 10, CTEndian_Little);
-		ctunit_assert_uint16(10, read, CTUnit_Equal);
+		const uint16_t read_result = ct_packet_get_u32s(packet, 0, read_array, 10, CTEndian_Little);
+		ctunit_assert_uint16(10, read_result, CTUnit_Equal);
 		ctunit_assert_uint16(40, ct_packet_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(40, ct_packet_total_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(0, ct_packet_past(packet), CTUnit_Equal);
@@ -1385,8 +1387,9 @@ static void test_packet_u32s(void) {
 			if (start < 5) {
 				memset(read_array, 0, sizeof(read_array));
 				const uint16_t read_length = end - start;
-				const uint16_t read = ct_packet_get_u32s(packet, start << 2, read_array, read_length, CTEndian_Big);
-				ctunit_assert_uint16(read_length, read, CTUnit_Equal);
+				const uint16_t read_result =
+					ct_packet_get_u32s(packet, start << 2, read_array, read_length, CTEndian_Big);
+				ctunit_assert_uint16(read_length, read_result, CTUnit_Equal);
 				ctunit_assert_uint16(40, ct_packet_size(packet), CTUnit_Equal);
 				ctunit_assert_uint16(40, ct_packet_total_size(packet), CTUnit_Equal);
 				ctunit_assert_uint16(0, ct_packet_past(packet), CTUnit_Equal);
@@ -1402,8 +1405,9 @@ static void test_packet_u32s(void) {
 			if (end >= 5) {
 				memset(read_array, 0, sizeof(read_array));
 				const uint16_t read_length = end - start;
-				const uint16_t read = ct_packet_get_u32s(packet, start << 2, read_array, read_length, CTEndian_Little);
-				ctunit_assert_uint16(read_length, read, CTUnit_Equal);
+				const uint16_t read_result =
+					ct_packet_get_u32s(packet, start << 2, read_array, read_length, CTEndian_Little);
+				ctunit_assert_uint16(read_length, read_result, CTUnit_Equal);
 				ctunit_assert_uint16(40, ct_packet_size(packet), CTUnit_Equal);
 				ctunit_assert_uint16(40, ct_packet_total_size(packet), CTUnit_Equal);
 				ctunit_assert_uint16(0, ct_packet_past(packet), CTUnit_Equal);
@@ -1425,8 +1429,8 @@ static void test_packet_u32s(void) {
 	// take: big endian
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read = ct_packet_take_u32s(packet, read_array, 5, CTEndian_Big);
-		ctunit_assert_uint16(5, read, CTUnit_Equal);
+		const uint16_t read_result = ct_packet_take_u32s(packet, read_array, 5, CTEndian_Big);
+		ctunit_assert_uint16(5, read_result, CTUnit_Equal);
 		ctunit_assert_uint16(20, ct_packet_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(40, ct_packet_total_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(20, ct_packet_past(packet), CTUnit_Equal);
@@ -1441,8 +1445,8 @@ static void test_packet_u32s(void) {
 	// take: little endian
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read = ct_packet_take_u32s(packet, read_array, 5, CTEndian_Little);
-		ctunit_assert_uint16(5, read, CTUnit_Equal);
+		const uint16_t read_result = ct_packet_take_u32s(packet, read_array, 5, CTEndian_Little);
+		ctunit_assert_uint16(5, read_result, CTUnit_Equal);
 		ctunit_assert_uint16(0, ct_packet_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(40, ct_packet_total_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(40, ct_packet_past(packet), CTUnit_Equal);
@@ -1464,8 +1468,8 @@ static void test_packet_u64s(void) {
 
 	// put: big endian
 	{
-		const uint16_t written = ct_packet_put_u64s(packet, test_array, 5, CTEndian_Big);
-		ctunit_assert_uint16(5, written, CTUnit_Equal);
+		const uint16_t write_result = ct_packet_put_u64s(packet, test_array, 5, CTEndian_Big);
+		ctunit_assert_uint16(5, write_result, CTUnit_Equal);
 		ctunit_assert_uint16(40, ct_packet_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(40, ct_packet_total_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(0, ct_packet_past(packet), CTUnit_Equal);
@@ -1474,8 +1478,8 @@ static void test_packet_u64s(void) {
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read = ct_packet_get_u64s(packet, 0, read_array, 10, CTEndian_Big);
-		ctunit_assert_uint16(5, read, CTUnit_Equal);
+		const uint16_t read_result = ct_packet_get_u64s(packet, 0, read_array, 10, CTEndian_Big);
+		ctunit_assert_uint16(5, read_result, CTUnit_Equal);
 		ctunit_assert_uint16(40, ct_packet_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(40, ct_packet_total_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(0, ct_packet_past(packet), CTUnit_Equal);
@@ -1489,8 +1493,8 @@ static void test_packet_u64s(void) {
 
 	// put: little endian
 	{
-		const uint16_t written = ct_packet_put_u64s(packet, test_array, 5, CTEndian_Little);
-		ctunit_assert_uint16(5, written, CTUnit_Equal);
+		const uint16_t write_result = ct_packet_put_u64s(packet, test_array, 5, CTEndian_Little);
+		ctunit_assert_uint16(5, write_result, CTUnit_Equal);
 		ctunit_assert_uint16(80, ct_packet_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(80, ct_packet_total_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(0, ct_packet_past(packet), CTUnit_Equal);
@@ -1499,8 +1503,8 @@ static void test_packet_u64s(void) {
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read = ct_packet_get_u64s(packet, 0, read_array, 10, CTEndian_Big);
-		ctunit_assert_uint16(10, read, CTUnit_Equal);
+		const uint16_t read_result = ct_packet_get_u64s(packet, 0, read_array, 10, CTEndian_Big);
+		ctunit_assert_uint16(10, read_result, CTUnit_Equal);
 		ctunit_assert_uint16(80, ct_packet_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(80, ct_packet_total_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(0, ct_packet_past(packet), CTUnit_Equal);
@@ -1513,8 +1517,8 @@ static void test_packet_u64s(void) {
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read = ct_packet_get_u64s(packet, 40, read_array, 10, CTEndian_Little);
-		ctunit_assert_uint16(5, read, CTUnit_Equal);
+		const uint16_t read_result = ct_packet_get_u64s(packet, 40, read_array, 10, CTEndian_Little);
+		ctunit_assert_uint16(5, read_result, CTUnit_Equal);
 		ctunit_assert_uint16(80, ct_packet_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(80, ct_packet_total_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(0, ct_packet_past(packet), CTUnit_Equal);
@@ -1531,8 +1535,9 @@ static void test_packet_u64s(void) {
 			if (start < 5) {
 				memset(read_array, 0, sizeof(read_array));
 				const uint16_t read_length = end - start;
-				const uint16_t read = ct_packet_get_u64s(packet, start << 3, read_array, read_length, CTEndian_Big);
-				ctunit_assert_uint16(read_length, read, CTUnit_Equal);
+				const uint16_t read_result =
+					ct_packet_get_u64s(packet, start << 3, read_array, read_length, CTEndian_Big);
+				ctunit_assert_uint16(read_length, read_result, CTUnit_Equal);
 				ctunit_assert_uint16(80, ct_packet_size(packet), CTUnit_Equal);
 				ctunit_assert_uint16(80, ct_packet_total_size(packet), CTUnit_Equal);
 				ctunit_assert_uint16(0, ct_packet_past(packet), CTUnit_Equal);
@@ -1548,8 +1553,9 @@ static void test_packet_u64s(void) {
 			if (end >= 5) {
 				memset(read_array, 0, sizeof(read_array));
 				const uint16_t read_length = end - start;
-				const uint16_t read = ct_packet_get_u64s(packet, start << 3, read_array, read_length, CTEndian_Little);
-				ctunit_assert_uint16(read_length, read, CTUnit_Equal);
+				const uint16_t read_result =
+					ct_packet_get_u64s(packet, start << 3, read_array, read_length, CTEndian_Little);
+				ctunit_assert_uint16(read_length, read_result, CTUnit_Equal);
 				ctunit_assert_uint16(80, ct_packet_size(packet), CTUnit_Equal);
 				ctunit_assert_uint16(80, ct_packet_total_size(packet), CTUnit_Equal);
 				ctunit_assert_uint16(0, ct_packet_past(packet), CTUnit_Equal);
@@ -1610,8 +1616,8 @@ static void test_packet_floats(void) {
 
 	// put: big endian
 	{
-		const uint16_t written = ct_packet_put_floats(packet, test_array, 5, CTEndian_Big);
-		ctunit_assert_uint16(5, written, CTUnit_Equal);
+		const uint16_t write_result = ct_packet_put_floats(packet, test_array, 5, CTEndian_Big);
+		ctunit_assert_uint16(5, write_result, CTUnit_Equal);
 		ctunit_assert_uint16(20, ct_packet_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(20, ct_packet_total_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(0, ct_packet_past(packet), CTUnit_Equal);
@@ -1620,8 +1626,8 @@ static void test_packet_floats(void) {
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read = ct_packet_get_floats(packet, 0, read_array, 10, CTEndian_Big);
-		ctunit_assert_uint16(5, read, CTUnit_Equal);
+		const uint16_t read_result = ct_packet_get_floats(packet, 0, read_array, 10, CTEndian_Big);
+		ctunit_assert_uint16(5, read_result, CTUnit_Equal);
 		ctunit_assert_uint16(20, ct_packet_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(20, ct_packet_total_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(0, ct_packet_past(packet), CTUnit_Equal);
@@ -1635,8 +1641,8 @@ static void test_packet_floats(void) {
 
 	// put: little endian
 	{
-		const uint16_t written = ct_packet_put_floats(packet, test_array, 5, CTEndian_Little);
-		ctunit_assert_uint16(5, written, CTUnit_Equal);
+		const uint16_t write_result = ct_packet_put_floats(packet, test_array, 5, CTEndian_Little);
+		ctunit_assert_uint16(5, write_result, CTUnit_Equal);
 		ctunit_assert_uint16(40, ct_packet_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(40, ct_packet_total_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(0, ct_packet_past(packet), CTUnit_Equal);
@@ -1645,8 +1651,8 @@ static void test_packet_floats(void) {
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read = ct_packet_get_floats(packet, 0, read_array, 10, CTEndian_Big);
-		ctunit_assert_uint16(10, read, CTUnit_Equal);
+		const uint16_t read_result = ct_packet_get_floats(packet, 0, read_array, 10, CTEndian_Big);
+		ctunit_assert_uint16(10, read_result, CTUnit_Equal);
 		ctunit_assert_uint16(40, ct_packet_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(40, ct_packet_total_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(0, ct_packet_past(packet), CTUnit_Equal);
@@ -1659,8 +1665,8 @@ static void test_packet_floats(void) {
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read = ct_packet_get_floats(packet, 0, read_array, 10, CTEndian_Little);
-		ctunit_assert_uint16(10, read, CTUnit_Equal);
+		const uint16_t read_result = ct_packet_get_floats(packet, 0, read_array, 10, CTEndian_Little);
+		ctunit_assert_uint16(10, read_result, CTUnit_Equal);
 		ctunit_assert_uint16(40, ct_packet_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(40, ct_packet_total_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(0, ct_packet_past(packet), CTUnit_Equal);
@@ -1677,8 +1683,9 @@ static void test_packet_floats(void) {
 			if (start < 5) {
 				memset(read_array, 0, sizeof(read_array));
 				const uint16_t read_length = end - start;
-				const uint16_t read = ct_packet_get_floats(packet, start << 2, read_array, read_length, CTEndian_Big);
-				ctunit_assert_uint16(read_length, read, CTUnit_Equal);
+				const uint16_t read_result =
+					ct_packet_get_floats(packet, start << 2, read_array, read_length, CTEndian_Big);
+				ctunit_assert_uint16(read_length, read_result, CTUnit_Equal);
 				ctunit_assert_uint16(40, ct_packet_size(packet), CTUnit_Equal);
 				ctunit_assert_uint16(40, ct_packet_total_size(packet), CTUnit_Equal);
 				ctunit_assert_uint16(0, ct_packet_past(packet), CTUnit_Equal);
@@ -1693,9 +1700,9 @@ static void test_packet_floats(void) {
 			if (end >= 5) {
 				memset(read_array, 0, sizeof(read_array));
 				const uint16_t read_length = end - start;
-				const uint16_t read =
+				const uint16_t read_result =
 					ct_packet_get_floats(packet, start << 2, read_array, read_length, CTEndian_Little);
-				ctunit_assert_uint16(read_length, read, CTUnit_Equal);
+				ctunit_assert_uint16(read_length, read_result, CTUnit_Equal);
 				ctunit_assert_uint16(40, ct_packet_size(packet), CTUnit_Equal);
 				ctunit_assert_uint16(40, ct_packet_total_size(packet), CTUnit_Equal);
 				ctunit_assert_uint16(0, ct_packet_past(packet), CTUnit_Equal);
@@ -1716,8 +1723,8 @@ static void test_packet_floats(void) {
 	// take: big endian
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read = ct_packet_take_floats(packet, read_array, 5, CTEndian_Big);
-		ctunit_assert_uint16(5, read, CTUnit_Equal);
+		const uint16_t read_result = ct_packet_take_floats(packet, read_array, 5, CTEndian_Big);
+		ctunit_assert_uint16(5, read_result, CTUnit_Equal);
 		ctunit_assert_uint16(20, ct_packet_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(40, ct_packet_total_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(20, ct_packet_past(packet), CTUnit_Equal);
@@ -1732,8 +1739,8 @@ static void test_packet_floats(void) {
 	// take: little endian
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read = ct_packet_take_floats(packet, read_array, 5, CTEndian_Little);
-		ctunit_assert_uint16(5, read, CTUnit_Equal);
+		const uint16_t read_result = ct_packet_take_floats(packet, read_array, 5, CTEndian_Little);
+		ctunit_assert_uint16(5, read_result, CTUnit_Equal);
 		ctunit_assert_uint16(0, ct_packet_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(40, ct_packet_total_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(40, ct_packet_past(packet), CTUnit_Equal);
@@ -1755,8 +1762,8 @@ static void test_packet_doubles(void) {
 
 	// put: big endian
 	{
-		const uint16_t written = ct_packet_put_doubles(packet, test_array, 5, CTEndian_Big);
-		ctunit_assert_uint16(5, written, CTUnit_Equal);
+		const uint16_t write_result = ct_packet_put_doubles(packet, test_array, 5, CTEndian_Big);
+		ctunit_assert_uint16(5, write_result, CTUnit_Equal);
 		ctunit_assert_uint16(40, ct_packet_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(40, ct_packet_total_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(0, ct_packet_past(packet), CTUnit_Equal);
@@ -1765,8 +1772,8 @@ static void test_packet_doubles(void) {
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read = ct_packet_get_doubles(packet, 0, read_array, 10, CTEndian_Big);
-		ctunit_assert_uint16(5, read, CTUnit_Equal);
+		const uint16_t read_result = ct_packet_get_doubles(packet, 0, read_array, 10, CTEndian_Big);
+		ctunit_assert_uint16(5, read_result, CTUnit_Equal);
 		ctunit_assert_uint16(40, ct_packet_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(40, ct_packet_total_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(0, ct_packet_past(packet), CTUnit_Equal);
@@ -1780,8 +1787,8 @@ static void test_packet_doubles(void) {
 
 	// put: little endian
 	{
-		const uint16_t written = ct_packet_put_doubles(packet, test_array, 5, CTEndian_Little);
-		ctunit_assert_uint16(5, written, CTUnit_Equal);
+		const uint16_t write_result = ct_packet_put_doubles(packet, test_array, 5, CTEndian_Little);
+		ctunit_assert_uint16(5, write_result, CTUnit_Equal);
 		ctunit_assert_uint16(80, ct_packet_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(80, ct_packet_total_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(0, ct_packet_past(packet), CTUnit_Equal);
@@ -1790,8 +1797,8 @@ static void test_packet_doubles(void) {
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read = ct_packet_get_doubles(packet, 0, read_array, 10, CTEndian_Big);
-		ctunit_assert_uint16(10, read, CTUnit_Equal);
+		const uint16_t read_result = ct_packet_get_doubles(packet, 0, read_array, 10, CTEndian_Big);
+		ctunit_assert_uint16(10, read_result, CTUnit_Equal);
 		ctunit_assert_uint16(80, ct_packet_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(80, ct_packet_total_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(0, ct_packet_past(packet), CTUnit_Equal);
@@ -1804,8 +1811,8 @@ static void test_packet_doubles(void) {
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read = ct_packet_get_doubles(packet, 40, read_array, 10, CTEndian_Little);
-		ctunit_assert_uint16(5, read, CTUnit_Equal);
+		const uint16_t read_result = ct_packet_get_doubles(packet, 40, read_array, 10, CTEndian_Little);
+		ctunit_assert_uint16(5, read_result, CTUnit_Equal);
 		ctunit_assert_uint16(80, ct_packet_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(80, ct_packet_total_size(packet), CTUnit_Equal);
 		ctunit_assert_uint16(0, ct_packet_past(packet), CTUnit_Equal);
@@ -1822,8 +1829,9 @@ static void test_packet_doubles(void) {
 			if (start < 5) {
 				memset(read_array, 0, sizeof(read_array));
 				const uint16_t read_length = end - start;
-				const uint16_t read = ct_packet_get_doubles(packet, start << 3, read_array, read_length, CTEndian_Big);
-				ctunit_assert_uint16(read_length, read, CTUnit_Equal);
+				const uint16_t read_result =
+					ct_packet_get_doubles(packet, start << 3, read_array, read_length, CTEndian_Big);
+				ctunit_assert_uint16(read_length, read_result, CTUnit_Equal);
 				ctunit_assert_uint16(80, ct_packet_size(packet), CTUnit_Equal);
 				ctunit_assert_uint16(80, ct_packet_total_size(packet), CTUnit_Equal);
 				ctunit_assert_uint16(0, ct_packet_past(packet), CTUnit_Equal);
@@ -1839,9 +1847,9 @@ static void test_packet_doubles(void) {
 			if (end >= 5) {
 				memset(read_array, 0, sizeof(read_array));
 				const uint16_t read_length = end - start;
-				const uint16_t read =
+				const uint16_t read_result =
 					ct_packet_get_doubles(packet, start << 3, read_array, read_length, CTEndian_Little);
-				ctunit_assert_uint16(read_length, read, CTUnit_Equal);
+				ctunit_assert_uint16(read_length, read_result, CTUnit_Equal);
 				ctunit_assert_uint16(80, ct_packet_size(packet), CTUnit_Equal);
 				ctunit_assert_uint16(80, ct_packet_total_size(packet), CTUnit_Equal);
 				ctunit_assert_uint16(0, ct_packet_past(packet), CTUnit_Equal);
