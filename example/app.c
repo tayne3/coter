@@ -78,17 +78,17 @@ static void ap_occurred(const excep_t* excep);
 // 应用崩溃
 static void ap_crash(int code, const char* msg, bool is_sig);
 
-// 异常捕捉线程
-static THREAD_RETURN_T ap_catch_thread(void* arg);
-// 退出执行
-static void ap_atexit_exec(void);
-
 // 日志初始化
 static int ap_log_init(void);
 // 日志销毁
 static void ap_log_deinit(void);
 // 日志调度线程
 static THREAD_RETURN_T ap_log_run(void* arg);
+
+// 异常捕捉线程
+static THREAD_RETURN_T ap_catch_thread(void* arg);
+// 退出执行
+static void ap_atexit_exec(void);
 
 #ifdef CT_OS_WIN
 // 控制台控制处理程序
@@ -221,7 +221,7 @@ int global_async(void (*routine)(void*), void* arg) {
 // -------------------------[STATIC DEFINITION]-------------------------
 
 static void ap_welcome(void) {
-	char str[CT_DATETIME_FMT_BUFLEN];
+	char str[CT_TM_FMT_MAX];
 	gapp->now  = ct_current_second();
 	gapp->tick = getuptime_ms();
 	ct_tm_fmt(localtime(&gapp->now), str);
@@ -229,7 +229,7 @@ static void ap_welcome(void) {
 }
 
 static void ap_goobye(void) {
-	char str[CT_DATETIME_FMT_BUFLEN];
+	char str[CT_TM_FMT_MAX];
 	gapp->now  = ct_current_second();
 	gapp->tick = getuptime_ms();
 	ct_tm_fmt(localtime(&gapp->now), str);
@@ -263,30 +263,6 @@ static void ap_crash(int code, const char* msg, bool is_sig) {
 	}
 }
 
-static THREAD_RETURN_T ap_catch_thread(void* arg) {
-	excep_t excep;
-	ct_msgqueue_dequeue(gapp->exitMQ, &excep);
-	ap_occurred(&excep);
-
-	gapp->isShutdown = true;
-	return THREAD_RETURN_VALUE;
-	ct_unused(arg);
-}
-
-static void ap_atexit_exec(void) {
-	ct_list_t head[1];
-	ct_list_init(head);
-
-	pthread_mutex_lock(&gapp->atExitMutex);
-	ct_list_splice_next(head, gapp->atExitList);
-	pthread_mutex_unlock(&gapp->atExitMutex);
-
-	ct_list_foreach_entry_safe (node, head, atexit_t, list) {
-		node->callback();
-		free(node);
-	}
-}
-
 static int ap_log_init(void) {
 	ct_log_config_t config;
 	ct_log_config_default(&config);
@@ -315,6 +291,30 @@ static THREAD_RETURN_T ap_log_run(void* arg) {
 	}
 	return THREAD_RETURN_VALUE;
 	ct_unused(arg);
+}
+
+static THREAD_RETURN_T ap_catch_thread(void* arg) {
+	excep_t excep;
+	ct_msgqueue_dequeue(gapp->exitMQ, &excep);
+	ap_occurred(&excep);
+
+	gapp->isShutdown = true;
+	return THREAD_RETURN_VALUE;
+	ct_unused(arg);
+}
+
+static void ap_atexit_exec(void) {
+	ct_list_t head[1];
+	ct_list_init(head);
+
+	pthread_mutex_lock(&gapp->atExitMutex);
+	ct_list_splice_next(head, gapp->atExitList);
+	pthread_mutex_unlock(&gapp->atExitMutex);
+
+	ct_list_foreach_entry_safe (node, head, atexit_t, list) {
+		node->callback();
+		free(node);
+	}
 }
 
 #ifdef CT_OS_WIN
