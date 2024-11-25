@@ -1,5 +1,5 @@
 /**
- * @file test_hashalgo.c
+ * @file hashalgo_test.c
  * @brief Hash 算法测试
  * @author tayne3@dingtalk.com
  * @date 2023.12.28

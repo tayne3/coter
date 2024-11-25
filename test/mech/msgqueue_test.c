@@ -1,5 +1,5 @@
 /**
- * @file test_msgqueue.c
+ * @file msgqueue_test.c
  * @brief 消息队列测试
  * @author tayne3@dingtalk.com
  * @date 2023.12.03

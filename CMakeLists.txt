@@ -1,7 +1,7 @@
 # 设置 cmake 最低版本
 cmake_minimum_required(VERSION 3.5)
 # 设置项目属性
-project(coter VERSION 0.5.4.5 LANGUAGES C)
+project(coter VERSION 0.5.4.6 LANGUAGES C)
 
 # 是否编译示例与测试程序
 option(COTER_BUILD_EXAMPLE "build example program" OFF)

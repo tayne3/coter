@@ -1,5 +1,5 @@
 /**
- * @file test_sha1.c
+ * @file sha1_test.c
  * @brief SHA1加密算法测试
  */
 #include "algo/ct_sha1.h"

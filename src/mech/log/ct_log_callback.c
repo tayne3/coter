@@ -79,7 +79,7 @@ void ct_log_callback_destroy(ct_log_callback_t *self) {
 	free(self);
 }
 
-void ct_log_callback_handle(ct_log_callback_t *self, char *buf, size_t size) {
+void ct_log_callback_handle(ct_log_callback_t *self, const char *buf, size_t size) {
 	assert(self);
 	assert(self->producer_buffer);
 	assert(buf);

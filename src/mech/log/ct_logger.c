@@ -153,7 +153,7 @@ bool ct_log_is_enable(size_t type_id, int level) {
 	return type_id < glogger->type_size && glogger->datas[type_id].level <= level;
 }
 
-void ct_log_handle(size_t type_id, int level, char* buf, size_t size) {
+void ct_log_handle(size_t type_id, int level, const char* buf, size_t size) {
 	assert(buf);
 	ct_unused(level);
 	struct ct_log_data* data = &glogger->datas[type_id];

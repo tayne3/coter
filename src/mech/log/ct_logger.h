@@ -70,7 +70,7 @@ CT_API bool ct_log_is_enable(size_t type_id, int level);
  * @param buf 缓冲区
  * @param size 缓冲区大小
  */
-CT_API void ct_log_handle(size_t type_id, int level, char *buf, size_t size) __ct_nonnull(3);
+CT_API void ct_log_handle(size_t type_id, int level, const char *buf, size_t size) __ct_nonnull(3);
 
 #ifdef __cplusplus
 }

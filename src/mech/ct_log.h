@@ -14,57 +14,59 @@ extern "C" {
 #include "log/ct_logger.h"
 #include "mech/ct_threadcache.h"
 
-#define CTLogger_HandleBasic(__flag, __type, ...)                               \
-	do {                                                                        \
-		if (ct_log_is_enable(__type, CTLog_Level##__flag)) {                    \
-			char _buffer[1024ULL];                                              \
-			int  _size = __ct_threadcache_basic(_buffer, __VA_ARGS__);          \
-			ct_log_handle(__type, CTLog_Level##__flag, _buffer, (size_t)_size); \
-		}                                                                       \
+#define CTLogger_HandleBasic(__flag, __type, ...)                                                        \
+	do {                                                                                                 \
+		if (ct_log_is_enable(__type, CTLog_Level##__flag)) {                                             \
+			ct_threadcache_t *cache = ct_threadcache_get();                                              \
+			const int         _size = __ct_threadcache_basic(cache, __VA_ARGS__);                        \
+			ct_log_handle(__type, CTLog_Level##__flag, ct_threadcache_get_buffer(cache), (size_t)_size); \
+		}                                                                                                \
 	} while (0)
 
-#define CTLogger_HandleBrief(__flag, __type, ...)                                                                   \
-	do {                                                                                                            \
-		if (ct_log_is_enable(__type, CTLog_Level##__flag)) {                                                        \
-			char _buffer[1024ULL];                                                                                  \
-			int  _size = __ct_threadcache_brief(_buffer, CTLog_Style##__flag CTLog_String##__flag "|%s|%s\x1b[0m ", \
-												__VA_ARGS__);                                                       \
-			ct_log_handle(__type, CTLog_Level##__flag, _buffer, (size_t)_size);                                     \
-		}                                                                                                           \
+#define CTLogger_HandleBrief(__flag, __type, ...)                                                                      \
+	do {                                                                                                               \
+		if (ct_log_is_enable(__type, CTLog_Level##__flag)) {                                                           \
+			ct_threadcache_t *cache = ct_threadcache_get();                                                            \
+			const int         _size =                                                                                  \
+				__ct_threadcache_brief(cache, CTLog_Style##__flag CTLog_String##__flag "|%s|%s\x1b[0m ", __VA_ARGS__); \
+			ct_log_handle(__type, CTLog_Level##__flag, ct_threadcache_get_buffer(cache), (size_t)_size);               \
+		}                                                                                                              \
 	} while (0)
 
-#define CTLogger_HandleDetail(__flag, __type, ...)                                                                    \
-	do {                                                                                                              \
-		if (ct_log_is_enable(__type, CTLog_Level##__flag)) {                                                          \
-			char _buffer[1024ULL];                                                                                    \
-			int  _size = __ct_threadcache_detail(_buffer, STR_SEPARATOR __ct_file__, __ct_line__,                     \
-												 CTLog_Style##__flag CTLog_String##__flag "|%s|%s\x1b[0m [%.*s:%d] ", \
-												 __VA_ARGS__);                                                        \
-			ct_log_handle(__type, CTLog_Level##__flag, _buffer, (size_t)_size);                                       \
-		}                                                                                                             \
+#define CTLogger_HandleDetail(__flag, __type, ...)                                                         \
+	do {                                                                                                   \
+		if (ct_log_is_enable(__type, CTLog_Level##__flag)) {                                               \
+			ct_threadcache_t *cache = ct_threadcache_get();                                                \
+			const int         _size = __ct_threadcache_detail(                                             \
+                cache, STR_SEPARATOR __ct_file__, __ct_line__,                                     \
+                CTLog_Style##__flag CTLog_String##__flag "|%s|%s\x1b[0m [%.*s:%d] ", __VA_ARGS__); \
+			ct_log_handle(__type, CTLog_Level##__flag, ct_threadcache_get_buffer(cache), (size_t)_size);   \
+		}                                                                                                  \
 	} while (0)
 
 #define CTLogger_HandleHex(__flag, __type, __buf, __len)                                 \
 	do {                                                                                 \
 		if ((__len) > 0 && ct_log_is_enable(__type, CTLog_Level##__flag)) {              \
-			char        _buffer[1024ULL];                                                \
-			char       *_dst       = _buffer;                                            \
-			const char *_src       = (const char *)(__buf);                              \
-			size_t      _available = sizeof(_buffer);                                    \
-			for (int _i = 0; _i < (int)(__len); _i++) {                                  \
+			ct_threadcache_t *cache      = ct_threadcache_get();                         \
+			char             *_buffer    = ct_threadcache_get_buffer(cache);             \
+			char             *_dst       = _buffer;                                      \
+			const uint8_t    *_src       = (const uint8_t *)(__buf);                     \
+			size_t            _available = 1024;                                         \
+			const char       *hex_table  = "0123456789ABCDEF";                           \
+			for (size_t _i = 0; _i < (size_t)(__len); _i++) {                            \
 				if (_available < 3) {                                                    \
 					ct_log_handle(__type, CTLog_Level##__flag, _buffer, _dst - _buffer); \
 					_dst       = _buffer;                                                \
-					_available = sizeof(_buffer);                                        \
+					_available = 1024;                                                   \
 				}                                                                        \
-				if (_i == (__len) - 1) {                                                 \
-					int _written = sprintf(_dst, "%02X", *_src++);                       \
-					_dst += _written;                                                    \
-					_available -= _written;                                              \
+				const uint8_t byte = _src[_i];                                           \
+				*_dst++            = hex_table[byte >> 4];                               \
+				*_dst++            = hex_table[byte & 0x0F];                             \
+				if (_i != (size_t)(__len) - 1) {                                         \
+					*_dst++ = ' ';                                                       \
+					_available -= 3;                                                     \
 				} else {                                                                 \
-					int _written = sprintf(_dst, "%02X ", *_src++);                      \
-					_dst += _written;                                                    \
-					_available -= _written;                                              \
+					_available -= 2;                                                     \
 				}                                                                        \
 			}                                                                            \
 			if (_dst > _buffer) {                                                        \

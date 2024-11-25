@@ -11,8 +11,8 @@ extern "C" {
 #endif
 
 #include "base/ct_platform.h"
-#include "container/ct_bytes.h"
 #include "base/ct_time.h"
+#include "container/ct_bytes.h"
 
 struct ct_bytepool;
 struct ct_log_config;
@@ -30,8 +30,8 @@ typedef struct ct_log_storage ct_log_storage_t;
  * @param config 日志配置
  * @return 返回创建的日志存储器
  */
-ct_log_storage_t *ct_log_storage_create(ct_time64_t tick, struct ct_bytepool *bytepool, const struct ct_log_config *config)
-	__ct_nonnull(2, 3);
+ct_log_storage_t *ct_log_storage_create(ct_time64_t tick, struct ct_bytepool *bytepool,
+										const struct ct_log_config *config) __ct_nonnull(2, 3);
 
 /**
  * @brief 销毁日志存储器
@@ -45,7 +45,7 @@ void ct_log_storage_destroy(ct_log_storage_t *self) __ct_nonnull(1);
  * @param buf 日志数据
  * @param size 日志数据大小
  */
-void ct_log_storage_handle(ct_log_storage_t *self, char *buf, size_t size) __ct_nonnull(1, 2);
+void ct_log_storage_handle(ct_log_storage_t *self, const char *buf, size_t size) __ct_nonnull(1, 2);
 
 /**
  * @brief 日志存储器刷新

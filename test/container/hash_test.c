@@ -1,5 +1,5 @@
 /**
- * @file test_hash.c
+ * @file hash_test.c
  * @brief 哈希表测试
  * @author tayne3@dingtalk.com
  * @date 2023.11.30

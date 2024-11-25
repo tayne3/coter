@@ -1,8 +1,8 @@
 /**
- * @file test_log.c
- * @brief 日志测试
+ * @file log_print_test.c
+ * @brief 日志打印测试
  * @author tayne3@dingtalk.com
- * @date 2023.12.03
+ * @date 2024.11.25
  */
 #include "base/ct_platform.h"
 #include "ctunit.h"
@@ -93,7 +93,6 @@ static inline void* thread_print_without_log(void* arg) {
 static inline void test_print_performance_comparison(void) {
 	pthread_t   threads[TEST_THREADS];
 	ct_time64_t start, end;
-	bool        is_ok;
 
 	// 创建 Logger
 	{
@@ -119,29 +118,24 @@ static inline void test_print_performance_comparison(void) {
 		ctunit_assert_false(ct_log_is_enable(1, CTLog_LevelVerbose));
 	}
 
-	is_ok = 0 == pthread_create(&g_thread_logger, NULL, thread_log_schedule, NULL);
-	ctunit_assert_true(is_ok);
+	ctunit_assert_int(pthread_create(&g_thread_logger, NULL, thread_log_schedule, NULL), 0, CTUnit_Equal);
 
 	start = getuptime_ms();
 	for (int i = 0; i < TEST_THREADS; i++) {
-		is_ok = 0 == pthread_create(&threads[i], NULL, thread_print_without_log, NULL);
-		ctunit_assert_true(is_ok);
+		ctunit_assert_int(pthread_create(&threads[i], NULL, thread_print_without_log, NULL), 0, CTUnit_Equal);
 	}
 	for (int i = 0; i < TEST_THREADS; i++) {
-		is_ok = 0 == pthread_join(threads[i], NULL);
-		ctunit_assert_true(is_ok);
+		ctunit_assert_int(pthread_join(threads[i], NULL), 0, CTUnit_Equal);
 	}
 	end                        = getuptime_ms();
 	const int time_without_log = (int)(end - start);
 
 	start = getuptime_ms();
 	for (int i = 0; i < TEST_THREADS; i++) {
-		is_ok = 0 == pthread_create(&threads[i], NULL, thread_print_with_basic_log, NULL);
-		ctunit_assert_true(is_ok);
+		ctunit_assert_int(pthread_create(&threads[i], NULL, thread_print_with_basic_log, NULL), 0, CTUnit_Equal);
 	}
 	for (int i = 0; i < TEST_THREADS; i++) {
-		is_ok = 0 == pthread_join(threads[i], NULL);
-		ctunit_assert_true(is_ok);
+		ctunit_assert_int(pthread_join(threads[i], NULL), 0, CTUnit_Equal);
 	}
 	end                           = getuptime_ms();
 	const int time_with_basic_log = (int)(end - start);
@@ -149,12 +143,10 @@ static inline void test_print_performance_comparison(void) {
 	// 新增 brief log 测试
 	start = getuptime_ms();
 	for (int i = 0; i < TEST_THREADS; i++) {
-		is_ok = 0 == pthread_create(&threads[i], NULL, thread_print_with_brief_log, NULL);
-		ctunit_assert_true(is_ok);
+		ctunit_assert_int(pthread_create(&threads[i], NULL, thread_print_with_brief_log, NULL), 0, CTUnit_Equal);
 	}
 	for (int i = 0; i < TEST_THREADS; i++) {
-		is_ok = 0 == pthread_join(threads[i], NULL);
-		ctunit_assert_true(is_ok);
+		ctunit_assert_int(pthread_join(threads[i], NULL), 0, CTUnit_Equal);
 	}
 	end                           = getuptime_ms();
 	const int time_with_brief_log = (int)(end - start);
@@ -162,20 +154,17 @@ static inline void test_print_performance_comparison(void) {
 	// 新增 detail log 测试
 	start = getuptime_ms();
 	for (int i = 0; i < TEST_THREADS; i++) {
-		is_ok = 0 == pthread_create(&threads[i], NULL, thread_print_with_detail_log, NULL);
-		ctunit_assert_true(is_ok);
+		ctunit_assert_int(pthread_create(&threads[i], NULL, thread_print_with_detail_log, NULL), 0, CTUnit_Equal);
 	}
 	for (int i = 0; i < TEST_THREADS; i++) {
-		is_ok = 0 == pthread_join(threads[i], NULL);
-		ctunit_assert_true(is_ok);
+		ctunit_assert_int(pthread_join(threads[i], NULL), 0, CTUnit_Equal);
 	}
 
 	end                            = getuptime_ms();
 	const int time_with_detail_log = (int)(end - start);
 
 	is_exit = true;
-	is_ok   = 0 == pthread_join(g_thread_logger, NULL);
-	ctunit_assert_true(is_ok);
+	ctunit_assert_int(pthread_join(g_thread_logger, NULL), 0, CTUnit_Equal);
 
 	ct_log_flush();
 	ct_log_schedule(getuptime_ms());

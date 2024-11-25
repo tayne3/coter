@@ -1,5 +1,5 @@
 /**
- * @file test_random.c
+ * @file random_test.c
  * @brief 随机数测试
  * @author tayne3@dingtalk.com
  * @date 2023.11.30

@@ -1,5 +1,5 @@
 /**
- * @file test_timer.c
+ * @file timer_test.c
  * @brief 定时器测试
  * @author tayne3@dingtalk.com
  * @date 2023.12.18

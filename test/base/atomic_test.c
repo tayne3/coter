@@ -1,5 +1,5 @@
 /**
- * @file test_atomic.c
+ * @file atomic_test.c
  * @brief 原子操作相关测试
  * @author tayne3@dingtalk.com
  * @date 2023.12.18

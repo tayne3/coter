@@ -1,5 +1,5 @@
 /**
- * @file test_thpool.c
+ * @file thpool_test.c
  * @brief 线程池测试
  * @author tayne3@dingtalk.com
  * @date 2023.12.03

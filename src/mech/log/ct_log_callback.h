@@ -43,7 +43,7 @@ void ct_log_callback_destroy(ct_log_callback_t *self) __ct_nonnull(1);
  * @param self 日志回调器
  * @param bytes 字节数组
  */
-void ct_log_callback_handle(ct_log_callback_t *self, char *buf, size_t size) __ct_nonnull(1, 2);
+void ct_log_callback_handle(ct_log_callback_t *self, const char *buf, size_t size) __ct_nonnull(1, 2);
 
 /**
  * @brief 日志回调器刷新

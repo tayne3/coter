@@ -1,5 +1,5 @@
 /**
- * @file test_platform.c
+ * @file platform_test.c
  * @brief 平台相关测试
  * @author tayne3@dingtalk.com
  * @date 2023.12.18

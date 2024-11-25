@@ -1,5 +1,5 @@
 /**
- * @file test_evmsg.c
+ * @file evmsg_test.c
  * @brief 事件消息测试
  * @author tayne3@dingtalk.com
  * @date 2023.12.18

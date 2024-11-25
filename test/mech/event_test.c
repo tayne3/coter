@@ -1,5 +1,5 @@
 /**
- * @file test_event.c
+ * @file event_test.c
  * @brief 事件测试
  * @author tayne3@dingtalk.com
  * @date 2023.12.18

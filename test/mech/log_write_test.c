@@ -1,8 +1,8 @@
 /**
- * @file test_log.c
- * @brief 日志测试
+ * @file log_write_test.c
+ * @brief 日志写入测试
  * @author tayne3@dingtalk.com
- * @date 2023.12.03
+ * @date 2024.11.25
  */
 #include "base/ct_platform.h"
 #include "ctunit.h"
@@ -14,20 +14,6 @@
 #define test_basic_warning(...) CTLogger_HandleBasic(Warning, 0, __VA_ARGS__)
 #define test_basic_error(...)   CTLogger_HandleBasic(Error, 0, __VA_ARGS__)
 #define test_basic_fatal(...)   CTLogger_HandleBasic(Fatal, 0, __VA_ARGS__)
-
-#define test_brief_verbose(...) CTLogger_HandleBrief(Verbose, 0, __VA_ARGS__)
-#define test_brief_debug(...)   CTLogger_HandleBrief(Debug, 0, __VA_ARGS__)
-#define test_brief_trace(...)   CTLogger_HandleBrief(Trace, 0, __VA_ARGS__)
-#define test_brief_warning(...) CTLogger_HandleBrief(Warning, 0, __VA_ARGS__)
-#define test_brief_error(...)   CTLogger_HandleBrief(Error, 0, __VA_ARGS__)
-#define test_brief_fatal(...)   CTLogger_HandleBrief(Fatal, 0, __VA_ARGS__)
-
-#define test_detail_verbose(...) CTLogger_HandleDetail(Verbose, 0, __VA_ARGS__)
-#define test_detail_debug(...)   CTLogger_HandleDetail(Debug, 0, __VA_ARGS__)
-#define test_detail_trace(...)   CTLogger_HandleDetail(Trace, 0, __VA_ARGS__)
-#define test_detail_warning(...) CTLogger_HandleDetail(Warning, 0, __VA_ARGS__)
-#define test_detail_error(...)   CTLogger_HandleDetail(Error, 0, __VA_ARGS__)
-#define test_detail_fatal(...)   CTLogger_HandleDetail(Fatal, 0, __VA_ARGS__)
 
 #define TEST_THREADS     2
 #define TEST_THREAD_DATA 100000
@@ -73,7 +59,6 @@ static inline void* thread_write_without_log(void* arg) {
 static inline void test_write_performance_comparison(void) {
 	pthread_t   threads[TEST_THREADS];
 	ct_time64_t start, end;
-	bool        is_ok;
 
 	// 检查当前文件夹下是否存在 test_log_out 文件夹
 	if (access("test_log_out", 0) == -1) {
@@ -85,8 +70,6 @@ static inline void test_write_performance_comparison(void) {
 	ctunit_assert_not_null(g_file);
 
 	remove("test_log_out/with_log.log0");
-	remove("test_log_out/with_log.log1");
-	remove("test_log_out/with_log.log2");
 
 	// 创建 Logger
 	{
@@ -108,36 +91,32 @@ static inline void test_write_performance_comparison(void) {
 		ct_log_init(getuptime_ms(), 1, &config);
 	}
 
-	is_ok = 0 == pthread_create(&g_thread_logger, NULL, thread_log_schedule, NULL);
-	ctunit_assert_true(is_ok);
+	ctunit_assert_int(pthread_create(&g_thread_logger, NULL, thread_log_schedule, NULL), 0, CTUnit_Equal);
 
 	start = getuptime_ms();
 	for (int i = 0; i < TEST_THREADS; i++) {
-		is_ok = 0 == pthread_create(&threads[i], NULL, thread_write_without_log, (void*)(uintptr_t)i);
-		ctunit_assert_true(is_ok);
+		ctunit_assert_int(pthread_create(&threads[i], NULL, thread_write_without_log, (void*)(uintptr_t)i), 0,
+						  CTUnit_Equal);
 	}
 	for (int i = 0; i < TEST_THREADS; i++) {
-		is_ok = 0 == pthread_join(threads[i], NULL);
-		ctunit_assert_true(is_ok);
+		ctunit_assert_int(pthread_join(threads[i], NULL), 0, CTUnit_Equal);
 	}
 	end                        = getuptime_ms();
 	const int time_without_log = (int)(end - start);
 
 	start = getuptime_ms();
 	for (int i = 0; i < TEST_THREADS; i++) {
-		is_ok = 0 == pthread_create(&threads[i], NULL, thread_write_with_log, (void*)(uintptr_t)i);
-		ctunit_assert_true(is_ok);
+		ctunit_assert_int(pthread_create(&threads[i], NULL, thread_write_with_log, (void*)(uintptr_t)i), 0,
+						  CTUnit_Equal);
 	}
 	for (int i = 0; i < TEST_THREADS; i++) {
-		is_ok = 0 == pthread_join(threads[i], NULL);
-		ctunit_assert_true(is_ok);
+		ctunit_assert_int(pthread_join(threads[i], NULL), 0, CTUnit_Equal);
 	}
 	end                     = getuptime_ms();
 	const int time_with_log = (int)(end - start);
 
 	is_exit = true;
-	is_ok   = 0 == pthread_join(g_thread_logger, NULL);
-	ctunit_assert_true(is_ok);
+	ctunit_assert_int(pthread_join(g_thread_logger, NULL), 0, CTUnit_Equal);
 
 	ct_log_flush();
 	ct_log_schedule(getuptime_ms());
@@ -158,8 +137,8 @@ static inline void test_write_performance_comparison(void) {
 	// 获取文件大小
 	fseek(file_with_log, 0, SEEK_END);
 	fseek(file_without_log, 0, SEEK_END);
-	int64_t size_with_log    = ftell(file_with_log);
-	int64_t size_without_log = ftell(file_without_log);
+	const int64_t size_with_log    = ftell(file_with_log);
+	const int64_t size_without_log = ftell(file_without_log);
 	ctunit_assert_int64(size_with_log, 0, CTUnit_Greater);
 	ctunit_assert_int64(size_without_log, 0, CTUnit_Greater);
 	ctunit_assert_int64(size_with_log, size_without_log, CTUnit_Equal);
@@ -192,6 +171,10 @@ static inline void test_write_performance_comparison(void) {
 
 	fclose(file_with_log);
 	fclose(file_without_log);
+
+	remove("test_log_out/with_log.log0");
+	remove("test_log_out/without_log.log");
+	remove("test_log_out");
 }
 
 int main(void) {

@@ -1,5 +1,5 @@
 /**
- * @file test_time.c
+ * @file time_test.c
  * @brief 时间相关测试
  * @author tayne3@dingtalk.com
  * @date 2023.12.18

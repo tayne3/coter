@@ -42,7 +42,7 @@ void ct_log_printer_destroy(ct_log_printer_t *self) __ct_nonnull(1);
  * @param buf 日志数据
  * @param size 日志数据大小
  */
-void ct_log_printer_handle(ct_log_printer_t *self, char *buf, size_t size) __ct_nonnull(1, 2);
+void ct_log_printer_handle(ct_log_printer_t *self, const char *buf, size_t size) __ct_nonnull(1, 2);
 
 /**
  * @brief 刷新日志打印器

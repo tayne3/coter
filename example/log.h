@@ -26,21 +26,21 @@ extern "C" {
 
 /* 日志输出宏 (无样式) */
 
-#define logV_n(...) CTLogger_HandleBasic(Verbose, LogType_Default, __VA_ARGS__)
-#define logD_n(...) CTLogger_HandleBasic(Debug, LogType_Default, __VA_ARGS__)
-#define logT_n(...) CTLogger_HandleBasic(Trace, LogType_Default, __VA_ARGS__)
-#define logW_n(...) CTLogger_HandleBasic(Warning, LogType_Default, __VA_ARGS__)
-#define logE_n(...) CTLogger_HandleBasic(Error, LogType_Default, __VA_ARGS__)
-#define logF_n(...) CTLogger_HandleBasic(Fatal, LogType_Default, __VA_ARGS__)
+#define logVN(...) CTLogger_HandleBasic(Verbose, LogType_Default, __VA_ARGS__)
+#define logDN(...) CTLogger_HandleBasic(Debug, LogType_Default, __VA_ARGS__)
+#define logTN(...) CTLogger_HandleBasic(Trace, LogType_Default, __VA_ARGS__)
+#define logWN(...) CTLogger_HandleBasic(Warning, LogType_Default, __VA_ARGS__)
+#define logEN(...) CTLogger_HandleBasic(Error, LogType_Default, __VA_ARGS__)
+#define logFN(...) CTLogger_HandleBasic(Fatal, LogType_Default, __VA_ARGS__)
 
 /* 日志输出宏 (16进制) */
 
-#define logV_hex(__buf, __len) CTLogger_HandleHex(Verbose, LogType_Default, __buf, __len)
-#define logD_hex(__buf, __len) CTLogger_HandleHex(Debug, LogType_Default, __buf, __len)
-#define logT_hex(__buf, __len) CTLogger_HandleHex(Trace, LogType_Default, __buf, __len)
-#define logW_hex(__buf, __len) CTLogger_HandleHex(Warning, LogType_Default, __buf, __len)
-#define logE_hex(__buf, __len) CTLogger_HandleHex(Error, LogType_Default, __buf, __len)
-#define logF_hex(__buf, __len) CTLogger_HandleHex(Fatal, LogType_Default, __buf, __len)
+#define logVH(__buf, __len) CTLogger_HandleHex(Verbose, LogType_Default, __buf, __len)
+#define logDH(__buf, __len) CTLogger_HandleHex(Debug, LogType_Default, __buf, __len)
+#define logTH(__buf, __len) CTLogger_HandleHex(Trace, LogType_Default, __buf, __len)
+#define logWH(__buf, __len) CTLogger_HandleHex(Warning, LogType_Default, __buf, __len)
+#define logEH(__buf, __len) CTLogger_HandleHex(Error, LogType_Default, __buf, __len)
+#define logFH(__buf, __len) CTLogger_HandleHex(Fatal, LogType_Default, __buf, __len)
 
 #ifdef __cplusplus
 }

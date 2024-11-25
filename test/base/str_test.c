@@ -1,5 +1,5 @@
 /**
- * @file test_str.c
+ * @file str_test.c
  * @brief 字符串相关测试
  * @author tayne3@dingtalk.com
  * @date 2023.11.30

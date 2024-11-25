@@ -138,7 +138,7 @@ void ct_log_storage_destroy(ct_log_storage_t *self) {
 	free(self);
 }
 
-void ct_log_storage_handle(ct_log_storage_t *self, char *buf, size_t size) {
+void ct_log_storage_handle(ct_log_storage_t *self, const char *buf, size_t size) {
 	assert(self);
 	assert(buf);
 	assert(size > 0);
