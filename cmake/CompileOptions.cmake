@@ -21,8 +21,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
         -Wformat                            # 检查格式化字符串的正确性
         -Wpointer-arith                     # 检查指针运算的类型
         -Wuninitialized                     # 检查未初始化的变量使用
-        -pedantic                           # 要求代码严格符合C/C++标准
-        -pedantic-errors                    # 将不符合标准的代码作为错误处理
         -fPIC                               # 生成位置无关代码 (编译动态库)
     )
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
@@ -45,8 +43,6 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
             -Wformat                            # 检查格式化字符串的正确性
             -Wpointer-arith                     # 检查指针运算的类型
             -Wuninitialized                     # 检查未初始化的变量使用
-            -pedantic                           # 要求代码严格符合C/C++标准
-            -pedantic-errors                    # 将不符合标准的代码作为错误处理
             -fPIC                               # 生成位置无关代码 (编译动态库)
         )
     endif()
