@@ -75,13 +75,13 @@ CT_API ct_time64_t gethrtime_us(void);
  * tm_min:     [0-59]
  * tm_sec:     [0-60] (1 leap second)
  */
-static inline struct tm* ct_localtime_now(void) {
+static inline void ct_localtime_now(struct tm* tm) {
 	const time_t now = time(NULL);
-	return localtime(&now);
+	localtime_r(&now, tm);
 }
 
 // 将时间戳转换为本地时间
-#define ct_localtime(t) localtime(t)
+#define ct_localtime(t, tm) localtime_r(t, tm)
 // 将日期时间结构体转换为时间戳
 #define ct_mktime(dt) mktime(dt)
 

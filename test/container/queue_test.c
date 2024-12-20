@@ -35,7 +35,7 @@ static inline void test_queue_enqueue(void) {
 	const int32_t max = ct_arrsize(buffer);
 
 	// 初始化队列
-	ct_queue_init(&queue, buffer, sizeof(int32_t), max);
+	ct_queue_init(&queue, buffer, (size_t)sizeof(int32_t), (size_t)max);
 
 	{
 		int32_t i = 0;
@@ -177,7 +177,7 @@ static inline void test_queue_traverse(void) {
 
 	// 测试遍历空队列
 	{
-		int item;
+		int               item;
 		traverse_result_t result = {0, 0};
 		ctunit_assert_int(ct_queue_traverse(&queue, traverse_callback, &item, &result), 0, CTUnit_Equal);
 		ctunit_assert_int(result.sum, 0, CTUnit_Equal);
@@ -192,7 +192,7 @@ static inline void test_queue_traverse(void) {
 
 	// 执行遍历
 	{
-		int item;
+		int               item;
 		traverse_result_t result = {0, 0};
 		ctunit_assert_int(ct_queue_traverse(&queue, traverse_callback, &item, &result), 0, CTUnit_Equal);
 		ctunit_assert_int(result.sum, 15, CTUnit_Equal);  // 1 + 2 + 3 + 4 + 5 = 15
@@ -214,7 +214,7 @@ static inline void test_queue_traverse(void) {
 
 	// 执行遍历
 	{
-		int item;
+		int               item;
 		traverse_result_t result = {0, 0};
 		ctunit_assert_int(ct_queue_traverse(&queue, traverse_callback, &item, &result), 0, CTUnit_Equal);
 		ctunit_assert_int(result.sum, 30, CTUnit_Equal);  // 15 * 2 = 30
@@ -236,7 +236,7 @@ static inline void test_queue_traverse(void) {
 
 	// 执行遍历
 	{
-		int item;
+		int               item;
 		traverse_result_t result = {0, 0};
 		ctunit_assert_int(ct_queue_traverse(&queue, traverse_callback, &item, &result), 0, CTUnit_Equal);
 		ctunit_assert_int(result.sum, 30, CTUnit_Equal);  // 15 * 2 = 30
@@ -259,7 +259,7 @@ static inline void test_queue_traverse(void) {
 
 	// 测试遍历空队列
 	{
-		int item;
+		int               item;
 		traverse_result_t result = {0, 0};
 		ctunit_assert_int(ct_queue_traverse(&queue, traverse_callback, &item, &result), 0, CTUnit_Equal);
 		ctunit_assert_int(result.sum, 0, CTUnit_Equal);

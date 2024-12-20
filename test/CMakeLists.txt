@@ -1,3 +1,5 @@
+# 导入编译选项
+include(CompileOptions)
 
 # 遍历所有源文件
 project_list_sources(sources_files)

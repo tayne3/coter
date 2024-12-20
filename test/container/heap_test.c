@@ -47,7 +47,7 @@ static inline int test_heap_insert(void) {
 	{
 		int value = 0;
 		for (size_t i = 0; i < max; i++) {
-			value = max - i;
+			value = (int)(max - i);
 			ct_heap_insert(&heap, CT_ANY_INT(value));
 
 			ctunit_assert_int32(ct_heap_max(&heap), max, CTUnit_Equal);

@@ -49,7 +49,7 @@ static inline int test_sha1_hex(void) {
 		char sha1[41] = {0};
 
 		const struct ct_sha1_test* it = &ct_sha1_test_all[i];
-		ct_sha1_hex((unsigned char*)it->data, strlen(it->data), sha1, sizeof(sha1));
+		ct_sha1_hex((unsigned char*)it->data, (uint32_t)strlen(it->data), sha1, (uint32_t)sizeof(sha1));
 
 		ctunit_assert_string(sha1, it->target, "i=%d", i);
 	}

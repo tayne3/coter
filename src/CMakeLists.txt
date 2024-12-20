@@ -1,7 +1,12 @@
-
+# 导入库: pthreads-w32
 set(PTHREADS_ROOT ${THIRD_DIR}/pthreads-w32)
 include(FindPthreadW32)
 set(LIBS ${PTHREADS_LIBS})
+
+# 导入编译选项
+include(CompileOptions)
+# 打印版本号
+message(STATUS "Coter version: ${PROJECT_VERSION}")
 
 # see configure
 # Checks for header files
@@ -53,9 +58,6 @@ if(UNIX)
     endif()
 endif()
 
-# 打印版本号
-message(STATUS "Coter version: ${PROJECT_VERSION}")
-
 # 收集当前目录及其子目录中的源文件
 project_list_sources(files)
 # 创建库目标
@@ -99,4 +101,8 @@ if(COTER_BUILD_STATIC)
     message(STATUS "Coter build static library: ON")
 else()
     message(STATUS "Coter build static library: OFF")
+endif()
+
+if(NOT TARGET coter::coter)
+    add_library(coter::coter ALIAS coter_obj)
 endif()

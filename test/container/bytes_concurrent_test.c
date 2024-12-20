@@ -212,7 +212,7 @@ static void test_bytes_concurrent(void) {
 
 	// 初始化sample_data
 	for (int i = 0; i < CHUNK_SIZE; i++) {
-		ctx.sample_data[i] = 0x31 + (i % 26);
+		ctx.sample_data[i] = 0x31 + (char)(i % 26);
 	}
 
 	// 创建并运行线程

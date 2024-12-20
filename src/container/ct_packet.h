@@ -49,20 +49,20 @@ typedef struct ct_packet {
 		._max    = (__max),             \
 	}
 
-#define ct_packet_max(self)              ((self)->_max)                     // 获取 最大大小
-#define ct_packet_set_max(self, __max)   ((self)->_max = (__max))           // 设置 最大大小
-#define ct_packet_set_size(self, __size) ((self)->_total = (__size))        // 设置 总长度
-#define ct_packet_add_size(self, __size) ((self)->_total += (__size))       // 增加 总长度
-#define ct_packet_sub_size(self, __size) ((self)->_total -= (__size))       // 减少 总长度
-#define ct_packet_past(self)             ((self)->_past)                    // 获取 已用空间
-#define ct_packet_set_past(self, __last) ((self)->_past = (__last))         // 设置 已用空间
-#define ct_packet_add_past(self, __n)    ((self)->_past += (__n))           // 增加 已用空间
-#define ct_packet_sub_past(self, __n)    ((self)->_past -= (__n))           // 减少 已用空间
-#define ct_packet_size(self)             ((self)->_total - (self)->_past)   // 设置 使用空间
-#define ct_packet_total_size(self)       ((self)->_total)                   // 获取 总长度
-#define ct_packet_available(self)        ((self)->_max - (self)->_total)    // 获取 剩余空间
-#define ct_packet_buffer(self)           ((self)->_buffer + (self)->_past)  // 获取 使用缓冲区
-#define ct_packet_total_buffer(self)     ((self)->_buffer)                  // 获取 总缓冲区
+#define ct_packet_max(self)              ((self)->_max)                          // 获取 最大大小
+#define ct_packet_set_max(self, __max)   ((self)->_max = (uint16_t)(__max))      // 设置 最大大小
+#define ct_packet_set_size(self, __size) ((self)->_total = (uint16_t)(__size))   // 设置 总长度
+#define ct_packet_add_size(self, __size) ((self)->_total += (uint16_t)(__size))  // 增加 总长度
+#define ct_packet_sub_size(self, __size) ((self)->_total -= (uint16_t)(__size))  // 减少 总长度
+#define ct_packet_past(self)             ((self)->_past)                         // 获取 已用空间
+#define ct_packet_set_past(self, __last) ((self)->_past = (uint16_t)(__last))    // 设置 已用空间
+#define ct_packet_add_past(self, __n)    ((self)->_past += (uint16_t)(__n))      // 增加 已用空间
+#define ct_packet_sub_past(self, __n)    ((self)->_past -= (uint16_t)(__n))      // 减少 已用空间
+#define ct_packet_size(self)             ((self)->_total - (self)->_past)        // 设置 使用空间
+#define ct_packet_total_size(self)       ((self)->_total)                        // 获取 总长度
+#define ct_packet_available(self)        ((self)->_max - (self)->_total)         // 获取 剩余空间
+#define ct_packet_buffer(self)           ((self)->_buffer + (self)->_past)       // 获取 使用缓冲区
+#define ct_packet_total_buffer(self)     ((self)->_buffer)                       // 获取 总缓冲区
 
 /**
  * @brief 初始化缓冲区

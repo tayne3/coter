@@ -62,7 +62,7 @@ static inline void* thread_callback_without_log(void* arg) {
 							 "%04d/%05d/%06d/%07d %16p/%16p/%16p/%16p %10s/%11s/%12s/%13s %02x/%02x/%02x/%02x\n", 1234,
 							 1234, 1234, 1234, (void*)0xFFFF0000, (void*)0xFFFF0000, (void*)0xFFFF0000,
 							 (void*)0xFFFF0000, "test1", "test2", "test3", "test4", 0x00, 0x01, 0x02, 0x03);
-		fwrite(buffer, 1, size, g_file_without_log);
+		fwrite(buffer, 1, (size_t)size, g_file_without_log);
 		pthread_mutex_unlock(&g_file_without_mutex);
 	}
 	return NULL;

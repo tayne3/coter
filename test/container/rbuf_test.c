@@ -65,7 +65,7 @@ static inline void test_clear(void) {
 	ct_rbuf_clear(rbuf);
 
 	const char items[5] = "abcd";
-	ct_rbuf_puts(rbuf, (const void **)items, 4);
+	ct_rbuf_puts(rbuf, items, 4);
 	ctunit_assert_uint32(ct_rbuf_size(rbuf), 4, CTUnit_Equal);
 	ctunit_assert_false(ct_rbuf_isempty(rbuf));
 
@@ -98,19 +98,19 @@ static inline void test_puts_takes(void) {
 	const char items[TEST_BUF_SIZE + 1] = TEST_BUF_INIT;
 	char       out[TEST_BUF_SIZE + 1];
 
-	ctunit_assert_uint32(ct_rbuf_puts(rbuf, (const void **)items, TEST_BUF_SIZE), TEST_BUF_SIZE, CTUnit_Equal);
-	ctunit_assert_uint32(ct_rbuf_takes(rbuf, (void **)out, TEST_BUF_SIZE), TEST_BUF_SIZE, CTUnit_Equal);
+	ctunit_assert_uint32(ct_rbuf_puts(rbuf, items, TEST_BUF_SIZE), TEST_BUF_SIZE, CTUnit_Equal);
+	ctunit_assert_uint32(ct_rbuf_takes(rbuf, out, TEST_BUF_SIZE), TEST_BUF_SIZE, CTUnit_Equal);
 	ctunit_assert_string_n(out, items, TEST_BUF_SIZE);
 
 	for (int i = 1; i <= TEST_BUF_SIZE; i++) {
-		ctunit_assert_uint32(ct_rbuf_puts(rbuf, (const void **)items, i), i, CTUnit_Equal);
-		ctunit_assert_uint32(ct_rbuf_takes(rbuf, (void **)out, i), i, CTUnit_Equal);
+		ctunit_assert_uint32(ct_rbuf_puts(rbuf, items, i), i, CTUnit_Equal);
+		ctunit_assert_uint32(ct_rbuf_takes(rbuf, out, i), i, CTUnit_Equal);
 		ctunit_assert_string_n(out, items, i);
 	}
 	ctunit_assert_true(ct_rbuf_isempty(rbuf));
 
-	ctunit_assert_uint32(ct_rbuf_puts(rbuf, (const void **)items, TEST_BUF_SIZE), TEST_BUF_SIZE, CTUnit_Equal);
-	ctunit_assert_uint32(ct_rbuf_takes(rbuf, (void **)out, TEST_BUF_SIZE), TEST_BUF_SIZE, CTUnit_Equal);
+	ctunit_assert_uint32(ct_rbuf_puts(rbuf, items, TEST_BUF_SIZE), TEST_BUF_SIZE, CTUnit_Equal);
+	ctunit_assert_uint32(ct_rbuf_takes(rbuf, out, TEST_BUF_SIZE), TEST_BUF_SIZE, CTUnit_Equal);
 	ctunit_assert_string_n(out, items, TEST_BUF_SIZE);
 
 	ct_rbuf_clear(rbuf);
@@ -124,19 +124,19 @@ static inline void test_gets_remove(void) {
 	const char items[TEST_BUF_SIZE + 1] = TEST_BUF_INIT;
 	char       out[TEST_BUF_SIZE + 1];
 
-	ctunit_assert_uint32(ct_rbuf_puts(rbuf, (const void **)items, 5), 5, CTUnit_Equal);
-	ctunit_assert_uint32(ct_rbuf_gets(rbuf, (void **)out, 1), 1, CTUnit_Equal);
+	ctunit_assert_uint32(ct_rbuf_puts(rbuf, items, 5), 5, CTUnit_Equal);
+	ctunit_assert_uint32(ct_rbuf_gets(rbuf, out, 1), 1, CTUnit_Equal);
 	ctunit_assert_string_n(out, items, 1);
-	ctunit_assert_uint32(ct_rbuf_gets(rbuf, (void **)out, 3), 3, CTUnit_Equal);
+	ctunit_assert_uint32(ct_rbuf_gets(rbuf, out, 3), 3, CTUnit_Equal);
 	ctunit_assert_string_n(out, items, 3);
-	ctunit_assert_uint32(ct_rbuf_gets(rbuf, (void **)out, 5), 5, CTUnit_Equal);
+	ctunit_assert_uint32(ct_rbuf_gets(rbuf, out, 5), 5, CTUnit_Equal);
 	ctunit_assert_string_n(out, items, 5);
 
 	ctunit_assert_uint32(ct_rbuf_puts(rbuf, (const void **)(items + 5), TEST_BUF_SIZE - 5), TEST_BUF_SIZE - 5,
 						 CTUnit_Equal);
-	ctunit_assert_uint32(ct_rbuf_gets(rbuf, (void **)out, 5), 5, CTUnit_Equal);
+	ctunit_assert_uint32(ct_rbuf_gets(rbuf, out, 5), 5, CTUnit_Equal);
 	ctunit_assert_string_n(out, items, 5);
-	ctunit_assert_uint32(ct_rbuf_gets(rbuf, (void **)out, TEST_BUF_SIZE), TEST_BUF_SIZE, CTUnit_Equal);
+	ctunit_assert_uint32(ct_rbuf_gets(rbuf, out, TEST_BUF_SIZE), TEST_BUF_SIZE, CTUnit_Equal);
 	ctunit_assert_string_n(out, items, TEST_BUF_SIZE);
 
 	ctunit_assert_uint32(ct_rbuf_size(rbuf), TEST_BUF_SIZE, CTUnit_Equal);
@@ -148,28 +148,28 @@ static inline void test_gets_remove(void) {
 	ctunit_assert_uint32(ct_rbuf_remove(rbuf, TEST_BUF_SIZE), 0, CTUnit_Equal);
 	ctunit_assert_true(ct_rbuf_isempty(rbuf));
 
-	ctunit_assert_uint32(ct_rbuf_puts(rbuf, (const void **)items, TEST_BUF_SIZE), TEST_BUF_SIZE, CTUnit_Equal);
-	ctunit_assert_uint32(ct_rbuf_takes(rbuf, (void **)out, 5), 5, CTUnit_Equal);
-	ctunit_assert_uint32(ct_rbuf_gets(rbuf, (void **)out, TEST_BUF_SIZE), TEST_BUF_SIZE - 5, CTUnit_Equal);
+	ctunit_assert_uint32(ct_rbuf_puts(rbuf, items, TEST_BUF_SIZE), TEST_BUF_SIZE, CTUnit_Equal);
+	ctunit_assert_uint32(ct_rbuf_takes(rbuf, out, 5), 5, CTUnit_Equal);
+	ctunit_assert_uint32(ct_rbuf_gets(rbuf, out, TEST_BUF_SIZE), TEST_BUF_SIZE - 5, CTUnit_Equal);
 	ctunit_assert_string_n(out, items + 5, TEST_BUF_SIZE - 5);
-	ctunit_assert_uint32(ct_rbuf_takes(rbuf, (void **)out, TEST_BUF_SIZE), TEST_BUF_SIZE - 5, CTUnit_Equal);
+	ctunit_assert_uint32(ct_rbuf_takes(rbuf, out, TEST_BUF_SIZE), TEST_BUF_SIZE - 5, CTUnit_Equal);
 	ctunit_assert_string_n(out, items + 5, TEST_BUF_SIZE - 5);
 
-	ctunit_assert_uint32(ct_rbuf_gets(rbuf, (void **)out, TEST_BUF_SIZE), 0, CTUnit_Equal);
-	ctunit_assert_uint32(ct_rbuf_takes(rbuf, (void **)out, TEST_BUF_SIZE), 0, CTUnit_Equal);
+	ctunit_assert_uint32(ct_rbuf_gets(rbuf, out, TEST_BUF_SIZE), 0, CTUnit_Equal);
+	ctunit_assert_uint32(ct_rbuf_takes(rbuf, out, TEST_BUF_SIZE), 0, CTUnit_Equal);
 	ctunit_assert_uint32(ct_rbuf_remove(rbuf, TEST_BUF_SIZE), 0, CTUnit_Equal);
 	ctunit_assert_true(ct_rbuf_isempty(rbuf));
 
 	for (int i = 1; i <= TEST_BUF_SIZE; i++) {
-		ctunit_assert_uint32(ct_rbuf_puts(rbuf, (const void **)items, i), i, CTUnit_Equal);
-		ctunit_assert_uint32(ct_rbuf_gets(rbuf, (void **)out, i), i, CTUnit_Equal);
+		ctunit_assert_uint32(ct_rbuf_puts(rbuf, items, i), i, CTUnit_Equal);
+		ctunit_assert_uint32(ct_rbuf_gets(rbuf, out, i), i, CTUnit_Equal);
 		ctunit_assert_uint32(ct_rbuf_remove(rbuf, TEST_BUF_SIZE), i, CTUnit_Equal);
 		ctunit_assert_string_n(out, items, i);
 	}
 	ctunit_assert_true(ct_rbuf_isempty(rbuf));
 
-	ctunit_assert_uint32(ct_rbuf_puts(rbuf, (const void **)items, TEST_BUF_SIZE), TEST_BUF_SIZE, CTUnit_Equal);
-	ctunit_assert_uint32(ct_rbuf_gets(rbuf, (void **)out, TEST_BUF_SIZE), TEST_BUF_SIZE, CTUnit_Equal);
+	ctunit_assert_uint32(ct_rbuf_puts(rbuf, items, TEST_BUF_SIZE), TEST_BUF_SIZE, CTUnit_Equal);
+	ctunit_assert_uint32(ct_rbuf_gets(rbuf, out, TEST_BUF_SIZE), TEST_BUF_SIZE, CTUnit_Equal);
 	ctunit_assert_uint32(ct_rbuf_remove(rbuf, TEST_BUF_SIZE), TEST_BUF_SIZE, CTUnit_Equal);
 	ctunit_assert_string_n(out, items, TEST_BUF_SIZE);
 
@@ -185,9 +185,9 @@ static inline void test_items(void) {
 
 	// 部分插入
 	{
-		ctunit_assert_uint32(ct_rbuf_puts(rbuf, (const void **)items, 3), 3, CTUnit_Equal);
+		ctunit_assert_uint32(ct_rbuf_puts(rbuf, items, 3), 3, CTUnit_Equal);
 		ctunit_assert_uint32(ct_rbuf_size(rbuf), 3, CTUnit_Equal);
-		ctunit_assert_uint32(ct_rbuf_puts(rbuf, (const void **)items, 2), 2, CTUnit_Equal);
+		ctunit_assert_uint32(ct_rbuf_puts(rbuf, items, 2), 2, CTUnit_Equal);
 		ctunit_assert_uint32(ct_rbuf_size(rbuf), 5, CTUnit_Equal);
 	}
 

@@ -29,7 +29,7 @@ static inline void test_random_bool(uint64_t test_number) {
 	// 检查随机数的分布是否均匀
 	bool is_ok = true;
 	for (int i = 0; i < 2; i++) {
-		if (count[i] < test_number * 0.8 || count[i] > test_number * 1.2) {
+		if (count[i] < (int)(test_number * 0.8) || count[i] > (int)(test_number * 1.2)) {
 			is_ok = false;
 			break;
 		}
@@ -59,7 +59,7 @@ static inline void test_random_uint8(uint64_t test_number) {
 	// 检查随机数的分布是否均匀
 	bool is_ok = true;
 	for (int i = 0; i < 100; i++) {
-		if (count[i] < test_number * 0.8 || count[i] > test_number * 1.2) {
+		if (count[i] < (int)(test_number * 0.8) || count[i] > (int)(test_number * 1.2)) {
 			is_ok = false;
 			break;
 		}
@@ -88,7 +88,7 @@ static inline void test_random_uint16(uint64_t test_number) {
 	// 检查随机数的分布是否均匀
 	bool is_ok = true;
 	for (int i = 0; i < 100; i++) {
-		if (count[i] < test_number * 0.8 || count[i] > test_number * 1.2) {
+		if (count[i] < (int)(test_number * 0.8) || count[i] > (int)(test_number * 1.2)) {
 			is_ok = false;
 			break;
 		}
@@ -118,7 +118,7 @@ static inline void test_random_uint32(uint64_t test_number) {
 	// 检查随机数的分布是否均匀
 	bool is_ok = true;
 	for (int i = 0; i < 100; i++) {
-		if (count[i] < test_number * 0.8 || count[i] > test_number * 1.2) {
+		if (count[i] < (int)(test_number * 0.8) || count[i] > (int)(test_number * 1.2)) {
 			is_ok = false;
 			break;
 		}
@@ -148,7 +148,7 @@ static inline void test_random_uint64(uint64_t test_number) {
 	// 检查随机数的分布是否均匀
 	bool is_ok = true;
 	for (int i = 0; i < 100; i++) {
-		if (count[i] < test_number * 0.8 || count[i] > test_number * 1.2) {
+		if (count[i] < (int)(test_number * 0.8) || count[i] > (int)(test_number * 1.2)) {
 			is_ok = false;
 			break;
 		}
@@ -177,7 +177,7 @@ static inline void test_random_float(uint64_t test_number) {
 	// 检查随机数的分布是否均匀
 	bool is_ok = true;
 	for (int i = 0; i < 100; i++) {
-		if (count[i] < test_number * 0.8 || count[i] > test_number * 1.2) {
+		if (count[i] < (int)(test_number * 0.8) || count[i] > (int)(test_number * 1.2)) {
 			is_ok = false;
 			break;
 		}
@@ -206,7 +206,7 @@ static inline void test_random_double(uint64_t test_number) {
 	// 检查随机数的分布是否均匀
 	bool is_ok = true;
 	for (int i = 0; i < 100; i++) {
-		if (count[i] < test_number * 0.8 || count[i] > test_number * 1.2) {
+		if (count[i] < (int)(test_number * 0.8) || count[i] > (int)(test_number * 1.2)) {
 			is_ok = false;
 			break;
 		}

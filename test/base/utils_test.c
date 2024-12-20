@@ -79,7 +79,7 @@ static void test_reverse_memcpy_long(void) {
 	char src[1000];
 	char dest[1000] = {0};
 	for (int i = 0; i < 999; i++) {
-		src[i] = 'A' + (i % 26);
+		src[i] = 'A' + (char)(i % 26);
 	}
 	src[999] = '\0';
 
@@ -161,7 +161,7 @@ static void test_reverse_memmove_long(void) {
 	char src[1000];
 	char dest[1000] = {0};
 	for (int i = 0; i < 999; i++) {
-		src[i] = 'A' + (i % 26);
+		src[i] = 'A' + (char)(i % 26);
 	}
 	src[999] = '\0';
 
