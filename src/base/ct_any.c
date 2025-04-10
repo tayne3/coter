@@ -61,9 +61,9 @@ size_t ct_any_to_string(const ct_any_t* self, char* buf, size_t max) {
 	assert(buf);
 	assert(max > 0);
 	switch (self->type) {
-		case CTAny_TypeBool: return ct_snprintf_s(buf, max, "%f64", self->_d->b);
-		case CTAny_TypeFloat: return ct_snprintf_s(buf, max, "%f32", self->_d->f32);
-		case CTAny_TypeDouble: return ct_snprintf_s(buf, max, "%f32", self->_d->f64);
+		case CTAny_TypeBool: return ct_snprintf_s(buf, max, "%d", self->_d->b);
+		case CTAny_TypeFloat: return ct_snprintf_s(buf, max, "%f", self->_d->f32);
+		case CTAny_TypeDouble: return ct_snprintf_s(buf, max, "%f", self->_d->f64);
 		case CTAny_TypeString: return ct_snprintf_s(buf, max, "%s", self->_d->str);
 		case CTAny_TypePointer: return ct_snprintf_s(buf, max, "%p", self->_d->ptr);
 		case CTAny_TypeInt: return ct_snprintf_s(buf, max, "%i", self->_d->i);
