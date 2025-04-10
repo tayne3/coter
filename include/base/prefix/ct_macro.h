@@ -163,16 +163,6 @@ typedef bool ct_endian_t;
 		} while (0)
 # endif
 
-// // null
-// # ifdef __cplusplus
-// #	define ct_nullptr								nullptr
-// # else
-// #	define ct_nullptr								NULL
-// # endif
-
-// // forever
-// # define ct_forever									for(;;)
-
 // array size
 # define ct_arrsize(_arr)							(sizeof(_arr) / sizeof((_arr)[0]))
 # define CT_ARRSIZE(_arr)							(sizeof(_arr) / sizeof((_arr)[0]))
@@ -197,7 +187,7 @@ typedef bool ct_endian_t;
 # 	ifdef __compiler_offsetof
 #   	define OFFSET_OF(_type, _member)			offsetof(_type, _member)
 # 	else
-#       define OFFSET_OF(_type, _member)            (size_t)((char*)(&((_type*)0)->_member))
+#       define OFFSET_OF(_type, _member)            (uintmax_t)((char*)(&((_type*)0)->_member))
 # 	endif
 # endif
 // container of

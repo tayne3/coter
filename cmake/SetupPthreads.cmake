@@ -1,56 +1,52 @@
 # ==============================================================================
-# Find Pthreads Library
-#
-# External variables required:
-#   - PTHREADS_ROOT - Root directory of the Pthreads-w32 installation.
+# Setup Pthreads Library
 #
 # This module will define the following variables:
 #   - PTHREADS_LIBS - The libraries needed for threading.
 # ==============================================================================
-# 查找 Pthreads 库
+# 配置 Pthreads 库
 #
-# 外部需要配置变量:
-#   - PTHREADS_ROOT - 指向 Pthreads-w32 安装的根目录。
-#
-# 此模块将输出以下变量：
-#   - PTHREADS_LIBS - 用于线程的库。
+# 本模块将定义以下变量：
+#   - PTHREADS_LIBS - 线程库的链接选项。
 # ==============================================================================
 
 include(CheckIncludeFile)
 include(CheckCSourceCompiles)
 include(CMakePushCheckState)
-include(CheckLibraryExists) # for check_library_exists
+include(CheckLibraryExists)
 
-# Use pthread
+# Use pthread on non-Windows platforms
 if(NOT WIN32)
     set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
     find_package(Threads REQUIRED)
 
     if(CMAKE_USE_PTHREADS_INIT)
         set(PTHREADS_LIBS ${CMAKE_THREAD_LIBS_INIT})
-        message(STATUS "CMAKE_USE_PTHREADS_INIT: ${CMAKE_USE_PTHREADS_INIT}")
+        message(STATUS "Found pthread library: ${CMAKE_THREAD_LIBS_INIT}")
     else()
         message(FATAL_ERROR "Could not find pthread library. See README.Win32 for more information.")
     endif()
     return()
 endif()
 
-# Do we have -lpthreads
+# Check if we have -lpthreads library
 check_library_exists(pthreads pthread_create "" CMAKE_HAVE_PTHREADS_CREATE)
 if(CMAKE_HAVE_PTHREADS_CREATE)
-    message(STATUS "CMAKE_HAVE_PTHREADS_CREATE: ${CMAKE_HAVE_PTHREADS_CREATE}")
+    message(STATUS "Found pthreads library: ${CMAKE_THREAD_LIBS_INIT}")
     set(PTHREADS_LIBS "-lpthreads")
     return()
 endif()
 
-# Ok, how about -lpthread
+# Check if we have -lpthread library
 check_library_exists(pthread pthread_create "" CMAKE_HAVE_PTHREAD_CREATE)
 if(CMAKE_HAVE_PTHREAD_CREATE)
-    message(STATUS "CMAKE_HAVE_PTHREAD_CREATE: ${CMAKE_HAVE_PTHREAD_CREATE}")
+    message(STATUS "Found pthread library: ${CMAKE_THREAD_LIBS_INIT}")
     set(PTHREADS_LIBS "-lpthread")
     return()
 endif()
 
+# fetch and build pthread-win32
+message(STATUS "No system pthread library found, using pthread-win32 from CPM")
 CPMAddPackage(
     NAME pthread-win32
     GIT_REPOSITORY "https://github.com/GerHobbelt/pthread-win32.git"
@@ -58,16 +54,17 @@ CPMAddPackage(
     OPTIONS "BUILD_SHARED_LIBS OFF" "BUILD_TESTING OFF"
 )
 
+# Configure exception handling scheme for pthread library
 #
-# Find the library
-#
+# Available exception handling schemes
 # C (Console Mode): Standard console mode, suitable for text output and input.
 # CE (Console Extended Mode): Extended console mode, providing richer console features.
-# SE (GUI Mode): Graphical user interface mode, suitable for applications requiring a graphical interface.
+# SE (GUI Mode): Structured Exception Handling, suitable for GUI applications.
 #
 if(NOT DEFINED PTHREADS_EXCEPTION_SCHEME)
-    # Assign default if needed
+    # Assign default if needed 
     set(PTHREADS_EXCEPTION_SCHEME "C")
+    message(STATUS "Using default pthread exception scheme: Console Mode (C)")
 else()
     # Validate
     if(NOT PTHREADS_EXCEPTION_SCHEME STREQUAL "C" AND
@@ -77,6 +74,9 @@ else()
     elseif(NOT MSVC AND PTHREADS_EXCEPTION_SCHEME STREQUAL "SE")
         message(FATAL_ERROR "Structured Exception Handling is only allowed for MSVC")
     endif()
+    message(STATUS "Using pthread exception scheme: ${PTHREADS_EXCEPTION_SCHEME}")
 endif()
+
+# Set the final pthread library name
 set(PTHREADS_LIBS pthreadV${PTHREADS_EXCEPTION_SCHEME}3)
-message(STATUS "PTHREADS_LIBS: ${PTHREADS_LIBS}")
+message(STATUS "Build pthread library: ${PTHREADS_LIBS}")

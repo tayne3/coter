@@ -10,7 +10,7 @@ option(COTER_BUILD_STATIC "build static library" OFF)
 
 include(cmake/ProjectConfig.cmake)
 include(cmake/CPM.cmake)
-include(cmake/FindPthreadW32.cmake)
+include(cmake/SetupPthreads.cmake)
 include(cmake/CompileOptions.cmake)
 include(cmake/ProjectFunctions.cmake)
 
