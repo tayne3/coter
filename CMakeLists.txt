@@ -1,11 +1,7 @@
 cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 
 include(cmake/GitVersion.cmake)
-extract_version_from_git(
-    VERSION PROJECT_VERSION
-    PREFIX "v"
-    DEFAULT_VERSION 0.6.6
-)
+gitversion_extract(VERSION PROJECT_VERSION DEFAULT_VERSION 0.6.6)
 project(coter VERSION ${PROJECT_VERSION})
 message(STATUS "Coter version: ${PROJECT_VERSION}")
 
