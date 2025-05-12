@@ -3,7 +3,7 @@
  * @brief SHA1加密算法测试
  */
 #include "algo/ct_sha1.h"
-#include "ctunit.h"
+#include "cunit.h"
 
 static const struct ct_sha1_test {
 	const char* data;
@@ -51,7 +51,7 @@ static inline int test_sha1_hex(void) {
 		const struct ct_sha1_test* it = &ct_sha1_test_all[i];
 		ct_sha1_hex((unsigned char*)it->data, (uint32_t)strlen(it->data), sha1, (uint32_t)sizeof(sha1));
 
-		ctunit_assert_string(sha1, it->target, "i=%d", i);
+		cunit_assert_string(sha1, it->target, "i=%d", i);
 	}
 
 	return 0;
@@ -59,7 +59,7 @@ static inline int test_sha1_hex(void) {
 
 int main(void) {
 	test_sha1_hex();
-	ctunit_trace("Finish! test_sha1_hex();\n");
+	cunit_println("Finish! test_sha1_hex();\n");
 
-	ctunit_pass();
+	cunit_pass();
 }

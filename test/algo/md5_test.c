@@ -5,7 +5,7 @@
  * @date 2023.11.30
  */
 #include "algo/ct_md5.h"
-#include "ctunit.h"
+#include "cunit.h"
 
 static const struct ct_md5_test {
 	const char*   data;
@@ -48,7 +48,7 @@ static inline int test_cmd5(void) {
 		ct_md5_init(&ctx);
 		ct_md5_update(&ctx, it->data, strlen(it->data));
 		ct_md5_final(&ctx, buffer);
-		ctunit_assert_string_hex(buffer, it->target, 16, "i=%d", i);
+		cunit_assert_string_hex(buffer, it->target, 16, "i=%d", i);
 	}
 
 	return 0;
@@ -56,7 +56,7 @@ static inline int test_cmd5(void) {
 
 int main(void) {
 	test_cmd5();
-	ctunit_trace("Finish! test_cmd5();\n");
+	cunit_println("Finish! test_cmd5();\n");
 
-	ctunit_pass();
+	cunit_pass();
 }

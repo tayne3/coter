@@ -5,7 +5,7 @@
  * @date 2023.11.30
  */
 #include "container/ct_bytes.h"
-#include "ctunit.h"
+#include "cunit.h"
 
 /**
  * @brief 测试参数枚举
@@ -117,7 +117,7 @@ static void consume_chunks(test_context_t* ctx) {
 	size_t   buffer_size = ct_bytes_size(buffer);
 
 	for (size_t i = 0; i < buffer_size; i++) {
-		ctunit_assert_uint8(buffer_data[i], 0x31 + ctx->filled_pool->idx, CTUnit_Equal);
+		cunit_assert_uint8_equal(buffer_data[i], 0x31 + ctx->filled_pool->idx);
 		if (++ctx->filled_pool->idx >= CHUNK_SIZE) {
 			ctx->filled_pool->idx = 0;
 		}
@@ -152,7 +152,7 @@ static void produce_chunk(test_context_t* ctx) {
 
 			// 检查数据
 			for (size_t i = 0; i < buffer_size; i++) {
-				ctunit_assert_uint8(buffer_data[i], 0x31 + ctx->free_pool->idx, CTUnit_Equal);
+				cunit_assert_uint8_equal(buffer_data[i], 0x31 + ctx->free_pool->idx);
 				if (++ctx->free_pool->idx >= CHUNK_SIZE) {
 					ctx->free_pool->idx = 0;
 				}
@@ -221,24 +221,24 @@ static void test_bytes_concurrent(void) {
 
 	for (int i = 0; i < NUM_PRODUCER_THREADS; i++) {
 		int ret = pthread_create(&producer_threads[i], NULL, producer_thread_func, &ctx);
-		ctunit_assert_int_equal(ret, 0);
+		cunit_assert_int_equal(ret, 0);
 	}
 	{
 		int ret = pthread_create(&consumer_thread, NULL, consumer_thread_func, &ctx);
-		ctunit_assert_int_equal(ret, 0);
+		cunit_assert_int_equal(ret, 0);
 	}
 
 	// 等待生产者线程完成
 	for (int i = 0; i < NUM_PRODUCER_THREADS; i++) {
 		int ret = pthread_join(producer_threads[i], NULL);
-		ctunit_assert_int_equal(ret, 0);
+		cunit_assert_int_equal(ret, 0);
 	}
 	// 通知消费者线程结束
 	{
 		ctx.test_complete = true;
 		pthread_cond_signal(&filled_pool.cond);
 		int ret = pthread_join(consumer_thread, NULL);
-		ctunit_assert_int_equal(ret, 0);
+		cunit_assert_int_equal(ret, 0);
 	}
 	// 等待所有数据被消费
 	while (!ct_list_isempty(&filled_pool.filled_buffers)) {
@@ -256,13 +256,13 @@ static void test_bytes_concurrent(void) {
 	// 验证结果
 	size_t total_bytes     = NUM_PRODUCER_THREADS * ITERATIONS_PER_THREAD * CHUNK_SIZE;
 	size_t expected_chunks = (total_bytes / BUFFER_SIZE) + (total_bytes % BUFFER_SIZE ? 1 : 0);
-	ctunit_assert_uint32_equal(filled_pool.total_chunks, expected_chunks);
-	ctunit_assert_uint32_equal(free_pool.total_chunks, expected_chunks);
+	cunit_assert_uint32_equal(filled_pool.total_chunks, expected_chunks);
+	cunit_assert_uint32_equal(free_pool.total_chunks, expected_chunks);
 }
 
 int main(void) {
 	test_bytes_concurrent();
-	ctunit_trace("Finish! test_bytes_concurrent();\n");
+	cunit_println("Finish! test_bytes_concurrent();\n");
 
-	ctunit_pass();
+	cunit_pass();
 }

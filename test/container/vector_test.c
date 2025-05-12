@@ -6,23 +6,23 @@
  */
 #include "base/ct_random.h"
 #include "container/ct_vector.h"
-#include "ctunit.h"
+#include "cunit.h"
 
 static inline void test_vector_resize(void) {
 	ct_vector_buf_t vec;
 	ct_vector_init(vec, sizeof(int), 10);
-	ctunit_assert_uint32_equal(ct_vector_size(vec), 10);
+	cunit_assert_uint32_equal(ct_vector_size(vec), 10);
 
 	ct_vector_resize(vec, 10);
-	ctunit_assert_uint32_equal(ct_vector_size(vec), 10);
+	cunit_assert_uint32_equal(ct_vector_size(vec), 10);
 	ct_vector_resize(vec, 50);
-	ctunit_assert_uint32_equal(ct_vector_size(vec), 50);
+	cunit_assert_uint32_equal(ct_vector_size(vec), 50);
 	ct_vector_resize(vec, 90);
-	ctunit_assert_uint32_equal(ct_vector_size(vec), 90);
+	cunit_assert_uint32_equal(ct_vector_size(vec), 90);
 	ct_vector_resize(vec, 50);
-	ctunit_assert_uint32_equal(ct_vector_size(vec), 50);
+	cunit_assert_uint32_equal(ct_vector_size(vec), 50);
 	ct_vector_resize(vec, 10);
-	ctunit_assert_uint32_equal(ct_vector_size(vec), 10);
+	cunit_assert_uint32_equal(ct_vector_size(vec), 10);
 
 	ct_vector_destroy(vec);
 }
@@ -30,7 +30,7 @@ static inline void test_vector_resize(void) {
 static inline void test_vector_get(void) {
 	ct_vector_buf_t vec;
 	ct_vector_init(vec, sizeof(int), 1);
-	ctunit_assert_uint32_equal(ct_vector_size(vec), 1);
+	cunit_assert_uint32_equal(ct_vector_size(vec), 1);
 
 	for (int i = 0; i < 100; i++) {
 		ct_vector_insert(vec, i, &i);
@@ -40,7 +40,7 @@ static inline void test_vector_get(void) {
 		const int *it = NULL;
 		for (int i = 0; i < 100; i++) {
 			it = ct_vector_value(vec, i);
-			ctunit_assert_int32_equal(*it, i);
+			cunit_assert_int32_equal(*it, i);
 		}
 	}
 
@@ -49,7 +49,7 @@ static inline void test_vector_get(void) {
 		ct_vector_resize(vec, 50);
 		for (size_t i = 0; i < ct_vector_size(vec); i++) {
 			it = ct_vector_value(vec, i);
-			ctunit_assert_int32_equal(*it, i);
+			cunit_assert_int32_equal(*it, i);
 		}
 	}
 
@@ -58,7 +58,7 @@ static inline void test_vector_get(void) {
 		ct_vector_resize(vec, 10);
 		for (size_t i = 0; i < ct_vector_size(vec); i++) {
 			it = ct_vector_value(vec, i);
-			ctunit_assert_int32_equal(*it, i);
+			cunit_assert_int32_equal(*it, i);
 		}
 	}
 
@@ -68,7 +68,7 @@ static inline void test_vector_get(void) {
 static inline void test_vector_at(void) {
 	ct_vector_buf_t vec;
 	ct_vector_init(vec, sizeof(int), 1);
-	ctunit_assert_uint32_equal(ct_vector_size(vec), 1);
+	cunit_assert_uint32_equal(ct_vector_size(vec), 1);
 
 	for (int i = 0; i < 100; i++) {
 		ct_vector_insert(vec, i, &i);
@@ -78,7 +78,7 @@ static inline void test_vector_at(void) {
 		int *it = NULL;
 		for (size_t i = 0; i < ct_vector_size(vec); i++) {
 			it = ct_vector_at(vec, i);
-			ctunit_assert_int32_equal(*it, i);
+			cunit_assert_int32_equal(*it, i);
 		}
 	}
 
@@ -94,7 +94,7 @@ static inline void test_vector_at(void) {
 		const int *it = NULL;
 		for (size_t i = 0; i < ct_vector_size(vec); i++) {
 			it = ct_vector_value(vec, i);
-			ctunit_assert_int32_equal(*it, i + 1);
+			cunit_assert_int32_equal(*it, i + 1);
 		}
 	}
 
@@ -103,13 +103,13 @@ static inline void test_vector_at(void) {
 
 int main(void) {
 	test_vector_resize();
-	ctunit_trace("Finish! test_vector_resize();\n");
+	cunit_println("Finish! test_vector_resize();\n");
 
 	test_vector_get();
-	ctunit_trace("Finish! test_vector_get();\n");
+	cunit_println("Finish! test_vector_get();\n");
 
 	test_vector_at();
-	ctunit_trace("Finish! test_vector_at();\n");
+	cunit_println("Finish! test_vector_at();\n");
 
-	ctunit_pass();
+	cunit_pass();
 }

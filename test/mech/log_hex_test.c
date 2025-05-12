@@ -5,7 +5,7 @@
  * @date 2024.11.25
  */
 #include "base/ct_platform.h"
-#include "ctunit.h"
+#include "cunit.h"
 #include "mech/ct_log.h"
 
 #define logVN(...) CTLogger_HandleBasic(Verbose, 0, __VA_ARGS__)
@@ -42,10 +42,10 @@ static void test_log_hex(void) {
 	if (access("test_log_out", 0) == -1) {
 		ct_mkdir("test_log_out");
 	}
-	ctunit_assert_true(access("test_log_out", 0) == 0);
+	cunit_assert_true(access("test_log_out", 0) == 0);
 
 	FILE* file_without_log = fopen("test_log_out/without_log.log", "w");
-	ctunit_assert_not_null(file_without_log);
+	cunit_assert_not_null(file_without_log);
 
 	remove("test_log_out/with_log.log0");
 
@@ -69,7 +69,7 @@ static void test_log_hex(void) {
 		ct_log_init(ct_getuptime_ms(), 1, &config);
 	}
 
-	ctunit_assert_int32_equal(pthread_create(&g_thread_logger, NULL, thread_log_schedule, NULL), 0);
+	cunit_assert_int32_equal(pthread_create(&g_thread_logger, NULL, thread_log_schedule, NULL), 0);
 
 	// 写入日志
 	const uint8_t buf[16] = {0x12, 0x23, 0x34, 0x45, 0x56, 0x67, 0x78, 0x89,
@@ -107,29 +107,29 @@ static void test_log_hex(void) {
 	const int time_without_log = (int)(end - start);
 
 	is_exit = true;
-	ctunit_assert_int32_equal(pthread_join(g_thread_logger, NULL), 0);
+	cunit_assert_int32_equal(pthread_join(g_thread_logger, NULL), 0);
 
 	fclose(file_without_log);
 	file_without_log = NULL;
 
-	ctunit_trace("Execution time: with log %d ms, without log %d ms\n", time_with_log, time_without_log);
+	cunit_println("Execution time: with log %d ms, without log %d ms\n", time_with_log, time_without_log);
 
 	ct_log_destroy();
 
 	// 打开文件
 	FILE* file_log_hex = fopen("test_log_out/with_log.log0", "r");
 	file_without_log   = fopen("test_log_out/without_log.log", "r");
-	ctunit_assert_not_null(file_log_hex);
-	ctunit_assert_not_null(file_without_log);
+	cunit_assert_not_null(file_log_hex);
+	cunit_assert_not_null(file_without_log);
 
 	// 获取文件大小
 	fseek(file_log_hex, 0, SEEK_END);
 	fseek(file_without_log, 0, SEEK_END);
 	int64_t size_log_hex     = ftell(file_log_hex);
 	int64_t size_without_log = ftell(file_without_log);
-	ctunit_assert_int64(size_log_hex, 0, CTUnit_Greater);
-	ctunit_assert_int64(size_without_log, 0, CTUnit_Greater);
-	ctunit_assert_int64(size_log_hex, size_without_log, CTUnit_Equal);
+	cunit_assert_int64_greater(size_log_hex, 0);
+	cunit_assert_int64_greater(size_without_log, 0);
+	cunit_assert_int64_equal(size_log_hex, size_without_log);
 
 	// 将文件指针重置到文件开头
 	rewind(file_log_hex);
@@ -147,13 +147,13 @@ static void test_log_hex(void) {
 		if (bytes_read_log_hex == 0 || bytes_read_without_log == 0) {
 			break;
 		}
-		ctunit_assert_int32_equal(bytes_read_log_hex, bytes_read_without_log);
-		ctunit_assert_string_n(buffer_log_hex, buffer_without_log, bytes_read_log_hex);
+		cunit_assert_int32_equal(bytes_read_log_hex, bytes_read_without_log);
+		cunit_assert_string_n(buffer_log_hex, buffer_without_log, bytes_read_log_hex);
 	}
 
 	// 确保两个文件都已读取完毕
-	ctunit_assert_true(feof(file_log_hex));
-	ctunit_assert_true(feof(file_without_log));
+	cunit_assert_true(feof(file_log_hex));
+	cunit_assert_true(feof(file_without_log));
 
 	fclose(file_log_hex);
 	fclose(file_without_log);
@@ -170,10 +170,10 @@ static void test_log_long_text(const size_t text_size) {
 	if (access("test_log_out", 0) == -1) {
 		ct_mkdir("test_log_out");
 	}
-	ctunit_assert_true(access("test_log_out", 0) == 0);
+	cunit_assert_true(access("test_log_out", 0) == 0);
 
 	FILE* file_without_log = fopen("test_log_out/without_log.log", "w");
-	ctunit_assert_not_null(file_without_log);
+	cunit_assert_not_null(file_without_log);
 
 	remove("test_log_out/with_log.log0");
 
@@ -199,7 +199,7 @@ static void test_log_long_text(const size_t text_size) {
 
 	// 创建日志线程
 	is_exit = false;
-	ctunit_assert_int32_equal(pthread_create(&g_thread_logger, NULL, thread_log_schedule, NULL), 0);
+	cunit_assert_int32_equal(pthread_create(&g_thread_logger, NULL, thread_log_schedule, NULL), 0);
 
 	// 创建超长文本
 	uint8_t* long_text = (uint8_t*)malloc(text_size + 1);
@@ -243,31 +243,31 @@ static void test_log_long_text(const size_t text_size) {
 
 	// 清理
 	is_exit = true;
-	ctunit_assert_int32_equal(pthread_join(g_thread_logger, NULL), 0);
+	cunit_assert_int32_equal(pthread_join(g_thread_logger, NULL), 0);
 
 	free(long_text);
 	long_text = NULL;
 	fclose(file_without_log);
 	file_without_log = NULL;
 
-	ctunit_trace("Execution time: with log %d ms, without log %d ms\n", time_with_log, time_without_log);
+	cunit_println("Execution time: with log %d ms, without log %d ms\n", time_with_log, time_without_log);
 
 	ct_log_destroy();
 
 	// 打开文件
 	FILE* file_log_hex = fopen("test_log_out/with_log.log0", "r");
 	file_without_log   = fopen("test_log_out/without_log.log", "r");
-	ctunit_assert_not_null(file_log_hex);
-	ctunit_assert_not_null(file_without_log);
+	cunit_assert_not_null(file_log_hex);
+	cunit_assert_not_null(file_without_log);
 
 	// 获取文件大小
 	fseek(file_log_hex, 0, SEEK_END);
 	fseek(file_without_log, 0, SEEK_END);
 	int64_t size_log_hex     = ftell(file_log_hex);
 	int64_t size_without_log = ftell(file_without_log);
-	ctunit_assert_int64_greater(size_log_hex, 0);
-	ctunit_assert_int64_greater(size_without_log, 0);
-	ctunit_assert_int64_equal(size_log_hex, size_without_log);
+	cunit_assert_int64_greater(size_log_hex, 0);
+	cunit_assert_int64_greater(size_without_log, 0);
+	cunit_assert_int64_equal(size_log_hex, size_without_log);
 
 	// 将文件指针重置到文件开头
 	rewind(file_log_hex);
@@ -285,13 +285,13 @@ static void test_log_long_text(const size_t text_size) {
 		if (bytes_read_log_hex == 0 || bytes_read_without_log == 0) {
 			break;
 		}
-		ctunit_assert_int32_equal(bytes_read_log_hex, bytes_read_without_log);
-		ctunit_assert_string_n(buffer_log_hex, buffer_without_log, bytes_read_log_hex);
+		cunit_assert_int32_equal(bytes_read_log_hex, bytes_read_without_log);
+		cunit_assert_string_n(buffer_log_hex, buffer_without_log, bytes_read_log_hex);
 	}
 
 	// 确保两个文件都已读取完毕
-	ctunit_assert_true(feof(file_log_hex));
-	ctunit_assert_true(feof(file_without_log));
+	cunit_assert_true(feof(file_log_hex));
+	cunit_assert_true(feof(file_without_log));
 
 	fclose(file_log_hex);
 	fclose(file_without_log);
@@ -303,16 +303,16 @@ static void test_log_long_text(const size_t text_size) {
 
 int main(void) {
 	test_log_hex();
-	ctunit_trace("Finish! test_log_hex();\n");
+	cunit_println("Finish! test_log_hex();\n");
 
 	test_log_long_text(512);
-	ctunit_trace("Finish! test_log_long_text(512);\n");
+	cunit_println("Finish! test_log_long_text(512);\n");
 
 	test_log_long_text(1024);
-	ctunit_trace("Finish! test_log_long_text(1024);\n");
+	cunit_println("Finish! test_log_long_text(1024);\n");
 
 	test_log_long_text(2048);
-	ctunit_trace("Finish! test_log_long_text(2048);\n");
+	cunit_println("Finish! test_log_long_text(2048);\n");
 
-	ctunit_pass();
+	cunit_pass();
 }

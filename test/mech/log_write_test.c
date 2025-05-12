@@ -5,7 +5,7 @@
  * @date 2024.11.25
  */
 #include "base/ct_platform.h"
-#include "ctunit.h"
+#include "cunit.h"
 #include "mech/ct_log.h"
 
 #define test_basic_verbose(...) CTLogger_HandleBasic(Verbose, 0, __VA_ARGS__)
@@ -45,7 +45,7 @@ static inline void* thread_write_with_log(void* arg) {
 
 // 不带日志的测试线程函数
 static inline void* thread_write_without_log(void* arg) {
-	ctunit_assert_not_null(g_file);
+	cunit_assert_not_null(g_file);
 	for (int i = 0; i < TEST_THREAD_DATA; i++) {
 		fprintf(g_file, "%04d/%05d/%06d/%07d %16p/%16p/%16p/%16p %10s/%11s/%12s/%13s %02x/%02x/%02x/%02x\n", 1234, 1234,
 				1234, 1234, (void*)0xFFFF0000ULL, (void*)0xFFFF0000ULL, (void*)0xFFFF0000ULL, (void*)0xFFFF0000ULL,
@@ -64,10 +64,10 @@ static inline void test_write_performance_comparison(void) {
 	if (access("test_log_out", 0) == -1) {
 		(void)ct_mkdir("test_log_out");
 	}
-	ctunit_assert_true(access("test_log_out", 0) == 0);
+	cunit_assert_true(access("test_log_out", 0) == 0);
 
 	g_file = fopen("test_log_out/without_log.log", "w");
-	ctunit_assert_not_null(g_file);
+	cunit_assert_not_null(g_file);
 
 	remove("test_log_out/with_log.log0");
 
@@ -91,35 +91,35 @@ static inline void test_write_performance_comparison(void) {
 		ct_log_init(ct_getuptime_ms(), 1, &config);
 	}
 
-	ctunit_assert_int32_equal(pthread_create(&g_thread_logger, NULL, thread_log_schedule, NULL), 0);
+	cunit_assert_int32_equal(pthread_create(&g_thread_logger, NULL, thread_log_schedule, NULL), 0);
 
 	start = ct_getuptime_ms();
 	for (int i = 0; i < TEST_THREADS; i++) {
-		ctunit_assert_int32_equal(pthread_create(&threads[i], NULL, thread_write_without_log, (void*)(uintptr_t)i), 0);
+		cunit_assert_int32_equal(pthread_create(&threads[i], NULL, thread_write_without_log, (void*)(uintptr_t)i), 0);
 	}
 	for (int i = 0; i < TEST_THREADS; i++) {
-		ctunit_assert_int32_equal(pthread_join(threads[i], NULL), 0);
+		cunit_assert_int32_equal(pthread_join(threads[i], NULL), 0);
 	}
 	end                        = ct_getuptime_ms();
 	const int time_without_log = (int)(end - start);
 
 	start = ct_getuptime_ms();
 	for (int i = 0; i < TEST_THREADS; i++) {
-		ctunit_assert_int32_equal(pthread_create(&threads[i], NULL, thread_write_with_log, (void*)(uintptr_t)i), 0);
+		cunit_assert_int32_equal(pthread_create(&threads[i], NULL, thread_write_with_log, (void*)(uintptr_t)i), 0);
 	}
 	for (int i = 0; i < TEST_THREADS; i++) {
-		ctunit_assert_int32_equal(pthread_join(threads[i], NULL), 0);
+		cunit_assert_int32_equal(pthread_join(threads[i], NULL), 0);
 	}
 	end                     = ct_getuptime_ms();
 	const int time_with_log = (int)(end - start);
 
 	is_exit = true;
-	ctunit_assert_int32_equal(pthread_join(g_thread_logger, NULL), 0);
+	cunit_assert_int32_equal(pthread_join(g_thread_logger, NULL), 0);
 
 	ct_log_flush();
 	ct_log_schedule(ct_getuptime_ms());
 
-	ctunit_trace("Execution time: with log %d ms, without log %d ms\n", time_with_log, time_without_log);
+	cunit_println("Execution time: with log %d ms, without log %d ms\n", time_with_log, time_without_log);
 
 	ct_log_destroy();
 
@@ -129,19 +129,19 @@ static inline void test_write_performance_comparison(void) {
 	// 打开文件
 	FILE* file_with_log    = fopen("test_log_out/with_log.log0", "r");
 	FILE* file_without_log = fopen("test_log_out/without_log.log", "r");
-	ctunit_assert_not_null(file_with_log);
-	ctunit_assert_not_null(file_without_log);
+	cunit_assert_not_null(file_with_log);
+	cunit_assert_not_null(file_without_log);
 
 	// 获取文件大小
 	fseek(file_with_log, 0, SEEK_END);
 	fseek(file_without_log, 0, SEEK_END);
 	const int64_t size_with_log    = ftell(file_with_log);
 	const int64_t size_without_log = ftell(file_without_log);
-	ctunit_assert_int64_greater(size_with_log, 0);
-	ctunit_assert_int64_greater(size_without_log, 0);
-	ctunit_assert_int64_equal(size_with_log, size_without_log);
+	cunit_assert_int64_greater(size_with_log, 0);
+	cunit_assert_int64_greater(size_without_log, 0);
+	cunit_assert_int64_equal(size_with_log, size_without_log);
 
-	ctunit_trace("with log file size: %d, without log file size: %d\n", size_with_log, size_without_log);
+	cunit_println("with log file size: %d, without log file size: %d\n", size_with_log, size_without_log);
 
 	// 将文件指针重置到文件开头
 	rewind(file_with_log);
@@ -159,13 +159,13 @@ static inline void test_write_performance_comparison(void) {
 		if (bytes_read_with_log == 0 || bytes_read_without_log == 0) {
 			break;
 		}
-		ctunit_assert_int32_equal(bytes_read_with_log, bytes_read_without_log);
-		ctunit_assert_string_n(buffer_with_log, buffer_without_log, bytes_read_with_log);
+		cunit_assert_int32_equal(bytes_read_with_log, bytes_read_without_log);
+		cunit_assert_string_n(buffer_with_log, buffer_without_log, bytes_read_with_log);
 	}
 
 	// 确保两个文件都已读取完毕
-	ctunit_assert_true(feof(file_with_log));
-	ctunit_assert_true(feof(file_without_log));
+	cunit_assert_true(feof(file_with_log));
+	cunit_assert_true(feof(file_without_log));
 
 	fclose(file_with_log);
 	fclose(file_without_log);
@@ -177,7 +177,7 @@ static inline void test_write_performance_comparison(void) {
 
 int main(void) {
 	test_write_performance_comparison();
-	ctunit_trace("Finish! test_write_performance_comparison();\n");
+	cunit_println("Finish! test_write_performance_comparison();\n");
 
-	ctunit_pass();
+	cunit_pass();
 }

@@ -120,10 +120,10 @@
 #endif
 
 // byte endian
-typedef bool ct_endian_t;
+typedef int ct_endian_t;
 
-#define CTEndian_Big     false
-#define CTEndian_Little  true
+#define CTEndian_Big     0
+#define CTEndian_Little  1
 #define CTEndian_Network CTEndian_Big
 
 # if (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__) || defined(__LITTLE_ENDIAN__) ||         	\
@@ -132,14 +132,20 @@ typedef bool ct_endian_t;
 	defined(__MIPSEL__) || defined(__MIPS64EL)
 #	define CTEndian_System CTEndian_Little
 # 	define CTEndian_SystemLittle 1
+#   define CTEndian_IsLittle 1
+#   define CTEndian_IsBig 0
 # elif (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__) || defined(__BIG_ENDIAN__) ||     		\
 	(defined(__BYTE_ORDER) && __BYTE_ORDER == __BIG_ENDIAN) || defined(__ARMEB__) || defined(__THUMBEB__) || 		\
 	defined(__AARCH64EB__) || defined(_MIBSEB) || defined(__MIBSEB) || defined(__MIBSEB__) || defined(__MIPS64EB)
 #	define CTEndian_System CTEndian_Big
 #	define CTEndian_SystemBig 1
+#   define CTEndian_IsLittle 0
+#   define CTEndian_IsBig 1
 # else
 #	define CTEndian_System ((*(unsigned char *)&(unsigned int){1}) == 0)
 #	define CTEndian_SystemUnknown 1
+#   define CTEndian_IsLittle (CTEndian_System == CTEndian_Little)
+#   define CTEndian_IsBig (CTEndian_System == CTEndian_Big)
 # endif
 
 # if defined(CTEndian_SystemBig)
@@ -155,7 +161,7 @@ typedef bool ct_endian_t;
 # else
 #	define CT_ENDIAN_BRANCH(big, little) 			\
 		do {                              			\
-			if (CTEndian_System == CTEndian_Big) {	\
+			if (CTEndian_IsBig) {					\
 				big									\
 			} else {								\
 				little								\
@@ -206,31 +212,31 @@ typedef bool ct_endian_t;
 #	define __CT_WORDSIZE 32
 # endif
 
-# ifdef WIN32
-#	ifdef __cplusplus
-#		define DLL_EXPORT_C_DECL     extern "C" __declspec(dllexport)
-#		define DLL_IMPORT_C_DECL     extern "C" __declspec(dllimport)
-#		define DLL_EXPORT_DECL       extern __declspec(dllexport)
-#		define DLL_IMPORT_DECL       extern __declspec(dllimport)
-#		define DLL_EXPORT_CLASS_DECL __declspec(dllexport)
-#		define DLL_IMPORT_CLASS_DECL __declspec(dllimport)
-# 	else
-#		define DLL_EXPORT_DECL __declspec(dllexport)
-#		define DLL_IMPORT_DECL __declspec(dllimport)
-# 	endif
-# else
-#	ifdef __cplusplus
-#		define DLL_EXPORT_C_DECL extern "C"
-#		define DLL_IMPORT_C_DECL extern "C"
-#		define DLL_EXPORT_DECL   extern
-#		define DLL_IMPORT_DECL   extern
-#		define DLL_EXPORT_CLASS_DECL
-#		define DLL_IMPORT_CLASS_DECL
-# 	else
-#		define DLL_EXPORT_DECL extern
-#		define DLL_IMPORT_DECL extern
-#	endif
-# endif
+// # ifdef WIN32
+// #	ifdef __cplusplus
+// #		define DLL_EXPORT_C_DECL     extern "C" __declspec(dllexport)
+// #		define DLL_IMPORT_C_DECL     extern "C" __declspec(dllimport)
+// #		define DLL_EXPORT_DECL       extern __declspec(dllexport)
+// #		define DLL_IMPORT_DECL       extern __declspec(dllimport)
+// #		define DLL_EXPORT_CLASS_DECL __declspec(dllexport)
+// #		define DLL_IMPORT_CLASS_DECL __declspec(dllimport)
+// # 	else
+// #		define DLL_EXPORT_DECL __declspec(dllexport)
+// #		define DLL_IMPORT_DECL __declspec(dllimport)
+// # 	endif
+// # else
+// #	ifdef __cplusplus
+// #		define DLL_EXPORT_C_DECL extern "C"
+// #		define DLL_IMPORT_C_DECL extern "C"
+// #		define DLL_EXPORT_DECL   extern
+// #		define DLL_IMPORT_DECL   extern
+// #		define DLL_EXPORT_CLASS_DECL
+// #		define DLL_IMPORT_CLASS_DECL
+// # 	else
+// #		define DLL_EXPORT_DECL extern
+// #		define DLL_IMPORT_DECL extern
+// #	endif
+// # endif
 
 # ifndef __GNUC_PREREQ
 # 	define __GNUC_PREREQ(a, b)	0

@@ -5,7 +5,7 @@
  * @date 2023.11.30
  */
 #include "algo/ct_base64.h"
-#include "ctunit.h"
+#include "cunit.h"
 
 struct ct_base64_test {
 	const char *source;
@@ -71,11 +71,11 @@ struct ct_base64_test {
 
 static inline int test_base64_decode(void) {
 	char buf[1024];
-	ctunit_assert_uint32_equal(ct_base64_decode("AAA=", 4, buf, 0), 0);
-	ctunit_assert_uint32_equal(ct_base64_decode("AAA=", 4, buf, 1), 0);
-	ctunit_assert_uint32_equal(ct_base64_decode("AAA=", 4, buf, 2), 0);
-	ctunit_assert_uint32_equal(ct_base64_decode("AAA=", 4, buf, 3), 0);
-	ctunit_assert_uint32_equal(ct_base64_decode("AAA=", 4, buf, 4), 2);
+	cunit_assert_uint32_equal(ct_base64_decode("AAA=", 4, buf, 0), 0);
+	cunit_assert_uint32_equal(ct_base64_decode("AAA=", 4, buf, 1), 0);
+	cunit_assert_uint32_equal(ct_base64_decode("AAA=", 4, buf, 2), 0);
+	cunit_assert_uint32_equal(ct_base64_decode("AAA=", 4, buf, 3), 0);
+	cunit_assert_uint32_equal(ct_base64_decode("AAA=", 4, buf, 4), 2);
 
 	{
 		struct ct_base64_test *it   = NULL;
@@ -86,7 +86,7 @@ static inline int test_base64_decode(void) {
 			length = strlen(it->target);
 
 			ct_base64_decode(it->target, length, buf, sizeof(buf));
-			ctunit_assert_string(buf, it->source, "i = %d, length = %d\n", i, length);
+			cunit_assert_string(buf, it->source, "i = %d, length = %d\n", i, length);
 		}
 	}
 
@@ -95,12 +95,12 @@ static inline int test_base64_decode(void) {
 
 static inline int test_base64_encode(void) {
 	char buf[1024];
-	ctunit_assert_uint32_equal(ct_base64_encode((uint8_t *)"a", 1, buf, 0), 0);
-	ctunit_assert_uint32_equal(ct_base64_encode((uint8_t *)"a", 1, buf, 1), 0);
-	ctunit_assert_uint32_equal(ct_base64_encode((uint8_t *)"a", 1, buf, 2), 0);
-	ctunit_assert_uint32_equal(ct_base64_encode((uint8_t *)"a", 1, buf, 3), 0);
-	ctunit_assert_uint32_equal(ct_base64_encode((uint8_t *)"a", 1, buf, 4), 0);
-	ctunit_assert_uint32_equal(ct_base64_encode((uint8_t *)"a", 1, buf, 5), 4);
+	cunit_assert_uint32_equal(ct_base64_encode((uint8_t *)"a", 1, buf, 0), 0);
+	cunit_assert_uint32_equal(ct_base64_encode((uint8_t *)"a", 1, buf, 1), 0);
+	cunit_assert_uint32_equal(ct_base64_encode((uint8_t *)"a", 1, buf, 2), 0);
+	cunit_assert_uint32_equal(ct_base64_encode((uint8_t *)"a", 1, buf, 3), 0);
+	cunit_assert_uint32_equal(ct_base64_encode((uint8_t *)"a", 1, buf, 4), 0);
+	cunit_assert_uint32_equal(ct_base64_encode((uint8_t *)"a", 1, buf, 5), 4);
 
 	{
 		struct ct_base64_test *it   = NULL;
@@ -114,12 +114,12 @@ static inline int test_base64_encode(void) {
 				n = ct_base64_update(it->source[j], buf, n);
 			}
 			n = ct_base64_final(buf, n);
-			ctunit_assert_string(buf, it->target, "i = %d, length = %d\n", i, length);
+			cunit_assert_string(buf, it->target, "i = %d, length = %d\n", i, length);
 
 			ct_base64_encode((uint8_t *)it->source, length, buf, sizeof(buf));
-			ctunit_assert_string(buf, it->target, "i = %d, length = %d\n", i, length);
+			cunit_assert_string(buf, it->target, "i = %d, length = %d\n", i, length);
 
-			ctunit_assert_uint32_equal(n, CT_BASE64_ENCODE_LENGTH(length), "i = %d, length = %d\n", i, length);
+			cunit_assert_uint32_equal(n, CT_BASE64_ENCODE_LENGTH(length), "i = %d, length = %d\n", i, length);
 		}
 	}
 
@@ -128,10 +128,10 @@ static inline int test_base64_encode(void) {
 
 int main(void) {
 	test_base64_decode();
-	ctunit_trace("Finish! test_base64_decode();\n");
+	cunit_println("Finish! test_base64_decode();\n");
 
 	test_base64_encode();
-	ctunit_trace("Finish! test_base64_encode();\n");
+	cunit_println("Finish! test_base64_encode();\n");
 
-	ctunit_pass();
+	cunit_pass();
 }

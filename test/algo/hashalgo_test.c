@@ -5,7 +5,7 @@
  * @date 2023.12.28
  */
 #include "algo/ct_hashalgo.h"
-#include "ctunit.h"
+#include "cunit.h"
 
 #define TEST_HASH_NUMBER 100
 
@@ -41,7 +41,7 @@ static inline int test_hash_siphash(void) {
 
 	for (int n = 0; n < TEST_HASH_NUMBER; n++) {
 		for (int i = 1; i < 64; i++) {
-			ctunit_assert_uint64_equal(ct_hashalgo_siphash_64(plaintext, i, ct_hash_key), vectors[i],
+			cunit_assert_uint64_equal(ct_hashalgo_siphash_64(plaintext, i, ct_hash_key), vectors[i],
 									   "n = %d, i = %d\n", n, i);
 		}
 	}
@@ -51,7 +51,7 @@ static inline int test_hash_siphash(void) {
 
 int main(void) {
 	test_hash_siphash();
-	ctunit_trace("Finish! test_hash_siphash();\n");
+	cunit_println("Finish! test_hash_siphash();\n");
 
-	ctunit_pass();
+	cunit_pass();
 }

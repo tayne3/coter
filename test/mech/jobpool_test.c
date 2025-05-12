@@ -6,7 +6,7 @@
  */
 #include "base/ct_platform.h"
 #include "base/ct_time.h"
-#include "ctunit.h"
+#include "cunit.h"
 #include "mech/ct_jobpool.h"
 
 #define TEST_DATA_MAX 10000
@@ -41,22 +41,22 @@ static inline void *test_job_publish(void *arg) {
 }
 
 static inline void test_jobpool_add(size_t data_count, size_t task_count, size_t job_count) {
-	ctunit_assert_uint32_greater(data_count, 0);
-	ctunit_assert_uint32_less_equal(data_count, TEST_DATA_MAX);
-	ctunit_assert_uint32_greater(task_count, 0);
-	ctunit_assert_uint32_greater(job_count, 0);
+	cunit_assert_uint32_greater(data_count, 0);
+	cunit_assert_uint32_less_equal(data_count, TEST_DATA_MAX);
+	cunit_assert_uint32_greater(task_count, 0);
+	cunit_assert_uint32_greater(job_count, 0);
 
 	test_data_size = data_count;
 	test_data_reset();
 	test_end_number = 0;
 
 	ct_jobpool_t *jobpool = ct_jobpool_create(task_count, job_count);
-	ctunit_assert_not_null(jobpool);
+	cunit_assert_not_null(jobpool);
 
 	bool      is_ok;
 	pthread_t thread;
 	is_ok = pthread_create(&thread, NULL, test_job_publish, jobpool) == 0;
-	ctunit_assert_true(is_ok);
+	cunit_assert_true(is_ok);
 
 	// 等待结束 (超时时长: 10s)
 	bool is_timeout = false;
@@ -71,27 +71,27 @@ static inline void test_jobpool_add(size_t data_count, size_t task_count, size_t
 	}
 
 	is_ok = pthread_join(thread, NULL) == 0;
-	ctunit_assert_true(is_ok);
+	cunit_assert_true(is_ok);
 
 	pthread_mutex_lock(test_mutex);
-	ctunit_assert_uint32_equal(test_end_number, test_data_size);
+	cunit_assert_uint32_equal(test_end_number, test_data_size);
 	pthread_mutex_unlock(test_mutex);
 
 	ct_jobpool_destroy(jobpool);
 
-	ctunit_assert_uint32_equal(test_end_number, test_data_size);
+	cunit_assert_uint32_equal(test_end_number, test_data_size);
 }
 
 int main(void) {
 	test_jobpool_add(10, 1, 10);
-	ctunit_trace("Finish! test_jobpool_add(10, 1, 10);\n");
+	cunit_println("Finish! test_jobpool_add(10, 1, 10);\n");
 
 	test_jobpool_add(10, 10, 1);
-	ctunit_trace("Finish! test_jobpool_add(10, 10, 1);\n");
+	cunit_println("Finish! test_jobpool_add(10, 10, 1);\n");
 
 	test_jobpool_add(500, 50, 50);
-	ctunit_trace("Finish! test_jobpool_add(500, 50, 50);\n");
+	cunit_println("Finish! test_jobpool_add(500, 50, 50);\n");
 
 	pthread_mutex_destroy(test_mutex);
-	ctunit_pass();
+	cunit_pass();
 }
