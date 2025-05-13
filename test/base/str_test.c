@@ -1,0 +1,199 @@
+/**
+ * @file str_test.c
+ * @brief 字符串相关测试
+ * @author tayne3@dingtalk.com
+ * @date 2023.11.30
+ */
+#include "base/ct_platform.h"
+#include "ctunit.h"
+
+#if defined(__GNUC__) && (__GNUC__ >= 7)
+#pragma GCC diagnostic ignored "-Wformat-truncation"
+#endif
+
+static inline void test_snprintf(void) {
+	char buf[100];
+
+	{
+		const int len = ct_snprintf(buf, sizeof(buf), "Hello %s %d 5678", "World", 1234);
+		ctunit_assert_int_equal(len, 21);
+		ctunit_assert_string(buf, "Hello World 1234 5678");
+	}
+
+	{
+		const int len = ct_snprintf(buf, 1, "Truncate");
+		ctunit_assert_int_equal(len, 8);
+		ctunit_assert_string(buf, "");
+	}
+
+	{
+		const int len = ct_snprintf(buf, 8, "Truncate");
+		ctunit_assert_int_equal(len, 8);
+		ctunit_assert_string(buf, "Truncat");
+	}
+
+	{
+		const int len = ct_snprintf(buf, 9, "Truncate");
+		ctunit_assert_int_equal(len, 8);
+		ctunit_assert_string(buf, "Truncate");
+	}
+
+	{
+		const int len = ct_snprintf(buf, 1, "%.*s", 1, "Truncate");
+		ctunit_assert_int_equal(len, 1);
+		ctunit_assert_string(buf, "");
+	}
+
+	{
+		const int len = ct_snprintf(buf, 8, "%.*s", 8, "Truncate");
+		ctunit_assert_int_equal(len, 8);
+		ctunit_assert_string(buf, "Truncat");
+	}
+
+	{
+		const int len = ct_snprintf(buf, 9, "%.*s", 8, "Truncate");
+		ctunit_assert_int_equal(len, 8);
+		ctunit_assert_string(buf, "Truncate");
+	}
+}
+
+static inline void test_snprintf_s(void) {
+	char buf[100];
+
+	// 正常情况测试
+	{
+		const int len = ct_snprintf_s(buf, sizeof(buf), "Hello %s %d", "World", 42);
+		ctunit_assert_int_equal(len, 14);
+		ctunit_assert_string(buf, "Hello World 42");
+	}
+
+	// 截断测试
+	{
+		const int len = ct_snprintf_s(buf, 10, "Hello %s %d", "World", 42);
+		ctunit_assert_int_equal(len, 9);
+		ctunit_assert_string(buf, "Hello Wor");
+	}
+	{
+		const int len = ct_snprintf_s(buf, 5, "This is a very long string");
+		ctunit_assert_int_equal(len, 4);
+		ctunit_assert_string(buf, "This");
+	}
+
+	// 边界测试 - 刚好填满缓冲区
+	{
+		const int len = ct_snprintf_s(buf, 6, "Hello");
+		ctunit_assert_int_equal(len, 5);
+		ctunit_assert_string(buf, "Hello");
+	}
+
+	// 边界测试 - 超出一个字符
+	{
+		const int len = ct_snprintf_s(buf, 6, "Hello!");
+		ctunit_assert_int_equal(len, 5);
+		ctunit_assert_string(buf, "Hello");
+	}
+
+	// 错误情况测试 - NULL 缓冲区
+	{
+		const int len = ct_snprintf_s(NULL, 10, "Test");
+		ctunit_assert_int_equal(len, -1);
+	}
+
+	// 错误情况测试 - 零长度缓冲区
+	{
+		const int len = ct_snprintf_s(buf, 0, "Test");
+		ctunit_assert_int_equal(len, -1);
+	}
+
+	// 错误情况测试 - NULL 格式字符串
+	{
+		const int len = ct_snprintf_s(buf, sizeof(buf), NULL);
+		ctunit_assert_int_equal(len, -1);
+	}
+
+	// 不同类型参数测试
+	{
+		const int len = ct_snprintf_s(buf, sizeof(buf), "%d %u %f %s", -1, 2U, 3.14f, "test");
+		ctunit_assert_string(buf, "-1 2 3.140000 test");
+		ctunit_assert_int_equal(len, 18);
+	}
+
+	// 确保字符串始终以 null 结尾
+	{
+		memset(buf, 'A', sizeof(buf));
+		ct_snprintf_s(buf, sizeof(buf), "Test");
+		ctunit_assert_int_equal(buf[4], 0);
+		ctunit_assert_int_equal(buf[sizeof(buf) - 1], 0);
+	}
+}
+
+static inline void test_strncpy_s(void) {
+	char buf[20];
+
+	// 正常拷贝测试
+	{
+		int len = ct_strncpy_s(buf, sizeof(buf), "Hello", 5);
+		ctunit_assert_int_equal(len, 5);
+		ctunit_assert_string(buf, "Hello");
+	}
+
+	// 拷贝长度小于源字符串长度，未截断
+	{
+		int len = ct_strncpy_s(buf, sizeof(buf), "Hello, World!", 5);
+		ctunit_assert_int_equal(len, 5);
+		ctunit_assert_string(buf, "Hello");
+	}
+
+	// 拷贝长度等于源字符串长度
+	{
+		int len = ct_strncpy_s(buf, sizeof(buf), "Test", 4);
+		ctunit_assert_int_equal(len, 4);
+		ctunit_assert_string(buf, "Test");
+	}
+
+	// 拷贝长度大于源字符串长度
+	{
+		int len = ct_strncpy_s(buf, sizeof(buf), "Hi", 5);
+		ctunit_assert_int_equal(len, 2);
+		ctunit_assert_string(buf, "Hi");
+	}
+
+	// 缓冲区大小不足，发生截断
+	{
+		int len = ct_strncpy_s(buf, 5, "This is a long string", 10);
+		ctunit_assert_int_equal(len, -1);
+	}
+
+	// 目标缓冲区为 NULL
+	{
+		int len = ct_strncpy_s(NULL, 10, "Test", 4);
+		ctunit_assert_int_equal(len, -1);
+	}
+
+	// 源字符串为 NULL
+	{
+		int len = ct_strncpy_s(buf, sizeof(buf), NULL, 5);
+		ctunit_assert_int_equal(len, -1);
+		ctunit_assert_string(buf, "");
+	}
+
+	// 拷贝零长度
+	{
+		int len = ct_strncpy_s(buf, sizeof(buf), "Test", 0);
+		ctunit_assert_int_equal(len, -1);
+		ctunit_assert_string(buf, "");
+	}
+}
+
+int main(void) {
+	test_snprintf();
+	ctunit_trace("Finish! test_snprintf();\n");
+
+	test_snprintf_s();
+	ctunit_trace("Finish! test_snprintf_s();\n");
+
+	test_strncpy_s();
+	ctunit_trace("Finish! test_strncpy_s();\n");
+
+	ctunit_pass();
+}
