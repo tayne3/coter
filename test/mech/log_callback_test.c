@@ -157,7 +157,7 @@ static void test_callback_performance_comparison(size_t limit) {
 	cunit_assert_int64_greater(size_without_log, 0);
 	cunit_assert_int64_equal(size_with_log, size_without_log);
 
-	cunit_println("with log file size: %d, without log file size: %d\n", size_with_log, size_without_log);
+	cunit_println("with log file size: %ld, without log file size: %ld\n", (long)size_with_log, (long)size_without_log);
 
 	// 将文件指针重置到文件开头
 	rewind(file_with_log);
