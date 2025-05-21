@@ -1,4 +1,4 @@
-# ==============================================================================
+# ===========================================
 # Setup Pthreads Library
 #
 # Overview:
@@ -6,40 +6,32 @@
 #   in various platforms. It handles different detection strategies and fallback
 #   mechanisms.
 #
-# Defined Variables:
-#   PTHREADS_LIBS - The libraries needed for threading (output).
+# |---------------------------------|---------------------|---------|-----------------------------------------------|
+# | Option                          | Availability        | Default | Description                                   |
+# |=================================|=====================|=========|===============================================|
+# | PTHREADS_EXCEPTION_SCHEME       | Before Include      | "C"     | Controls pthread-win32 exception model:       |
+# |                                 |                     |         |   "C"  - Console, `SetConsoleCtrlHandler`     |
+# |                                 |                     |         |   "CE" - Console Extended                     |
+# |                                 |                     |         |   "SE" - GUI, Structured Exception (MSVC only)|
+# |---------------------------------|---------------------|---------|-----------------------------------------------|
 #
-# Configuration Options:
-#   PTHREADS_EXCEPTION_SCHEME - Controls the exception handling model for pthread-win32.
-#                               Must be set before including this module.
-#     Options:
-#     * C  - Console mode using SetConsoleCtrlHandler for clean C cleanup.
-#            Default, suitable for command-line applications.
-#     * CE - Console Extended mode with additional console features.
-#     * SE - GUI mode using Structured Exception Handling (Windows SEH).
-#            Only available with MSVC compiler.
-#
-# ==============================================================================
+# ===========================================
 # 配置 Pthreads 库
 #
 # 概述：
 #   本模块配置并设置 Pthreads 库以支持各种平台的线程功能。
 #   它处理不同的检测策略和回退机制。
 #
-# 定义变量：
-#   PTHREADS_LIBS - 线程库的链接选项（输出）。
+# |---------------------------------|---------------------|---------|-----------------------------------------------|
+# | Option                          | Availability        | Default | Description                                   |
+# |=================================|=====================|=========|===============================================|
+# | PTHREADS_EXCEPTION_SCHEME       | 包含此模块前        | "C"     | 控制 pthread-win32 的异常处理模型:            |
+# |                                 |                     |         |   "C"  - 控制台模式, `SetConsoleCtrlHandler`  |
+# |                                 |                     |         |   "CE" - 扩展控制台模式                       |
+# |                                 |                     |         |   "SE" - 图形界面模式, 结构化异常 (仅限MSVC)  |
+# |---------------------------------|---------------------|---------|-----------------------------------------------|
 #
-# 配置选项：
-#   PTHREADS_EXCEPTION_SCHEME - 控制 pthread-win32 的异常处理模型。
-#                               必须在引入本模块前设置。
-#     可选值：
-#     * C  - 控制台模式，使用 SetConsoleCtrlHandler 实现干净的 C 清理。
-#            默认选项，适合命令行应用程序。
-#     * CE - 扩展控制台模式，具有额外的控制台功能。
-#     * SE - 图形界面模式，使用结构化异常处理（Windows SEH）。
-#            仅在 MSVC 编译器下可用。
-#
-# ==============================================================================
+# ===========================================
 
 include(CheckLibraryExists)
 

@@ -1,10 +1,4 @@
 
-if(COTER_BUILD_DEBUG)
-    add_definitions(-DDEBUG)
-else()
-	add_definitions(-DNDEBUG)
-endif()
-
 # 设置编译选项
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     add_compile_options(
