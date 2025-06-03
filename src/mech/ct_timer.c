@@ -35,7 +35,7 @@ typedef struct ct_timer {
 	void               *arg;            // 回调参数
 	ct_time64_t         trigger_new;    // 触发时间
 	ct_time64_t         interval;       // 间隔 (ms)
-} ct_timer_t, ct_timer_buf_t[1];
+} ct_timer_t;
 
 #define CT_TIMER_MAX             128
 #define CT_TIMER_ID_NULL         CT_TIMER_ID_INVALID
@@ -66,10 +66,10 @@ typedef struct ct_timer {
 static struct ct_timer_manager {
 	ct_list_buf_t   idle_list;                   // 可用链表
 	pthread_mutex_t lock[1];                     // 线程锁
-	ct_timer_buf_t  timer_buffer[CT_TIMER_MAX];  // 定时器缓存数组
+	ct_timer_t      timer_buffer[CT_TIMER_MAX];  // 定时器缓存数组
 	ct_any_t        heap_buffer[CT_TIMER_MAX];   // 最小堆缓存数组
 	ct_heap_buf_t   heap;                        // 最小堆
-	ct_timer_buf_t  timer_null;                  // 空定时器
+	ct_timer_t      timer_null;                  // 空定时器
 	ct_time64_t     time_tick;                   // 运行时间
 	ct_thpool_t    *thpool;                      // 任务池
 	ct_timer_id_t   ident_count;                 // ID计数
@@ -82,7 +82,7 @@ static struct ct_timer_manager {
 	.is_busy     = false,
 }};
 
-#define CT_TIMER_NULL (mgr->timer_null)  // 空定时器
+#define CT_TIMER_NULL (&mgr->timer_null)  // 空定时器
 
 #define mgr_lock()    pthread_mutex_lock(mgr->lock)                 // 锁定
 #define mgr_unlock()  pthread_mutex_unlock(mgr->lock)               // 解锁
@@ -134,17 +134,14 @@ static inline bool tr_istrigger(ct_timer_t *self);
 
 void ct_timer_mgr_init(ct_time64_t tick, struct ct_thpool *thpool) {
 	assert(thpool);
-	// 初始化最小堆
-	ct_heap_init(mgr->heap, mgr->heap_buffer, CT_TIMER_MAX, tr_sorting);
-	// 初始化可用定时器链表
-	ct_list_init(mgr->idle_list);
-	// 初始化空定时器
-	tr_init(CT_TIMER_NULL, 0);
+	ct_heap_init(mgr->heap, mgr->heap_buffer, CT_TIMER_MAX, tr_sorting);  // 初始化最小堆
+	ct_list_init(mgr->idle_list);                                         // 初始化可用定时器链表
+	tr_init(CT_TIMER_NULL, 0);                                            // 初始化空定时器
 
 	// 初始化所有定时器, 并将所有定时器添加到可用链表中
 	ct_timer_t *it;
 	for (int i = 0; i < CT_TIMER_MAX; i++) {
-		it = mgr->timer_buffer[i];
+		it = &mgr->timer_buffer[i];
 		tr_init(it, i + 1);                        // 初始化定时器
 		ct_list_append(mgr->idle_list, it->list);  // 将定时器添加可用链表中
 	}
@@ -169,8 +166,7 @@ bool ct_timer_mgr_schedule(ct_time64_t tick) {
 	mgr->is_busy = true;
 	mgr_unlock();
 
-	// 添加异步工作
-	ct_thpool_submit(mgr->thpool, mgr_trigger_callback, self);
+	ct_thpool_submit(mgr->thpool, mgr_trigger_callback, self);  // 添加异步工作
 	return true;
 }
 
@@ -216,7 +212,7 @@ void ct_timer_stop(ct_timer_id_t id) {
 
 	mgr_lock();
 	if (idx < mgr_max()) {
-		self = mgr->timer_buffer[idx];
+		self = &mgr->timer_buffer[idx];
 		if (self->id != id) {
 			self = NULL;
 		}
@@ -255,7 +251,7 @@ static inline void mgr_trigger_callback(void *arg) {
 	assert(arg);
 	ct_timer_t *self = (ct_timer_t *)arg;
 	if (self->is_active) {
-		// ct_thpool_submit(mgr->thpool, mgr_timer_callback, self);  // 添加异步工作
+		// ct_thpool_submit(mgr->thpool, mgr_timer_callback, self);
 		mgr_timer_callback(self);
 	}
 
@@ -271,10 +267,10 @@ static inline void mgr_trigger_callback(void *arg) {
 		mgr_unlock();
 
 		if (self->is_active) {
-			// ct_thpool_submit(mgr->thpool, mgr_timer_callback, self);  // 添加异步工作
+			// ct_thpool_submit(mgr->thpool, mgr_timer_callback, self);
 			mgr_timer_callback(self);
 		}
-		sched_yield();
+		CT_PAUSE();
 	}
 }
 
@@ -296,10 +292,8 @@ static inline void mgr_timer_callback(void *arg) {
 	return;
 
 Close:
-	// 重置定时器ID
-	CT_TIMER_ID_RESET(self);
-	// 插入到可用链表
-	ct_list_append(mgr->idle_list, self->list);
+	CT_TIMER_ID_RESET(self);                     // 重置定时器ID
+	ct_list_append(mgr->idle_list, self->list);  // 插入到可用链表
 	mgr_unlock();
 }
 
@@ -313,12 +307,8 @@ static inline ct_timer_t *mgr_take_trigger_timer(void) {
 }
 
 static inline ct_timer_id_t tr_generate_id(ct_timer_t *self) {
-	if (mgr->ident_count < UINT32_MAX) {
-		mgr->ident_count++;
-	} else {
-		mgr->ident_count = 0;
-	}
-	return self->id = ((ct_timer_id_t)mgr->ident_count << 16) | (self->id & 0x0000FFFF);
+	mgr->ident_count = mgr->ident_count < UINT32_MAX ? mgr->ident_count + 1 : 0;
+	return self->id  = ((ct_timer_id_t)mgr->ident_count << 16) | (self->id & 0x0000FFFF);
 }
 
 static inline void tr_add(ct_timer_t *self) {
@@ -329,12 +319,7 @@ static inline void tr_add(ct_timer_t *self) {
 }
 
 static inline void tr_trigger_refresh(ct_timer_t *self) {
-	// self->trigger_new = mgr->time_tick + self->interval;
-	if (self->trigger_new == 0) {
-		self->trigger_new = mgr->time_tick + self->interval;
-	} else {
-		self->trigger_new += self->interval;
-	}
+	self->trigger_new = self->trigger_new == 0 ? mgr->time_tick + self->interval : self->trigger_new + self->interval;
 }
 
 static inline bool tr_istrigger(ct_timer_t *self) {

@@ -14,7 +14,7 @@ static ct_time64_t mock_current_time = 0;
 static inline void timer_schedule_mock(ct_time64_t ms) {
 	for (;;) {
 		if (ct_timer_mgr_schedule(mock_current_time)) {
-			sched_yield();
+			CT_PAUSE();
 			continue;
 		}
 		if (ms <= 0) {

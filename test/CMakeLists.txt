@@ -4,7 +4,7 @@ CPMAddPackage(
     VERSION 0.1.2
 )
 
-file(GLOB_RECURSE test_source_files CONFIGURE_DEPENDS *.c *.cpp *.cc *.h *.hpp)
+file(GLOB_RECURSE test_source_files CONFIGURE_DEPENDS *.c *.cpp *.cc)
 foreach(test_src ${test_source_files})
     get_filename_component(test_name ${test_src} NAME_WE)
     add_executable(${test_name} ${test_src})

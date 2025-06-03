@@ -26,6 +26,29 @@ static inline int change_system_time(time_t new_time) {
 #endif
 }
 
+// 辅助函数: 是否为管理员
+static inline int is_admin(void) {
+#ifdef _WIN32
+	BOOL   bIsElevated = FALSE;
+	HANDLE hToken      = NULL;
+	if (!OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &hToken)) {
+		return -1;
+	}
+
+	TOKEN_ELEVATION elevation;
+	DWORD           dwSize;
+	if (!GetTokenInformation(hToken, TokenElevation, &elevation, sizeof(elevation), &dwSize)) {
+		return -1;
+	}
+	bIsElevated = (BOOL)elevation.TokenIsElevated;
+
+	CloseHandle(hToken);
+	return bIsElevated ? 0 : 1;
+#else
+	return getuid() == 0 ? 0 : 1;
+#endif
+}
+
 // 测试用例: 验证时间戳递增
 static inline void test_timestamp_increment(void) {
 	ct_time64_t tick1 = ct_getuptime_ms();
@@ -90,20 +113,25 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	cunit_println("Warning: About to change system time, please ensure you have administrator privileges\n");
-	if (!is_quiet) {
-		cunit_println("Press Enter to continue...");
-		getchar();
-	}
-
 	test_timestamp_increment();
-	cunit_println("Finish! test_timestamp_increment();\n");
+	cunit_println("Finish! test_timestamp_increment();");
 
 	test_millisecond_precision();
-	cunit_println("Finish! test_millisecond_precision();\n");
+	cunit_println("Finish! test_millisecond_precision();");
 
-	test_unaffected_by_system_time();
-	cunit_println("Finish! test_unaffected_by_system_time();\n");
+	if (is_admin() == 0) {
+		cunit_println("Warning: About to change system time, please ensure you have administrator privileges");
+		if (!is_quiet) {
+			cunit_println("Press Enter to continue...");
+			getchar();
+		}
+		test_unaffected_by_system_time();
+		cunit_println("Finish! test_unaffected_by_system_time();");
+	} else {
+		cunit_println("Warning: Running without administrator privileges.");
+		cunit_println("The following tests requiring elevated permissions will be skipped:");
+		cunit_println(" - test_unaffected_by_system_time");
+	}
 
 	cunit_pass();
 }

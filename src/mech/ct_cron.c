@@ -37,7 +37,7 @@ typedef struct cron {
 	ct_time_t          trigger_next;  // 触发时间
 	ct_cron_callback_t callback;      // 回调函数
 	void              *arg;           // 回调参数
-} cron_t, cron_buf_t[1];
+} cron_t;
 
 #define CT_CRON_MAX             128
 #define CT_CRON_ID_NULL         CT_CRON_ID_INVALID
@@ -57,6 +57,7 @@ typedef struct cron {
  * @var cron_null 空cron任务
  * @var time_tick 当前时间 (秒级时间戳)
  * @var is_busy 是否忙碌
+ * @var correct 修正计数
  *
  * @note
  * 为了节省资源, cron任务管理器的异步任务并不常驻,
@@ -68,10 +69,10 @@ typedef struct cron {
 static struct ct_cron_manager {
 	ct_list_buf_t   idle_list;                 // 可用链表
 	pthread_mutex_t lock[1];                   // 线程锁
-	cron_buf_t      cron_buffer[CT_CRON_MAX];  // cron任务缓存数组
+	cron_t          cron_buffer[CT_CRON_MAX];  // cron任务缓存数组
 	ct_any_t        heap_buffer[CT_CRON_MAX];  // 最小堆缓存数组
 	ct_heap_buf_t   heap;                      // 最小堆
-	cron_buf_t      cron_null;                 // 空cron任务
+	cron_t          cron_null;                 // 空cron任务
 	ct_time_t       time_now;                  // 当前时间
 	ct_thpool_t    *thpool;                    // 任务池
 	ct_cron_id_t    ident_count;               // ID计数
@@ -86,7 +87,7 @@ static struct ct_cron_manager {
 	.correct     = 0,
 }};
 
-#define CT_CRON_NULL (mgr->cron_null)  // 空cron任务
+#define CT_CRON_NULL (&mgr->cron_null)  // 空cron任务
 
 #define mgr_lock()    pthread_mutex_lock(mgr->lock)    // 锁定
 #define mgr_unlock()  pthread_mutex_unlock(mgr->lock)  // 解锁
@@ -137,17 +138,14 @@ static inline bool tr_istrigger(cron_t *self);
 
 void ct_cron_mgr_init(ct_time_t now, struct ct_thpool *thpool) {
 	assert(thpool);
-	// 初始化最小堆
-	ct_heap_init(mgr->heap, mgr->heap_buffer, CT_CRON_MAX, tr_sorting);
-	// 初始化可用cron任务链表
-	ct_list_init(mgr->idle_list);
-	// 初始化空cron任务
-	tr_init(CT_CRON_NULL, 0);
+	ct_heap_init(mgr->heap, mgr->heap_buffer, CT_CRON_MAX, tr_sorting);  // 初始化最小堆
+	ct_list_init(mgr->idle_list);                                        // 初始化可用cron任务链表
+	tr_init(CT_CRON_NULL, 0);                                            // 初始化空cron任务
 
 	// 初始化所有cron任务, 并将所有cron任务添加到可用链表中
 	cron_t *it;
 	for (int i = 0; i < CT_CRON_MAX; i++) {
-		it = mgr->cron_buffer[i];
+		it = &mgr->cron_buffer[i];
 		tr_init(it, i + 1);                        // 初始化cron任务
 		ct_list_append(mgr->idle_list, it->list);  // 将cron任务添加可用链表中
 	}
@@ -182,8 +180,7 @@ bool ct_cron_mgr_schedule(ct_time_t now) {
 	mgr->is_busy = true;
 	mgr_unlock();
 
-	// 添加异步工作
-	ct_thpool_submit(mgr->thpool, mgr_trigger_callback, it);
+	ct_thpool_submit(mgr->thpool, mgr_trigger_callback, it);  // 添加异步工作
 	return true;
 }
 
@@ -235,7 +232,7 @@ void ct_cron_stop(ct_cron_id_t id) {
 
 	mgr_lock();
 	if (idx < mgr_max()) {
-		self = mgr->cron_buffer[idx];
+		self = &mgr->cron_buffer[idx];
 		if (self->id != id) {
 			self = NULL;
 		}
@@ -374,7 +371,7 @@ static inline void mgr_trigger_callback(void *arg) {
 			// ct_thpool_submit(mgr->thpool, mgr_cron_callback, it);  // 添加异步工作
 			mgr_cron_callback(it);
 		}
-		sched_yield();
+		CT_PAUSE();
 	}
 }
 
@@ -400,10 +397,8 @@ static inline void mgr_cron_callback(void *arg) {
 	return;
 
 Close:
-	// 重置cron任务ID
-	CT_CRON_ID_RESET(it);
-	// 插入到可用链表
-	ct_list_append(mgr->idle_list, it->list);
+	CT_CRON_ID_RESET(it);                      // 重置cron任务ID
+	ct_list_append(mgr->idle_list, it->list);  // 插入到可用链表
 	mgr_unlock();
 }
 
@@ -413,9 +408,7 @@ static inline cron_t *mgr_take_trigger_cron(void) {
 		return CT_CRON_NULL;
 	}
 
-	// 移除堆顶元素
-	ct_heap_remove(mgr->heap);
-
+	ct_heap_remove(mgr->heap);  // 移除堆顶元素
 	return it;
 }
 
@@ -460,12 +453,8 @@ Finish:
 }
 
 static inline ct_cron_id_t tr_generate_id(cron_t *self) {
-	if (mgr->ident_count < UINT32_MAX) {
-		mgr->ident_count++;
-	} else {
-		mgr->ident_count = 0;
-	}
-	return self->id = ((ct_cron_id_t)mgr->ident_count << 16) | (self->id & 0x0000FFFF);
+	mgr->ident_count = mgr->ident_count < UINT32_MAX ? mgr->ident_count + 1 : 0;
+	return self->id  = ((ct_cron_id_t)mgr->ident_count << 16) | (self->id & 0x0000FFFF);
 }
 
 static inline bool tr_trigger_refresh(cron_t *self) {
