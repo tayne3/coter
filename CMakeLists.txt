@@ -9,7 +9,6 @@ include(cmake/ProjectIsTopLevel.cmake)
 include(cmake/OptionVariables.cmake)
 include(cmake/ProjectConfig.cmake)
 include(cmake/CPM.cmake)
-include(cmake/CompileOptions.cmake)
 include(cmake/ProjectFunctions.cmake)
 include(cmake/SetupPthreads.cmake)
 include(cmake/SetupLibrarys.cmake)
@@ -20,15 +19,13 @@ configure_file(
     @ONLY
 )
 
-file(GLOB_RECURSE coter_source_files CONFIGURE_DEPENDS src/*.c src/*.cpp src/*.cc src/*.h src/*.hpp)
+file(GLOB_RECURSE coter_source_files CONFIGURE_DEPENDS src/*.c)
 add_library(coter ${COTER_LIB_TYPE} ${coter_source_files})
 target_include_directories(coter PUBLIC 
     ${CMAKE_CURRENT_SOURCE_DIR}/include 
     ${CMAKE_CURRENT_BINARY_DIR}/include
 )
-target_link_libraries(coter PUBLIC ${COTER_LIBS})
-target_compile_definitions(coter PRIVATE ${COTER_COMPILE_DEFINITIONS})
-target_compile_features(coter PRIVATE c_std_99 cxx_std_11)
+target_link_libraries(coter PRIVATE coter_compile_dependency)
 
 add_library(coter::coter ALIAS coter)
 if(COTER_BUILD_SHARED)
