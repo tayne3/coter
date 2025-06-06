@@ -28,13 +28,8 @@ target_include_directories(coter PUBLIC
 target_link_libraries(coter PRIVATE coter_compile_dependency)
 
 add_library(coter::coter ALIAS coter)
-if(COTER_BUILD_SHARED)
-    add_library(coter::shared ALIAS coter)
-    message(STATUS "Coter ${PROJECT_VERSION} shared library")
-else()
-    add_library(coter::static ALIAS coter)
-    message(STATUS "Coter ${PROJECT_VERSION} static library")
-endif()
+add_library(coter::${COTER_LIB_NAME} ALIAS coter)
+message(STATUS "Coter ${PROJECT_VERSION} ${COTER_LIB_NAME} library")
 
 if(COTER_BUILD_TEST)
     enable_testing()
