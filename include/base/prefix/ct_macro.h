@@ -179,6 +179,7 @@ typedef int ct_endian_t;
 // min and max
 # define CT_MIN(_a, _b) 							((_a) < (_b) ? (_a) : (_b))
 # define CT_MAX(_a, _b) 							((_a) > (_b) ? (_a) : (_b))
+# define CT_CLAMP(_val, _min, _max)					CT_MIN(CT_MAX(_val, _min), _max)
 
 // swap value
 # define ct_swap(x, y)	\
