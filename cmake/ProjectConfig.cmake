@@ -55,12 +55,12 @@ endif()
 # set source charset to utf-8 for MSVC
 if(CMAKE_C_COMPILER_ID STREQUAL "MSVC")
     target_compile_options(${PROJECT_NAME}_compile_dependency INTERFACE 
-		"$<$<COMPILE_LANGUAGE:C>:/source-charset:utf-8>"
+		"$<$<COMPILE_LANGUAGE:C>:/utf-8>"
 	)
 endif()
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     target_compile_options(${PROJECT_NAME}_compile_dependency INTERFACE 
-		"$<$<COMPILE_LANGUAGE:CXX>:/source-charset:utf-8>"
+		"$<$<COMPILE_LANGUAGE:CXX>:/utf-8>"
 	)
 endif()
 
