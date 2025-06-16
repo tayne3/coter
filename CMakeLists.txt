@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.14)
 
 include(cmake/PreventInSourceBuilds.cmake)
 include(cmake/GitVersion.cmake)
-gitversion_extract(VERSION PROJECT_VERSION DEFAULT_VERSION 0.6.6)
+gitversion_extract(VERSION PROJECT_VERSION DEFAULT_VERSION 0.6.9)
 project(coter VERSION ${PROJECT_VERSION})
 
 include(cmake/ProjectIsTopLevel.cmake)
@@ -19,17 +19,17 @@ configure_file(
     @ONLY
 )
 
-file(GLOB_RECURSE coter_source_files CONFIGURE_DEPENDS src/*.c)
-add_library(coter ${COTER_LIB_TYPE} ${coter_source_files})
-target_include_directories(coter PUBLIC 
+file(GLOB_RECURSE project_source_files CONFIGURE_DEPENDS src/*.c)
+add_library(${PROJECT_NAME} ${PROJECT_LIB_TYPE} ${project_source_files})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}_compile_dependency)
+target_include_directories(${PROJECT_NAME} PUBLIC 
     ${CMAKE_CURRENT_SOURCE_DIR}/include 
     ${CMAKE_CURRENT_BINARY_DIR}/include
 )
-target_link_libraries(coter PRIVATE coter_compile_dependency)
 
-add_library(coter::coter ALIAS coter)
-add_library(coter::${COTER_LIB_NAME} ALIAS coter)
-message(STATUS "Coter ${PROJECT_VERSION} ${COTER_LIB_NAME} library")
+add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
+add_library(${PROJECT_NAME}::${PROJECT_LIB_NAME} ALIAS ${PROJECT_NAME})
+message(STATUS "${PROJECT_NAME} ${PROJECT_VERSION} ${PROJECT_LIB_NAME} library")
 
 if(COTER_BUILD_TEST)
     enable_testing()
