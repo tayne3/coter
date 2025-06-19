@@ -37,11 +37,9 @@ static inline void reset_mock_time(void) {
 }
 
 // 定时器回调函数
-static inline void timer_callback(ct_timer_id_t id, void *arg) {
+static inline void timer_callback(void *arg) {
 	size_t *count = (size_t *)arg;
 	*count += 1;
-	return;
-	(void)(id);
 }
 
 // 测试基本功能

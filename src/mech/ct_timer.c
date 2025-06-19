@@ -277,7 +277,7 @@ static inline void mgr_trigger_callback(void *arg) {
 static inline void mgr_timer_callback(void *arg) {
 	assert(arg);
 	ct_timer_t *self = (ct_timer_t *)arg;
-	self->callback(self->id, self->arg);
+	self->callback(self->arg);
 
 	mgr_lock();
 	if (!self->is_active) {

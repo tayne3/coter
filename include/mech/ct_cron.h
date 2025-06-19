@@ -21,7 +21,7 @@ typedef uint32_t ct_cron_id_t;
 // 无效的cron任务id
 #define CT_CRON_ID_INVALID 0
 // cron任务回调函数类型
-typedef void (*ct_cron_callback_t)(ct_cron_id_t, void*);
+typedef void (*ct_cron_callback_t)(void*);
 
 /**
  * @brief cron任务管理初始化

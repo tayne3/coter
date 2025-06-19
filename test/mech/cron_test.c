@@ -32,10 +32,9 @@ static inline void reset_mock_time(void) {
 }
 
 // cron任务回调函数
-static inline void cron_callback(ct_cron_id_t id, void *arg) {
+static inline void cron_callback(void *arg) {
 	size_t *count = (size_t *)arg;
 	(*count)++;
-	(void)(id);
 }
 
 // 测试基本功能

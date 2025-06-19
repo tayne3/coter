@@ -21,7 +21,7 @@ typedef uint32_t ct_timer_id_t;
 // 无效的定时器id
 #define CT_TIMER_ID_INVALID 0
 // 定时器回调函数类型
-typedef void (*ct_timer_callback_t)(ct_timer_id_t, void *);
+typedef void (*ct_timer_callback_t)(void *);
 
 /**
  * @brief 定时器管理初始化

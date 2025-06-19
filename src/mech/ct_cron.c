@@ -379,7 +379,7 @@ static inline void mgr_cron_callback(void *arg) {
 	assert(arg);
 
 	cron_t *it = (cron_t *)arg;
-	it->callback(it->id, it->arg);
+	it->callback(it->arg);
 
 	mgr_lock();
 
