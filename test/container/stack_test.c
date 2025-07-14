@@ -18,10 +18,10 @@ static inline int test_stack_init(void) {
 			// 初始化队列
 			ct_stack_init(&stack, buffer, i);
 
-			cunit_assert_int_equal(ct_stack_max(&stack), i);
-			cunit_assert_int_equal(ct_stack_size(&stack), 0);
-			cunit_assert_true(ct_stack_isempty(&stack));
-			cunit_assert_true(!ct_stack_isfull(&stack));
+			assert_int_eq(ct_stack_max(&stack), i);
+			assert_int_eq(ct_stack_size(&stack), 0);
+			assert_true(ct_stack_isempty(&stack));
+			assert_true(!ct_stack_isfull(&stack));
 		}
 	}
 
@@ -41,22 +41,22 @@ static inline int test_stack_push(void) {
 		for (i = 1; i <= max; i++) {
 			ct_stack_push(&stack, CT_ANY_INT(i));
 
-			cunit_assert_true(ct_stack_max(&stack) == max);
-			cunit_assert_true(ct_stack_size(&stack) == i);
-			cunit_assert_true(!ct_stack_isempty(&stack));
+			assert_true(ct_stack_max(&stack) == max);
+			assert_true(ct_stack_size(&stack) == i);
+			assert_true(!ct_stack_isempty(&stack));
 			if (i == max) {
-				cunit_assert_true(ct_stack_isfull(&stack));
+				assert_true(ct_stack_isfull(&stack));
 			} else {
-				cunit_assert_true(!ct_stack_isfull(&stack));
+				assert_true(!ct_stack_isfull(&stack));
 			}
 		}
 	}
 
 	ct_stack_clear(&stack);
-	cunit_assert_int_equal(ct_stack_max(&stack), max);
-	cunit_assert_int_equal(ct_stack_size(&stack), 0);
-	cunit_assert_true(ct_stack_isempty(&stack));
-	cunit_assert_true(!ct_stack_isfull(&stack));
+	assert_int_eq(ct_stack_max(&stack), max);
+	assert_int_eq(ct_stack_size(&stack), 0);
+	assert_true(ct_stack_isempty(&stack));
+	assert_true(!ct_stack_isfull(&stack));
 
 	return 0;
 }
@@ -82,23 +82,23 @@ static inline int test_stack_pop(void) {
 		for (i = 1; i <= max; i++) {
 			ct_stack_pop(&stack, &item);
 
-			cunit_assert_true(ct_any_value_int(item) == (int)(max - i + 1));
-			cunit_assert_true(ct_stack_max(&stack) == max);
-			cunit_assert_true(ct_stack_size(&stack) == max - i);
-			cunit_assert_true(!ct_stack_isfull(&stack));
+			assert_true(ct_any_value_int(item) == (int)(max - i + 1));
+			assert_true(ct_stack_max(&stack) == max);
+			assert_true(ct_stack_size(&stack) == max - i);
+			assert_true(!ct_stack_isfull(&stack));
 			if (i == max) {
-				cunit_assert_true(ct_stack_isempty(&stack));
+				assert_true(ct_stack_isempty(&stack));
 			} else {
-				cunit_assert_true(!ct_stack_isempty(&stack));
+				assert_true(!ct_stack_isempty(&stack));
 			}
 		}
 	}
 
 	ct_stack_clear(&stack);
-	cunit_assert_int_equal(ct_stack_max(&stack), max);
-	cunit_assert_int_equal(ct_stack_size(&stack), 0);
-	cunit_assert_true(ct_stack_isempty(&stack));
-	cunit_assert_true(!ct_stack_isfull(&stack));
+	assert_int_eq(ct_stack_max(&stack), max);
+	assert_int_eq(ct_stack_size(&stack), 0);
+	assert_true(ct_stack_isempty(&stack));
+	assert_true(!ct_stack_isfull(&stack));
 
 	return 0;
 }
@@ -128,42 +128,42 @@ static inline int test_stack_top(void) {
 			ct_stack_top(&stack, &item_prev);
 			ct_stack_pop(&stack, &item);
 
-			cunit_assert_int_equal(ct_any_value_int(item), max - i + 1);
-			cunit_assert_int_equal(ct_any_value_int(item_prev), max - i + 1);
-			cunit_assert_int_equal(ct_stack_max(&stack), max);
-			cunit_assert_int_equal(ct_stack_size(&stack), max - i);
-			cunit_assert_true(!ct_stack_isfull(&stack));
+			assert_int_eq(ct_any_value_int(item), max - i + 1);
+			assert_int_eq(ct_any_value_int(item_prev), max - i + 1);
+			assert_int_eq(ct_stack_max(&stack), max);
+			assert_int_eq(ct_stack_size(&stack), max - i);
+			assert_true(!ct_stack_isfull(&stack));
 			if (i == max) {
-				cunit_assert_true(ct_stack_isempty(&stack));
+				assert_true(ct_stack_isempty(&stack));
 			} else {
-				cunit_assert_true(!ct_stack_isempty(&stack));
+				assert_true(!ct_stack_isempty(&stack));
 				ct_stack_top(&stack, &item_next);
-				cunit_assert_int_equal(ct_any_value_int(item_next), max - i);
+				assert_int_eq(ct_any_value_int(item_next), max - i);
 			}
 		}
 	}
 
 	ct_stack_clear(&stack);
-	cunit_assert_int_equal(ct_stack_max(&stack), max);
-	cunit_assert_int_equal(ct_stack_size(&stack), 0);
-	cunit_assert_true(ct_stack_isempty(&stack));
-	cunit_assert_true(!ct_stack_isfull(&stack));
+	assert_int_eq(ct_stack_max(&stack), max);
+	assert_int_eq(ct_stack_size(&stack), 0);
+	assert_true(ct_stack_isempty(&stack));
+	assert_true(!ct_stack_isfull(&stack));
 
 	return 0;
 }
 
 int main(void) {
 	test_stack_init();
-	cunit_println("Finish! test_stack_init();\n");
+	cunit_println("Finish! test_stack_init();");
 
 	test_stack_push();
-	cunit_println("Finish! test_stack_push();\n");
+	cunit_println("Finish! test_stack_push();");
 
 	test_stack_pop();
-	cunit_println("Finish! test_stack_pop();\n");
+	cunit_println("Finish! test_stack_pop();");
 
 	test_stack_top();
-	cunit_println("Finish! test_stack_top();\n");
+	cunit_println("Finish! test_stack_top();");
 
 	cunit_pass();
 }

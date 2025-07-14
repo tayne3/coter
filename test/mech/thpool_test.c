@@ -29,7 +29,7 @@ static inline void test_create_destroy(void) {
 	ct_thpool_config_t config;
 	ct_thpool_default_config(&config);
 	ct_thpool_t* pool = ct_thpool_create(4, &config);
-	cunit_assert_true(pool != NULL);
+	assert_true(pool != NULL);
 	ct_thpool_destroy(pool);
 }
 
@@ -38,7 +38,7 @@ static inline void test_submit_execute(void) {
 	ct_thpool_config_t config;
 	ct_thpool_default_config(&config);
 	ct_thpool_t* pool = ct_thpool_create(4, &config);
-	cunit_assert_true(pool != NULL);
+	assert_true(pool != NULL);
 
 	counter_t counter;
 	counter.count = 0;
@@ -47,7 +47,7 @@ static inline void test_submit_execute(void) {
 	// 提交10个任务
 	for (int i = 0; i < 10; i++) {
 		int ret = ct_thpool_submit(pool, sample_task, &counter);
-		cunit_assert_true(ret == 0);
+		assert_true(ret == 0);
 	}
 
 	// 等待一段时间让任务执行完毕
@@ -57,7 +57,7 @@ static inline void test_submit_execute(void) {
 		}
 		ct_msleep(10);
 	}
-	cunit_assert_true(counter.count == 10);
+	assert_true(counter.count == 10);
 
 	pthread_mutex_destroy(&counter.mutex);
 	ct_thpool_destroy(pool);
@@ -68,11 +68,11 @@ static inline void test_submit_null_task(void) {
 	ct_thpool_config_t config;
 	ct_thpool_default_config(&config);
 	ct_thpool_t* pool = ct_thpool_create(2, &config);
-	cunit_assert_true(pool != NULL);
+	assert_true(pool != NULL);
 
 	const int ret = ct_thpool_submit(pool, NULL, NULL);
-	cunit_assert_true(ret != 0);
-	cunit_assert_true(ret == CTThPoolError_TaskNull);
+	assert_true(ret != 0);
+	assert_true(ret == CTThPoolError_TaskNull);
 
 	ct_thpool_destroy(pool);
 }
@@ -82,7 +82,7 @@ static inline void test_capacity_limit(void) {
 	ct_thpool_config_t config;
 	ct_thpool_default_config(&config);
 	ct_thpool_t* pool = ct_thpool_create(2, &config);
-	cunit_assert_true(pool != NULL);
+	assert_true(pool != NULL);
 
 	counter_t counter;
 	counter.count = 0;
@@ -91,7 +91,7 @@ static inline void test_capacity_limit(void) {
 	// 提交超过容量的任务
 	for (int i = 0; i < 5; i++) {
 		const int ret = ct_thpool_submit(pool, sample_task, &counter);
-		cunit_assert_true(ret == 0);  // 阻塞模式，提交不会失败
+		assert_true(ret == 0);  // 阻塞模式，提交不会失败
 	}
 
 	// 等待任务执行
@@ -101,7 +101,7 @@ static inline void test_capacity_limit(void) {
 		}
 		ct_msleep(10);
 	}
-	cunit_assert_true(counter.count == 5);
+	assert_true(counter.count == 5);
 
 	pthread_mutex_destroy(&counter.mutex);
 	ct_thpool_destroy(pool);
@@ -114,7 +114,7 @@ static inline void test_non_blocking(void) {
 	config.non_blocking = true;
 
 	ct_thpool_t* pool = ct_thpool_create(3, &config);
-	cunit_assert_true(pool != NULL);
+	assert_true(pool != NULL);
 
 	counter_t counter;
 	counter.count = 0;
@@ -126,13 +126,13 @@ static inline void test_non_blocking(void) {
 	// 提交3个任务应成功
 	for (int i = 0; i < 3; i++) {
 		const int ret = ct_thpool_submit(pool, sample_task, &counter);
-		cunit_assert_true(ret == 0, "submit error = %s\n", ct_thpool_strerror(ret));
+		assert_true(ret == 0, "submit error = %s\n", ct_thpool_strerror(ret));
 	}
 
 	// 第4个任务应因超载而失败
 	{
 		const int ret = ct_thpool_submit(pool, sample_task, &counter);
-		cunit_assert_true(ret == CTThPoolError_Overload, "submit error = %s\n", ct_thpool_strerror(ret));
+		assert_true(ret == CTThPoolError_Overload, "submit error = %s\n", ct_thpool_strerror(ret));
 	}
 
 	// 解锁计数, 任务开始运行
@@ -145,7 +145,7 @@ static inline void test_non_blocking(void) {
 		}
 		ct_msleep(10);
 	}
-	cunit_assert_true(counter.count == 3);
+	assert_true(counter.count == 3);
 
 	pthread_mutex_destroy(&counter.mutex);
 	ct_thpool_destroy(pool);
@@ -160,7 +160,7 @@ static inline void* submit_tasks(void* arg) {
 	counter_t* counter = (counter_t*)arg;
 	for (int i = 0; i < TASKS_PER_THREAD; i++) {
 		const int ret = ct_thpool_submit(submit_pool, sample_task, counter);
-		cunit_assert_true(ret == 0);
+		assert_true(ret == 0);
 	}
 	return NULL;
 }
@@ -170,7 +170,7 @@ static inline void test_concurrent_submit(void) {
 	ct_thpool_config_t config;
 	ct_thpool_default_config(&config);
 	submit_pool = ct_thpool_create(2, &config);
-	cunit_assert_true(submit_pool != NULL);
+	assert_true(submit_pool != NULL);
 
 	counter_t counter;
 	counter.count = 0;
@@ -187,13 +187,13 @@ static inline void test_concurrent_submit(void) {
 	pthread_attr_setschedparam(&attr, &param);
 	for (int i = 0; i < NUM_THREADS; i++) {
 		const int ret = pthread_create(&threads[i], &attr, submit_tasks, &counter);
-		cunit_assert_true(ret == 0);
+		assert_true(ret == 0);
 	}
 	pthread_attr_destroy(&attr);
 
 	for (int i = 0; i < NUM_THREADS; i++) {
 		const int ret = pthread_join(threads[i], NULL);
-		cunit_assert_true(ret == 0);
+		assert_true(ret == 0);
 	}
 
 	// 等待任务执行
@@ -203,7 +203,7 @@ static inline void test_concurrent_submit(void) {
 		}
 		ct_msleep(10);
 	}
-	cunit_assert_true(counter.count == NUM_THREADS * TASKS_PER_THREAD);
+	assert_true(counter.count == NUM_THREADS * TASKS_PER_THREAD);
 
 	pthread_mutex_destroy(&counter.mutex);
 	ct_thpool_destroy(submit_pool);
@@ -215,7 +215,7 @@ static inline void test_close_behavior(void) {
 	ct_thpool_config_t config;
 	ct_thpool_default_config(&config);
 	ct_thpool_t* pool = ct_thpool_create(2, &config);
-	cunit_assert_true(pool != NULL);
+	assert_true(pool != NULL);
 
 	counter_t counter;
 	counter.count = 0;
@@ -224,7 +224,7 @@ static inline void test_close_behavior(void) {
 	// 提交任务
 	for (int i = 0; i < 5; i++) {
 		const int ret = ct_thpool_submit(pool, sample_task, &counter);
-		cunit_assert_true(ret == 0);
+		assert_true(ret == 0);
 	}
 
 	// 关闭线程池
@@ -232,7 +232,7 @@ static inline void test_close_behavior(void) {
 
 	// 提交任务应失败
 	const int ret = ct_thpool_submit(pool, sample_task, &counter);
-	cunit_assert_true(ret == CTThPoolError_Closed, "submit error = %s\n", ct_thpool_strerror(ret));
+	assert_true(ret == CTThPoolError_Closed, "submit error = %s\n", ct_thpool_strerror(ret));
 
 	// 销毁线程池
 	ct_thpool_destroy(pool);
@@ -244,7 +244,7 @@ static inline void test_close_behavior(void) {
 		}
 		ct_msleep(10);
 	}
-	cunit_assert_true(counter.count == 5);
+	assert_true(counter.count == 5);
 
 	pthread_mutex_destroy(&counter.mutex);
 }
@@ -264,7 +264,7 @@ static inline void test_performance_comparison(void) {
 
 	{
 		ct_jobpool_t* jobpool = ct_jobpool_create(64, 1024);
-		cunit_assert_not_null(jobpool);
+		assert_not_null(jobpool);
 
 		counter_t counter_jobpool;
 		counter_jobpool.count = 0;
@@ -295,7 +295,7 @@ static inline void test_performance_comparison(void) {
 		ct_jobpool_destroy(jobpool);
 
 		// 验证计数器结果
-		cunit_assert_true(counter_jobpool.count == NUM_TASKS);
+		assert_true(counter_jobpool.count == NUM_TASKS);
 		pthread_mutex_destroy(&counter_jobpool.mutex);
 	}
 
@@ -315,7 +315,7 @@ static inline void test_performance_comparison(void) {
 
 		for (int i = 0; i < NUM_TASKS; i++) {
 			const int ret = pthread_create(&threads[i], NULL, thread_task, &counter_no_pool);
-			cunit_assert_int_equal(ret, 0, "create thread error: ret = %d, i = %d\n", ret, i);
+			assert_int_eq(ret, 0, "create thread error: ret = %d, i = %d\n", ret, i);
 		}
 
 		// 等待所有任务完成 (超时时长: 10s)
@@ -335,7 +335,7 @@ static inline void test_performance_comparison(void) {
 		// 等待所有线程完成
 		for (int i = 0; i < NUM_TASKS; i++) {
 			const int ret = pthread_join(threads[i], NULL);
-			cunit_assert_int_equal(ret, 0, "join thread error: ret = %d, i = %d\n", ret, i);
+			assert_int_eq(ret, 0, "join thread error: ret = %d, i = %d\n", ret, i);
 		}
 
 		free(threads);
@@ -343,7 +343,7 @@ static inline void test_performance_comparison(void) {
 		cunit_println("Without thread pool: %" PRIu64 "ms\n", duration_without_pool);
 
 		// 验证计数器结果
-		cunit_assert_true(counter_no_pool.count == NUM_TASKS);
+		assert_true(counter_no_pool.count == NUM_TASKS);
 		pthread_mutex_destroy(&counter_no_pool.mutex);
 	}
 
@@ -352,7 +352,7 @@ static inline void test_performance_comparison(void) {
 		ct_thpool_config_t config;
 		ct_thpool_default_config(&config);
 		ct_thpool_t* pool = ct_thpool_create(128, &config);
-		cunit_assert_true(pool != NULL);
+		assert_true(pool != NULL);
 
 		counter_t counter_pool;
 		counter_pool.count = 0;
@@ -361,7 +361,7 @@ static inline void test_performance_comparison(void) {
 
 		for (int i = 0; i < NUM_TASKS; i++) {
 			const int ret = ct_thpool_submit(pool, sample_task, &counter_pool);
-			cunit_assert_true(ret == 0);
+			assert_true(ret == 0);
 		}
 
 		// 等待所有任务完成
@@ -384,7 +384,7 @@ static inline void test_performance_comparison(void) {
 		cunit_println("With thread pool: %" PRIu64 "ms\n", duration_with_pool);
 
 		// 验证计数器结果
-		cunit_assert_true(counter_pool.count == NUM_TASKS);
+		assert_true(counter_pool.count == NUM_TASKS);
 		pthread_mutex_destroy(&counter_pool.mutex);
 	}
 	// 输出结果
@@ -394,28 +394,28 @@ static inline void test_performance_comparison(void) {
 
 int main(void) {
 	test_create_destroy();
-	cunit_println("Finish! test_create_destroy();\n");
+	cunit_println("Finish! test_create_destroy();");
 
 	test_submit_execute();
-	cunit_println("Finish! test_submit_execute();\n");
+	cunit_println("Finish! test_submit_execute();");
 
 	test_submit_null_task();
-	cunit_println("Finish! test_submit_null_task();\n");
+	cunit_println("Finish! test_submit_null_task();");
 
 	test_capacity_limit();
-	cunit_println("Finish! test_capacity_limit();\n");
+	cunit_println("Finish! test_capacity_limit();");
 
 	test_non_blocking();
-	cunit_println("Finish! test_non_blocking();\n");
+	cunit_println("Finish! test_non_blocking();");
 
 	test_concurrent_submit();
-	cunit_println("Finish! test_concurrent_submit();\n");
+	cunit_println("Finish! test_concurrent_submit();");
 
 	test_close_behavior();
-	cunit_println("Finish! test_close_behavior();\n");
+	cunit_println("Finish! test_close_behavior();");
 
 	test_performance_comparison();
-	cunit_println("Finish! test_performance_comparison();\n");
+	cunit_println("Finish! test_performance_comparison();");
 
 	cunit_pass();
 }

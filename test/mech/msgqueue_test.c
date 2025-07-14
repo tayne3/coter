@@ -25,14 +25,14 @@ static inline void *test_task_enqueue(void *arg) {
 }
 
 static inline void test_msgqueue(size_t data_size, size_t buffer_size) {
-	cunit_assert_uint32_greater(data_size, 0);
-	cunit_assert_uint32_greater(buffer_size, 0);
+	assert_uint32_gt(data_size, 0);
+	assert_uint32_gt(buffer_size, 0);
 
 	test_data_size   = data_size;
 	test_data        = (int *)calloc(test_data_size, sizeof(int));
 	int *test_buffer = (int *)calloc(buffer_size, sizeof(int));
-	cunit_assert_not_null(test_data);
-	cunit_assert_not_null(test_buffer);
+	assert_not_null(test_data);
+	assert_not_null(test_buffer);
 
 	// 初始化测试数据
 	{
@@ -46,31 +46,31 @@ static inline void test_msgqueue(size_t data_size, size_t buffer_size) {
 	// 初始化队列
 	ct_msgqueue_buf_t msgqueue;
 	ct_msgqueue_init(msgqueue, test_buffer, sizeof(int), buffer_size);
-	cunit_assert_true(ct_msgqueue_isempty(msgqueue));
-	cunit_assert_false(ct_msgqueue_isfull(msgqueue));
+	assert_true(ct_msgqueue_isempty(msgqueue));
+	assert_false(ct_msgqueue_isfull(msgqueue));
 
 	// 测试 enqueue 和 dequeue
 	{
 		bool      is_ok;
 		pthread_t thread;
 		is_ok = pthread_create(&thread, NULL, test_task_enqueue, msgqueue) == 0;
-		cunit_assert_true(is_ok);
+		assert_true(is_ok);
 
 		int item = 0;
 		for (size_t i = 0; i < test_data_size;) {
 			for (size_t n = 0; n < 1000 && i < test_data_size; n++, i++) {
 				is_ok = ct_msgqueue_dequeue(msgqueue, &item);
-				cunit_assert_true(is_ok);
-				cunit_assert_int32_equal(item, test_data[i], "buffer_size=%d, data_size=%d", buffer_size, data_size);
+				assert_true(is_ok);
+				assert_int32_eq(item, test_data[i], "buffer_size=%d, data_size=%d", buffer_size, data_size);
 			}
 			sched_yield();
 		}
 
 		is_ok = pthread_join(thread, NULL) == 0;
-		cunit_assert_true(is_ok);
+		assert_true(is_ok);
 
-		cunit_assert_true(ct_msgqueue_isempty(msgqueue));
-		cunit_assert_false(ct_msgqueue_isfull(msgqueue));
+		assert_true(ct_msgqueue_isempty(msgqueue));
+		assert_false(ct_msgqueue_isfull(msgqueue));
 	}
 
 	// 测试 try_enqueue 和 try_dequeue
@@ -80,16 +80,16 @@ static inline void test_msgqueue(size_t data_size, size_t buffer_size) {
 			for (size_t n = 0; n < 1000 && i < test_data_size; n++, i++) {
 				is_ok = ct_msgqueue_try_enqueue(msgqueue, &test_buffer[i]);
 				if (i < buffer_size) {
-					cunit_assert_true(is_ok);
+					assert_true(is_ok);
 				} else {
-					cunit_assert_false(is_ok);
+					assert_false(is_ok);
 				}
 			}
 			sched_yield();
 		}
 
-		cunit_assert_false(ct_msgqueue_isempty(msgqueue));
-		cunit_assert_bool(ct_msgqueue_isfull(msgqueue), buffer_size <= test_data_size);
+		assert_false(ct_msgqueue_isempty(msgqueue));
+		assert_bool(ct_msgqueue_isfull(msgqueue), buffer_size <= test_data_size);
 
 		int item = 0;
 		for (size_t i = 0; i < test_data_size;) {
@@ -97,17 +97,17 @@ static inline void test_msgqueue(size_t data_size, size_t buffer_size) {
 				is_ok = ct_msgqueue_try_dequeue(msgqueue, &item);
 
 				if (i < buffer_size) {
-					cunit_assert_true(is_ok);
-					cunit_assert_int32_equal(item, test_buffer[i]);
+					assert_true(is_ok);
+					assert_int32_eq(item, test_buffer[i]);
 				} else {
-					cunit_assert_false(is_ok);
+					assert_false(is_ok);
 				}
 			}
 			sched_yield();
 		}
 
-		cunit_assert_true(ct_msgqueue_isempty(msgqueue));
-		cunit_assert_false(ct_msgqueue_isfull(msgqueue));
+		assert_true(ct_msgqueue_isempty(msgqueue));
+		assert_false(ct_msgqueue_isfull(msgqueue));
 	}
 
 	// 关闭队列
@@ -121,16 +121,16 @@ static inline void test_msgqueue(size_t data_size, size_t buffer_size) {
 
 int main(void) {
 	test_msgqueue(10, 1);
-	cunit_println("Finish! test_msgqueue(10, 1);\n");
+	cunit_println("Finish! test_msgqueue(10, 1);");
 
 	test_msgqueue(1, 10);
-	cunit_println("Finish! test_msgqueue(1, 10);\n");
+	cunit_println("Finish! test_msgqueue(1, 10);");
 
 	test_msgqueue(500, 10);
-	cunit_println("Finish! test_msgqueue(500, 10);\n");
+	cunit_println("Finish! test_msgqueue(500, 10);");
 
 	test_msgqueue(500, 500);
-	cunit_println("Finish! test_msgqueue(500, 500);\n");
+	cunit_println("Finish! test_msgqueue(500, 500);");
 
 	cunit_pass();
 }

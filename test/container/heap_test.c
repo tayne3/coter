@@ -21,17 +21,17 @@ static inline int test_heap_init(void) {
 		// 初始化队列
 		ct_heap_init(&heap, all, i, ct_heap_sort_func);
 
-		cunit_assert_uint32_equal(ct_heap_max(&heap), i);
-		cunit_assert_uint32_equal(ct_heap_size(&heap), 0);
-		cunit_assert_true(ct_heap_isempty(&heap));
-		cunit_assert_true(!ct_heap_isfull(&heap));
+		assert_uint32_eq(ct_heap_max(&heap), i);
+		assert_uint32_eq(ct_heap_size(&heap), 0);
+		assert_true(ct_heap_isempty(&heap));
+		assert_true(!ct_heap_isfull(&heap));
 	}
 
 	ct_heap_clear(&heap);
-	cunit_assert_uint32_equal(ct_heap_max(&heap), max);
-	cunit_assert_uint32_equal(ct_heap_size(&heap), 0);
-	cunit_assert_true(ct_heap_isempty(&heap));
-	cunit_assert_true(!ct_heap_isfull(&heap));
+	assert_uint32_eq(ct_heap_max(&heap), max);
+	assert_uint32_eq(ct_heap_size(&heap), 0);
+	assert_true(ct_heap_isempty(&heap));
+	assert_true(!ct_heap_isfull(&heap));
 
 	return 0;
 }
@@ -50,22 +50,22 @@ static inline int test_heap_insert(void) {
 			value = (int)(max - i);
 			ct_heap_insert(&heap, CT_ANY_INT(value));
 
-			cunit_assert_uint32_equal(ct_heap_max(&heap), max);
-			cunit_assert_uint32_equal(ct_heap_size(&heap), i + 1);
-			cunit_assert_true(!ct_heap_isempty(&heap));
+			assert_uint32_eq(ct_heap_max(&heap), max);
+			assert_uint32_eq(ct_heap_size(&heap), i + 1);
+			assert_true(!ct_heap_isempty(&heap));
 			if (i + 1 >= max) {
-				cunit_assert_true(ct_heap_isfull(&heap));
+				assert_true(ct_heap_isfull(&heap));
 			} else {
-				cunit_assert_true(!ct_heap_isfull(&heap));
+				assert_true(!ct_heap_isfull(&heap));
 			}
 		}
 	}
 
 	ct_heap_clear(&heap);
-	cunit_assert_uint32_equal(ct_heap_max(&heap), max);
-	cunit_assert_uint32_equal(ct_heap_size(&heap), 0);
-	cunit_assert_true(ct_heap_isempty(&heap));
-	cunit_assert_true(!ct_heap_isfull(&heap));
+	assert_uint32_eq(ct_heap_max(&heap), max);
+	assert_uint32_eq(ct_heap_size(&heap), 0);
+	assert_true(ct_heap_isempty(&heap));
+	assert_true(!ct_heap_isfull(&heap));
 
 	return 0;
 }
@@ -96,37 +96,37 @@ static inline int test_heap_remove(void) {
 			prev = ct_any_value_int(ct_heap_first(&heap));
 			ct_heap_remove(&heap);
 
-			cunit_assert_uint32_equal(ct_heap_max(&heap), max);
-			cunit_assert_uint32_equal(ct_heap_size(&heap), max - i - 1);
-			cunit_assert_true(!ct_heap_isfull(&heap));
+			assert_uint32_eq(ct_heap_max(&heap), max);
+			assert_uint32_eq(ct_heap_size(&heap), max - i - 1);
+			assert_true(!ct_heap_isfull(&heap));
 			if (i + 1 >= max) {
-				cunit_assert_true(ct_heap_isempty(&heap));
+				assert_true(ct_heap_isempty(&heap));
 			} else {
-				cunit_assert_true(!ct_heap_isempty(&heap));
+				assert_true(!ct_heap_isempty(&heap));
 				next = ct_any_value_int(ct_heap_first(&heap));
-				cunit_assert_int32_less_equal(prev, next);
+				assert_int32_le(prev, next);
 			}
 		}
 	}
 
 	ct_heap_clear(&heap);
-	cunit_assert_uint32_equal(ct_heap_max(&heap), max);
-	cunit_assert_uint32_equal(ct_heap_size(&heap), 0);
-	cunit_assert_true(ct_heap_isempty(&heap));
-	cunit_assert_true(!ct_heap_isfull(&heap));
+	assert_uint32_eq(ct_heap_max(&heap), max);
+	assert_uint32_eq(ct_heap_size(&heap), 0);
+	assert_true(ct_heap_isempty(&heap));
+	assert_true(!ct_heap_isfull(&heap));
 
 	return 0;
 }
 
 int main(void) {
 	test_heap_init();
-	cunit_println("Finish! test_heap_init();\n");
+	cunit_println("Finish! test_heap_init();");
 
 	test_heap_insert();
-	cunit_println("Finish! test_heap_insert();\n");
+	cunit_println("Finish! test_heap_insert();");
 
 	test_heap_remove();
-	cunit_println("Finish! test_heap_remove();\n");
+	cunit_println("Finish! test_heap_remove();");
 
 	cunit_pass();
 }

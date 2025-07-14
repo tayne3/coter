@@ -20,10 +20,10 @@ static inline void test_queue_init(void) {
 			// 初始化队列
 			ct_queue_init(&queue, buffer, sizeof(uint32_t), i);
 
-			cunit_assert_int32_equal(ct_queue_max(&queue), i);
-			cunit_assert_int32_equal(ct_queue_size(&queue), 0);
-			cunit_assert_true(ct_queue_isempty(&queue));
-			cunit_assert_true(!ct_queue_isfull(&queue));
+			assert_int32_eq(ct_queue_max(&queue), i);
+			assert_int32_eq(ct_queue_size(&queue), 0);
+			assert_true(ct_queue_isempty(&queue));
+			assert_true(!ct_queue_isfull(&queue));
 		}
 	}
 }
@@ -42,22 +42,22 @@ static inline void test_queue_enqueue(void) {
 		for (i = 1; i <= max; i++) {
 			ct_queue_enqueue(&queue, &i);
 
-			cunit_assert_int32_equal(ct_queue_max(&queue), max);
-			cunit_assert_int32_equal(ct_queue_size(&queue), i);
-			cunit_assert_true(!ct_queue_isempty(&queue));
+			assert_int32_eq(ct_queue_max(&queue), max);
+			assert_int32_eq(ct_queue_size(&queue), i);
+			assert_true(!ct_queue_isempty(&queue));
 			if (i == max) {
-				cunit_assert_true(ct_queue_isfull(&queue));
+				assert_true(ct_queue_isfull(&queue));
 			} else {
-				cunit_assert_true(!ct_queue_isfull(&queue));
+				assert_true(!ct_queue_isfull(&queue));
 			}
 		}
 	}
 
 	ct_queue_clear(&queue);
-	cunit_assert_int32_equal(ct_queue_max(&queue), max);
-	cunit_assert_int32_equal(ct_queue_size(&queue), 0);
-	cunit_assert_true(ct_queue_isempty(&queue));
-	cunit_assert_true(!ct_queue_isfull(&queue));
+	assert_int32_eq(ct_queue_max(&queue), max);
+	assert_int32_eq(ct_queue_size(&queue), 0);
+	assert_true(ct_queue_isempty(&queue));
+	assert_true(!ct_queue_isfull(&queue));
 }
 
 // 测试出队
@@ -74,7 +74,7 @@ static inline void test_queue_dequeue(void) {
 		for (uint64_t i = 1; i <= max; i++) {
 			ct_queue_enqueue(&queue, &i);
 			ct_queue_dequeue(&queue, &it);
-			cunit_assert_uint64_equal(it, i);
+			assert_uint64_eq(it, i);
 		}
 	}
 
@@ -89,23 +89,23 @@ static inline void test_queue_dequeue(void) {
 		for (uint64_t i = 1; i <= max; i++) {
 			ct_queue_dequeue(&queue, &it);
 
-			cunit_assert_uint64_equal(it, i);
-			cunit_assert_uint32_equal(ct_queue_max(&queue), max);
-			cunit_assert_uint32_equal(ct_queue_size(&queue), max - i);
-			cunit_assert_true(!ct_queue_isfull(&queue));
+			assert_uint64_eq(it, i);
+			assert_uint32_eq(ct_queue_max(&queue), max);
+			assert_uint32_eq(ct_queue_size(&queue), max - i);
+			assert_true(!ct_queue_isfull(&queue));
 			if (i == max) {
-				cunit_assert_true(ct_queue_isempty(&queue));
+				assert_true(ct_queue_isempty(&queue));
 			} else {
-				cunit_assert_true(!ct_queue_isempty(&queue));
+				assert_true(!ct_queue_isempty(&queue));
 			}
 		}
 	}
 
 	ct_queue_clear(&queue);
-	cunit_assert_uint32_equal(ct_queue_max(&queue), max);
-	cunit_assert_uint32_equal(ct_queue_size(&queue), 0);
-	cunit_assert_true(ct_queue_isempty(&queue));
-	cunit_assert_true(!ct_queue_isfull(&queue));
+	assert_uint32_eq(ct_queue_max(&queue), max);
+	assert_uint32_eq(ct_queue_size(&queue), 0);
+	assert_true(ct_queue_isempty(&queue));
+	assert_true(!ct_queue_isfull(&queue));
 }
 
 // 测试队头
@@ -130,26 +130,26 @@ static inline void test_queue_head(void) {
 			ct_queue_head(&queue, &item_prev);
 			ct_queue_dequeue(&queue, &item);
 
-			cunit_assert_uint32_equal(item, i);
-			cunit_assert_uint32_equal(item_prev, i);
-			cunit_assert_uint32_equal(ct_queue_max(&queue), max);
-			cunit_assert_uint32_equal(ct_queue_size(&queue), max - i);
-			cunit_assert_true(!ct_queue_isfull(&queue));
+			assert_uint32_eq(item, i);
+			assert_uint32_eq(item_prev, i);
+			assert_uint32_eq(ct_queue_max(&queue), max);
+			assert_uint32_eq(ct_queue_size(&queue), max - i);
+			assert_true(!ct_queue_isfull(&queue));
 			if (i == max) {
-				cunit_assert_true(ct_queue_isempty(&queue));
+				assert_true(ct_queue_isempty(&queue));
 			} else {
-				cunit_assert_true(!ct_queue_isempty(&queue));
+				assert_true(!ct_queue_isempty(&queue));
 				ct_queue_head(&queue, &item_next);
-				cunit_assert_uint32_equal(item_next, i + 1);
+				assert_uint32_eq(item_next, i + 1);
 			}
 		}
 	}
 
 	ct_queue_clear(&queue);
-	cunit_assert_uint32_equal(ct_queue_max(&queue), max);
-	cunit_assert_uint32_equal(ct_queue_size(&queue), 0);
-	cunit_assert_true(ct_queue_isempty(&queue));
-	cunit_assert_true(!ct_queue_isfull(&queue));
+	assert_uint32_eq(ct_queue_max(&queue), max);
+	assert_uint32_eq(ct_queue_size(&queue), 0);
+	assert_true(ct_queue_isempty(&queue));
+	assert_true(!ct_queue_isfull(&queue));
 }
 
 // 回调结果
@@ -179,109 +179,109 @@ static inline void test_queue_traverse(void) {
 	{
 		int               item;
 		traverse_result_t result = {0, 0};
-		cunit_assert_int32_equal(ct_queue_traverse(&queue, traverse_callback, &item, &result), 0);
-		cunit_assert_int32_equal(result.sum, 0);
-		cunit_assert_int32_equal(result.count, 0);
+		assert_int32_eq(ct_queue_traverse(&queue, traverse_callback, &item, &result), 0);
+		assert_int32_eq(result.sum, 0);
+		assert_int32_eq(result.count, 0);
 	}
 
 	// 入队一些元素
 	for (int i = 1; i <= 5; i++) {
 		ct_queue_enqueue(&queue, &i);
 	}
-	cunit_assert_int32_equal(ct_queue_size(&queue), 5);
+	assert_int32_eq(ct_queue_size(&queue), 5);
 
 	// 执行遍历
 	{
 		int               item;
 		traverse_result_t result = {0, 0};
-		cunit_assert_int32_equal(ct_queue_traverse(&queue, traverse_callback, &item, &result), 0);
-		cunit_assert_int32_equal(result.sum, 15);  // 1 + 2 + 3 + 4 + 5 = 15
-		cunit_assert_int32_equal(result.count, 5);
+		assert_int32_eq(ct_queue_traverse(&queue, traverse_callback, &item, &result), 0);
+		assert_int32_eq(result.sum, 15);  // 1 + 2 + 3 + 4 + 5 = 15
+		assert_int32_eq(result.count, 5);
 
 		// 验证遍历过程中队列未被修改
-		cunit_assert_int32_equal(ct_queue_size(&queue), 5);
+		assert_int32_eq(ct_queue_size(&queue), 5);
 
 		// 测试遍历后的队列状态
-		cunit_assert_int32_equal(result.sum, 15);
-		cunit_assert_int32_equal(result.count, 5);
+		assert_int32_eq(result.sum, 15);
+		assert_int32_eq(result.count, 5);
 	}
 
 	// 入队一些元素
 	for (int i = 1; i <= 5; i++) {
 		ct_queue_enqueue(&queue, &i);
 	}
-	cunit_assert_int32_equal(ct_queue_size(&queue), 10);
+	assert_int32_eq(ct_queue_size(&queue), 10);
 
 	// 执行遍历
 	{
 		int               item;
 		traverse_result_t result = {0, 0};
-		cunit_assert_int32_equal(ct_queue_traverse(&queue, traverse_callback, &item, &result), 0);
-		cunit_assert_int32_equal(result.sum, 30);  // 15 * 2 = 30
-		cunit_assert_int32_equal(result.count, 10);
+		assert_int32_eq(ct_queue_traverse(&queue, traverse_callback, &item, &result), 0);
+		assert_int32_eq(result.sum, 30);  // 15 * 2 = 30
+		assert_int32_eq(result.count, 10);
 
 		// 验证遍历过程中队列未被修改
-		cunit_assert_int32_equal(ct_queue_size(&queue), 10);
+		assert_int32_eq(ct_queue_size(&queue), 10);
 
 		// 测试遍历后的队列状态
-		cunit_assert_int32_equal(result.sum, 30);
-		cunit_assert_int32_equal(result.count, 10);
+		assert_int32_eq(result.sum, 30);
+		assert_int32_eq(result.count, 10);
 	}
 
 	// 入队一些元素
 	for (int i = 1; i <= 5; i++) {
 		ct_queue_enqueue(&queue, &i);
 	}
-	cunit_assert_int32_equal(ct_queue_size(&queue), 10);
+	assert_int32_eq(ct_queue_size(&queue), 10);
 
 	// 执行遍历
 	{
 		int               item;
 		traverse_result_t result = {0, 0};
-		cunit_assert_int32_equal(ct_queue_traverse(&queue, traverse_callback, &item, &result), 0);
-		cunit_assert_int32_equal(result.sum, 30);  // 15 * 2 = 30
-		cunit_assert_int32_equal(result.count, 10);
+		assert_int32_eq(ct_queue_traverse(&queue, traverse_callback, &item, &result), 0);
+		assert_int32_eq(result.sum, 30);  // 15 * 2 = 30
+		assert_int32_eq(result.count, 10);
 
 		// 验证遍历过程中队列未被修改
-		cunit_assert_int32_equal(ct_queue_size(&queue), 10);
+		assert_int32_eq(ct_queue_size(&queue), 10);
 
 		// 测试遍历后的队列状态
-		cunit_assert_int32_equal(result.sum, 30);
-		cunit_assert_int32_equal(result.count, 10);
+		assert_int32_eq(result.sum, 30);
+		assert_int32_eq(result.count, 10);
 	}
 
 	// 清理队列
 	ct_queue_clear(&queue);
-	cunit_assert_int32_equal(ct_queue_max(&queue), max);
-	cunit_assert_int32_equal(ct_queue_size(&queue), 0);
-	cunit_assert_true(ct_queue_isempty(&queue));
-	cunit_assert_true(!ct_queue_isfull(&queue));
+	assert_int32_eq(ct_queue_max(&queue), max);
+	assert_int32_eq(ct_queue_size(&queue), 0);
+	assert_true(ct_queue_isempty(&queue));
+	assert_true(!ct_queue_isfull(&queue));
 
 	// 测试遍历空队列
 	{
 		int               item;
 		traverse_result_t result = {0, 0};
-		cunit_assert_int32_equal(ct_queue_traverse(&queue, traverse_callback, &item, &result), 0);
-		cunit_assert_int32_equal(result.sum, 0);
-		cunit_assert_int32_equal(result.count, 0);
+		assert_int32_eq(ct_queue_traverse(&queue, traverse_callback, &item, &result), 0);
+		assert_int32_eq(result.sum, 0);
+		assert_int32_eq(result.count, 0);
 	}
 }
 
 int main(void) {
 	test_queue_init();
-	cunit_println("Finish! test_queue_init();\n");
+	cunit_println("Finish! test_queue_init();");
 
 	test_queue_enqueue();
-	cunit_println("Finish! test_queue_enqueue();\n");
+	cunit_println("Finish! test_queue_enqueue();");
 
 	test_queue_dequeue();
-	cunit_println("Finish! test_queue_dequeue();\n");
+	cunit_println("Finish! test_queue_dequeue();");
 
 	test_queue_head();
-	cunit_println("Finish! test_queue_head();\n");
+	cunit_println("Finish! test_queue_head();");
 
 	test_queue_traverse();
-	cunit_println("Finish! test_queue_traverse();\n");
+	cunit_println("Finish! test_queue_traverse();");
 
 	cunit_pass();
 }

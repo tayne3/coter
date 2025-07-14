@@ -48,7 +48,7 @@ static inline int test_cmd5(void) {
 		ct_md5_init(&ctx);
 		ct_md5_update(&ctx, it->data, strlen(it->data));
 		ct_md5_final(&ctx, buffer);
-		cunit_assert_string_hex(buffer, it->target, 16, "i=%d", i);
+		assert_str_hex(buffer, it->target, 16, "i=%d", i);
 	}
 
 	return 0;
@@ -56,7 +56,7 @@ static inline int test_cmd5(void) {
 
 int main(void) {
 	test_cmd5();
-	cunit_println("Finish! test_cmd5();\n");
+	cunit_println("Finish! test_cmd5();");
 
 	cunit_pass();
 }

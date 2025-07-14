@@ -37,8 +37,8 @@ static void* thread_log_schedule(void* arg) {
 
 // 日志回调函数
 static void log_callback(const char* msg, size_t size, void* userdata) {
-	cunit_assert_not_null(msg);
-	cunit_assert_not_null(g_file_with_log);
+	assert_not_null(msg);
+	assert_not_null(g_file_with_log);
 	fwrite(msg, 1, size, g_file_with_log);
 	return;
 	(void)userdata;
@@ -64,7 +64,7 @@ static void* thread_callback_without_log(void* arg) {
 							 "%04d/%05d/%06d/%07d %16p/%16p/%16p/%16p %10s/%11s/%12s/%13s %02x/%02x/%02x/%02x\n", 1234,
 							 1234, 1234, 1234, (void*)0xFFFF0000ULL, (void*)0xFFFF0000ULL, (void*)0xFFFF0000ULL,
 							 (void*)0xFFFF0000ULL, "test1", "test2", "test3", "test4", 0x00, 0x01, 0x02, 0x03);
-		cunit_assert_not_null(g_file_without_log);
+		assert_not_null(g_file_without_log);
 		fwrite(buffer, 1, (size_t)size, g_file_without_log);
 		pthread_mutex_unlock(&g_file_without_mutex);
 	}
@@ -81,13 +81,13 @@ static void test_callback_performance_comparison(size_t limit) {
 	if (access("test_log_out", 0) == -1) {
 		(void)ct_mkdir("test_log_out");
 	}
-	cunit_assert_true(access("test_log_out", 0) == 0);
+	assert_true(access("test_log_out", 0) == 0);
 
 	g_file_without_log = fopen("test_log_out/callback_without_log.log", "w");
-	cunit_assert_not_null(g_file_without_log);
+	assert_not_null(g_file_without_log);
 
 	g_file_with_log = fopen("test_log_out/callback_with_log.log", "w");
-	cunit_assert_not_null(g_file_with_log);
+	assert_not_null(g_file_with_log);
 
 	// 创建 Logger
 	{
@@ -102,15 +102,15 @@ static void test_callback_performance_comparison(size_t limit) {
 		ct_log_init(ct_getuptime_ms(), 1, &config);
 	}
 
-	cunit_assert_int32_equal(pthread_create(&g_thread_logger, NULL, thread_log_schedule, NULL), 0);
+	assert_int32_eq(pthread_create(&g_thread_logger, NULL, thread_log_schedule, NULL), 0);
 
 	// 测试直接调用回调函数的性能
 	start = ct_getuptime_ms();
 	for (int i = 0; i < TEST_THREADS; i++) {
-		cunit_assert_int32_equal(pthread_create(&threads[i], NULL, thread_callback_without_log, NULL), 0);
+		assert_int32_eq(pthread_create(&threads[i], NULL, thread_callback_without_log, NULL), 0);
 	}
 	for (int i = 0; i < TEST_THREADS; i++) {
-		cunit_assert_int32_equal(pthread_join(threads[i], NULL), 0);
+		assert_int32_eq(pthread_join(threads[i], NULL), 0);
 	}
 	end                             = ct_getuptime_ms();
 	const int time_without_callback = (int)(end - start);
@@ -118,16 +118,16 @@ static void test_callback_performance_comparison(size_t limit) {
 	// 测试带日志回调的性能
 	start = ct_getuptime_ms();
 	for (int i = 0; i < TEST_THREADS; i++) {
-		cunit_assert_int32_equal(pthread_create(&threads[i], NULL, thread_callback_with_log, NULL), 0);
+		assert_int32_eq(pthread_create(&threads[i], NULL, thread_callback_with_log, NULL), 0);
 	}
 	for (int i = 0; i < TEST_THREADS; i++) {
-		cunit_assert_int32_equal(pthread_join(threads[i], NULL), 0);
+		assert_int32_eq(pthread_join(threads[i], NULL), 0);
 	}
 	end                          = ct_getuptime_ms();
 	const int time_with_callback = (int)(end - start);
 
 	is_exit = true;
-	cunit_assert_int32_equal(pthread_join(g_thread_logger, NULL), 0);
+	assert_int32_eq(pthread_join(g_thread_logger, NULL), 0);
 
 	ct_log_flush();
 	ct_log_schedule(ct_getuptime_ms());
@@ -145,17 +145,17 @@ static void test_callback_performance_comparison(size_t limit) {
 	// 打开文件
 	FILE* file_with_log    = fopen("test_log_out/callback_with_log.log", "r");
 	FILE* file_without_log = fopen("test_log_out/callback_without_log.log", "r");
-	cunit_assert_not_null(file_with_log);
-	cunit_assert_not_null(file_without_log);
+	assert_not_null(file_with_log);
+	assert_not_null(file_without_log);
 
 	// 获取文件大小
 	fseek(file_with_log, 0, SEEK_END);
 	fseek(file_without_log, 0, SEEK_END);
 	int64_t size_with_log    = ftell(file_with_log);
 	int64_t size_without_log = ftell(file_without_log);
-	cunit_assert_int64_greater(size_with_log, 0);
-	cunit_assert_int64_greater(size_without_log, 0);
-	cunit_assert_int64_equal(size_with_log, size_without_log);
+	assert_int64_gt(size_with_log, 0);
+	assert_int64_gt(size_without_log, 0);
+	assert_int64_eq(size_with_log, size_without_log);
 
 	cunit_println("with log file size: %ld, without log file size: %ld\n", (long)size_with_log, (long)size_without_log);
 
@@ -175,13 +175,13 @@ static void test_callback_performance_comparison(size_t limit) {
 		if (bytes_read_with_log == 0 || bytes_read_without_log == 0) {
 			break;
 		}
-		cunit_assert_int32_equal(bytes_read_with_log, bytes_read_without_log);
-		cunit_assert_string_n(buffer_with_log, buffer_without_log, bytes_read_with_log);
+		assert_int32_eq(bytes_read_with_log, bytes_read_without_log);
+		assert_str_n(buffer_with_log, buffer_without_log, bytes_read_with_log);
 	}
 
 	// 确保两个文件都已读取完毕
-	cunit_assert_true(feof(file_with_log));
-	cunit_assert_true(feof(file_without_log));
+	assert_true(feof(file_with_log));
+	assert_true(feof(file_without_log));
 
 	fclose(file_with_log);
 	fclose(file_without_log);
@@ -193,22 +193,22 @@ static void test_callback_performance_comparison(size_t limit) {
 
 int main(void) {
 	test_callback_performance_comparison(0);
-	cunit_println("Finish! test_callback_performance_comparison(0);\n");
+	cunit_println("Finish! test_callback_performance_comparison(0);");
 
 	test_callback_performance_comparison(11);
-	cunit_println("Finish! test_callback_performance_comparison(11);\n");
+	cunit_println("Finish! test_callback_performance_comparison(11);");
 
 	test_callback_performance_comparison(99);
-	cunit_println("Finish! test_callback_performance_comparison(99);\n");
+	cunit_println("Finish! test_callback_performance_comparison(99);");
 
 	test_callback_performance_comparison(417);
-	cunit_println("Finish! test_callback_performance_comparison(417);\n");
+	cunit_println("Finish! test_callback_performance_comparison(417);");
 
 	test_callback_performance_comparison(739);
-	cunit_println("Finish! test_callback_performance_comparison(739);\n");
+	cunit_println("Finish! test_callback_performance_comparison(739);");
 
 	test_callback_performance_comparison(999);
-	cunit_println("Finish! test_callback_performance_comparison(999);\n");
+	cunit_println("Finish! test_callback_performance_comparison(999);");
 
 	cunit_pass();
 }

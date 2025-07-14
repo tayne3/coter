@@ -17,13 +17,13 @@ static bool                  test_result[TEST_THREAD_NUMBER][TEST_DATA_NUMBER] =
 static bool                  is_exit[TEST_THREAD_NUMBER]                       = {0};
 
 static inline bool test_evmsg_handler(ct_evmsg_t *msg, void *userdata) {
-	cunit_assert_not_null(msg);
-	cunit_assert_not_null(msg->data);
-	cunit_assert_uint8_greater_equal(msg->id, 0);
-	cunit_assert_uint8_less(msg->id, TEST_THREAD_NUMBER);
+	assert_not_null(msg);
+	assert_not_null(msg->data);
+	assert_uint8_ge(msg->id, 0);
+	assert_uint8_lt(msg->id, TEST_THREAD_NUMBER);
 
 	const int result_index = *(int *)msg->data;
-	cunit_assert_false(test_result[msg->id][result_index]);
+	assert_false(test_result[msg->id][result_index]);
 	test_result[msg->id][result_index] = true;
 	return false;
 	(void)(userdata);
@@ -51,7 +51,7 @@ int main(void) {
 
 	// 创建任务池
 	ct_thpool_t *thpool = ct_thpool_create(64, NULL);
-	cunit_assert_not_null(thpool);
+	assert_not_null(thpool);
 
 	// 初始化事件消息中枢
 	test_center = ct_evmsg_center_create(thpool);
@@ -61,7 +61,7 @@ int main(void) {
 	// 创建线程
 	for (int i = 0; i < TEST_THREAD_NUMBER; i++) {
 		is_ok = pthread_create(&threads[i], NULL, test_evmsg_publish, (void *)(uintptr_t)i) == 0;
-		cunit_assert_true(is_ok, "id = %d/%d", i, TEST_THREAD_NUMBER);
+		assert_true(is_ok, "id = %d/%d", i, TEST_THREAD_NUMBER);
 	}
 
 	// 调度事件管理
@@ -87,7 +87,7 @@ int main(void) {
 	// 检查结果
 	for (int id = 0; id < TEST_THREAD_NUMBER; id++) {
 		for (int i = 0; i < TEST_DATA_NUMBER; i++) {
-			cunit_assert_true(test_result[id][i], "id = %ld, i = %ld", id, i);
+			assert_true(test_result[id][i], "id = %ld, i = %ld", id, i);
 		}
 		sched_yield();
 	}

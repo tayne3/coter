@@ -27,10 +27,10 @@ static void* thread_task(void* arg) {
 static void test_init_destroy(void) {
 	ct_waitgroup_t wg;
 	int            init_result = ct_waitgroup_init(&wg);
-	cunit_assert_int32_equal(init_result, 0);
+	assert_int32_eq(init_result, 0);
 
 	// 检查初始状态
-	cunit_assert_int32_equal(wg.counter, 0);
+	assert_int32_eq(wg.counter, 0);
 
 	ct_waitgroup_destroy(&wg);
 }
@@ -48,7 +48,7 @@ static void test_single_task(void) {
 	ct_waitgroup_wait(&wg);
 
 	// 在任务完成后，计数器应为0
-	cunit_assert_int32_equal(wg.counter, 0);
+	assert_int32_eq(wg.counter, 0);
 
 	pthread_join(thread, NULL);
 	ct_waitgroup_destroy(&wg);
@@ -75,7 +75,7 @@ static void test_multiple_tasks(void) {
 	ct_waitgroup_wait(&wg);
 
 	// 计数器应为0
-	cunit_assert_int32_equal(wg.counter, 0);
+	assert_int32_eq(wg.counter, 0);
 
 	for (int i = 0; i < NUM_THREADS; ++i) {
 		pthread_join(threads[i], NULL);
@@ -92,22 +92,22 @@ static void test_repeated_add_done(void) {
 
 	// 初始添加3个任务
 	ct_waitgroup_add(&wg, 3);
-	cunit_assert_int32_equal(wg.counter, 3);
+	assert_int32_eq(wg.counter, 3);
 
 	// 完成2个任务
 	ct_waitgroup_done(&wg);
 	ct_waitgroup_done(&wg);
-	cunit_assert_int32_equal(wg.counter, 1);
+	assert_int32_eq(wg.counter, 1);
 
 	// 再添加2个任务
 	ct_waitgroup_add(&wg, 2);
-	cunit_assert_int32_equal(wg.counter, 3);
+	assert_int32_eq(wg.counter, 3);
 
 	// 完成剩下的3个任务
 	ct_waitgroup_done(&wg);
 	ct_waitgroup_done(&wg);
 	ct_waitgroup_done(&wg);
-	cunit_assert_int32_equal(wg.counter, 0);
+	assert_int32_eq(wg.counter, 0);
 
 	ct_waitgroup_destroy(&wg);
 }
@@ -127,7 +127,7 @@ static void test_multiple_wait(void) {
 	}
 
 	ct_waitgroup_wait(&wg);
-	cunit_assert_int32_equal(wg.counter, 0);
+	assert_int32_eq(wg.counter, 0);
 
 	for (int i = 0; i < 2; ++i) {
 		pthread_join(threads[i], NULL);
@@ -145,7 +145,7 @@ static void test_multiple_wait(void) {
 	}
 
 	ct_waitgroup_wait(&wg);
-	cunit_assert_int32_equal(wg.counter, 0);
+	assert_int32_eq(wg.counter, 0);
 
 	for (int i = 0; i < 3; ++i) {
 		pthread_join(threads2[i], NULL);
@@ -164,7 +164,7 @@ static void test_add_zero_tasks(void) {
 	ct_waitgroup_wait(&wg);
 
 	// 计数器应保持为0
-	cunit_assert_int32_equal(wg.counter, 0);
+	assert_int32_eq(wg.counter, 0);
 
 	ct_waitgroup_destroy(&wg);
 }
@@ -175,18 +175,18 @@ static void test_done_exceed_add(void) {
 	ct_waitgroup_init(&wg);
 
 	ct_waitgroup_add(&wg, 2);
-	cunit_assert_int32_equal(wg.counter, 2);
+	assert_int32_eq(wg.counter, 2);
 
 	ct_waitgroup_done(&wg);
-	cunit_assert_int32_equal(wg.counter, 1);
+	assert_int32_eq(wg.counter, 1);
 
 	ct_waitgroup_done(&wg);
-	cunit_assert_int32_equal(wg.counter, 0);
+	assert_int32_eq(wg.counter, 0);
 
 	// 调用多余的 done
 	ct_waitgroup_done(&wg);
 	// 根据实现，计数器可能会减到负数，使用断言检查
-	cunit_assert_int32_equal(wg.counter, -1);
+	assert_int32_eq(wg.counter, -1);
 
 	ct_waitgroup_destroy(&wg);
 }
@@ -224,7 +224,7 @@ static void test_dynamic_add_tasks(void) {
 	}
 
 	ct_waitgroup_wait(&wg);
-	cunit_assert_int32_equal(wg.counter, 0);
+	assert_int32_eq(wg.counter, 0);
 
 	for (int i = 0; i < INITIAL_THREADS; ++i) {
 		pthread_join(threads[i], NULL);
@@ -257,7 +257,7 @@ static void test_concurrent_add_done(void) {
 	}
 
 	ct_waitgroup_wait(&wg);
-	cunit_assert_int32_equal(wg.counter, 0);
+	assert_int32_eq(wg.counter, 0);
 
 	for (int i = 0; i < NUM_THREADS; ++i) {
 		pthread_join(threads[i], NULL);
@@ -270,31 +270,31 @@ static void test_concurrent_add_done(void) {
 // 执行所有测试
 int main(void) {
 	test_init_destroy();
-	cunit_println("Finish! test_init_destroy()\n");
+	cunit_println("Finish! test_init_destroy()");
 
 	test_single_task();
-	cunit_println("Finish! test_single_task()\n");
+	cunit_println("Finish! test_single_task()");
 
 	test_multiple_tasks();
-	cunit_println("Finish! test_multiple_tasks()\n");
+	cunit_println("Finish! test_multiple_tasks()");
 
 	test_repeated_add_done();
-	cunit_println("Finish! test_repeated_add_done()\n");
+	cunit_println("Finish! test_repeated_add_done()");
 
 	test_multiple_wait();
-	cunit_println("Finish! test_multiple_wait()\n");
+	cunit_println("Finish! test_multiple_wait()");
 
 	test_add_zero_tasks();
-	cunit_println("Finish! test_add_zero_tasks()\n");
+	cunit_println("Finish! test_add_zero_tasks()");
 
 	test_done_exceed_add();
-	cunit_println("Finish! test_done_exceed_add()\n");
+	cunit_println("Finish! test_done_exceed_add()");
 
 	test_dynamic_add_tasks();
-	cunit_println("Finish! test_dynamic_add_tasks()\n");
+	cunit_println("Finish! test_dynamic_add_tasks()");
 
 	test_concurrent_add_done();
-	cunit_println("Finish! test_concurrent_add_done()\n");
+	cunit_println("Finish! test_concurrent_add_done()");
 
 	cunit_pass();
 }

@@ -15,18 +15,18 @@ static uint8_t     buffer[MAX_BUFFER_SIZE] = {0};
 // 测试 初始化
 static void test_packet_init(void) {
 	ct_packet_init(packet, buffer, MAX_BUFFER_SIZE);
-	cunit_assert_pointer_equal(buffer, ct_packet_buffer(packet));
-	cunit_assert_uint16_equal(0, ct_packet_total_size(packet));
-	cunit_assert_uint16_equal(0, ct_packet_past(packet));
-	cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-	cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_available(packet));
+	assert_ptr_eq(buffer, ct_packet_buffer(packet));
+	assert_uint16_eq(0, ct_packet_total_size(packet));
+	assert_uint16_eq(0, ct_packet_past(packet));
+	assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+	assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_available(packet));
 
 	ct_packet_set_size(packet, 50);
 	ct_packet_set_past(packet, 10);
-	cunit_assert_uint16_equal(50, ct_packet_total_size(packet));
-	cunit_assert_uint16_equal(10, ct_packet_past(packet));
-	cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-	cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 50, ct_packet_available(packet));
+	assert_uint16_eq(50, ct_packet_total_size(packet));
+	assert_uint16_eq(10, ct_packet_past(packet));
+	assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+	assert_uint16_eq(MAX_BUFFER_SIZE - 50, ct_packet_available(packet));
 }
 
 // 测试 重置
@@ -34,17 +34,17 @@ static void test_packet_reset(void) {
 	ct_packet_init(packet, buffer, MAX_BUFFER_SIZE);
 	ct_packet_set_size(packet, 50);
 	ct_packet_set_past(packet, 10);
-	cunit_assert_uint16_equal(50, ct_packet_total_size(packet));
-	cunit_assert_uint16_equal(10, ct_packet_past(packet));
-	cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-	cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 50, ct_packet_available(packet));
+	assert_uint16_eq(50, ct_packet_total_size(packet));
+	assert_uint16_eq(10, ct_packet_past(packet));
+	assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+	assert_uint16_eq(MAX_BUFFER_SIZE - 50, ct_packet_available(packet));
 
 	ct_packet_reset(packet);
-	cunit_assert_pointer_equal(buffer, ct_packet_buffer(packet));
-	cunit_assert_uint16_equal(0, ct_packet_total_size(packet));
-	cunit_assert_uint16_equal(0, ct_packet_past(packet));
-	cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-	cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_available(packet));
+	assert_ptr_eq(buffer, ct_packet_buffer(packet));
+	assert_uint16_eq(0, ct_packet_total_size(packet));
+	assert_uint16_eq(0, ct_packet_past(packet));
+	assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+	assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_available(packet));
 }
 
 // 测试 清空
@@ -53,20 +53,20 @@ static void test_packet_clean(void) {
 	ct_packet_init(packet, buffer, MAX_BUFFER_SIZE);
 	ct_packet_set_size(packet, 50);
 	ct_packet_set_past(packet, 10);
-	cunit_assert_uint16_equal(50, ct_packet_total_size(packet));
-	cunit_assert_uint16_equal(10, ct_packet_past(packet));
-	cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-	cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 50, ct_packet_available(packet));
+	assert_uint16_eq(50, ct_packet_total_size(packet));
+	assert_uint16_eq(10, ct_packet_past(packet));
+	assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+	assert_uint16_eq(MAX_BUFFER_SIZE - 50, ct_packet_available(packet));
 
 	ct_packet_clean(packet);
-	cunit_assert_pointer_equal(buffer, ct_packet_buffer(packet));
-	cunit_assert_uint16_equal(0, ct_packet_total_size(packet));
-	cunit_assert_uint16_equal(0, ct_packet_past(packet));
-	cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-	cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_available(packet));
+	assert_ptr_eq(buffer, ct_packet_buffer(packet));
+	assert_uint16_eq(0, ct_packet_total_size(packet));
+	assert_uint16_eq(0, ct_packet_past(packet));
+	assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+	assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_available(packet));
 
 	for (uint16_t i = 0; i < 50; i++) {
-		cunit_assert_uint8_equal(0, buffer[i]);
+		assert_uint8_eq(0, buffer[i]);
 	}
 }
 
@@ -79,80 +79,80 @@ static void test_packet_u8(void) {
 	// put
 	{
 		ct_packet_put_u8(packet, 0xAA);
-		cunit_assert_uint16_equal(1, ct_packet_size(packet));
-		cunit_assert_uint16_equal(1, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 1, ct_packet_available(packet));
+		assert_uint16_eq(1, ct_packet_size(packet));
+		assert_uint16_eq(1, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 1, ct_packet_available(packet));
 
-		cunit_assert_uint8_equal(0xAA, ct_packet_get_u8(packet, 0));
+		assert_uint8_eq(0xAA, ct_packet_get_u8(packet, 0));
 
 		expected[0] = 0xAA;
-		cunit_assert_string_hex(expected, ct_packet_buffer(packet), 1);
+		assert_str_hex(expected, ct_packet_buffer(packet), 1);
 	}
 
 	// put
 	{
 		ct_packet_put_u8(packet, 0xBB);
-		cunit_assert_uint16_equal(2, ct_packet_size(packet));
-		cunit_assert_uint16_equal(2, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 2, ct_packet_available(packet));
+		assert_uint16_eq(2, ct_packet_size(packet));
+		assert_uint16_eq(2, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 2, ct_packet_available(packet));
 
-		cunit_assert_uint8_equal(0xAA, ct_packet_get_u8(packet, 0));
-		cunit_assert_uint8_equal(0xBB, ct_packet_get_u8(packet, 1));
-		cunit_assert_uint16_equal(2, ct_packet_size(packet));
-		cunit_assert_uint16_equal(2, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 2, ct_packet_available(packet));
+		assert_uint8_eq(0xAA, ct_packet_get_u8(packet, 0));
+		assert_uint8_eq(0xBB, ct_packet_get_u8(packet, 1));
+		assert_uint16_eq(2, ct_packet_size(packet));
+		assert_uint16_eq(2, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 2, ct_packet_available(packet));
 
 		expected[1] = 0xBB;
-		cunit_assert_string_hex(expected, ct_packet_buffer(packet), 2);
+		assert_str_hex(expected, ct_packet_buffer(packet), 2);
 	}
 
 	// take all
 	{
-		cunit_assert_uint8_equal(0xAA, ct_packet_take_u8(packet));
-		cunit_assert_uint16_equal(1, ct_packet_size(packet));
-		cunit_assert_uint16_equal(2, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(1, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 2, ct_packet_available(packet));
+		assert_uint8_eq(0xAA, ct_packet_take_u8(packet));
+		assert_uint16_eq(1, ct_packet_size(packet));
+		assert_uint16_eq(2, ct_packet_total_size(packet));
+		assert_uint16_eq(1, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 2, ct_packet_available(packet));
 
-		cunit_assert_string_hex(expected + 1, ct_packet_buffer(packet), 1);
+		assert_str_hex(expected + 1, ct_packet_buffer(packet), 1);
 
-		cunit_assert_uint8_equal(0xBB, ct_packet_take_u8(packet));
-		cunit_assert_uint16_equal(0, ct_packet_size(packet));
-		cunit_assert_uint16_equal(2, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(2, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 2, ct_packet_available(packet));
+		assert_uint8_eq(0xBB, ct_packet_take_u8(packet));
+		assert_uint16_eq(0, ct_packet_size(packet));
+		assert_uint16_eq(2, ct_packet_total_size(packet));
+		assert_uint16_eq(2, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 2, ct_packet_available(packet));
 	}
 
 	// set
 	{
 		ct_packet_put_u8(packet, 0xCC);
 		expected[0] = 0xCC;
-		cunit_assert_string_hex(expected, ct_packet_buffer(packet), 1);
+		assert_str_hex(expected, ct_packet_buffer(packet), 1);
 
 		ct_packet_set_u8(packet, 0, 0xDD);
-		cunit_assert_uint16_equal(1, ct_packet_size(packet));
-		cunit_assert_uint16_equal(3, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(2, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 3, ct_packet_available(packet));
+		assert_uint16_eq(1, ct_packet_size(packet));
+		assert_uint16_eq(3, ct_packet_total_size(packet));
+		assert_uint16_eq(2, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 3, ct_packet_available(packet));
 
 		expected[0] = 0xDD;
-		cunit_assert_string_hex(expected, ct_packet_buffer(packet), 1);
+		assert_str_hex(expected, ct_packet_buffer(packet), 1);
 
-		cunit_assert_uint8_equal(0xDD, ct_packet_take_u8(packet));
-		cunit_assert_uint16_equal(0, ct_packet_size(packet));
-		cunit_assert_uint16_equal(3, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(3, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 3, ct_packet_available(packet));
+		assert_uint8_eq(0xDD, ct_packet_take_u8(packet));
+		assert_uint16_eq(0, ct_packet_size(packet));
+		assert_uint16_eq(3, ct_packet_total_size(packet));
+		assert_uint16_eq(3, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 3, ct_packet_available(packet));
 	}
 }
 
@@ -165,58 +165,58 @@ static void test_packet_u16(void) {
 	// put: big endian
 	{
 		ct_packet_put_u16(packet, 0xAABB, CTEndian_Big);
-		cunit_assert_uint16_equal(2, ct_packet_size(packet));
-		cunit_assert_uint16_equal(2, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 2, ct_packet_available(packet));
+		assert_uint16_eq(2, ct_packet_size(packet));
+		assert_uint16_eq(2, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 2, ct_packet_available(packet));
 
-		cunit_assert_uint16_equal(0xAABB, ct_packet_get_u16(packet, 0, CTEndian_Big));
+		assert_uint16_eq(0xAABB, ct_packet_get_u16(packet, 0, CTEndian_Big));
 
 		expected[0] = 0xAA;
 		expected[1] = 0xBB;
-		cunit_assert_string_hex(expected, ct_packet_buffer(packet), 2);
+		assert_str_hex(expected, ct_packet_buffer(packet), 2);
 	}
 
 	// put: little endian
 	{
 		ct_packet_put_u16(packet, 0xCCDD, CTEndian_Little);
-		cunit_assert_uint16_equal(4, ct_packet_size(packet));
-		cunit_assert_uint16_equal(4, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 4, ct_packet_available(packet));
+		assert_uint16_eq(4, ct_packet_size(packet));
+		assert_uint16_eq(4, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 4, ct_packet_available(packet));
 
-		cunit_assert_uint16_equal(0xAABB, ct_packet_get_u16(packet, 0, CTEndian_Big));
-		cunit_assert_uint16_equal(0xCCDD, ct_packet_get_u16(packet, 2, CTEndian_Little));
-		cunit_assert_uint16_equal(4, ct_packet_size(packet));
-		cunit_assert_uint16_equal(4, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 4, ct_packet_available(packet));
+		assert_uint16_eq(0xAABB, ct_packet_get_u16(packet, 0, CTEndian_Big));
+		assert_uint16_eq(0xCCDD, ct_packet_get_u16(packet, 2, CTEndian_Little));
+		assert_uint16_eq(4, ct_packet_size(packet));
+		assert_uint16_eq(4, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 4, ct_packet_available(packet));
 
 		expected[2] = 0xDD;
 		expected[3] = 0xCC;
-		cunit_assert_string_hex(expected, ct_packet_buffer(packet), 4);
+		assert_str_hex(expected, ct_packet_buffer(packet), 4);
 	}
 
 	// take all
 	{
-		cunit_assert_uint16_equal(0xAABB, ct_packet_take_u16(packet, CTEndian_Big));
-		cunit_assert_uint16_equal(2, ct_packet_size(packet));
-		cunit_assert_uint16_equal(4, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(2, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 4, ct_packet_available(packet));
+		assert_uint16_eq(0xAABB, ct_packet_take_u16(packet, CTEndian_Big));
+		assert_uint16_eq(2, ct_packet_size(packet));
+		assert_uint16_eq(4, ct_packet_total_size(packet));
+		assert_uint16_eq(2, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 4, ct_packet_available(packet));
 
-		cunit_assert_string_hex(expected + 2, ct_packet_buffer(packet), 2);
+		assert_str_hex(expected + 2, ct_packet_buffer(packet), 2);
 
-		cunit_assert_uint16_equal(0xCCDD, ct_packet_take_u16(packet, CTEndian_Little));
-		cunit_assert_uint16_equal(0, ct_packet_size(packet));
-		cunit_assert_uint16_equal(4, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(4, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 4, ct_packet_available(packet));
+		assert_uint16_eq(0xCCDD, ct_packet_take_u16(packet, CTEndian_Little));
+		assert_uint16_eq(0, ct_packet_size(packet));
+		assert_uint16_eq(4, ct_packet_total_size(packet));
+		assert_uint16_eq(4, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 4, ct_packet_available(packet));
 	}
 
 	// set: big endian
@@ -225,25 +225,25 @@ static void test_packet_u16(void) {
 		ct_packet_put_u8(packet, 0xBB);
 		expected[0] = 0xAA;
 		expected[1] = 0xBB;
-		cunit_assert_string_hex(expected, ct_packet_buffer(packet), 2);
+		assert_str_hex(expected, ct_packet_buffer(packet), 2);
 
 		ct_packet_set_u16(packet, 0, 0xEEFF, CTEndian_Big);
-		cunit_assert_uint16_equal(2, ct_packet_size(packet));
-		cunit_assert_uint16_equal(6, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(4, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 6, ct_packet_available(packet));
+		assert_uint16_eq(2, ct_packet_size(packet));
+		assert_uint16_eq(6, ct_packet_total_size(packet));
+		assert_uint16_eq(4, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 6, ct_packet_available(packet));
 
 		expected[0] = 0xEE;
 		expected[1] = 0xFF;
-		cunit_assert_string_hex(expected, ct_packet_buffer(packet), 2);
+		assert_str_hex(expected, ct_packet_buffer(packet), 2);
 
-		cunit_assert_uint16_equal(0xEEFF, ct_packet_take_u16(packet, CTEndian_Big));
-		cunit_assert_uint16_equal(0, ct_packet_size(packet));
-		cunit_assert_uint16_equal(6, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(6, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 6, ct_packet_available(packet));
+		assert_uint16_eq(0xEEFF, ct_packet_take_u16(packet, CTEndian_Big));
+		assert_uint16_eq(0, ct_packet_size(packet));
+		assert_uint16_eq(6, ct_packet_total_size(packet));
+		assert_uint16_eq(6, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 6, ct_packet_available(packet));
 	}
 
 	ct_packet_reset(packet);
@@ -251,58 +251,58 @@ static void test_packet_u16(void) {
 	// put: little endian
 	{
 		ct_packet_put_u16(packet, 0xCCDD, CTEndian_Little);
-		cunit_assert_uint16_equal(2, ct_packet_size(packet));
-		cunit_assert_uint16_equal(2, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 2, ct_packet_available(packet));
+		assert_uint16_eq(2, ct_packet_size(packet));
+		assert_uint16_eq(2, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 2, ct_packet_available(packet));
 
-		cunit_assert_uint16_equal(0xCCDD, ct_packet_get_u16(packet, 0, CTEndian_Little));
+		assert_uint16_eq(0xCCDD, ct_packet_get_u16(packet, 0, CTEndian_Little));
 
 		expected[0] = 0xDD;
 		expected[1] = 0xCC;
-		cunit_assert_string_hex(expected, ct_packet_buffer(packet), 2);
+		assert_str_hex(expected, ct_packet_buffer(packet), 2);
 	}
 
 	// put: big endian
 	{
 		ct_packet_put_u16(packet, 0xAABB, CTEndian_Big);
-		cunit_assert_uint16_equal(4, ct_packet_size(packet));
-		cunit_assert_uint16_equal(4, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 4, ct_packet_available(packet));
+		assert_uint16_eq(4, ct_packet_size(packet));
+		assert_uint16_eq(4, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 4, ct_packet_available(packet));
 
-		cunit_assert_uint16_equal(0xCCDD, ct_packet_get_u16(packet, 0, CTEndian_Little));
-		cunit_assert_uint16_equal(0xAABB, ct_packet_get_u16(packet, 2, CTEndian_Big));
-		cunit_assert_uint16_equal(4, ct_packet_size(packet));
-		cunit_assert_uint16_equal(4, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 4, ct_packet_available(packet));
+		assert_uint16_eq(0xCCDD, ct_packet_get_u16(packet, 0, CTEndian_Little));
+		assert_uint16_eq(0xAABB, ct_packet_get_u16(packet, 2, CTEndian_Big));
+		assert_uint16_eq(4, ct_packet_size(packet));
+		assert_uint16_eq(4, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 4, ct_packet_available(packet));
 
 		expected[2] = 0xAA;
 		expected[3] = 0xBB;
-		cunit_assert_string_hex(expected, ct_packet_buffer(packet), 4);
+		assert_str_hex(expected, ct_packet_buffer(packet), 4);
 	}
 
 	// take all
 	{
-		cunit_assert_uint16_equal(0xCCDD, ct_packet_take_u16(packet, CTEndian_Little));
-		cunit_assert_uint16_equal(2, ct_packet_size(packet));
-		cunit_assert_uint16_equal(4, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(2, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 4, ct_packet_available(packet));
+		assert_uint16_eq(0xCCDD, ct_packet_take_u16(packet, CTEndian_Little));
+		assert_uint16_eq(2, ct_packet_size(packet));
+		assert_uint16_eq(4, ct_packet_total_size(packet));
+		assert_uint16_eq(2, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 4, ct_packet_available(packet));
 
-		cunit_assert_string_hex(expected + 2, ct_packet_buffer(packet), 2);
+		assert_str_hex(expected + 2, ct_packet_buffer(packet), 2);
 
-		cunit_assert_uint16_equal(0xAABB, ct_packet_take_u16(packet, CTEndian_Big));
-		cunit_assert_uint16_equal(0, ct_packet_size(packet));
-		cunit_assert_uint16_equal(4, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(4, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 4, ct_packet_available(packet));
+		assert_uint16_eq(0xAABB, ct_packet_take_u16(packet, CTEndian_Big));
+		assert_uint16_eq(0, ct_packet_size(packet));
+		assert_uint16_eq(4, ct_packet_total_size(packet));
+		assert_uint16_eq(4, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 4, ct_packet_available(packet));
 	}
 
 	// set: little endian
@@ -311,25 +311,25 @@ static void test_packet_u16(void) {
 		ct_packet_put_u8(packet, 0xBB);
 		expected[0] = 0xAA;
 		expected[1] = 0xBB;
-		cunit_assert_string_hex(expected, ct_packet_buffer(packet), 2);
+		assert_str_hex(expected, ct_packet_buffer(packet), 2);
 
 		ct_packet_set_u16(packet, 0, 0xEEFF, CTEndian_Little);
-		cunit_assert_uint16_equal(2, ct_packet_size(packet));
-		cunit_assert_uint16_equal(6, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(4, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 6, ct_packet_available(packet));
+		assert_uint16_eq(2, ct_packet_size(packet));
+		assert_uint16_eq(6, ct_packet_total_size(packet));
+		assert_uint16_eq(4, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 6, ct_packet_available(packet));
 
 		expected[0] = 0xFF;
 		expected[1] = 0xEE;
-		cunit_assert_string_hex(expected, ct_packet_buffer(packet), 2);
+		assert_str_hex(expected, ct_packet_buffer(packet), 2);
 
-		cunit_assert_uint16_equal(0xEEFF, ct_packet_take_u16(packet, CTEndian_Little));
-		cunit_assert_uint16_equal(0, ct_packet_size(packet));
-		cunit_assert_uint16_equal(6, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(6, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 6, ct_packet_available(packet));
+		assert_uint16_eq(0xEEFF, ct_packet_take_u16(packet, CTEndian_Little));
+		assert_uint16_eq(0, ct_packet_size(packet));
+		assert_uint16_eq(6, ct_packet_total_size(packet));
+		assert_uint16_eq(6, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 6, ct_packet_available(packet));
 	}
 }
 
@@ -342,62 +342,62 @@ static void test_packet_u32(void) {
 	// put: big endian
 	{
 		ct_packet_put_u32(packet, 0xAABBCCDD, CTEndian_Big);
-		cunit_assert_uint16_equal(4, ct_packet_size(packet));
-		cunit_assert_uint16_equal(4, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 4, ct_packet_available(packet));
+		assert_uint16_eq(4, ct_packet_size(packet));
+		assert_uint16_eq(4, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 4, ct_packet_available(packet));
 
-		cunit_assert_uint32_equal(0xAABBCCDD, ct_packet_get_u32(packet, 0, CTEndian_Big));
+		assert_uint32_eq(0xAABBCCDD, ct_packet_get_u32(packet, 0, CTEndian_Big));
 
 		expected[0] = 0xAA;
 		expected[1] = 0xBB;
 		expected[2] = 0xCC;
 		expected[3] = 0xDD;
-		cunit_assert_string_hex(expected, ct_packet_buffer(packet), 4);
+		assert_str_hex(expected, ct_packet_buffer(packet), 4);
 	}
 
 	// put: little endian
 	{
 		ct_packet_put_u32(packet, 0xAABBCCDD, CTEndian_Little);
-		cunit_assert_uint16_equal(8, ct_packet_size(packet));
-		cunit_assert_uint16_equal(8, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
+		assert_uint16_eq(8, ct_packet_size(packet));
+		assert_uint16_eq(8, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
 
-		cunit_assert_uint32_equal(0xAABBCCDD, ct_packet_get_u32(packet, 0, CTEndian_Big));
-		cunit_assert_uint32_equal(0xAABBCCDD, ct_packet_get_u32(packet, 4, CTEndian_Little));
-		cunit_assert_uint16_equal(8, ct_packet_size(packet));
-		cunit_assert_uint16_equal(8, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
+		assert_uint32_eq(0xAABBCCDD, ct_packet_get_u32(packet, 0, CTEndian_Big));
+		assert_uint32_eq(0xAABBCCDD, ct_packet_get_u32(packet, 4, CTEndian_Little));
+		assert_uint16_eq(8, ct_packet_size(packet));
+		assert_uint16_eq(8, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
 
 		expected[4] = 0xDD;
 		expected[5] = 0xCC;
 		expected[6] = 0xBB;
 		expected[7] = 0xAA;
-		cunit_assert_string_hex(expected, ct_packet_buffer(packet), 8);
+		assert_str_hex(expected, ct_packet_buffer(packet), 8);
 	}
 
 	// take all
 	{
-		cunit_assert_uint32_equal(0xAABBCCDD, ct_packet_take_u32(packet, CTEndian_Big));
-		cunit_assert_uint16_equal(4, ct_packet_size(packet));
-		cunit_assert_uint16_equal(8, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(4, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
+		assert_uint32_eq(0xAABBCCDD, ct_packet_take_u32(packet, CTEndian_Big));
+		assert_uint16_eq(4, ct_packet_size(packet));
+		assert_uint16_eq(8, ct_packet_total_size(packet));
+		assert_uint16_eq(4, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
 
-		cunit_assert_string_hex(expected + 4, ct_packet_buffer(packet), 4);
+		assert_str_hex(expected + 4, ct_packet_buffer(packet), 4);
 
-		cunit_assert_uint32_equal(0xAABBCCDD, ct_packet_take_u32(packet, CTEndian_Little));
-		cunit_assert_uint16_equal(0, ct_packet_size(packet));
-		cunit_assert_uint16_equal(8, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(8, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
+		assert_uint32_eq(0xAABBCCDD, ct_packet_take_u32(packet, CTEndian_Little));
+		assert_uint16_eq(0, ct_packet_size(packet));
+		assert_uint16_eq(8, ct_packet_total_size(packet));
+		assert_uint16_eq(8, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
 	}
 
 	// set: big endian
@@ -410,27 +410,27 @@ static void test_packet_u32(void) {
 		expected[1] = 0xBB;
 		expected[2] = 0xCC;
 		expected[3] = 0xDD;
-		cunit_assert_string_hex(expected, ct_packet_buffer(packet), 4);
+		assert_str_hex(expected, ct_packet_buffer(packet), 4);
 
 		ct_packet_set_u32(packet, 0, 0x11223344, CTEndian_Big);
-		cunit_assert_uint16_equal(4, ct_packet_size(packet));
-		cunit_assert_uint16_equal(12, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(8, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 12, ct_packet_available(packet));
+		assert_uint16_eq(4, ct_packet_size(packet));
+		assert_uint16_eq(12, ct_packet_total_size(packet));
+		assert_uint16_eq(8, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 12, ct_packet_available(packet));
 
 		expected[0] = 0x11;
 		expected[1] = 0x22;
 		expected[2] = 0x33;
 		expected[3] = 0x44;
-		cunit_assert_string_hex(expected, ct_packet_buffer(packet), 4);
+		assert_str_hex(expected, ct_packet_buffer(packet), 4);
 
-		cunit_assert_uint32_equal(0x11223344, ct_packet_take_u32(packet, CTEndian_Big));
-		cunit_assert_uint16_equal(0, ct_packet_size(packet));
-		cunit_assert_uint16_equal(12, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(12, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 12, ct_packet_available(packet));
+		assert_uint32_eq(0x11223344, ct_packet_take_u32(packet, CTEndian_Big));
+		assert_uint16_eq(0, ct_packet_size(packet));
+		assert_uint16_eq(12, ct_packet_total_size(packet));
+		assert_uint16_eq(12, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 12, ct_packet_available(packet));
 	}
 
 	ct_packet_reset(packet);
@@ -438,60 +438,60 @@ static void test_packet_u32(void) {
 	// put: little endian
 	{
 		ct_packet_put_u32(packet, 0xAABBCCDD, CTEndian_Little);
-		cunit_assert_uint16_equal(4, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 4, ct_packet_available(packet));
+		assert_uint16_eq(4, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 4, ct_packet_available(packet));
 
-		cunit_assert_uint32_equal(0xAABBCCDD, ct_packet_get_u32(packet, 0, CTEndian_Little));
+		assert_uint32_eq(0xAABBCCDD, ct_packet_get_u32(packet, 0, CTEndian_Little));
 
 		expected[0] = 0xDD;
 		expected[1] = 0xCC;
 		expected[2] = 0xBB;
 		expected[3] = 0xAA;
-		cunit_assert_string_hex(expected, ct_packet_buffer(packet), 4);
+		assert_str_hex(expected, ct_packet_buffer(packet), 4);
 	}
 
 	// put: big endian
 	{
 		ct_packet_put_u32(packet, 0xAABBCCDD, CTEndian_Big);
-		cunit_assert_uint16_equal(8, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
+		assert_uint16_eq(8, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
 
-		cunit_assert_uint32_equal(0xAABBCCDD, ct_packet_get_u32(packet, 0, CTEndian_Little));
-		cunit_assert_uint32_equal(0xAABBCCDD, ct_packet_get_u32(packet, 4, CTEndian_Big));
-		cunit_assert_uint16_equal(8, ct_packet_size(packet));
-		cunit_assert_uint16_equal(8, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
+		assert_uint32_eq(0xAABBCCDD, ct_packet_get_u32(packet, 0, CTEndian_Little));
+		assert_uint32_eq(0xAABBCCDD, ct_packet_get_u32(packet, 4, CTEndian_Big));
+		assert_uint16_eq(8, ct_packet_size(packet));
+		assert_uint16_eq(8, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
 
 		expected[4] = 0xAA;
 		expected[5] = 0xBB;
 		expected[6] = 0xCC;
 		expected[7] = 0xDD;
-		cunit_assert_string_hex(expected, ct_packet_buffer(packet), 8);
+		assert_str_hex(expected, ct_packet_buffer(packet), 8);
 	}
 
 	// take all
 	{
-		cunit_assert_uint32_equal(0xAABBCCDD, ct_packet_take_u32(packet, CTEndian_Little));
-		cunit_assert_uint16_equal(4, ct_packet_size(packet));
-		cunit_assert_uint16_equal(8, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(4, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
+		assert_uint32_eq(0xAABBCCDD, ct_packet_take_u32(packet, CTEndian_Little));
+		assert_uint16_eq(4, ct_packet_size(packet));
+		assert_uint16_eq(8, ct_packet_total_size(packet));
+		assert_uint16_eq(4, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
 
-		cunit_assert_string_hex(expected + 4, ct_packet_buffer(packet), 4);
+		assert_str_hex(expected + 4, ct_packet_buffer(packet), 4);
 
-		cunit_assert_uint32_equal(0xAABBCCDD, ct_packet_take_u32(packet, CTEndian_Big));
-		cunit_assert_uint16_equal(0, ct_packet_size(packet));
-		cunit_assert_uint16_equal(8, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(8, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
+		assert_uint32_eq(0xAABBCCDD, ct_packet_take_u32(packet, CTEndian_Big));
+		assert_uint16_eq(0, ct_packet_size(packet));
+		assert_uint16_eq(8, ct_packet_total_size(packet));
+		assert_uint16_eq(8, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
 	}
 
 	// set: little endian
@@ -504,27 +504,27 @@ static void test_packet_u32(void) {
 		expected[1] = 0xBB;
 		expected[2] = 0xCC;
 		expected[3] = 0xDD;
-		cunit_assert_string_hex(expected, ct_packet_buffer(packet), 4);
+		assert_str_hex(expected, ct_packet_buffer(packet), 4);
 
 		ct_packet_set_u32(packet, 0, 0x11223344, CTEndian_Little);
-		cunit_assert_uint16_equal(4, ct_packet_size(packet));
-		cunit_assert_uint16_equal(12, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(8, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 12, ct_packet_available(packet));
+		assert_uint16_eq(4, ct_packet_size(packet));
+		assert_uint16_eq(12, ct_packet_total_size(packet));
+		assert_uint16_eq(8, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 12, ct_packet_available(packet));
 
 		expected[0] = 0x44;
 		expected[1] = 0x33;
 		expected[2] = 0x22;
 		expected[3] = 0x11;
-		cunit_assert_string_hex(expected, ct_packet_buffer(packet), 4);
+		assert_str_hex(expected, ct_packet_buffer(packet), 4);
 
-		cunit_assert_uint32_equal(0x11223344, ct_packet_take_u32(packet, CTEndian_Little));
-		cunit_assert_uint16_equal(0, ct_packet_size(packet));
-		cunit_assert_uint16_equal(12, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(12, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 12, ct_packet_available(packet));
+		assert_uint32_eq(0x11223344, ct_packet_take_u32(packet, CTEndian_Little));
+		assert_uint16_eq(0, ct_packet_size(packet));
+		assert_uint16_eq(12, ct_packet_total_size(packet));
+		assert_uint16_eq(12, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 12, ct_packet_available(packet));
 	}
 }
 
@@ -537,13 +537,13 @@ static void test_packet_u64(void) {
 	// put: big endian
 	{
 		ct_packet_put_u64(packet, 0x1122334455667788, CTEndian_Big);
-		cunit_assert_uint16_equal(8, ct_packet_size(packet));
-		cunit_assert_uint16_equal(8, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
+		assert_uint16_eq(8, ct_packet_size(packet));
+		assert_uint16_eq(8, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
 
-		cunit_assert_uint64_equal(0x1122334455667788, ct_packet_get_u64(packet, 0, CTEndian_Big));
+		assert_uint64_eq(0x1122334455667788, ct_packet_get_u64(packet, 0, CTEndian_Big));
 
 		expected[0] = 0x11;
 		expected[1] = 0x22;
@@ -553,25 +553,25 @@ static void test_packet_u64(void) {
 		expected[5] = 0x66;
 		expected[6] = 0x77;
 		expected[7] = 0x88;
-		cunit_assert_string_hex(expected, ct_packet_buffer(packet), 8);
+		assert_str_hex(expected, ct_packet_buffer(packet), 8);
 	}
 
 	// put: little endian
 	{
 		ct_packet_put_u64(packet, 0x1122334455667788, CTEndian_Little);
-		cunit_assert_uint16_equal(16, ct_packet_size(packet));
-		cunit_assert_uint16_equal(16, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 16, ct_packet_available(packet));
+		assert_uint16_eq(16, ct_packet_size(packet));
+		assert_uint16_eq(16, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 16, ct_packet_available(packet));
 
-		cunit_assert_uint64_equal(0x1122334455667788, ct_packet_get_u64(packet, 0, CTEndian_Big));
-		cunit_assert_uint64_equal(0x1122334455667788, ct_packet_get_u64(packet, 8, CTEndian_Little));
-		cunit_assert_uint16_equal(16, ct_packet_size(packet));
-		cunit_assert_uint16_equal(16, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 16, ct_packet_available(packet));
+		assert_uint64_eq(0x1122334455667788, ct_packet_get_u64(packet, 0, CTEndian_Big));
+		assert_uint64_eq(0x1122334455667788, ct_packet_get_u64(packet, 8, CTEndian_Little));
+		assert_uint16_eq(16, ct_packet_size(packet));
+		assert_uint16_eq(16, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 16, ct_packet_available(packet));
 
 		expected[8]  = 0x88;
 		expected[9]  = 0x77;
@@ -581,26 +581,26 @@ static void test_packet_u64(void) {
 		expected[13] = 0x33;
 		expected[14] = 0x22;
 		expected[15] = 0x11;
-		cunit_assert_string_hex(expected, ct_packet_buffer(packet), 16);
+		assert_str_hex(expected, ct_packet_buffer(packet), 16);
 	}
 
 	// take all
 	{
-		cunit_assert_uint64_equal(0x1122334455667788, ct_packet_take_u64(packet, CTEndian_Big));
-		cunit_assert_uint16_equal(8, ct_packet_size(packet));
-		cunit_assert_uint16_equal(16, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(8, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 16, ct_packet_available(packet));
+		assert_uint64_eq(0x1122334455667788, ct_packet_take_u64(packet, CTEndian_Big));
+		assert_uint16_eq(8, ct_packet_size(packet));
+		assert_uint16_eq(16, ct_packet_total_size(packet));
+		assert_uint16_eq(8, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 16, ct_packet_available(packet));
 
-		cunit_assert_string_hex(expected + 8, ct_packet_buffer(packet), 8);
+		assert_str_hex(expected + 8, ct_packet_buffer(packet), 8);
 
-		cunit_assert_uint64_equal(0x1122334455667788, ct_packet_take_u64(packet, CTEndian_Little));
-		cunit_assert_uint16_equal(0, ct_packet_size(packet));
-		cunit_assert_uint16_equal(16, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(16, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 16, ct_packet_available(packet));
+		assert_uint64_eq(0x1122334455667788, ct_packet_take_u64(packet, CTEndian_Little));
+		assert_uint16_eq(0, ct_packet_size(packet));
+		assert_uint16_eq(16, ct_packet_total_size(packet));
+		assert_uint16_eq(16, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 16, ct_packet_available(packet));
 	}
 
 	// set: big endian
@@ -621,14 +621,14 @@ static void test_packet_u64(void) {
 		expected[5] = 0x60;
 		expected[6] = 0x70;
 		expected[7] = 0x80;
-		cunit_assert_string_hex(expected, ct_packet_buffer(packet), 8);
+		assert_str_hex(expected, ct_packet_buffer(packet), 8);
 
 		ct_packet_set_u64(packet, 0, 0x1122334455667788, CTEndian_Big);
-		cunit_assert_uint16_equal(8, ct_packet_size(packet));
-		cunit_assert_uint16_equal(24, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(16, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 24, ct_packet_available(packet));
+		assert_uint16_eq(8, ct_packet_size(packet));
+		assert_uint16_eq(24, ct_packet_total_size(packet));
+		assert_uint16_eq(16, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 24, ct_packet_available(packet));
 
 		expected[0] = 0x11;
 		expected[1] = 0x22;
@@ -638,14 +638,14 @@ static void test_packet_u64(void) {
 		expected[5] = 0x66;
 		expected[6] = 0x77;
 		expected[7] = 0x88;
-		cunit_assert_string_hex(expected, ct_packet_buffer(packet), 8);
+		assert_str_hex(expected, ct_packet_buffer(packet), 8);
 
-		cunit_assert_uint64_equal(0x1122334455667788, ct_packet_take_u64(packet, CTEndian_Big));
-		cunit_assert_uint16_equal(0, ct_packet_size(packet));
-		cunit_assert_uint16_equal(24, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(24, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 24, ct_packet_available(packet));
+		assert_uint64_eq(0x1122334455667788, ct_packet_take_u64(packet, CTEndian_Big));
+		assert_uint16_eq(0, ct_packet_size(packet));
+		assert_uint16_eq(24, ct_packet_total_size(packet));
+		assert_uint16_eq(24, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 24, ct_packet_available(packet));
 	}
 
 	ct_packet_reset(packet);
@@ -653,13 +653,13 @@ static void test_packet_u64(void) {
 	// put: little endian
 	{
 		ct_packet_put_u64(packet, 0x1122334455667788, CTEndian_Little);
-		cunit_assert_uint16_equal(8, ct_packet_size(packet));
-		cunit_assert_uint16_equal(8, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
+		assert_uint16_eq(8, ct_packet_size(packet));
+		assert_uint16_eq(8, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
 
-		cunit_assert_uint64_equal(0x1122334455667788, ct_packet_get_u64(packet, 0, CTEndian_Little));
+		assert_uint64_eq(0x1122334455667788, ct_packet_get_u64(packet, 0, CTEndian_Little));
 
 		expected[0] = 0x88;
 		expected[1] = 0x77;
@@ -669,25 +669,25 @@ static void test_packet_u64(void) {
 		expected[5] = 0x33;
 		expected[6] = 0x22;
 		expected[7] = 0x11;
-		cunit_assert_string_hex(expected, ct_packet_buffer(packet), 8);
+		assert_str_hex(expected, ct_packet_buffer(packet), 8);
 	}
 
 	// put: big endian
 	{
 		ct_packet_put_u64(packet, 0x1122334455667788, CTEndian_Big);
-		cunit_assert_uint16_equal(16, ct_packet_size(packet));
-		cunit_assert_uint16_equal(16, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 16, ct_packet_available(packet));
+		assert_uint16_eq(16, ct_packet_size(packet));
+		assert_uint16_eq(16, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 16, ct_packet_available(packet));
 
-		cunit_assert_uint64_equal(0x1122334455667788, ct_packet_get_u64(packet, 0, CTEndian_Little));
-		cunit_assert_uint64_equal(0x1122334455667788, ct_packet_get_u64(packet, 8, CTEndian_Big));
-		cunit_assert_uint16_equal(16, ct_packet_size(packet));
-		cunit_assert_uint16_equal(16, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 16, ct_packet_available(packet));
+		assert_uint64_eq(0x1122334455667788, ct_packet_get_u64(packet, 0, CTEndian_Little));
+		assert_uint64_eq(0x1122334455667788, ct_packet_get_u64(packet, 8, CTEndian_Big));
+		assert_uint16_eq(16, ct_packet_size(packet));
+		assert_uint16_eq(16, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 16, ct_packet_available(packet));
 
 		expected[8]  = 0x11;
 		expected[9]  = 0x22;
@@ -697,26 +697,26 @@ static void test_packet_u64(void) {
 		expected[13] = 0x66;
 		expected[14] = 0x77;
 		expected[15] = 0x88;
-		cunit_assert_string_hex(expected, ct_packet_buffer(packet), 16);
+		assert_str_hex(expected, ct_packet_buffer(packet), 16);
 	}
 
 	// take all
 	{
-		cunit_assert_uint64_equal(0x1122334455667788, ct_packet_take_u64(packet, CTEndian_Little));
-		cunit_assert_uint16_equal(8, ct_packet_size(packet));
-		cunit_assert_uint16_equal(16, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(8, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 16, ct_packet_available(packet));
+		assert_uint64_eq(0x1122334455667788, ct_packet_take_u64(packet, CTEndian_Little));
+		assert_uint16_eq(8, ct_packet_size(packet));
+		assert_uint16_eq(16, ct_packet_total_size(packet));
+		assert_uint16_eq(8, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 16, ct_packet_available(packet));
 
-		cunit_assert_string_hex(expected + 8, ct_packet_buffer(packet), 8);
+		assert_str_hex(expected + 8, ct_packet_buffer(packet), 8);
 
-		cunit_assert_uint64_equal(0x1122334455667788, ct_packet_take_u64(packet, CTEndian_Big));
-		cunit_assert_uint16_equal(0, ct_packet_size(packet));
-		cunit_assert_uint16_equal(16, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(16, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 16, ct_packet_available(packet));
+		assert_uint64_eq(0x1122334455667788, ct_packet_take_u64(packet, CTEndian_Big));
+		assert_uint16_eq(0, ct_packet_size(packet));
+		assert_uint16_eq(16, ct_packet_total_size(packet));
+		assert_uint16_eq(16, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 16, ct_packet_available(packet));
 	}
 
 	// set: big endian
@@ -737,14 +737,14 @@ static void test_packet_u64(void) {
 		expected[5] = 0x60;
 		expected[6] = 0x70;
 		expected[7] = 0x80;
-		cunit_assert_string_hex(expected, ct_packet_buffer(packet), 8);
+		assert_str_hex(expected, ct_packet_buffer(packet), 8);
 
 		ct_packet_set_u64(packet, 0, 0x1122334455667788, CTEndian_Little);
-		cunit_assert_uint16_equal(8, ct_packet_size(packet));
-		cunit_assert_uint16_equal(24, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(16, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 24, ct_packet_available(packet));
+		assert_uint16_eq(8, ct_packet_size(packet));
+		assert_uint16_eq(24, ct_packet_total_size(packet));
+		assert_uint16_eq(16, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 24, ct_packet_available(packet));
 
 		expected[0] = 0x88;
 		expected[1] = 0x77;
@@ -754,14 +754,14 @@ static void test_packet_u64(void) {
 		expected[5] = 0x33;
 		expected[6] = 0x22;
 		expected[7] = 0x11;
-		cunit_assert_string_hex(expected, ct_packet_buffer(packet), 8);
+		assert_str_hex(expected, ct_packet_buffer(packet), 8);
 
-		cunit_assert_uint64_equal(0x1122334455667788, ct_packet_take_u64(packet, CTEndian_Little));
-		cunit_assert_uint16_equal(0, ct_packet_size(packet));
-		cunit_assert_uint16_equal(24, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(24, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 24, ct_packet_available(packet));
+		assert_uint64_eq(0x1122334455667788, ct_packet_take_u64(packet, CTEndian_Little));
+		assert_uint16_eq(0, ct_packet_size(packet));
+		assert_uint16_eq(24, ct_packet_total_size(packet));
+		assert_uint16_eq(24, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 24, ct_packet_available(packet));
 	}
 }
 
@@ -774,72 +774,72 @@ static void test_packet_float(void) {
 	// put: big endian
 	{
 		ct_packet_put_float(packet, test_value, CTEndian_Big);
-		cunit_assert_uint16_equal(4, ct_packet_size(packet));
-		cunit_assert_uint16_equal(4, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 4, ct_packet_available(packet));
+		assert_uint16_eq(4, ct_packet_size(packet));
+		assert_uint16_eq(4, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 4, ct_packet_available(packet));
 
-		cunit_assert_int_equal(0, isnan(ct_packet_get_float(packet, 0, CTEndian_Big)));
-		cunit_assert_float_equal(test_value, ct_packet_get_float(packet, 0, CTEndian_Big));
-		cunit_assert_float_not_equal(test_value, ct_packet_get_float(packet, 0, CTEndian_Little));
+		assert_int_eq(0, isnan(ct_packet_get_float(packet, 0, CTEndian_Big)));
+		assert_float_eq(test_value, ct_packet_get_float(packet, 0, CTEndian_Big));
+		assert_float_ne(test_value, ct_packet_get_float(packet, 0, CTEndian_Little));
 	}
 
 	// put: little endian
 	{
 		ct_packet_put_float(packet, test_value, CTEndian_Little);
-		cunit_assert_uint16_equal(8, ct_packet_size(packet));
-		cunit_assert_uint16_equal(8, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
+		assert_uint16_eq(8, ct_packet_size(packet));
+		assert_uint16_eq(8, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
 
-		cunit_assert_int_equal(0, isnan(ct_packet_get_float(packet, 0, CTEndian_Big)));
-		cunit_assert_int_equal(0, isnan(ct_packet_get_float(packet, 4, CTEndian_Little)));
-		cunit_assert_float_equal(test_value, ct_packet_get_float(packet, 0, CTEndian_Big));
-		cunit_assert_float_equal(test_value, ct_packet_get_float(packet, 4, CTEndian_Little));
-		cunit_assert_uint16_equal(8, ct_packet_size(packet));
-		cunit_assert_uint16_equal(8, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
+		assert_int_eq(0, isnan(ct_packet_get_float(packet, 0, CTEndian_Big)));
+		assert_int_eq(0, isnan(ct_packet_get_float(packet, 4, CTEndian_Little)));
+		assert_float_eq(test_value, ct_packet_get_float(packet, 0, CTEndian_Big));
+		assert_float_eq(test_value, ct_packet_get_float(packet, 4, CTEndian_Little));
+		assert_uint16_eq(8, ct_packet_size(packet));
+		assert_uint16_eq(8, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
 	}
 
 	// take all
 	{
-		cunit_assert_float_equal(test_value, ct_packet_take_float(packet, CTEndian_Big));
-		cunit_assert_uint16_equal(4, ct_packet_size(packet));
-		cunit_assert_uint16_equal(8, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(4, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
+		assert_float_eq(test_value, ct_packet_take_float(packet, CTEndian_Big));
+		assert_uint16_eq(4, ct_packet_size(packet));
+		assert_uint16_eq(8, ct_packet_total_size(packet));
+		assert_uint16_eq(4, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
 
-		cunit_assert_float_equal(test_value, ct_packet_take_float(packet, CTEndian_Little));
-		cunit_assert_uint16_equal(0, ct_packet_size(packet));
-		cunit_assert_uint16_equal(8, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(8, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
+		assert_float_eq(test_value, ct_packet_take_float(packet, CTEndian_Little));
+		assert_uint16_eq(0, ct_packet_size(packet));
+		assert_uint16_eq(8, ct_packet_total_size(packet));
+		assert_uint16_eq(8, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
 	}
 
 	// set: big endian
 	{
 		ct_packet_put_u32(packet, 0xAABBCCDD, CTEndian_Big);
-		cunit_assert_uint32_equal(0xAABBCCDD, ct_packet_get_u32(packet, 0, CTEndian_Big));
+		assert_uint32_eq(0xAABBCCDD, ct_packet_get_u32(packet, 0, CTEndian_Big));
 
 		ct_packet_set_float(packet, 0, test_value, CTEndian_Big);
-		cunit_assert_uint16_equal(4, ct_packet_size(packet));
-		cunit_assert_uint16_equal(12, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(8, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 12, ct_packet_available(packet));
+		assert_uint16_eq(4, ct_packet_size(packet));
+		assert_uint16_eq(12, ct_packet_total_size(packet));
+		assert_uint16_eq(8, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 12, ct_packet_available(packet));
 
-		cunit_assert_float_equal(test_value, ct_packet_take_float(packet, CTEndian_Big));
-		cunit_assert_uint16_equal(0, ct_packet_size(packet));
-		cunit_assert_uint16_equal(12, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(12, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 12, ct_packet_available(packet));
+		assert_float_eq(test_value, ct_packet_take_float(packet, CTEndian_Big));
+		assert_uint16_eq(0, ct_packet_size(packet));
+		assert_uint16_eq(12, ct_packet_total_size(packet));
+		assert_uint16_eq(12, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 12, ct_packet_available(packet));
 	}
 
 	ct_packet_reset(packet);
@@ -847,72 +847,72 @@ static void test_packet_float(void) {
 	// put: little endian
 	{
 		ct_packet_put_float(packet, test_value, CTEndian_Little);
-		cunit_assert_uint16_equal(4, ct_packet_size(packet));
-		cunit_assert_uint16_equal(4, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 4, ct_packet_available(packet));
+		assert_uint16_eq(4, ct_packet_size(packet));
+		assert_uint16_eq(4, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 4, ct_packet_available(packet));
 
-		cunit_assert_int_equal(0, isnan(ct_packet_get_float(packet, 0, CTEndian_Little)));
-		cunit_assert_float_equal(test_value, ct_packet_get_float(packet, 0, CTEndian_Little));
-		cunit_assert_float_not_equal(test_value, ct_packet_get_float(packet, 0, CTEndian_Big));
+		assert_int_eq(0, isnan(ct_packet_get_float(packet, 0, CTEndian_Little)));
+		assert_float_eq(test_value, ct_packet_get_float(packet, 0, CTEndian_Little));
+		assert_float_ne(test_value, ct_packet_get_float(packet, 0, CTEndian_Big));
 	}
 
 	// put: big endian
 	{
 		ct_packet_put_float(packet, test_value, CTEndian_Big);
-		cunit_assert_uint16_equal(8, ct_packet_size(packet));
-		cunit_assert_uint16_equal(8, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
+		assert_uint16_eq(8, ct_packet_size(packet));
+		assert_uint16_eq(8, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
 
-		cunit_assert_int_equal(0, isnan(ct_packet_get_float(packet, 0, CTEndian_Little)));
-		cunit_assert_int_equal(0, isnan(ct_packet_get_float(packet, 4, CTEndian_Big)));
-		cunit_assert_float_equal(test_value, ct_packet_get_float(packet, 0, CTEndian_Little));
-		cunit_assert_float_equal(test_value, ct_packet_get_float(packet, 4, CTEndian_Big));
-		cunit_assert_uint16_equal(8, ct_packet_size(packet));
-		cunit_assert_uint16_equal(8, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
+		assert_int_eq(0, isnan(ct_packet_get_float(packet, 0, CTEndian_Little)));
+		assert_int_eq(0, isnan(ct_packet_get_float(packet, 4, CTEndian_Big)));
+		assert_float_eq(test_value, ct_packet_get_float(packet, 0, CTEndian_Little));
+		assert_float_eq(test_value, ct_packet_get_float(packet, 4, CTEndian_Big));
+		assert_uint16_eq(8, ct_packet_size(packet));
+		assert_uint16_eq(8, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
 	}
 
 	// take all
 	{
-		cunit_assert_float_equal(test_value, ct_packet_take_float(packet, CTEndian_Little));
-		cunit_assert_uint16_equal(4, ct_packet_size(packet));
-		cunit_assert_uint16_equal(8, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(4, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
+		assert_float_eq(test_value, ct_packet_take_float(packet, CTEndian_Little));
+		assert_uint16_eq(4, ct_packet_size(packet));
+		assert_uint16_eq(8, ct_packet_total_size(packet));
+		assert_uint16_eq(4, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
 
-		cunit_assert_float_equal(test_value, ct_packet_take_float(packet, CTEndian_Big));
-		cunit_assert_uint16_equal(0, ct_packet_size(packet));
-		cunit_assert_uint16_equal(8, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(8, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
+		assert_float_eq(test_value, ct_packet_take_float(packet, CTEndian_Big));
+		assert_uint16_eq(0, ct_packet_size(packet));
+		assert_uint16_eq(8, ct_packet_total_size(packet));
+		assert_uint16_eq(8, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
 	}
 
 	// set: little endian
 	{
 		ct_packet_put_u32(packet, 0xAABBCCDD, CTEndian_Big);
-		cunit_assert_uint32_equal(0xAABBCCDD, ct_packet_get_u32(packet, 0, CTEndian_Big));
+		assert_uint32_eq(0xAABBCCDD, ct_packet_get_u32(packet, 0, CTEndian_Big));
 
 		ct_packet_set_float(packet, 0, test_value, CTEndian_Little);
-		cunit_assert_uint16_equal(4, ct_packet_size(packet));
-		cunit_assert_uint16_equal(12, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(8, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 12, ct_packet_available(packet));
+		assert_uint16_eq(4, ct_packet_size(packet));
+		assert_uint16_eq(12, ct_packet_total_size(packet));
+		assert_uint16_eq(8, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 12, ct_packet_available(packet));
 
-		cunit_assert_float_equal(test_value, ct_packet_take_float(packet, CTEndian_Little));
-		cunit_assert_uint16_equal(0, ct_packet_size(packet));
-		cunit_assert_uint16_equal(12, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(12, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 12, ct_packet_available(packet));
+		assert_float_eq(test_value, ct_packet_take_float(packet, CTEndian_Little));
+		assert_uint16_eq(0, ct_packet_size(packet));
+		assert_uint16_eq(12, ct_packet_total_size(packet));
+		assert_uint16_eq(12, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 12, ct_packet_available(packet));
 	}
 }
 
@@ -925,72 +925,72 @@ static void test_packet_double(void) {
 	// put: big endian
 	{
 		ct_packet_put_double(packet, test_value, CTEndian_Big);
-		cunit_assert_uint16_equal(8, ct_packet_size(packet));
-		cunit_assert_uint16_equal(8, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
+		assert_uint16_eq(8, ct_packet_size(packet));
+		assert_uint16_eq(8, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
 
-		cunit_assert_int_equal(0, isnan(ct_packet_get_double(packet, 0, CTEndian_Big)));
-		cunit_assert_double_equal(test_value, ct_packet_get_double(packet, 0, CTEndian_Big));
-		cunit_assert_double_not_equal(test_value, ct_packet_get_double(packet, 0, CTEndian_Little));
+		assert_int_eq(0, isnan(ct_packet_get_double(packet, 0, CTEndian_Big)));
+		assert_double_eq(test_value, ct_packet_get_double(packet, 0, CTEndian_Big));
+		assert_double_ne(test_value, ct_packet_get_double(packet, 0, CTEndian_Little));
 	}
 
 	// put: little endian
 	{
 		ct_packet_put_double(packet, test_value, CTEndian_Little);
-		cunit_assert_uint16_equal(16, ct_packet_size(packet));
-		cunit_assert_uint16_equal(16, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 16, ct_packet_available(packet));
+		assert_uint16_eq(16, ct_packet_size(packet));
+		assert_uint16_eq(16, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 16, ct_packet_available(packet));
 
-		cunit_assert_int_equal(0, isnan(ct_packet_get_double(packet, 0, CTEndian_Big)));
-		cunit_assert_int_equal(0, isnan(ct_packet_get_double(packet, 8, CTEndian_Little)));
-		cunit_assert_double_equal(test_value, ct_packet_get_double(packet, 0, CTEndian_Big));
-		cunit_assert_double_equal(test_value, ct_packet_get_double(packet, 8, CTEndian_Little));
-		cunit_assert_uint16_equal(16, ct_packet_size(packet));
-		cunit_assert_uint16_equal(16, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 16, ct_packet_available(packet));
+		assert_int_eq(0, isnan(ct_packet_get_double(packet, 0, CTEndian_Big)));
+		assert_int_eq(0, isnan(ct_packet_get_double(packet, 8, CTEndian_Little)));
+		assert_double_eq(test_value, ct_packet_get_double(packet, 0, CTEndian_Big));
+		assert_double_eq(test_value, ct_packet_get_double(packet, 8, CTEndian_Little));
+		assert_uint16_eq(16, ct_packet_size(packet));
+		assert_uint16_eq(16, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 16, ct_packet_available(packet));
 	}
 
 	// take all
 	{
-		cunit_assert_double_equal(test_value, ct_packet_take_double(packet, CTEndian_Big));
-		cunit_assert_uint16_equal(8, ct_packet_size(packet));
-		cunit_assert_uint16_equal(16, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(8, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 16, ct_packet_available(packet));
+		assert_double_eq(test_value, ct_packet_take_double(packet, CTEndian_Big));
+		assert_uint16_eq(8, ct_packet_size(packet));
+		assert_uint16_eq(16, ct_packet_total_size(packet));
+		assert_uint16_eq(8, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 16, ct_packet_available(packet));
 
-		cunit_assert_double_equal(test_value, ct_packet_take_double(packet, CTEndian_Little));
-		cunit_assert_uint16_equal(0, ct_packet_size(packet));
-		cunit_assert_uint16_equal(16, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(16, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 16, ct_packet_available(packet));
+		assert_double_eq(test_value, ct_packet_take_double(packet, CTEndian_Little));
+		assert_uint16_eq(0, ct_packet_size(packet));
+		assert_uint16_eq(16, ct_packet_total_size(packet));
+		assert_uint16_eq(16, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 16, ct_packet_available(packet));
 	}
 
 	// set: big endian
 	{
 		ct_packet_put_u64(packet, 0x1122334455667788, CTEndian_Big);
-		cunit_assert_uint64_equal(0x1122334455667788, ct_packet_get_u64(packet, 0, CTEndian_Big));
+		assert_uint64_eq(0x1122334455667788, ct_packet_get_u64(packet, 0, CTEndian_Big));
 
 		ct_packet_set_double(packet, 0, test_value, CTEndian_Big);
-		cunit_assert_uint16_equal(8, ct_packet_size(packet));
-		cunit_assert_uint16_equal(24, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(16, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 24, ct_packet_available(packet));
+		assert_uint16_eq(8, ct_packet_size(packet));
+		assert_uint16_eq(24, ct_packet_total_size(packet));
+		assert_uint16_eq(16, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 24, ct_packet_available(packet));
 
-		cunit_assert_double_equal(test_value, ct_packet_take_double(packet, CTEndian_Big));
-		cunit_assert_uint16_equal(0, ct_packet_size(packet));
-		cunit_assert_uint16_equal(24, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(24, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 24, ct_packet_available(packet));
+		assert_double_eq(test_value, ct_packet_take_double(packet, CTEndian_Big));
+		assert_uint16_eq(0, ct_packet_size(packet));
+		assert_uint16_eq(24, ct_packet_total_size(packet));
+		assert_uint16_eq(24, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 24, ct_packet_available(packet));
 	}
 
 	ct_packet_reset(packet);
@@ -998,72 +998,72 @@ static void test_packet_double(void) {
 	// put: little endian
 	{
 		ct_packet_put_double(packet, test_value, CTEndian_Little);
-		cunit_assert_uint16_equal(8, ct_packet_size(packet));
-		cunit_assert_uint16_equal(8, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
+		assert_uint16_eq(8, ct_packet_size(packet));
+		assert_uint16_eq(8, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
 
-		cunit_assert_int_equal(0, isnan(ct_packet_get_double(packet, 0, CTEndian_Little)));
-		cunit_assert_double_equal(test_value, ct_packet_get_double(packet, 0, CTEndian_Little));
-		cunit_assert_double_not_equal(test_value, ct_packet_get_double(packet, 0, CTEndian_Big));
+		assert_int_eq(0, isnan(ct_packet_get_double(packet, 0, CTEndian_Little)));
+		assert_double_eq(test_value, ct_packet_get_double(packet, 0, CTEndian_Little));
+		assert_double_ne(test_value, ct_packet_get_double(packet, 0, CTEndian_Big));
 	}
 
 	// put: big endian
 	{
 		ct_packet_put_double(packet, test_value, CTEndian_Big);
-		cunit_assert_uint16_equal(16, ct_packet_size(packet));
-		cunit_assert_uint16_equal(16, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 16, ct_packet_available(packet));
+		assert_uint16_eq(16, ct_packet_size(packet));
+		assert_uint16_eq(16, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 16, ct_packet_available(packet));
 
-		cunit_assert_int_equal(0, isnan(ct_packet_get_double(packet, 0, CTEndian_Little)));
-		cunit_assert_int_equal(0, isnan(ct_packet_get_double(packet, 8, CTEndian_Big)));
-		cunit_assert_double_equal(test_value, ct_packet_get_double(packet, 0, CTEndian_Little));
-		cunit_assert_double_equal(test_value, ct_packet_get_double(packet, 8, CTEndian_Big));
-		cunit_assert_uint16_equal(16, ct_packet_size(packet));
-		cunit_assert_uint16_equal(16, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 16, ct_packet_available(packet));
+		assert_int_eq(0, isnan(ct_packet_get_double(packet, 0, CTEndian_Little)));
+		assert_int_eq(0, isnan(ct_packet_get_double(packet, 8, CTEndian_Big)));
+		assert_double_eq(test_value, ct_packet_get_double(packet, 0, CTEndian_Little));
+		assert_double_eq(test_value, ct_packet_get_double(packet, 8, CTEndian_Big));
+		assert_uint16_eq(16, ct_packet_size(packet));
+		assert_uint16_eq(16, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 16, ct_packet_available(packet));
 	}
 
 	// take all
 	{
-		cunit_assert_double_equal(test_value, ct_packet_take_double(packet, CTEndian_Little));
-		cunit_assert_uint16_equal(8, ct_packet_size(packet));
-		cunit_assert_uint16_equal(16, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(8, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 16, ct_packet_available(packet));
+		assert_double_eq(test_value, ct_packet_take_double(packet, CTEndian_Little));
+		assert_uint16_eq(8, ct_packet_size(packet));
+		assert_uint16_eq(16, ct_packet_total_size(packet));
+		assert_uint16_eq(8, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 16, ct_packet_available(packet));
 
-		cunit_assert_double_equal(test_value, ct_packet_take_double(packet, CTEndian_Big));
-		cunit_assert_uint16_equal(0, ct_packet_size(packet));
-		cunit_assert_uint16_equal(16, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(16, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 16, ct_packet_available(packet));
+		assert_double_eq(test_value, ct_packet_take_double(packet, CTEndian_Big));
+		assert_uint16_eq(0, ct_packet_size(packet));
+		assert_uint16_eq(16, ct_packet_total_size(packet));
+		assert_uint16_eq(16, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 16, ct_packet_available(packet));
 	}
 
 	// set: little endian
 	{
 		ct_packet_put_u64(packet, 0x1122334455667788, CTEndian_Big);
-		cunit_assert_uint64_equal(0x1122334455667788, ct_packet_get_u64(packet, 0, CTEndian_Big));
+		assert_uint64_eq(0x1122334455667788, ct_packet_get_u64(packet, 0, CTEndian_Big));
 
 		ct_packet_set_double(packet, 0, test_value, CTEndian_Little);
-		cunit_assert_uint16_equal(8, ct_packet_size(packet));
-		cunit_assert_uint16_equal(24, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(16, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 24, ct_packet_available(packet));
+		assert_uint16_eq(8, ct_packet_size(packet));
+		assert_uint16_eq(24, ct_packet_total_size(packet));
+		assert_uint16_eq(16, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 24, ct_packet_available(packet));
 
-		cunit_assert_double_equal(test_value, ct_packet_take_double(packet, CTEndian_Little));
-		cunit_assert_uint16_equal(0, ct_packet_size(packet));
-		cunit_assert_uint16_equal(24, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(24, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 24, ct_packet_available(packet));
+		assert_double_eq(test_value, ct_packet_take_double(packet, CTEndian_Little));
+		assert_uint16_eq(0, ct_packet_size(packet));
+		assert_uint16_eq(24, ct_packet_total_size(packet));
+		assert_uint16_eq(24, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 24, ct_packet_available(packet));
 	}
 }
 
@@ -1076,50 +1076,50 @@ static void test_packet_u8s(void) {
 
 	{
 		const uint16_t write_result = ct_packet_put_u8s(packet, test_array, 5);
-		cunit_assert_uint16_equal(5, write_result);
-		cunit_assert_uint16_equal(5, ct_packet_size(packet));
-		cunit_assert_uint16_equal(5, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 5, ct_packet_available(packet));
+		assert_uint16_eq(5, write_result);
+		assert_uint16_eq(5, ct_packet_size(packet));
+		assert_uint16_eq(5, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 5, ct_packet_available(packet));
 	}
 
 	{
 		memset(read_array, 0, sizeof(read_array));
 		const uint16_t read_result = ct_packet_get_u8s(packet, 0, read_array, 10);
-		cunit_assert_uint16_equal(5, read_result);
-		cunit_assert_uint16_equal(5, ct_packet_size(packet));
-		cunit_assert_uint16_equal(5, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 5, ct_packet_available(packet));
+		assert_uint16_eq(5, read_result);
+		assert_uint16_eq(5, ct_packet_size(packet));
+		assert_uint16_eq(5, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 5, ct_packet_available(packet));
 
 		for (uint16_t i = 0; i < 5; i++) {
-			cunit_assert_uint8_equal(test_array[i], read_array[i]);
+			assert_uint8_eq(test_array[i], read_array[i]);
 		}
 	}
 
 	{
 		const uint16_t write_result = ct_packet_put_u8s(packet, test_array, 5);
-		cunit_assert_uint16_equal(5, write_result);
-		cunit_assert_uint16_equal(10, ct_packet_size(packet));
-		cunit_assert_uint16_equal(10, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 10, ct_packet_available(packet));
+		assert_uint16_eq(5, write_result);
+		assert_uint16_eq(10, ct_packet_size(packet));
+		assert_uint16_eq(10, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 10, ct_packet_available(packet));
 	}
 
 	{
 		memset(read_array, 0, sizeof(read_array));
 		const uint16_t read_result = ct_packet_get_u8s(packet, 0, read_array, 10);
-		cunit_assert_uint16_equal(10, ct_packet_size(packet));
-		cunit_assert_uint16_equal(10, read_result);
+		assert_uint16_eq(10, ct_packet_size(packet));
+		assert_uint16_eq(10, read_result);
 
 		for (uint16_t i = 0; i < 5; i++) {
-			cunit_assert_uint8_equal(test_array[i], read_array[i]);
+			assert_uint8_eq(test_array[i], read_array[i]);
 		}
 		for (uint16_t i = 0; i < 5; i++) {
-			cunit_assert_uint8_equal(test_array[i], read_array[i + 5]);
+			assert_uint8_eq(test_array[i], read_array[i + 5]);
 		}
 	}
 
@@ -1128,15 +1128,15 @@ static void test_packet_u8s(void) {
 			memset(read_array, 0, sizeof(read_array));
 			const uint16_t read_length = end - start;
 			const uint16_t read_result = ct_packet_get_u8s(packet, start, read_array, read_length);
-			cunit_assert_uint16_equal(read_length, read_result);
-			cunit_assert_uint16_equal(10, ct_packet_size(packet));
-			cunit_assert_uint16_equal(10, ct_packet_total_size(packet));
-			cunit_assert_uint16_equal(0, ct_packet_past(packet));
-			cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-			cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 10, ct_packet_available(packet));
+			assert_uint16_eq(read_length, read_result);
+			assert_uint16_eq(10, ct_packet_size(packet));
+			assert_uint16_eq(10, ct_packet_total_size(packet));
+			assert_uint16_eq(0, ct_packet_past(packet));
+			assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+			assert_uint16_eq(MAX_BUFFER_SIZE - 10, ct_packet_available(packet));
 
 			for (uint16_t i = 0; i < read_length; i++) {
-				cunit_assert_uint8_equal(test_array[(start + i) % 5], read_array[i]);
+				assert_uint8_eq(test_array[(start + i) % 5], read_array[i]);
 			}
 		}
 	}
@@ -1144,18 +1144,18 @@ static void test_packet_u8s(void) {
 	{
 		memset(read_array, 0, sizeof(read_array));
 		const uint16_t read_result = ct_packet_take_u8s(packet, read_array, 10);
-		cunit_assert_uint16_equal(10, read_result);
-		cunit_assert_uint16_equal(0, ct_packet_size(packet));
-		cunit_assert_uint16_equal(10, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(10, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 10, ct_packet_available(packet));
+		assert_uint16_eq(10, read_result);
+		assert_uint16_eq(0, ct_packet_size(packet));
+		assert_uint16_eq(10, ct_packet_total_size(packet));
+		assert_uint16_eq(10, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 10, ct_packet_available(packet));
 
 		for (uint16_t i = 0; i < 5; i++) {
-			cunit_assert_uint8_equal(test_array[i], read_array[i]);
+			assert_uint8_eq(test_array[i], read_array[i]);
 		}
 		for (uint16_t i = 0; i < 5; i++) {
-			cunit_assert_uint8_equal(test_array[i], read_array[i + 5]);
+			assert_uint8_eq(test_array[i], read_array[i + 5]);
 		}
 	}
 }
@@ -1170,64 +1170,64 @@ static void test_packet_u16s(void) {
 	// put: big endian
 	{
 		const uint16_t write_result = ct_packet_put_u16s(packet, test_array, 5, CTEndian_Big);
-		cunit_assert_uint16_equal(5, write_result);
-		cunit_assert_uint16_equal(10, ct_packet_size(packet));
-		cunit_assert_uint16_equal(10, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 10, ct_packet_available(packet));
+		assert_uint16_eq(5, write_result);
+		assert_uint16_eq(10, ct_packet_size(packet));
+		assert_uint16_eq(10, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 10, ct_packet_available(packet));
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
 		const uint16_t read_result = ct_packet_get_u16s(packet, 0, read_array, 10, CTEndian_Big);
-		cunit_assert_uint16_equal(5, read_result);
-		cunit_assert_uint16_equal(10, ct_packet_size(packet));
-		cunit_assert_uint16_equal(10, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 10, ct_packet_available(packet));
+		assert_uint16_eq(5, read_result);
+		assert_uint16_eq(10, ct_packet_size(packet));
+		assert_uint16_eq(10, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 10, ct_packet_available(packet));
 
 		for (uint16_t i = 0; i < 5; i++) {
-			cunit_assert_uint16_equal(test_array[i], read_array[i]);
+			assert_uint16_eq(test_array[i], read_array[i]);
 		}
 	}
 
 	// put: little endian
 	{
 		const uint16_t write_result = ct_packet_put_u16s(packet, test_array, 5, CTEndian_Little);
-		cunit_assert_uint16_equal(5, write_result);
-		cunit_assert_uint16_equal(20, ct_packet_size(packet));
-		cunit_assert_uint16_equal(20, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 20, ct_packet_available(packet));
+		assert_uint16_eq(5, write_result);
+		assert_uint16_eq(20, ct_packet_size(packet));
+		assert_uint16_eq(20, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 20, ct_packet_available(packet));
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
 		const uint16_t read_result = ct_packet_get_u16s(packet, 0, read_array, 5, CTEndian_Big);
-		cunit_assert_uint16_equal(5, read_result);
-		cunit_assert_uint16_equal(20, ct_packet_size(packet));
-		cunit_assert_uint16_equal(20, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 20, ct_packet_available(packet));
+		assert_uint16_eq(5, read_result);
+		assert_uint16_eq(20, ct_packet_size(packet));
+		assert_uint16_eq(20, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 20, ct_packet_available(packet));
 
 		for (uint16_t i = 0; i < 5; i++) {
-			cunit_assert_uint16_equal(test_array[i], read_array[i]);
+			assert_uint16_eq(test_array[i], read_array[i]);
 		}
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
 		const uint16_t read_result = ct_packet_get_u16s(packet, 0, read_array, 10, CTEndian_Little);
-		cunit_assert_uint16_equal(10, read_result);
-		cunit_assert_uint16_equal(20, ct_packet_size(packet));
-		cunit_assert_uint16_equal(20, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 20, ct_packet_available(packet));
+		assert_uint16_eq(10, read_result);
+		assert_uint16_eq(20, ct_packet_size(packet));
+		assert_uint16_eq(20, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 20, ct_packet_available(packet));
 
 		for (uint16_t i = 0; i < 5; i++) {
-			cunit_assert_uint16_equal(test_array[i], read_array[i + 5]);
+			assert_uint16_eq(test_array[i], read_array[i + 5]);
 		}
 	}
 
@@ -1238,15 +1238,15 @@ static void test_packet_u16s(void) {
 				const uint16_t read_length = end - start;
 				const uint16_t read_result =
 					ct_packet_get_u16s(packet, start << 1, read_array, read_length, CTEndian_Big);
-				cunit_assert_uint16_equal(read_length, read_result);
-				cunit_assert_uint16_equal(20, ct_packet_size(packet));
-				cunit_assert_uint16_equal(20, ct_packet_total_size(packet));
-				cunit_assert_uint16_equal(0, ct_packet_past(packet));
-				cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-				cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 20, ct_packet_available(packet));
+				assert_uint16_eq(read_length, read_result);
+				assert_uint16_eq(20, ct_packet_size(packet));
+				assert_uint16_eq(20, ct_packet_total_size(packet));
+				assert_uint16_eq(0, ct_packet_past(packet));
+				assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+				assert_uint16_eq(MAX_BUFFER_SIZE - 20, ct_packet_available(packet));
 
 				for (uint16_t i = 0; i < read_length && start + i < 5; i++) {
-					cunit_assert_uint16_equal(test_array[start + i], read_array[i],
+					assert_uint16_eq(test_array[start + i], read_array[i],
 											   "start = %u, end = %u, read_length = %u, i = %u\n", start, end,
 											   read_length, i);
 				}
@@ -1256,18 +1256,18 @@ static void test_packet_u16s(void) {
 				const uint16_t read_length = end - start;
 				const uint16_t read_result =
 					ct_packet_get_u16s(packet, start << 1, read_array, read_length, CTEndian_Little);
-				cunit_assert_uint16_equal(read_length, read_result);
-				cunit_assert_uint16_equal(20, ct_packet_size(packet));
-				cunit_assert_uint16_equal(20, ct_packet_total_size(packet));
-				cunit_assert_uint16_equal(0, ct_packet_past(packet));
-				cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-				cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 20, ct_packet_available(packet));
+				assert_uint16_eq(read_length, read_result);
+				assert_uint16_eq(20, ct_packet_size(packet));
+				assert_uint16_eq(20, ct_packet_total_size(packet));
+				assert_uint16_eq(0, ct_packet_past(packet));
+				assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+				assert_uint16_eq(MAX_BUFFER_SIZE - 20, ct_packet_available(packet));
 
 				for (uint16_t i = 0; i < read_length; i++) {
 					if (start + i < 5) {
 						continue;
 					}
-					cunit_assert_uint16_equal(test_array[(start + i) - 5], read_array[i],
+					assert_uint16_eq(test_array[(start + i) - 5], read_array[i],
 											   "start = %u, end = %u, read_length = %u, i = %u\n", start, end,
 											   read_length, i);
 				}
@@ -1279,15 +1279,15 @@ static void test_packet_u16s(void) {
 	{
 		memset(read_array, 0, sizeof(read_array));
 		const uint16_t read_result = ct_packet_take_u16s(packet, read_array, 5, CTEndian_Big);
-		cunit_assert_uint16_equal(5, read_result);
-		cunit_assert_uint16_equal(10, ct_packet_size(packet));
-		cunit_assert_uint16_equal(20, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(10, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 20, ct_packet_available(packet));
+		assert_uint16_eq(5, read_result);
+		assert_uint16_eq(10, ct_packet_size(packet));
+		assert_uint16_eq(20, ct_packet_total_size(packet));
+		assert_uint16_eq(10, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 20, ct_packet_available(packet));
 
 		for (uint16_t i = 0; i < 5; i++) {
-			cunit_assert_uint16_equal(test_array[i], read_array[i]);
+			assert_uint16_eq(test_array[i], read_array[i]);
 		}
 	}
 
@@ -1295,15 +1295,15 @@ static void test_packet_u16s(void) {
 	{
 		memset(read_array, 0, sizeof(read_array));
 		const uint16_t read_result = ct_packet_take_u16s(packet, read_array, 5, CTEndian_Little);
-		cunit_assert_uint16_equal(5, read_result);
-		cunit_assert_uint16_equal(0, ct_packet_size(packet));
-		cunit_assert_uint16_equal(20, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(20, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 20, ct_packet_available(packet));
+		assert_uint16_eq(5, read_result);
+		assert_uint16_eq(0, ct_packet_size(packet));
+		assert_uint16_eq(20, ct_packet_total_size(packet));
+		assert_uint16_eq(20, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 20, ct_packet_available(packet));
 
 		for (uint16_t i = 0; i < 5; i++) {
-			cunit_assert_uint16_equal(test_array[i], read_array[i]);
+			assert_uint16_eq(test_array[i], read_array[i]);
 		}
 	}
 }
@@ -1318,64 +1318,64 @@ static void test_packet_u32s(void) {
 	// put: big endian
 	{
 		const uint16_t write_result = ct_packet_put_u32s(packet, test_array, 5, CTEndian_Big);
-		cunit_assert_uint16_equal(5, write_result);
-		cunit_assert_uint16_equal(20, ct_packet_size(packet));
-		cunit_assert_uint16_equal(20, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 20, ct_packet_available(packet));
+		assert_uint16_eq(5, write_result);
+		assert_uint16_eq(20, ct_packet_size(packet));
+		assert_uint16_eq(20, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 20, ct_packet_available(packet));
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
 		const uint16_t read_result = ct_packet_get_u32s(packet, 0, read_array, 10, CTEndian_Big);
-		cunit_assert_uint16_equal(5, read_result);
-		cunit_assert_uint16_equal(20, ct_packet_size(packet));
-		cunit_assert_uint16_equal(20, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 20, ct_packet_available(packet));
+		assert_uint16_eq(5, read_result);
+		assert_uint16_eq(20, ct_packet_size(packet));
+		assert_uint16_eq(20, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 20, ct_packet_available(packet));
 
 		for (uint16_t i = 0; i < 5; i++) {
-			cunit_assert_uint32_equal(test_array[i], read_array[i]);
+			assert_uint32_eq(test_array[i], read_array[i]);
 		}
 	}
 
 	// put: little endian
 	{
 		const uint16_t write_result = ct_packet_put_u32s(packet, test_array, 5, CTEndian_Little);
-		cunit_assert_uint16_equal(5, write_result);
-		cunit_assert_uint16_equal(40, ct_packet_size(packet));
-		cunit_assert_uint16_equal(40, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 40, ct_packet_available(packet));
+		assert_uint16_eq(5, write_result);
+		assert_uint16_eq(40, ct_packet_size(packet));
+		assert_uint16_eq(40, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 40, ct_packet_available(packet));
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
 		const uint16_t read_result = ct_packet_get_u32s(packet, 0, read_array, 10, CTEndian_Big);
-		cunit_assert_uint16_equal(10, read_result);
-		cunit_assert_uint16_equal(40, ct_packet_size(packet));
-		cunit_assert_uint16_equal(40, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 40, ct_packet_available(packet));
+		assert_uint16_eq(10, read_result);
+		assert_uint16_eq(40, ct_packet_size(packet));
+		assert_uint16_eq(40, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 40, ct_packet_available(packet));
 
 		for (uint16_t i = 0; i < 5; i++) {
-			cunit_assert_uint32_equal(test_array[i], read_array[i]);
+			assert_uint32_eq(test_array[i], read_array[i]);
 		}
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
 		const uint16_t read_result = ct_packet_get_u32s(packet, 0, read_array, 10, CTEndian_Little);
-		cunit_assert_uint16_equal(10, read_result);
-		cunit_assert_uint16_equal(40, ct_packet_size(packet));
-		cunit_assert_uint16_equal(40, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 40, ct_packet_available(packet));
+		assert_uint16_eq(10, read_result);
+		assert_uint16_eq(40, ct_packet_size(packet));
+		assert_uint16_eq(40, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 40, ct_packet_available(packet));
 
 		for (uint16_t i = 0; i < 5; i++) {
-			cunit_assert_uint32_equal(test_array[i], read_array[i + 5]);
+			assert_uint32_eq(test_array[i], read_array[i + 5]);
 		}
 	}
 
@@ -1386,15 +1386,15 @@ static void test_packet_u32s(void) {
 				const uint16_t read_length = end - start;
 				const uint16_t read_result =
 					ct_packet_get_u32s(packet, start << 2, read_array, read_length, CTEndian_Big);
-				cunit_assert_uint16_equal(read_length, read_result);
-				cunit_assert_uint16_equal(40, ct_packet_size(packet));
-				cunit_assert_uint16_equal(40, ct_packet_total_size(packet));
-				cunit_assert_uint16_equal(0, ct_packet_past(packet));
-				cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-				cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 40, ct_packet_available(packet));
+				assert_uint16_eq(read_length, read_result);
+				assert_uint16_eq(40, ct_packet_size(packet));
+				assert_uint16_eq(40, ct_packet_total_size(packet));
+				assert_uint16_eq(0, ct_packet_past(packet));
+				assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+				assert_uint16_eq(MAX_BUFFER_SIZE - 40, ct_packet_available(packet));
 
 				for (uint16_t i = 0; i < read_length && start + i < 5; i++) {
-					cunit_assert_uint32_equal(test_array[start + i], read_array[i],
+					assert_uint32_eq(test_array[start + i], read_array[i],
 											   "start = %u, end = %u, read_length = %u, i = %u\n", start, end,
 											   read_length, i);
 				}
@@ -1404,18 +1404,18 @@ static void test_packet_u32s(void) {
 				const uint16_t read_length = end - start;
 				const uint16_t read_result =
 					ct_packet_get_u32s(packet, start << 2, read_array, read_length, CTEndian_Little);
-				cunit_assert_uint16_equal(read_length, read_result);
-				cunit_assert_uint16_equal(40, ct_packet_size(packet));
-				cunit_assert_uint16_equal(40, ct_packet_total_size(packet));
-				cunit_assert_uint16_equal(0, ct_packet_past(packet));
-				cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-				cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 40, ct_packet_available(packet));
+				assert_uint16_eq(read_length, read_result);
+				assert_uint16_eq(40, ct_packet_size(packet));
+				assert_uint16_eq(40, ct_packet_total_size(packet));
+				assert_uint16_eq(0, ct_packet_past(packet));
+				assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+				assert_uint16_eq(MAX_BUFFER_SIZE - 40, ct_packet_available(packet));
 
 				for (uint16_t i = 0; i < read_length; i++) {
 					if (start + i < 5) {
 						continue;
 					}
-					cunit_assert_uint32_equal(test_array[(start + i) - 5], read_array[i],
+					assert_uint32_eq(test_array[(start + i) - 5], read_array[i],
 											   "start = %u, end = %u, read_length = %u, i = %u\n", start, end,
 											   read_length, i);
 				}
@@ -1427,15 +1427,15 @@ static void test_packet_u32s(void) {
 	{
 		memset(read_array, 0, sizeof(read_array));
 		const uint16_t read_result = ct_packet_take_u32s(packet, read_array, 5, CTEndian_Big);
-		cunit_assert_uint16_equal(5, read_result);
-		cunit_assert_uint16_equal(20, ct_packet_size(packet));
-		cunit_assert_uint16_equal(40, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(20, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 40, ct_packet_available(packet));
+		assert_uint16_eq(5, read_result);
+		assert_uint16_eq(20, ct_packet_size(packet));
+		assert_uint16_eq(40, ct_packet_total_size(packet));
+		assert_uint16_eq(20, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 40, ct_packet_available(packet));
 
 		for (uint16_t i = 0; i < 5; i++) {
-			cunit_assert_uint32_equal(test_array[i], read_array[i]);
+			assert_uint32_eq(test_array[i], read_array[i]);
 		}
 	}
 
@@ -1443,15 +1443,15 @@ static void test_packet_u32s(void) {
 	{
 		memset(read_array, 0, sizeof(read_array));
 		const uint16_t read_result = ct_packet_take_u32s(packet, read_array, 5, CTEndian_Little);
-		cunit_assert_uint16_equal(5, read_result);
-		cunit_assert_uint16_equal(0, ct_packet_size(packet));
-		cunit_assert_uint16_equal(40, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(40, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 40, ct_packet_available(packet));
+		assert_uint16_eq(5, read_result);
+		assert_uint16_eq(0, ct_packet_size(packet));
+		assert_uint16_eq(40, ct_packet_total_size(packet));
+		assert_uint16_eq(40, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 40, ct_packet_available(packet));
 
 		for (uint16_t i = 0; i < 5; i++) {
-			cunit_assert_uint32_equal(test_array[i], read_array[i]);
+			assert_uint32_eq(test_array[i], read_array[i]);
 		}
 	}
 }
@@ -1466,64 +1466,64 @@ static void test_packet_u64s(void) {
 	// put: big endian
 	{
 		const uint16_t write_result = ct_packet_put_u64s(packet, test_array, 5, CTEndian_Big);
-		cunit_assert_uint16_equal(5, write_result);
-		cunit_assert_uint16_equal(40, ct_packet_size(packet));
-		cunit_assert_uint16_equal(40, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 40, ct_packet_available(packet));
+		assert_uint16_eq(5, write_result);
+		assert_uint16_eq(40, ct_packet_size(packet));
+		assert_uint16_eq(40, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 40, ct_packet_available(packet));
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
 		const uint16_t read_result = ct_packet_get_u64s(packet, 0, read_array, 10, CTEndian_Big);
-		cunit_assert_uint16_equal(5, read_result);
-		cunit_assert_uint16_equal(40, ct_packet_size(packet));
-		cunit_assert_uint16_equal(40, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 40, ct_packet_available(packet));
+		assert_uint16_eq(5, read_result);
+		assert_uint16_eq(40, ct_packet_size(packet));
+		assert_uint16_eq(40, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 40, ct_packet_available(packet));
 
 		for (uint16_t i = 0; i < 5; i++) {
-			cunit_assert_uint64_equal(test_array[i], read_array[i]);
+			assert_uint64_eq(test_array[i], read_array[i]);
 		}
 	}
 
 	// put: little endian
 	{
 		const uint16_t write_result = ct_packet_put_u64s(packet, test_array, 5, CTEndian_Little);
-		cunit_assert_uint16_equal(5, write_result);
-		cunit_assert_uint16_equal(80, ct_packet_size(packet));
-		cunit_assert_uint16_equal(80, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 80, ct_packet_available(packet));
+		assert_uint16_eq(5, write_result);
+		assert_uint16_eq(80, ct_packet_size(packet));
+		assert_uint16_eq(80, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 80, ct_packet_available(packet));
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
 		const uint16_t read_result = ct_packet_get_u64s(packet, 0, read_array, 10, CTEndian_Big);
-		cunit_assert_uint16_equal(10, read_result);
-		cunit_assert_uint16_equal(80, ct_packet_size(packet));
-		cunit_assert_uint16_equal(80, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 80, ct_packet_available(packet));
+		assert_uint16_eq(10, read_result);
+		assert_uint16_eq(80, ct_packet_size(packet));
+		assert_uint16_eq(80, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 80, ct_packet_available(packet));
 
 		for (uint16_t i = 0; i < 5; i++) {
-			cunit_assert_uint64_equal(test_array[i], read_array[i]);
+			assert_uint64_eq(test_array[i], read_array[i]);
 		}
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
 		const uint16_t read_result = ct_packet_get_u64s(packet, 40, read_array, 10, CTEndian_Little);
-		cunit_assert_uint16_equal(5, read_result);
-		cunit_assert_uint16_equal(80, ct_packet_size(packet));
-		cunit_assert_uint16_equal(80, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 80, ct_packet_available(packet));
+		assert_uint16_eq(5, read_result);
+		assert_uint16_eq(80, ct_packet_size(packet));
+		assert_uint16_eq(80, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 80, ct_packet_available(packet));
 
 		for (uint16_t i = 0; i < 5; i++) {
-			cunit_assert_uint64_equal(test_array[i], read_array[i]);
+			assert_uint64_eq(test_array[i], read_array[i]);
 		}
 	}
 
@@ -1534,15 +1534,15 @@ static void test_packet_u64s(void) {
 				const uint16_t read_length = end - start;
 				const uint16_t read_result =
 					ct_packet_get_u64s(packet, start << 3, read_array, read_length, CTEndian_Big);
-				cunit_assert_uint16_equal(read_length, read_result);
-				cunit_assert_uint16_equal(80, ct_packet_size(packet));
-				cunit_assert_uint16_equal(80, ct_packet_total_size(packet));
-				cunit_assert_uint16_equal(0, ct_packet_past(packet));
-				cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-				cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 80, ct_packet_available(packet));
+				assert_uint16_eq(read_length, read_result);
+				assert_uint16_eq(80, ct_packet_size(packet));
+				assert_uint16_eq(80, ct_packet_total_size(packet));
+				assert_uint16_eq(0, ct_packet_past(packet));
+				assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+				assert_uint16_eq(MAX_BUFFER_SIZE - 80, ct_packet_available(packet));
 
 				for (uint16_t i = 0; i < read_length && start + i < 5; i++) {
-					cunit_assert_uint64_equal(test_array[start + i], read_array[i],
+					assert_uint64_eq(test_array[start + i], read_array[i],
 											   "start = %u, end = %u, read_length = %u, i = %u\n", start, end,
 											   read_length, i);
 				}
@@ -1552,18 +1552,18 @@ static void test_packet_u64s(void) {
 				const uint16_t read_length = end - start;
 				const uint16_t read_result =
 					ct_packet_get_u64s(packet, start << 3, read_array, read_length, CTEndian_Little);
-				cunit_assert_uint16_equal(read_length, read_result);
-				cunit_assert_uint16_equal(80, ct_packet_size(packet));
-				cunit_assert_uint16_equal(80, ct_packet_total_size(packet));
-				cunit_assert_uint16_equal(0, ct_packet_past(packet));
-				cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-				cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 80, ct_packet_available(packet));
+				assert_uint16_eq(read_length, read_result);
+				assert_uint16_eq(80, ct_packet_size(packet));
+				assert_uint16_eq(80, ct_packet_total_size(packet));
+				assert_uint16_eq(0, ct_packet_past(packet));
+				assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+				assert_uint16_eq(MAX_BUFFER_SIZE - 80, ct_packet_available(packet));
 
 				for (uint16_t i = 0; i < read_length; i++) {
 					if (start + i < 5) {
 						continue;
 					}
-					cunit_assert_uint64_equal(test_array[(start + i) - 5], read_array[i],
+					assert_uint64_eq(test_array[(start + i) - 5], read_array[i],
 											   "start = %u, end = %u, read_length = %u, i = %u\n", start, end,
 											   read_length, i);
 				}
@@ -1575,15 +1575,15 @@ static void test_packet_u64s(void) {
 	{
 		uint64_t       taken_array[5] = {0};
 		const uint16_t taken          = ct_packet_take_u64s(packet, taken_array, 5, CTEndian_Big);
-		cunit_assert_uint16_equal(5, taken);
-		cunit_assert_uint16_equal(40, ct_packet_size(packet));
-		cunit_assert_uint16_equal(80, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(40, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 80, ct_packet_available(packet));
+		assert_uint16_eq(5, taken);
+		assert_uint16_eq(40, ct_packet_size(packet));
+		assert_uint16_eq(80, ct_packet_total_size(packet));
+		assert_uint16_eq(40, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 80, ct_packet_available(packet));
 
 		for (uint16_t i = 0; i < 5; i++) {
-			cunit_assert_uint64_equal(test_array[i], taken_array[i]);
+			assert_uint64_eq(test_array[i], taken_array[i]);
 		}
 	}
 
@@ -1591,15 +1591,15 @@ static void test_packet_u64s(void) {
 	{
 		uint64_t       taken_array[5] = {0};
 		const uint16_t taken          = ct_packet_take_u64s(packet, taken_array, 5, CTEndian_Little);
-		cunit_assert_uint16_equal(5, taken);
-		cunit_assert_uint16_equal(0, ct_packet_size(packet));
-		cunit_assert_uint16_equal(80, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(80, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 80, ct_packet_available(packet));
+		assert_uint16_eq(5, taken);
+		assert_uint16_eq(0, ct_packet_size(packet));
+		assert_uint16_eq(80, ct_packet_total_size(packet));
+		assert_uint16_eq(80, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 80, ct_packet_available(packet));
 
 		for (uint16_t i = 0; i < 5; i++) {
-			cunit_assert_uint64_equal(test_array[i], taken_array[i]);
+			assert_uint64_eq(test_array[i], taken_array[i]);
 		}
 	}
 }
@@ -1614,64 +1614,64 @@ static void test_packet_floats(void) {
 	// put: big endian
 	{
 		const uint16_t write_result = ct_packet_put_floats(packet, test_array, 5, CTEndian_Big);
-		cunit_assert_uint16_equal(5, write_result);
-		cunit_assert_uint16_equal(20, ct_packet_size(packet));
-		cunit_assert_uint16_equal(20, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 20, ct_packet_available(packet));
+		assert_uint16_eq(5, write_result);
+		assert_uint16_eq(20, ct_packet_size(packet));
+		assert_uint16_eq(20, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 20, ct_packet_available(packet));
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
 		const uint16_t read_result = ct_packet_get_floats(packet, 0, read_array, 10, CTEndian_Big);
-		cunit_assert_uint16_equal(5, read_result);
-		cunit_assert_uint16_equal(20, ct_packet_size(packet));
-		cunit_assert_uint16_equal(20, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 20, ct_packet_available(packet));
+		assert_uint16_eq(5, read_result);
+		assert_uint16_eq(20, ct_packet_size(packet));
+		assert_uint16_eq(20, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 20, ct_packet_available(packet));
 
 		for (uint16_t i = 0; i < 5; i++) {
-			cunit_assert_float_equal(test_array[i], read_array[i]);
+			assert_float_eq(test_array[i], read_array[i]);
 		}
 	}
 
 	// put: little endian
 	{
 		const uint16_t write_result = ct_packet_put_floats(packet, test_array, 5, CTEndian_Little);
-		cunit_assert_uint16_equal(5, write_result);
-		cunit_assert_uint16_equal(40, ct_packet_size(packet));
-		cunit_assert_uint16_equal(40, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 40, ct_packet_available(packet));
+		assert_uint16_eq(5, write_result);
+		assert_uint16_eq(40, ct_packet_size(packet));
+		assert_uint16_eq(40, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 40, ct_packet_available(packet));
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
 		const uint16_t read_result = ct_packet_get_floats(packet, 0, read_array, 10, CTEndian_Big);
-		cunit_assert_uint16_equal(10, read_result);
-		cunit_assert_uint16_equal(40, ct_packet_size(packet));
-		cunit_assert_uint16_equal(40, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 40, ct_packet_available(packet));
+		assert_uint16_eq(10, read_result);
+		assert_uint16_eq(40, ct_packet_size(packet));
+		assert_uint16_eq(40, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 40, ct_packet_available(packet));
 
 		for (uint16_t i = 0; i < 5; i++) {
-			cunit_assert_float_equal(test_array[i], read_array[i]);
+			assert_float_eq(test_array[i], read_array[i]);
 		}
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
 		const uint16_t read_result = ct_packet_get_floats(packet, 0, read_array, 10, CTEndian_Little);
-		cunit_assert_uint16_equal(10, read_result);
-		cunit_assert_uint16_equal(40, ct_packet_size(packet));
-		cunit_assert_uint16_equal(40, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 40, ct_packet_available(packet));
+		assert_uint16_eq(10, read_result);
+		assert_uint16_eq(40, ct_packet_size(packet));
+		assert_uint16_eq(40, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 40, ct_packet_available(packet));
 
 		for (uint16_t i = 0; i < 5; i++) {
-			cunit_assert_float_equal(test_array[i], read_array[i + 5]);
+			assert_float_eq(test_array[i], read_array[i + 5]);
 		}
 	}
 
@@ -1682,15 +1682,15 @@ static void test_packet_floats(void) {
 				const uint16_t read_length = end - start;
 				const uint16_t read_result =
 					ct_packet_get_floats(packet, start << 2, read_array, read_length, CTEndian_Big);
-				cunit_assert_uint16_equal(read_length, read_result);
-				cunit_assert_uint16_equal(40, ct_packet_size(packet));
-				cunit_assert_uint16_equal(40, ct_packet_total_size(packet));
-				cunit_assert_uint16_equal(0, ct_packet_past(packet));
-				cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-				cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 40, ct_packet_available(packet));
+				assert_uint16_eq(read_length, read_result);
+				assert_uint16_eq(40, ct_packet_size(packet));
+				assert_uint16_eq(40, ct_packet_total_size(packet));
+				assert_uint16_eq(0, ct_packet_past(packet));
+				assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+				assert_uint16_eq(MAX_BUFFER_SIZE - 40, ct_packet_available(packet));
 
 				for (uint16_t i = 0; i < read_length && start + i < 5; i++) {
-					cunit_assert_float_equal(test_array[start + i], read_array[i],
+					assert_float_eq(test_array[start + i], read_array[i],
 											  "start = %u, end = %u, read_length = %u, i = %u\n", start, end,
 											  read_length, i);
 				}
@@ -1700,18 +1700,18 @@ static void test_packet_floats(void) {
 				const uint16_t read_length = end - start;
 				const uint16_t read_result =
 					ct_packet_get_floats(packet, start << 2, read_array, read_length, CTEndian_Little);
-				cunit_assert_uint16_equal(read_length, read_result);
-				cunit_assert_uint16_equal(40, ct_packet_size(packet));
-				cunit_assert_uint16_equal(40, ct_packet_total_size(packet));
-				cunit_assert_uint16_equal(0, ct_packet_past(packet));
-				cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-				cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 40, ct_packet_available(packet));
+				assert_uint16_eq(read_length, read_result);
+				assert_uint16_eq(40, ct_packet_size(packet));
+				assert_uint16_eq(40, ct_packet_total_size(packet));
+				assert_uint16_eq(0, ct_packet_past(packet));
+				assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+				assert_uint16_eq(MAX_BUFFER_SIZE - 40, ct_packet_available(packet));
 
 				for (uint16_t i = 0; i < read_length; i++) {
 					if (start + i < 5) {
 						continue;
 					}
-					cunit_assert_float_equal(test_array[(start + i) - 5], read_array[i],
+					assert_float_eq(test_array[(start + i) - 5], read_array[i],
 											  "start = %u, end = %u, read_length = %u, i = %u\n", start, end,
 											  read_length, i);
 				}
@@ -1723,15 +1723,15 @@ static void test_packet_floats(void) {
 	{
 		memset(read_array, 0, sizeof(read_array));
 		const uint16_t read_result = ct_packet_take_floats(packet, read_array, 5, CTEndian_Big);
-		cunit_assert_uint16_equal(5, read_result);
-		cunit_assert_uint16_equal(20, ct_packet_size(packet));
-		cunit_assert_uint16_equal(40, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(20, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 40, ct_packet_available(packet));
+		assert_uint16_eq(5, read_result);
+		assert_uint16_eq(20, ct_packet_size(packet));
+		assert_uint16_eq(40, ct_packet_total_size(packet));
+		assert_uint16_eq(20, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 40, ct_packet_available(packet));
 
 		for (uint16_t i = 0; i < 5; i++) {
-			cunit_assert_float_equal(test_array[i], read_array[i]);
+			assert_float_eq(test_array[i], read_array[i]);
 		}
 	}
 
@@ -1739,15 +1739,15 @@ static void test_packet_floats(void) {
 	{
 		memset(read_array, 0, sizeof(read_array));
 		const uint16_t read_result = ct_packet_take_floats(packet, read_array, 5, CTEndian_Little);
-		cunit_assert_uint16_equal(5, read_result);
-		cunit_assert_uint16_equal(0, ct_packet_size(packet));
-		cunit_assert_uint16_equal(40, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(40, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 40, ct_packet_available(packet));
+		assert_uint16_eq(5, read_result);
+		assert_uint16_eq(0, ct_packet_size(packet));
+		assert_uint16_eq(40, ct_packet_total_size(packet));
+		assert_uint16_eq(40, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 40, ct_packet_available(packet));
 
 		for (uint16_t i = 0; i < 5; i++) {
-			cunit_assert_float_equal(test_array[i], read_array[i]);
+			assert_float_eq(test_array[i], read_array[i]);
 		}
 	}
 }
@@ -1762,64 +1762,64 @@ static void test_packet_doubles(void) {
 	// put: big endian
 	{
 		const uint16_t write_result = ct_packet_put_doubles(packet, test_array, 5, CTEndian_Big);
-		cunit_assert_uint16_equal(5, write_result);
-		cunit_assert_uint16_equal(40, ct_packet_size(packet));
-		cunit_assert_uint16_equal(40, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 40, ct_packet_available(packet));
+		assert_uint16_eq(5, write_result);
+		assert_uint16_eq(40, ct_packet_size(packet));
+		assert_uint16_eq(40, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 40, ct_packet_available(packet));
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
 		const uint16_t read_result = ct_packet_get_doubles(packet, 0, read_array, 10, CTEndian_Big);
-		cunit_assert_uint16_equal(5, read_result);
-		cunit_assert_uint16_equal(40, ct_packet_size(packet));
-		cunit_assert_uint16_equal(40, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 40, ct_packet_available(packet));
+		assert_uint16_eq(5, read_result);
+		assert_uint16_eq(40, ct_packet_size(packet));
+		assert_uint16_eq(40, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 40, ct_packet_available(packet));
 
 		for (uint16_t i = 0; i < 5; i++) {
-			cunit_assert_double_equal(test_array[i], read_array[i]);
+			assert_double_eq(test_array[i], read_array[i]);
 		}
 	}
 
 	// put: little endian
 	{
 		const uint16_t write_result = ct_packet_put_doubles(packet, test_array, 5, CTEndian_Little);
-		cunit_assert_uint16_equal(5, write_result);
-		cunit_assert_uint16_equal(80, ct_packet_size(packet));
-		cunit_assert_uint16_equal(80, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 80, ct_packet_available(packet));
+		assert_uint16_eq(5, write_result);
+		assert_uint16_eq(80, ct_packet_size(packet));
+		assert_uint16_eq(80, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 80, ct_packet_available(packet));
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
 		const uint16_t read_result = ct_packet_get_doubles(packet, 0, read_array, 10, CTEndian_Big);
-		cunit_assert_uint16_equal(10, read_result);
-		cunit_assert_uint16_equal(80, ct_packet_size(packet));
-		cunit_assert_uint16_equal(80, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 80, ct_packet_available(packet));
+		assert_uint16_eq(10, read_result);
+		assert_uint16_eq(80, ct_packet_size(packet));
+		assert_uint16_eq(80, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 80, ct_packet_available(packet));
 
 		for (uint16_t i = 0; i < 5; i++) {
-			cunit_assert_double_equal(test_array[i], read_array[i]);
+			assert_double_eq(test_array[i], read_array[i]);
 		}
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
 		const uint16_t read_result = ct_packet_get_doubles(packet, 40, read_array, 10, CTEndian_Little);
-		cunit_assert_uint16_equal(5, read_result);
-		cunit_assert_uint16_equal(80, ct_packet_size(packet));
-		cunit_assert_uint16_equal(80, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(0, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 80, ct_packet_available(packet));
+		assert_uint16_eq(5, read_result);
+		assert_uint16_eq(80, ct_packet_size(packet));
+		assert_uint16_eq(80, ct_packet_total_size(packet));
+		assert_uint16_eq(0, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 80, ct_packet_available(packet));
 
 		for (uint16_t i = 0; i < 5; i++) {
-			cunit_assert_double_equal(test_array[i], read_array[i]);
+			assert_double_eq(test_array[i], read_array[i]);
 		}
 	}
 
@@ -1830,15 +1830,15 @@ static void test_packet_doubles(void) {
 				const uint16_t read_length = end - start;
 				const uint16_t read_result =
 					ct_packet_get_doubles(packet, start << 3, read_array, read_length, CTEndian_Big);
-				cunit_assert_uint16_equal(read_length, read_result);
-				cunit_assert_uint16_equal(80, ct_packet_size(packet));
-				cunit_assert_uint16_equal(80, ct_packet_total_size(packet));
-				cunit_assert_uint16_equal(0, ct_packet_past(packet));
-				cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-				cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 80, ct_packet_available(packet));
+				assert_uint16_eq(read_length, read_result);
+				assert_uint16_eq(80, ct_packet_size(packet));
+				assert_uint16_eq(80, ct_packet_total_size(packet));
+				assert_uint16_eq(0, ct_packet_past(packet));
+				assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+				assert_uint16_eq(MAX_BUFFER_SIZE - 80, ct_packet_available(packet));
 
 				for (uint16_t i = 0; i < read_length && start + i < 5; i++) {
-					cunit_assert_double_equal(test_array[start + i], read_array[i],
+					assert_double_eq(test_array[start + i], read_array[i],
 											   "start = %u, end = %u, read_length = %u, i = %u\n", start, end,
 											   read_length, i);
 				}
@@ -1848,18 +1848,18 @@ static void test_packet_doubles(void) {
 				const uint16_t read_length = end - start;
 				const uint16_t read_result =
 					ct_packet_get_doubles(packet, start << 3, read_array, read_length, CTEndian_Little);
-				cunit_assert_uint16_equal(read_length, read_result);
-				cunit_assert_uint16_equal(80, ct_packet_size(packet));
-				cunit_assert_uint16_equal(80, ct_packet_total_size(packet));
-				cunit_assert_uint16_equal(0, ct_packet_past(packet));
-				cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-				cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 80, ct_packet_available(packet));
+				assert_uint16_eq(read_length, read_result);
+				assert_uint16_eq(80, ct_packet_size(packet));
+				assert_uint16_eq(80, ct_packet_total_size(packet));
+				assert_uint16_eq(0, ct_packet_past(packet));
+				assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+				assert_uint16_eq(MAX_BUFFER_SIZE - 80, ct_packet_available(packet));
 
 				for (uint16_t i = 0; i < read_length; i++) {
 					if (start + i < 5) {
 						continue;
 					}
-					cunit_assert_double_equal(test_array[(start + i) - 5], read_array[i],
+					assert_double_eq(test_array[(start + i) - 5], read_array[i],
 											   "start = %u, end = %u, read_length = %u, i = %u\n", start, end,
 											   read_length, i);
 				}
@@ -1871,15 +1871,15 @@ static void test_packet_doubles(void) {
 	{
 		double         taken_array[5] = {0};
 		const uint16_t taken          = ct_packet_take_doubles(packet, taken_array, 5, CTEndian_Big);
-		cunit_assert_uint16_equal(5, taken);
-		cunit_assert_uint16_equal(40, ct_packet_size(packet));
-		cunit_assert_uint16_equal(80, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(40, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 80, ct_packet_available(packet));
+		assert_uint16_eq(5, taken);
+		assert_uint16_eq(40, ct_packet_size(packet));
+		assert_uint16_eq(80, ct_packet_total_size(packet));
+		assert_uint16_eq(40, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 80, ct_packet_available(packet));
 
 		for (uint16_t i = 0; i < 5; i++) {
-			cunit_assert_double_equal(test_array[i], taken_array[i]);
+			assert_double_eq(test_array[i], taken_array[i]);
 		}
 	}
 
@@ -1887,15 +1887,15 @@ static void test_packet_doubles(void) {
 	{
 		double         taken_array[5] = {0};
 		const uint16_t taken          = ct_packet_take_doubles(packet, taken_array, 5, CTEndian_Little);
-		cunit_assert_uint16_equal(5, taken);
-		cunit_assert_uint16_equal(0, ct_packet_size(packet));
-		cunit_assert_uint16_equal(80, ct_packet_total_size(packet));
-		cunit_assert_uint16_equal(80, ct_packet_past(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 80, ct_packet_available(packet));
+		assert_uint16_eq(5, taken);
+		assert_uint16_eq(0, ct_packet_size(packet));
+		assert_uint16_eq(80, ct_packet_total_size(packet));
+		assert_uint16_eq(80, ct_packet_past(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+		assert_uint16_eq(MAX_BUFFER_SIZE - 80, ct_packet_available(packet));
 
 		for (uint16_t i = 0; i < 5; i++) {
-			cunit_assert_double_equal(test_array[i], taken_array[i]);
+			assert_double_eq(test_array[i], taken_array[i]);
 		}
 	}
 }
@@ -1911,16 +1911,16 @@ static void test_packet_boundary(void) {
 		ct_packet_put_u8(packet, (uint8_t)i);
 	}
 
-	cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_total_size(packet));
-	cunit_assert_uint16_equal(0, ct_packet_past(packet));
-	cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_total_size(packet));
-	cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-	cunit_assert_uint16_equal(0, ct_packet_available(packet));
+	assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_total_size(packet));
+	assert_uint16_eq(0, ct_packet_past(packet));
+	assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_total_size(packet));
+	assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+	assert_uint16_eq(0, ct_packet_available(packet));
 
 	// 测试获取超出缓冲区大小的数据
 	{
 		const uint16_t read_length = ct_packet_get_u8s(packet, 0, read_array, MAX_BUFFER_SIZE + 10);
-		cunit_assert_uint16_equal(MAX_BUFFER_SIZE, read_length);
+		assert_uint16_eq(MAX_BUFFER_SIZE, read_length);
 	}
 
 	ct_packet_reset(packet);
@@ -1928,7 +1928,7 @@ static void test_packet_boundary(void) {
 	// 测试获取超出缓冲区大小的数据
 	{
 		const uint16_t read_length = ct_packet_get_u8s(packet, 0, read_array, MAX_BUFFER_SIZE + 10);
-		cunit_assert_uint16_equal(0, read_length);
+		assert_uint16_eq(0, read_length);
 	}
 }
 
@@ -1939,106 +1939,106 @@ static void test_packet_offset(void) {
 	ct_packet_put_u8(packet, 0xAA);
 	ct_packet_put_u8(packet, 0xBB);
 
-	cunit_assert_uint16_equal(2, ct_packet_total_size(packet));
-	cunit_assert_uint16_equal(0, ct_packet_past(packet));
-	cunit_assert_uint16_equal(2, ct_packet_total_size(packet));
-	cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-	cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 2, ct_packet_available(packet));
+	assert_uint16_eq(2, ct_packet_total_size(packet));
+	assert_uint16_eq(0, ct_packet_past(packet));
+	assert_uint16_eq(2, ct_packet_total_size(packet));
+	assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+	assert_uint16_eq(MAX_BUFFER_SIZE - 2, ct_packet_available(packet));
 
-	cunit_assert_uint8_equal(0xAA, ct_packet_get_u8(packet, 0));
-	cunit_assert_uint8_equal(0xBB, ct_packet_get_u8(packet, 1));
+	assert_uint8_eq(0xAA, ct_packet_get_u8(packet, 0));
+	assert_uint8_eq(0xBB, ct_packet_get_u8(packet, 1));
 
 	ct_packet_add_past(packet, 1);
 	ct_packet_put_u8(packet, 0xCC);
 
-	cunit_assert_uint16_equal(3, ct_packet_total_size(packet));
-	cunit_assert_uint16_equal(1, ct_packet_past(packet));
-	cunit_assert_uint16_equal(3, ct_packet_total_size(packet));
-	cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-	cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 3, ct_packet_available(packet));
+	assert_uint16_eq(3, ct_packet_total_size(packet));
+	assert_uint16_eq(1, ct_packet_past(packet));
+	assert_uint16_eq(3, ct_packet_total_size(packet));
+	assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+	assert_uint16_eq(MAX_BUFFER_SIZE - 3, ct_packet_available(packet));
 
-	cunit_assert_uint8_equal(0xBB, ct_packet_get_u8(packet, 0));
-	cunit_assert_uint8_equal(0xCC, ct_packet_get_u8(packet, 1));
+	assert_uint8_eq(0xBB, ct_packet_get_u8(packet, 0));
+	assert_uint8_eq(0xCC, ct_packet_get_u8(packet, 1));
 
 	ct_packet_sub_past(packet, 1);
 	ct_packet_put_u8(packet, 0xDD);
 
-	cunit_assert_uint16_equal(4, ct_packet_total_size(packet));
-	cunit_assert_uint16_equal(0, ct_packet_past(packet));
-	cunit_assert_uint16_equal(4, ct_packet_total_size(packet));
-	cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-	cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 4, ct_packet_available(packet));
+	assert_uint16_eq(4, ct_packet_total_size(packet));
+	assert_uint16_eq(0, ct_packet_past(packet));
+	assert_uint16_eq(4, ct_packet_total_size(packet));
+	assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+	assert_uint16_eq(MAX_BUFFER_SIZE - 4, ct_packet_available(packet));
 
-	cunit_assert_uint8_equal(0xAA, ct_packet_get_u8(packet, 0));
-	cunit_assert_uint8_equal(0xBB, ct_packet_get_u8(packet, 1));
-	cunit_assert_uint8_equal(0xCC, ct_packet_get_u8(packet, 2));
-	cunit_assert_uint8_equal(0xDD, ct_packet_get_u8(packet, 3));
+	assert_uint8_eq(0xAA, ct_packet_get_u8(packet, 0));
+	assert_uint8_eq(0xBB, ct_packet_get_u8(packet, 1));
+	assert_uint8_eq(0xCC, ct_packet_get_u8(packet, 2));
+	assert_uint8_eq(0xDD, ct_packet_get_u8(packet, 3));
 
 	ct_packet_add_past(packet, 2);
 	ct_packet_put_u8(packet, 0xEE);
 
-	cunit_assert_uint16_equal(5, ct_packet_total_size(packet));
-	cunit_assert_uint16_equal(2, ct_packet_past(packet));
-	cunit_assert_uint16_equal(5, ct_packet_total_size(packet));
-	cunit_assert_uint16_equal(MAX_BUFFER_SIZE, ct_packet_max(packet));
-	cunit_assert_uint16_equal(MAX_BUFFER_SIZE - 5, ct_packet_available(packet));
+	assert_uint16_eq(5, ct_packet_total_size(packet));
+	assert_uint16_eq(2, ct_packet_past(packet));
+	assert_uint16_eq(5, ct_packet_total_size(packet));
+	assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
+	assert_uint16_eq(MAX_BUFFER_SIZE - 5, ct_packet_available(packet));
 
-	cunit_assert_uint8_equal(0xCC, ct_packet_get_u8(packet, 0));
-	cunit_assert_uint8_equal(0xDD, ct_packet_get_u8(packet, 1));
-	cunit_assert_uint8_equal(0xEE, ct_packet_get_u8(packet, 2));
+	assert_uint8_eq(0xCC, ct_packet_get_u8(packet, 0));
+	assert_uint8_eq(0xDD, ct_packet_get_u8(packet, 1));
+	assert_uint8_eq(0xEE, ct_packet_get_u8(packet, 2));
 }
 
 int main(void) {
 	test_packet_init();
-	cunit_println("Finish! test_packet_init();\n");
+	cunit_println("Finish! test_packet_init();");
 
 	test_packet_reset();
-	cunit_println("Finish! test_packet_reset();\n");
+	cunit_println("Finish! test_packet_reset();");
 
 	test_packet_clean();
-	cunit_println("Finish! test_packet_clean();\n");
+	cunit_println("Finish! test_packet_clean();");
 
 	test_packet_u8();
-	cunit_println("Finish! test_packet_u8();\n");
+	cunit_println("Finish! test_packet_u8();");
 
 	test_packet_u16();
-	cunit_println("Finish! test_packet_u16();\n");
+	cunit_println("Finish! test_packet_u16();");
 
 	test_packet_u32();
-	cunit_println("Finish! test_packet_u32();\n");
+	cunit_println("Finish! test_packet_u32();");
 
 	test_packet_u64();
-	cunit_println("Finish! test_packet_u64();\n");
+	cunit_println("Finish! test_packet_u64();");
 
 	test_packet_float();
-	cunit_println("Finish! test_packet_float();\n");
+	cunit_println("Finish! test_packet_float();");
 
 	test_packet_double();
-	cunit_println("Finish! test_packet_double();\n");
+	cunit_println("Finish! test_packet_double();");
 
 	test_packet_u8s();
-	cunit_println("Finish! test_packet_u8s();\n");
+	cunit_println("Finish! test_packet_u8s();");
 
 	test_packet_u16s();
-	cunit_println("Finish! test_packet_u16s();\n");
+	cunit_println("Finish! test_packet_u16s();");
 
 	test_packet_u32s();
-	cunit_println("Finish! test_packet_u32s();\n");
+	cunit_println("Finish! test_packet_u32s();");
 
 	test_packet_u64s();
-	cunit_println("Finish! test_packet_u64s();\n");
+	cunit_println("Finish! test_packet_u64s();");
 
 	test_packet_floats();
-	cunit_println("Finish! test_packet_floats();\n");
+	cunit_println("Finish! test_packet_floats();");
 
 	test_packet_doubles();
-	cunit_println("Finish! test_packet_doubles();\n");
+	cunit_println("Finish! test_packet_doubles();");
 
 	test_packet_boundary();
-	cunit_println("Finish! test_packet_boundary();\n");
+	cunit_println("Finish! test_packet_boundary();");
 
 	test_packet_offset();
-	cunit_println("Finish! test_packet_offset();\n");
+	cunit_println("Finish! test_packet_offset();");
 
 	cunit_pass();
 }

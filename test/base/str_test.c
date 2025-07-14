@@ -16,44 +16,44 @@ static inline void test_snprintf(void) {
 
 	{
 		const int len = ct_snprintf(buf, sizeof(buf), "Hello %s %d 5678", "World", 1234);
-		cunit_assert_int_equal(len, 21);
-		cunit_assert_string(buf, "Hello World 1234 5678");
+		assert_int_eq(len, 21);
+		assert_str_eq(buf, "Hello World 1234 5678");
 	}
 
 	{
 		const int len = ct_snprintf(buf, 1, "Truncate");
-		cunit_assert_int_equal(len, 8);
-		cunit_assert_string(buf, "");
+		assert_int_eq(len, 8);
+		assert_str_eq(buf, "");
 	}
 
 	{
 		const int len = ct_snprintf(buf, 8, "Truncate");
-		cunit_assert_int_equal(len, 8);
-		cunit_assert_string(buf, "Truncat");
+		assert_int_eq(len, 8);
+		assert_str_eq(buf, "Truncat");
 	}
 
 	{
 		const int len = ct_snprintf(buf, 9, "Truncate");
-		cunit_assert_int_equal(len, 8);
-		cunit_assert_string(buf, "Truncate");
+		assert_int_eq(len, 8);
+		assert_str_eq(buf, "Truncate");
 	}
 
 	{
 		const int len = ct_snprintf(buf, 1, "%.*s", 1, "Truncate");
-		cunit_assert_int_equal(len, 1);
-		cunit_assert_string(buf, "");
+		assert_int_eq(len, 1);
+		assert_str_eq(buf, "");
 	}
 
 	{
 		const int len = ct_snprintf(buf, 8, "%.*s", 8, "Truncate");
-		cunit_assert_int_equal(len, 8);
-		cunit_assert_string(buf, "Truncat");
+		assert_int_eq(len, 8);
+		assert_str_eq(buf, "Truncat");
 	}
 
 	{
 		const int len = ct_snprintf(buf, 9, "%.*s", 8, "Truncate");
-		cunit_assert_int_equal(len, 8);
-		cunit_assert_string(buf, "Truncate");
+		assert_int_eq(len, 8);
+		assert_str_eq(buf, "Truncate");
 	}
 }
 
@@ -63,67 +63,67 @@ static inline void test_snprintf_s(void) {
 	// 正常情况测试
 	{
 		const int len = ct_snprintf_s(buf, sizeof(buf), "Hello %s %d", "World", 42);
-		cunit_assert_int_equal(len, 14);
-		cunit_assert_string(buf, "Hello World 42");
+		assert_int_eq(len, 14);
+		assert_str_eq(buf, "Hello World 42");
 	}
 
 	// 截断测试
 	{
 		const int len = ct_snprintf_s(buf, 10, "Hello %s %d", "World", 42);
-		cunit_assert_int_equal(len, 9);
-		cunit_assert_string(buf, "Hello Wor");
+		assert_int_eq(len, 9);
+		assert_str_eq(buf, "Hello Wor");
 	}
 	{
 		const int len = ct_snprintf_s(buf, 5, "This is a very long string");
-		cunit_assert_int_equal(len, 4);
-		cunit_assert_string(buf, "This");
+		assert_int_eq(len, 4);
+		assert_str_eq(buf, "This");
 	}
 
 	// 边界测试 - 刚好填满缓冲区
 	{
 		const int len = ct_snprintf_s(buf, 6, "Hello");
-		cunit_assert_int_equal(len, 5);
-		cunit_assert_string(buf, "Hello");
+		assert_int_eq(len, 5);
+		assert_str_eq(buf, "Hello");
 	}
 
 	// 边界测试 - 超出一个字符
 	{
 		const int len = ct_snprintf_s(buf, 6, "Hello!");
-		cunit_assert_int_equal(len, 5);
-		cunit_assert_string(buf, "Hello");
+		assert_int_eq(len, 5);
+		assert_str_eq(buf, "Hello");
 	}
 
 	// 错误情况测试 - NULL 缓冲区
 	{
 		const int len = ct_snprintf_s(NULL, 10, "Test");
-		cunit_assert_int_equal(len, -1);
+		assert_int_eq(len, -1);
 	}
 
 	// 错误情况测试 - 零长度缓冲区
 	{
 		const int len = ct_snprintf_s(buf, 0, "Test");
-		cunit_assert_int_equal(len, -1);
+		assert_int_eq(len, -1);
 	}
 
 	// 错误情况测试 - NULL 格式字符串
 	{
 		const int len = ct_snprintf_s(buf, sizeof(buf), NULL);
-		cunit_assert_int_equal(len, -1);
+		assert_int_eq(len, -1);
 	}
 
 	// 不同类型参数测试
 	{
 		const int len = ct_snprintf_s(buf, sizeof(buf), "%d %u %f %s", -1, 2U, 3.14f, "test");
-		cunit_assert_string(buf, "-1 2 3.140000 test");
-		cunit_assert_int_equal(len, 18);
+		assert_str_eq(buf, "-1 2 3.140000 test");
+		assert_int_eq(len, 18);
 	}
 
 	// 确保字符串始终以 null 结尾
 	{
 		memset(buf, 'A', sizeof(buf));
 		ct_snprintf_s(buf, sizeof(buf), "Test");
-		cunit_assert_int_equal(buf[4], 0);
-		cunit_assert_int_equal(buf[sizeof(buf) - 1], 0);
+		assert_int_eq(buf[4], 0);
+		assert_int_eq(buf[sizeof(buf) - 1], 0);
 	}
 }
 
@@ -133,67 +133,67 @@ static inline void test_strncpy_s(void) {
 	// 正常拷贝测试
 	{
 		int len = ct_strncpy_s(buf, sizeof(buf), "Hello", 5);
-		cunit_assert_int_equal(len, 5);
-		cunit_assert_string(buf, "Hello");
+		assert_int_eq(len, 5);
+		assert_str_eq(buf, "Hello");
 	}
 
 	// 拷贝长度小于源字符串长度，未截断
 	{
 		int len = ct_strncpy_s(buf, sizeof(buf), "Hello, World!", 5);
-		cunit_assert_int_equal(len, 5);
-		cunit_assert_string(buf, "Hello");
+		assert_int_eq(len, 5);
+		assert_str_eq(buf, "Hello");
 	}
 
 	// 拷贝长度等于源字符串长度
 	{
 		int len = ct_strncpy_s(buf, sizeof(buf), "Test", 4);
-		cunit_assert_int_equal(len, 4);
-		cunit_assert_string(buf, "Test");
+		assert_int_eq(len, 4);
+		assert_str_eq(buf, "Test");
 	}
 
 	// 拷贝长度大于源字符串长度
 	{
 		int len = ct_strncpy_s(buf, sizeof(buf), "Hi", 5);
-		cunit_assert_int_equal(len, 2);
-		cunit_assert_string(buf, "Hi");
+		assert_int_eq(len, 2);
+		assert_str_eq(buf, "Hi");
 	}
 
 	// 缓冲区大小不足，发生截断
 	{
 		int len = ct_strncpy_s(buf, 5, "This is a long string", 10);
-		cunit_assert_int_equal(len, -1);
+		assert_int_eq(len, -1);
 	}
 
 	// 目标缓冲区为 NULL
 	{
 		int len = ct_strncpy_s(NULL, 10, "Test", 4);
-		cunit_assert_int_equal(len, -1);
+		assert_int_eq(len, -1);
 	}
 
 	// 源字符串为 NULL
 	{
 		int len = ct_strncpy_s(buf, sizeof(buf), NULL, 5);
-		cunit_assert_int_equal(len, -1);
-		cunit_assert_string(buf, "");
+		assert_int_eq(len, -1);
+		assert_str_eq(buf, "");
 	}
 
 	// 拷贝零长度
 	{
 		int len = ct_strncpy_s(buf, sizeof(buf), "Test", 0);
-		cunit_assert_int_equal(len, -1);
-		cunit_assert_string(buf, "");
+		assert_int_eq(len, -1);
+		assert_str_eq(buf, "");
 	}
 }
 
 int main(void) {
 	test_snprintf();
-	cunit_println("Finish! test_snprintf();\n");
+	cunit_println("Finish! test_snprintf();");
 
 	test_snprintf_s();
-	cunit_println("Finish! test_snprintf_s();\n");
+	cunit_println("Finish! test_snprintf_s();");
 
 	test_strncpy_s();
-	cunit_println("Finish! test_strncpy_s();\n");
+	cunit_println("Finish! test_strncpy_s();");
 
 	cunit_pass();
 }

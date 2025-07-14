@@ -14,9 +14,9 @@ static void main_atexit_exec(void);
 // 异步执行
 static void main_async_exec(void* arg);
 // 程序定时触发
-static void main_timing_trigger(ct_timer_id_t id, void* arg);
+static void main_timing_trigger(void* arg);
 // 程序定时退出
-static void main_timing_exit(ct_timer_id_t id, void* arg);
+static void main_timing_exit(void* arg);
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
@@ -40,14 +40,12 @@ static void main_async_exec(void* arg) {
 	logT("async exec.\n");
 }
 
-static void main_timing_trigger(ct_timer_id_t id, void* arg) {
-	ct_unused(id);
+static void main_timing_trigger(void* arg) {
 	ct_unused(arg);
 	logT("timed trigger.\n");
 }
 
-static void main_timing_exit(ct_timer_id_t id, void* arg) {
-	ct_unused(id);
+static void main_timing_exit(void* arg) {
 	ct_unused(arg);
 	global_exit(EXIT_FAILURE, "timed exit");
 }

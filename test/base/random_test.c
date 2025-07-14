@@ -20,7 +20,7 @@ static inline void test_random_bool(uint64_t test_number) {
 	for (register uint64_t i = 0; i < 2 * test_number;) {
 		for (uint64_t n = 0; n < test_number; n++, i++) {
 			random_num = ct_random_bool(state);
-			cunit_assert_uint8_less(random_num, 2);
+			assert_uint8_lt(random_num, 2);
 			count[random_num]++;
 		}
 		sched_yield();
@@ -35,7 +35,7 @@ static inline void test_random_bool(uint64_t test_number) {
 		}
 	}
 
-	cunit_assert_true(is_ok);
+	assert_true(is_ok);
 }
 
 static inline void test_random_uint8(uint64_t test_number) {
@@ -50,7 +50,7 @@ static inline void test_random_uint8(uint64_t test_number) {
 	for (register uint64_t i = 0; i < 100 * test_number;) {
 		for (uint64_t n = 0; n < 50 * test_number; n++, i++) {
 			random_num = ct_random_uint8(state, 0, 100);
-			cunit_assert_uint8_less(random_num, 100);
+			assert_uint8_lt(random_num, 100);
 			count[random_num]++;
 		}
 		sched_yield();
@@ -65,7 +65,7 @@ static inline void test_random_uint8(uint64_t test_number) {
 		}
 	}
 
-	cunit_assert_true(is_ok);
+	assert_true(is_ok);
 }
 
 static inline void test_random_uint16(uint64_t test_number) {
@@ -80,7 +80,7 @@ static inline void test_random_uint16(uint64_t test_number) {
 	for (register uint64_t i = 0; i < 100 * test_number;) {
 		for (uint64_t n = 0; n < 50 * test_number; n++, i++) {
 			random_num = ct_random_uint16(state, 0, 100);
-			cunit_assert_uint16_less(random_num, 100);
+			assert_uint16_lt(random_num, 100);
 			count[random_num]++;
 		}
 	}
@@ -94,7 +94,7 @@ static inline void test_random_uint16(uint64_t test_number) {
 		}
 	}
 
-	cunit_assert_true(is_ok);
+	assert_true(is_ok);
 }
 
 static inline void test_random_uint32(uint64_t test_number) {
@@ -109,7 +109,7 @@ static inline void test_random_uint32(uint64_t test_number) {
 	for (register uint64_t i = 0; i < 100 * test_number;) {
 		for (uint64_t n = 0; n < 50 * test_number; n++, i++) {
 			random_num = ct_random_uint32(state, 0, 100);
-			cunit_assert_uint32_less(random_num, 100);
+			assert_uint32_lt(random_num, 100);
 			count[random_num]++;
 		}
 		sched_yield();
@@ -124,7 +124,7 @@ static inline void test_random_uint32(uint64_t test_number) {
 		}
 	}
 
-	cunit_assert_true(is_ok);
+	assert_true(is_ok);
 }
 
 static inline void test_random_uint64(uint64_t test_number) {
@@ -139,7 +139,7 @@ static inline void test_random_uint64(uint64_t test_number) {
 	for (register uint64_t i = 0; i < 100 * test_number;) {
 		for (uint64_t n = 0; n < 50 * test_number; n++, i++) {
 			random_num = ct_random_uint64(state, 0, 100);
-			cunit_assert_uint64_less(random_num, 100);
+			assert_uint64_lt(random_num, 100);
 			count[random_num]++;
 		}
 		sched_yield();
@@ -154,7 +154,7 @@ static inline void test_random_uint64(uint64_t test_number) {
 		}
 	}
 
-	cunit_assert_true(is_ok);
+	assert_true(is_ok);
 }
 
 static inline void test_random_float(uint64_t test_number) {
@@ -183,7 +183,7 @@ static inline void test_random_float(uint64_t test_number) {
 		}
 	}
 
-	cunit_assert_true(is_ok);
+	assert_true(is_ok);
 }
 
 static inline void test_random_double(uint64_t test_number) {
@@ -212,30 +212,30 @@ static inline void test_random_double(uint64_t test_number) {
 		}
 	}
 
-	cunit_assert_true(is_ok);
+	assert_true(is_ok);
 }
 
 int main(void) {
 	test_random_bool(10000);
-	cunit_println("Finish! test_random_bool(10000);\n");
+	cunit_println("Finish! test_random_bool(10000);");
 
 	test_random_uint8(10000);
-	cunit_println("Finish! test_random_uint8(10000);\n");
+	cunit_println("Finish! test_random_uint8(10000);");
 
 	test_random_uint16(10000);
-	cunit_println("Finish! test_random_uint16(10000);\n");
+	cunit_println("Finish! test_random_uint16(10000);");
 
 	test_random_uint32(10000);
-	cunit_println("Finish! test_random_uint32(10000);\n");
+	cunit_println("Finish! test_random_uint32(10000);");
 
 	test_random_uint64(10000);
-	cunit_println("Finish! test_random_uint64(10000);\n");
+	cunit_println("Finish! test_random_uint64(10000);");
 
 	test_random_float(10000);
-	cunit_println("Finish! test_random_float(10000);\n");
+	cunit_println("Finish! test_random_float(10000);");
 
 	test_random_double(10000);
-	cunit_println("Finish! test_random_double(10000);\n");
+	cunit_println("Finish! test_random_double(10000);");
 
 	cunit_pass();
 }

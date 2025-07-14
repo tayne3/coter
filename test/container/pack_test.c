@@ -75,7 +75,7 @@ static void test_pack_basic(void) {
 
 	const uint8_t expect[] = {0x03, 0x00, 0x87, 0x00, 0x01};
 	assert_int_eq(5, ct_pack(test_buffer, TEST_BUFFER_SIZE, "b>HH", 0x03, 0x0087, 0x0001));
-	assert_string_hex(test_buffer, expect, sizeof(expect));
+	assert_str_hex(test_buffer, expect, sizeof(expect));
 }
 
 static void test_pack_integers(void) {
@@ -251,7 +251,7 @@ static void test_pack_endianness(void) {
 	assert_int_eq(4 + 8, ct_pack(test_buffer, TEST_BUFFER_SIZE, "<iL", i_in, L_in));
 	// Verify manually based on known little endian representation
 	uint8_t expected_le[] = {0x78, 0x56, 0x34, 0x12, 0x11, 0x00, 0xFF, 0xEE, 0xDD, 0xCC, 0xBB, 0xAA};
-	assert_string_hex(test_buffer, expected_le, sizeof(expected_le), "Little Endian pack failed");
+	assert_str_hex(test_buffer, expected_le, sizeof(expected_le), "Little Endian pack failed");
 	assert_int_eq(4 + 8, ct_unpack(test_buffer, TEST_BUFFER_SIZE, "<iL", &i_out, &L_out));
 	assert_int32_eq(i_out, i_in);
 	assert_uint64_eq(L_out, L_in);
@@ -261,7 +261,7 @@ static void test_pack_endianness(void) {
 	assert_int_eq(4 + 8, ct_pack(test_buffer, TEST_BUFFER_SIZE, ">iL", i_in, L_in));
 	// Verify manually based on known big endian representation
 	uint8_t expected_be[] = {0x12, 0x34, 0x56, 0x78, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF, 0x00, 0x11};
-	assert_string_hex(test_buffer, expected_be, sizeof(expected_be), "Big Endian pack failed");
+	assert_str_hex(test_buffer, expected_be, sizeof(expected_be), "Big Endian pack failed");
 	assert_int_eq(4 + 8, ct_unpack(test_buffer, TEST_BUFFER_SIZE, ">iL", &i_out, &L_out));
 	assert_int32_eq(i_out, i_in);
 	assert_uint64_eq(L_out, L_in);

@@ -71,11 +71,11 @@ struct ct_base64_test {
 
 static inline int test_base64_decode(void) {
 	char buf[1024];
-	cunit_assert_uint32_equal(ct_base64_decode("AAA=", 4, buf, 0), 0);
-	cunit_assert_uint32_equal(ct_base64_decode("AAA=", 4, buf, 1), 0);
-	cunit_assert_uint32_equal(ct_base64_decode("AAA=", 4, buf, 2), 0);
-	cunit_assert_uint32_equal(ct_base64_decode("AAA=", 4, buf, 3), 0);
-	cunit_assert_uint32_equal(ct_base64_decode("AAA=", 4, buf, 4), 2);
+	assert_uint32_eq(ct_base64_decode("AAA=", 4, buf, 0), 0);
+	assert_uint32_eq(ct_base64_decode("AAA=", 4, buf, 1), 0);
+	assert_uint32_eq(ct_base64_decode("AAA=", 4, buf, 2), 0);
+	assert_uint32_eq(ct_base64_decode("AAA=", 4, buf, 3), 0);
+	assert_uint32_eq(ct_base64_decode("AAA=", 4, buf, 4), 2);
 
 	{
 		struct ct_base64_test *it   = NULL;
@@ -86,7 +86,7 @@ static inline int test_base64_decode(void) {
 			length = strlen(it->target);
 
 			ct_base64_decode(it->target, length, buf, sizeof(buf));
-			cunit_assert_string(buf, it->source, "i = %d, length = %d\n", i, length);
+			assert_str_eq(buf, it->source, "i = %d, length = %d\n", i, length);
 		}
 	}
 
@@ -95,12 +95,12 @@ static inline int test_base64_decode(void) {
 
 static inline int test_base64_encode(void) {
 	char buf[1024];
-	cunit_assert_uint32_equal(ct_base64_encode((uint8_t *)"a", 1, buf, 0), 0);
-	cunit_assert_uint32_equal(ct_base64_encode((uint8_t *)"a", 1, buf, 1), 0);
-	cunit_assert_uint32_equal(ct_base64_encode((uint8_t *)"a", 1, buf, 2), 0);
-	cunit_assert_uint32_equal(ct_base64_encode((uint8_t *)"a", 1, buf, 3), 0);
-	cunit_assert_uint32_equal(ct_base64_encode((uint8_t *)"a", 1, buf, 4), 0);
-	cunit_assert_uint32_equal(ct_base64_encode((uint8_t *)"a", 1, buf, 5), 4);
+	assert_uint32_eq(ct_base64_encode((uint8_t *)"a", 1, buf, 0), 0);
+	assert_uint32_eq(ct_base64_encode((uint8_t *)"a", 1, buf, 1), 0);
+	assert_uint32_eq(ct_base64_encode((uint8_t *)"a", 1, buf, 2), 0);
+	assert_uint32_eq(ct_base64_encode((uint8_t *)"a", 1, buf, 3), 0);
+	assert_uint32_eq(ct_base64_encode((uint8_t *)"a", 1, buf, 4), 0);
+	assert_uint32_eq(ct_base64_encode((uint8_t *)"a", 1, buf, 5), 4);
 
 	{
 		struct ct_base64_test *it   = NULL;
@@ -114,12 +114,12 @@ static inline int test_base64_encode(void) {
 				n = ct_base64_update(it->source[j], buf, n);
 			}
 			n = ct_base64_final(buf, n);
-			cunit_assert_string(buf, it->target, "i = %d, length = %d\n", i, length);
+			assert_str_eq(buf, it->target, "i = %d, length = %d\n", i, length);
 
 			ct_base64_encode((uint8_t *)it->source, length, buf, sizeof(buf));
-			cunit_assert_string(buf, it->target, "i = %d, length = %d\n", i, length);
+			assert_str_eq(buf, it->target, "i = %d, length = %d\n", i, length);
 
-			cunit_assert_uint32_equal(n, CT_BASE64_ENCODE_LENGTH(length), "i = %d, length = %d\n", i, length);
+			assert_uint32_eq(n, CT_BASE64_ENCODE_LENGTH(length), "i = %d, length = %d\n", i, length);
 		}
 	}
 
@@ -128,10 +128,10 @@ static inline int test_base64_encode(void) {
 
 int main(void) {
 	test_base64_decode();
-	cunit_println("Finish! test_base64_decode();\n");
+	cunit_println("Finish! test_base64_decode();");
 
 	test_base64_encode();
-	cunit_println("Finish! test_base64_encode();\n");
+	cunit_println("Finish! test_base64_encode();");
 
 	cunit_pass();
 }

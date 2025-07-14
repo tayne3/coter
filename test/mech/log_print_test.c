@@ -112,30 +112,30 @@ static inline void test_print_performance_comparison(void) {
 			.callback_userdata = NULL,
 		};
 		const int ret = ct_log_init(ct_getuptime_ms(), 1, &config);
-		cunit_assert_int32_equal(ret, 0);
+		assert_int32_eq(ret, 0);
 
-		cunit_assert_true(ct_log_is_enable(0, CTLog_LevelVerbose));
-		cunit_assert_false(ct_log_is_enable(1, CTLog_LevelVerbose));
+		assert_true(ct_log_is_enable(0, CTLog_LevelVerbose));
+		assert_false(ct_log_is_enable(1, CTLog_LevelVerbose));
 	}
 
-	cunit_assert_int32_equal(pthread_create(&g_thread_logger, NULL, thread_log_schedule, NULL), 0);
+	assert_int32_eq(pthread_create(&g_thread_logger, NULL, thread_log_schedule, NULL), 0);
 
 	start = ct_getuptime_ms();
 	for (int i = 0; i < TEST_THREADS; i++) {
-		cunit_assert_int32_equal(pthread_create(&threads[i], NULL, thread_print_without_log, NULL), 0);
+		assert_int32_eq(pthread_create(&threads[i], NULL, thread_print_without_log, NULL), 0);
 	}
 	for (int i = 0; i < TEST_THREADS; i++) {
-		cunit_assert_int32_equal(pthread_join(threads[i], NULL), 0);
+		assert_int32_eq(pthread_join(threads[i], NULL), 0);
 	}
 	end                        = ct_getuptime_ms();
 	const int time_without_log = (int)(end - start);
 
 	start = ct_getuptime_ms();
 	for (int i = 0; i < TEST_THREADS; i++) {
-		cunit_assert_int32_equal(pthread_create(&threads[i], NULL, thread_print_with_basic_log, NULL), 0);
+		assert_int32_eq(pthread_create(&threads[i], NULL, thread_print_with_basic_log, NULL), 0);
 	}
 	for (int i = 0; i < TEST_THREADS; i++) {
-		cunit_assert_int32_equal(pthread_join(threads[i], NULL), 0);
+		assert_int32_eq(pthread_join(threads[i], NULL), 0);
 	}
 	end                           = ct_getuptime_ms();
 	const int time_with_basic_log = (int)(end - start);
@@ -143,10 +143,10 @@ static inline void test_print_performance_comparison(void) {
 	// 新增 brief log 测试
 	start = ct_getuptime_ms();
 	for (int i = 0; i < TEST_THREADS; i++) {
-		cunit_assert_int32_equal(pthread_create(&threads[i], NULL, thread_print_with_brief_log, NULL), 0);
+		assert_int32_eq(pthread_create(&threads[i], NULL, thread_print_with_brief_log, NULL), 0);
 	}
 	for (int i = 0; i < TEST_THREADS; i++) {
-		cunit_assert_int32_equal(pthread_join(threads[i], NULL), 0);
+		assert_int32_eq(pthread_join(threads[i], NULL), 0);
 	}
 	end                           = ct_getuptime_ms();
 	const int time_with_brief_log = (int)(end - start);
@@ -154,17 +154,17 @@ static inline void test_print_performance_comparison(void) {
 	// 新增 detail log 测试
 	start = ct_getuptime_ms();
 	for (int i = 0; i < TEST_THREADS; i++) {
-		cunit_assert_int32_equal(pthread_create(&threads[i], NULL, thread_print_with_detail_log, NULL), 0);
+		assert_int32_eq(pthread_create(&threads[i], NULL, thread_print_with_detail_log, NULL), 0);
 	}
 	for (int i = 0; i < TEST_THREADS; i++) {
-		cunit_assert_int32_equal(pthread_join(threads[i], NULL), 0);
+		assert_int32_eq(pthread_join(threads[i], NULL), 0);
 	}
 
 	end                            = ct_getuptime_ms();
 	const int time_with_detail_log = (int)(end - start);
 
 	is_exit = true;
-	cunit_assert_int32_equal(pthread_join(g_thread_logger, NULL), 0);
+	assert_int32_eq(pthread_join(g_thread_logger, NULL), 0);
 
 	ct_log_flush();
 	ct_log_schedule(ct_getuptime_ms());
@@ -178,7 +178,7 @@ static inline void test_print_performance_comparison(void) {
 
 int main(void) {
 	test_print_performance_comparison();
-	cunit_println("Finish! test_print_performance_comparison();\n");
+	cunit_println("Finish! test_print_performance_comparison();");
 
 	cunit_pass();
 }

@@ -51,13 +51,13 @@ static inline void test_basic_functionality(void) {
 	ct_timer_id_t timer_id = ct_timer_start(100, true, false, timer_callback, &count);
 
 	timer_schedule_mock(99);
-	cunit_assert_int32_equal(count, 0);
+	assert_int32_eq(count, 0);
 
 	timer_schedule_mock(1);
-	cunit_assert_int32_equal(count, 1);
+	assert_int32_eq(count, 1);
 
 	timer_schedule_mock(100);
-	cunit_assert_int32_equal(count, 2);
+	assert_int32_eq(count, 2);
 
 	ct_timer_stop(timer_id);
 }
@@ -68,13 +68,13 @@ static inline void test_single_timer(void) {
 	reset_mock_time();
 
 	ct_timer_start(100, false, false, timer_callback, &count);
-	cunit_assert_int32_equal(count, 0);
+	assert_int32_eq(count, 0);
 
 	timer_schedule_mock(100);
-	cunit_assert_int32_equal(count, 1);
+	assert_int32_eq(count, 1);
 
 	timer_schedule_mock(200);
-	cunit_assert_int32_equal(count, 1);
+	assert_int32_eq(count, 1);
 }
 
 // 测试重复定时器
@@ -85,7 +85,7 @@ static inline void test_repeating_timer(void) {
 	ct_timer_id_t timer_id = ct_timer_start(100, true, false, timer_callback, &count);
 
 	timer_schedule_mock(250);
-	cunit_assert_int32_equal(count, 2);
+	assert_int32_eq(count, 2);
 
 	ct_timer_stop(timer_id);
 }
@@ -98,13 +98,13 @@ static inline void test_precise_timer(void) {
 	ct_timer_id_t timer_id = ct_timer_start(100, true, false, timer_callback, &count);
 
 	timer_schedule_mock(99);
-	cunit_assert_int32_equal(count, 0);
+	assert_int32_eq(count, 0);
 
 	timer_schedule_mock(1);
-	cunit_assert_int32_equal(count, 1);
+	assert_int32_eq(count, 1);
 
 	timer_schedule_mock(100);
-	cunit_assert_int32_equal(count, 2);
+	assert_int32_eq(count, 2);
 
 	ct_timer_stop(timer_id);
 }
@@ -116,10 +116,10 @@ static inline void test_zero_millisecond_timer(void) {
 
 	// 0毫秒定时器
 	ct_timer_id_t timer_id = ct_timer_start(0, false, false, timer_callback, &count);
-	cunit_assert_int32_equal(timer_id, CT_TIMER_ID_INVALID);
+	assert_int32_eq(timer_id, CT_TIMER_ID_INVALID);
 
 	timer_schedule_mock(10);
-	cunit_assert_int32_equal(count, 0);
+	assert_int32_eq(count, 0);
 }
 
 // 测试多个定时器同时运行
@@ -134,9 +134,9 @@ static inline void test_multiple_timers(void) {
 	timer_ids[2] = ct_timer_start(200, true, false, timer_callback, &counts[2]);
 	timer_schedule_mock(500);
 
-	cunit_assert_int32_equal(counts[0], 5);
-	cunit_assert_int32_equal(counts[1], 3);
-	cunit_assert_int32_equal(counts[2], 2);
+	assert_int32_eq(counts[0], 5);
+	assert_int32_eq(counts[1], 3);
+	assert_int32_eq(counts[2], 2);
 
 	ct_timer_stop(timer_ids[0]);
 	ct_timer_stop(timer_ids[1]);
@@ -151,50 +151,50 @@ static inline void test_restart_timer(void) {
 	// 100毫秒定时器
 	ct_timer_id_t timer_id = ct_timer_start(100, true, false, timer_callback, &count);
 	timer_schedule_mock(250);
-	cunit_assert_int32_equal(count, 2);
+	assert_int32_eq(count, 2);
 
 	// 停止定时器
 	ct_timer_stop(timer_id);
 
 	// 重新启动定时器
 	timer_schedule_mock(100);
-	cunit_assert_int32_equal(count, 2);
+	assert_int32_eq(count, 2);
 
 	// 100毫秒定时器
 	timer_id = ct_timer_start(100, true, false, timer_callback, &count);
 	timer_schedule_mock(150);
-	cunit_assert_int32_equal(count, 3);
+	assert_int32_eq(count, 3);
 	ct_timer_stop(timer_id);
 }
 
 int main(void) {
 	// 创建线程池
 	ct_thpool_t *thpool = ct_thpool_create(2, NULL);
-	cunit_assert_not_null(thpool);
+	assert_not_null(thpool);
 
 	// 初始化定时器中枢
 	ct_timer_mgr_init(mock_current_time, thpool);
 
 	test_basic_functionality();
-	cunit_println("Finish! test_basic_functionality()\n");
+	cunit_println("Finish! test_basic_functionality()");
 
 	test_single_timer();
-	cunit_println("Finish! test_single_timer()\n");
+	cunit_println("Finish! test_single_timer()");
 
 	test_repeating_timer();
-	cunit_println("Finish! test_repeating_timer()\n");
+	cunit_println("Finish! test_repeating_timer()");
 
 	test_precise_timer();
-	cunit_println("Finish! test_precise_timer()\n");
+	cunit_println("Finish! test_precise_timer()");
 
 	test_zero_millisecond_timer();
-	cunit_println("Finish! test_zero_millisecond_timer()\n");
+	cunit_println("Finish! test_zero_millisecond_timer()");
 
 	test_multiple_timers();
-	cunit_println("Finish! test_multiple_timers()\n");
+	cunit_println("Finish! test_multiple_timers()");
 
 	test_restart_timer();
-	cunit_println("Finish! test_restart_timer()\n");
+	cunit_println("Finish! test_restart_timer()");
 
 	// 销毁线程池
 	ct_thpool_destroy(thpool);

@@ -41,7 +41,7 @@ static inline int test_hash_siphash(void) {
 
 	for (int n = 0; n < TEST_HASH_NUMBER; n++) {
 		for (int i = 1; i < 64; i++) {
-			cunit_assert_uint64_equal(ct_hashalgo_siphash_64(plaintext, i, ct_hash_key), vectors[i],
+			assert_uint64_eq(ct_hashalgo_siphash_64(plaintext, i, ct_hash_key), vectors[i],
 									   "n = %d, i = %d\n", n, i);
 		}
 	}
@@ -51,7 +51,7 @@ static inline int test_hash_siphash(void) {
 
 int main(void) {
 	test_hash_siphash();
-	cunit_println("Finish! test_hash_siphash();\n");
+	cunit_println("Finish! test_hash_siphash();");
 
 	cunit_pass();
 }

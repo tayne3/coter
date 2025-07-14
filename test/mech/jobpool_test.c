@@ -41,22 +41,22 @@ static inline void *test_job_publish(void *arg) {
 }
 
 static inline void test_jobpool_add(size_t data_count, size_t task_count, size_t job_count) {
-	cunit_assert_uint32_greater(data_count, 0);
-	cunit_assert_uint32_less_equal(data_count, TEST_DATA_MAX);
-	cunit_assert_uint32_greater(task_count, 0);
-	cunit_assert_uint32_greater(job_count, 0);
+	assert_uint32_gt(data_count, 0);
+	assert_uint32_le(data_count, TEST_DATA_MAX);
+	assert_uint32_gt(task_count, 0);
+	assert_uint32_gt(job_count, 0);
 
 	test_data_size = data_count;
 	test_data_reset();
 	test_end_number = 0;
 
 	ct_jobpool_t *jobpool = ct_jobpool_create(task_count, job_count);
-	cunit_assert_not_null(jobpool);
+	assert_not_null(jobpool);
 
 	bool      is_ok;
 	pthread_t thread;
 	is_ok = pthread_create(&thread, NULL, test_job_publish, jobpool) == 0;
-	cunit_assert_true(is_ok);
+	assert_true(is_ok);
 
 	// 等待结束 (超时时长: 10s)
 	bool is_timeout = false;
@@ -71,26 +71,26 @@ static inline void test_jobpool_add(size_t data_count, size_t task_count, size_t
 	}
 
 	is_ok = pthread_join(thread, NULL) == 0;
-	cunit_assert_true(is_ok);
+	assert_true(is_ok);
 
 	pthread_mutex_lock(test_mutex);
-	cunit_assert_uint32_equal(test_end_number, test_data_size);
+	assert_uint32_eq(test_end_number, test_data_size);
 	pthread_mutex_unlock(test_mutex);
 
 	ct_jobpool_destroy(jobpool);
 
-	cunit_assert_uint32_equal(test_end_number, test_data_size);
+	assert_uint32_eq(test_end_number, test_data_size);
 }
 
 int main(void) {
 	test_jobpool_add(10, 1, 10);
-	cunit_println("Finish! test_jobpool_add(10, 1, 10);\n");
+	cunit_println("Finish! test_jobpool_add(10, 1, 10);");
 
 	test_jobpool_add(10, 10, 1);
-	cunit_println("Finish! test_jobpool_add(10, 10, 1);\n");
+	cunit_println("Finish! test_jobpool_add(10, 10, 1);");
 
 	test_jobpool_add(500, 50, 50);
-	cunit_println("Finish! test_jobpool_add(500, 50, 50);\n");
+	cunit_println("Finish! test_jobpool_add(500, 50, 50);");
 
 	pthread_mutex_destroy(test_mutex);
 	cunit_pass();

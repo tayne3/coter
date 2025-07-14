@@ -53,7 +53,7 @@ static inline int is_admin(void) {
 static inline void test_timestamp_increment(void) {
 	ct_time64_t tick1 = ct_getuptime_ms();
 	ct_time64_t tick2 = ct_getuptime_ms();
-	cunit_assert_uint64_greater_equal(tick2, tick1);
+	assert_uint64_ge(tick2, tick1);
 }
 
 // 测试用例: 验证毫秒精度
@@ -68,8 +68,8 @@ static inline void test_millisecond_precision(void) {
 #endif
 	end_tick = ct_getuptime_ms();
 	// Allow some error
-	cunit_assert_uint64_greater_equal(end_tick - start_tick, 80);
-	cunit_assert_uint64_less(end_tick - start_tick, 120);
+	assert_uint64_ge(end_tick - start_tick, 80);
+	assert_uint64_lt(end_tick - start_tick, 120);
 
 	start_tick = ct_getuptime_ms();
 #ifdef _WIN32
@@ -79,8 +79,8 @@ static inline void test_millisecond_precision(void) {
 #endif
 	end_tick = ct_getuptime_ms();
 	// Allow some error
-	cunit_assert_uint64_greater_equal(end_tick - start_tick, 160);
-	cunit_assert_uint64_less(end_tick - start_tick, 240);
+	assert_uint64_ge(end_tick - start_tick, 160);
+	assert_uint64_lt(end_tick - start_tick, 240);
 }
 
 // 测试用例: 验证不受系统时间影响
@@ -90,18 +90,18 @@ static inline void test_unaffected_by_system_time(void) {
 	ct_time64_t before_tick = ct_getuptime_ms();
 	time_t      before_time = time(NULL);
 	ret                     = change_system_time(before_time + 3600);  // Adjust system time forward by 1 hour
-	cunit_assert_int_equal(ret, 0, "change system time failed");
+	assert_int_eq(ret, 0, "change system time failed");
 
 	ct_time64_t after_tick = ct_getuptime_ms();
 	time_t      after_time = time(NULL);
 	change_system_time(after_time - 3600);  // Adjust system time back
-	cunit_assert_int_equal(ret, 0, "change system time failed");
+	assert_int_eq(ret, 0, "change system time failed");
 
-	cunit_assert_uint64_greater_equal(after_time - before_time, 3600 - 10);
-	cunit_assert_uint64_less(after_time - before_time, 3600 + 10);
+	assert_uint64_ge(after_time - before_time, 3600 - 10);
+	assert_uint64_lt(after_time - before_time, 3600 + 10);
 
 	// Allow 1 second error
-	cunit_assert_uint64_less(after_tick - before_tick, 1000);
+	assert_uint64_lt(after_tick - before_tick, 1000);
 }
 
 int main(int argc, char *argv[]) {
