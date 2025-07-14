@@ -1,0 +1,31 @@
+name: Build
+run-name: ${{ gitea.actor }} is building the project 🚀
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+  workflow_dispatch: 
+
+jobs:
+  build:
+    runs-on: ubuntu-5110
+    container:
+      image: local/ubuntu-5110:202506
+      options: --network host
+    steps:
+      - name: Check out repository code
+        uses: https://gitea.com/actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Configure Git for private repositories
+        run: |
+          git config --global http.http://192.168.1.47:3000.extraheader "Authorization: token ${{ secrets.READONLY_TOKEN }}"
+      - name: Build Linux binary
+        run: |
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCOTER_BUILD_TEST=ON
+          cmake --build build --parallel $(nproc) --
+      - name: Run tests
+        working-directory: build
+        run: ctest --output-on-failure
