@@ -2,9 +2,8 @@
  * @file utils_test.c
  * @brief 工具函数测试
  * @author tayne3@dingtalk.com
- * @date 2024.11.09
  */
-#include "base/ct_utils.h"
+#include "coter/base/utils.h"
 #include "cunit.h"
 
 // 测试 ct_reverse_memcpy 基本功能

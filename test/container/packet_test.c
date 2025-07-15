@@ -2,9 +2,8 @@
  * @file packet_test.c
  * @brief 报文缓冲盒子测试
  * @author tayne3@dingtalk.com
- * @date 2025.01.02
  */
-#include "container/ct_packet.h"
+#include "coter/container/packet.h"
 #include "cunit.h"
 
 #define MAX_BUFFER_SIZE 100

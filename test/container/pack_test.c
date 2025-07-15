@@ -27,7 +27,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "container/ct_pack.h"
+#include "coter/container/pack.h"
 #include "cunit.h"
 
 #define TEST_BUFFER_SIZE 1024

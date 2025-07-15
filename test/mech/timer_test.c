@@ -2,11 +2,10 @@
  * @file timer_test.c
  * @brief 定时器测试
  * @author tayne3@dingtalk.com
- * @date 2023.12.18
  */
 #include "cunit.h"
-#include "mech/ct_thpool.h"
-#include "mech/ct_timer.h"
+#include "coter/mech/thpool.h"
+#include "coter/mech/timer.h"
 
 static ct_time64_t mock_current_time = 0;
 

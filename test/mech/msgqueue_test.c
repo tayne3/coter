@@ -2,12 +2,12 @@
  * @file msgqueue_test.c
  * @brief 消息队列测试
  * @author tayne3@dingtalk.com
- * @date 2023.12.03
  */
-#include "base/ct_platform.h"
-#include "base/ct_random.h"
+#include "coter/mech/msgqueue.h"
+
+#include "coter/base/platform.h"
+#include "coter/base/random.h"
 #include "cunit.h"
-#include "mech/ct_msgqueue.h"
 
 static size_t test_data_size = 0;
 static int   *test_data;
@@ -36,10 +36,10 @@ static inline void test_msgqueue(size_t data_size, size_t buffer_size) {
 
 	// 初始化测试数据
 	{
-		ct_random_buf_t ctrand;
-		ct_random_init(ctrand);
+		ct_random_t rng;
+		ct_random_init(&rng);
 		for (size_t i = 0; i < test_data_size; i++) {
-			test_data[i] = ct_random_int32(ctrand, INT32_MIN, INT32_MAX);
+			test_data[i] = ct_random_int32(&rng, INT32_MIN, INT32_MAX);
 		}
 	}
 

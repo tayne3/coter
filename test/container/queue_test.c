@@ -2,10 +2,9 @@
  * @file queue_test.c
  * @brief 队列测试
  * @author tayne3@dingtalk.com
- * @date 2023.11.30
  */
-#include "base/ct_any.h"
-#include "container/ct_queue.h"
+#include "coter/base/any.h"
+#include "coter/container/queue.h"
 #include "cunit.h"
 
 // 测试初始化

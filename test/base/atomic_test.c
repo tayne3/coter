@@ -2,9 +2,8 @@
  * @file atomic_test.c
  * @brief 原子操作相关测试
  * @author tayne3@dingtalk.com
- * @date 2023.12.18
  */
-#include "base/ct_atomic.h"
+#include "coter/base/atomic.h"
 #include "cunit.h"
 
 // 定义线程数量

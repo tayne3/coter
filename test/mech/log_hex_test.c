@@ -2,11 +2,10 @@
  * @file log_hex_test.c
  * @brief 日志十六进制测试
  * @author tayne3@dingtalk.com
- * @date 2024.11.25
  */
-#include "base/ct_platform.h"
+#include "coter/base/platform.h"
 #include "cunit.h"
-#include "mech/ct_log.h"
+#include "coter/mech/log.h"
 
 #define logVN(...) CTLogger_HandleBasic(Verbose, 0, __VA_ARGS__)
 #define logDN(...) CTLogger_HandleBasic(Debug, 0, __VA_ARGS__)

@@ -2,11 +2,10 @@
  * @file hash_test.c
  * @brief 哈希表测试
  * @author tayne3@dingtalk.com
- * @date 2023.11.30
  */
-#include "base/ct_any.h"
-#include "base/ct_platform.h"
-#include "container/ct_hash.h"
+#include "coter/base/any.h"
+#include "coter/base/platform.h"
+#include "coter/container/hash.h"
 #include "cunit.h"
 #include "sched.h"
 

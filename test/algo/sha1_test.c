@@ -2,7 +2,7 @@
  * @file sha1_test.c
  * @brief SHA1加密算法测试
  */
-#include "algo/ct_sha1.h"
+#include "coter/algo/sha1.h"
 #include "cunit.h"
 
 static const struct ct_sha1_test {

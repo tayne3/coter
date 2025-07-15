@@ -2,9 +2,8 @@
  * @file rbuf_test.c
  * @brief 环形缓冲区测试
  * @author tayne3@dingtalk.com
- * @date 2024.2.10
  */
-#include "container/ct_rbuf.h"
+#include "coter/container/rbuf.h"
 #include "cunit.h"
 
 #define TEST_BUF_SIZE 16

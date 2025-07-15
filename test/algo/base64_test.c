@@ -2,9 +2,8 @@
  * @file base64_test.c
  * @brief base64算法测试
  * @author tayne3@dingtalk.com
- * @date 2023.11.30
  */
-#include "algo/ct_base64.h"
+#include "coter/algo/base64.h"
 #include "cunit.h"
 
 struct ct_base64_test {

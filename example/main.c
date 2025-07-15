@@ -2,10 +2,9 @@
  * @file main.c
  * @brief 程序入口
  * @author tayne3@dingtalk.com
- * @date 2023.12.04
  */
 #include "app.h"
-#include "mech/ct_timer.h"
+#include "coter/mech/timer.h"
 
 // -------------------------[STATIC DECLARATION]-------------------------
 

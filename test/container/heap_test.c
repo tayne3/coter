@@ -2,10 +2,9 @@
  * @file heap_test.c
  * @brief 堆测试
  * @author tayne3@dingtalk.com
- * @date 2023.11.30
  */
-#include "base/ct_random.h"
-#include "container/ct_heap.h"
+#include "coter/base/random.h"
+#include "coter/container/heap.h"
 #include "cunit.h"
 
 static inline bool ct_heap_sort_func(const ct_any_t* a, const ct_any_t* b) {

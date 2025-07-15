@@ -2,16 +2,16 @@
  * @file random_test.c
  * @brief 随机数测试
  * @author tayne3@dingtalk.com
- * @date 2023.11.30
  */
-#include "base/ct_platform.h"
-#include "base/ct_random.h"
+#include "coter/base/random.h"
+
+#include "coter/base/platform.h"
 #include "cunit.h"
 
 static inline void test_random_bool(uint64_t test_number) {
 	// 初始化随机数生成器
-	ct_random_buf_t state;
-	ct_random_init(state);
+	ct_random_t rng;
+	ct_random_init(&rng);
 
 	// 定义统计数组，用于记录每个随机数的出现次数
 	int count[2] = {0};
@@ -19,7 +19,7 @@ static inline void test_random_bool(uint64_t test_number) {
 	bool random_num = 0;
 	for (register uint64_t i = 0; i < 2 * test_number;) {
 		for (uint64_t n = 0; n < test_number; n++, i++) {
-			random_num = ct_random_bool(state);
+			random_num = ct_random_bool(&rng);
 			assert_uint8_lt(random_num, 2);
 			count[random_num]++;
 		}
@@ -40,8 +40,8 @@ static inline void test_random_bool(uint64_t test_number) {
 
 static inline void test_random_uint8(uint64_t test_number) {
 	// 初始化随机数生成器
-	ct_random_buf_t state;
-	ct_random_init(state);
+	ct_random_t rng;
+	ct_random_init(&rng);
 
 	// 定义统计数组,用于记录每个随机数的出现次数
 	int count[100] = {0};
@@ -49,7 +49,7 @@ static inline void test_random_uint8(uint64_t test_number) {
 	uint8_t random_num = 0;
 	for (register uint64_t i = 0; i < 100 * test_number;) {
 		for (uint64_t n = 0; n < 50 * test_number; n++, i++) {
-			random_num = ct_random_uint8(state, 0, 100);
+			random_num = ct_random_uint8(&rng, 0, 100);
 			assert_uint8_lt(random_num, 100);
 			count[random_num]++;
 		}
@@ -70,8 +70,8 @@ static inline void test_random_uint8(uint64_t test_number) {
 
 static inline void test_random_uint16(uint64_t test_number) {
 	// 初始化随机数生成器
-	ct_random_buf_t state;
-	ct_random_init(state);
+	ct_random_t rng;
+	ct_random_init(&rng);
 
 	// 定义统计数组,用于记录每个随机数的出现次数
 	int count[100] = {0};
@@ -79,7 +79,7 @@ static inline void test_random_uint16(uint64_t test_number) {
 	uint16_t random_num = 0;
 	for (register uint64_t i = 0; i < 100 * test_number;) {
 		for (uint64_t n = 0; n < 50 * test_number; n++, i++) {
-			random_num = ct_random_uint16(state, 0, 100);
+			random_num = ct_random_uint16(&rng, 0, 100);
 			assert_uint16_lt(random_num, 100);
 			count[random_num]++;
 		}
@@ -99,8 +99,8 @@ static inline void test_random_uint16(uint64_t test_number) {
 
 static inline void test_random_uint32(uint64_t test_number) {
 	// 初始化随机数生成器
-	ct_random_buf_t state;
-	ct_random_init(state);
+	ct_random_t rng;
+	ct_random_init(&rng);
 
 	// 定义统计数组,用于记录每个随机数的出现次数
 	int count[100] = {0};
@@ -108,7 +108,7 @@ static inline void test_random_uint32(uint64_t test_number) {
 	uint32_t random_num = 0;
 	for (register uint64_t i = 0; i < 100 * test_number;) {
 		for (uint64_t n = 0; n < 50 * test_number; n++, i++) {
-			random_num = ct_random_uint32(state, 0, 100);
+			random_num = ct_random_uint32(&rng, 0, 100);
 			assert_uint32_lt(random_num, 100);
 			count[random_num]++;
 		}
@@ -129,8 +129,8 @@ static inline void test_random_uint32(uint64_t test_number) {
 
 static inline void test_random_uint64(uint64_t test_number) {
 	// 初始化随机数生成器
-	ct_random_buf_t state;
-	ct_random_init(state);
+	ct_random_t rng;
+	ct_random_init(&rng);
 
 	// 定义统计数组,用于记录每个随机数的出现次数
 	uint64_t count[100] = {0};
@@ -138,7 +138,7 @@ static inline void test_random_uint64(uint64_t test_number) {
 	uint64_t random_num = 0;
 	for (register uint64_t i = 0; i < 100 * test_number;) {
 		for (uint64_t n = 0; n < 50 * test_number; n++, i++) {
-			random_num = ct_random_uint64(state, 0, 100);
+			random_num = ct_random_uint64(&rng, 0, 100);
 			assert_uint64_lt(random_num, 100);
 			count[random_num]++;
 		}
@@ -159,8 +159,8 @@ static inline void test_random_uint64(uint64_t test_number) {
 
 static inline void test_random_float(uint64_t test_number) {
 	// 初始化随机数生成器
-	ct_random_buf_t state;
-	ct_random_init(state);
+	ct_random_t rng;
+	ct_random_init(&rng);
 
 	// 定义统计数组,用于记录每个随机数落在的区间
 	int count[100] = {0};
@@ -168,7 +168,7 @@ static inline void test_random_float(uint64_t test_number) {
 	int random_num = 0;
 	for (register uint64_t i = 0; i < 100 * test_number;) {
 		for (uint64_t n = 0; n < 50 * test_number; n++, i++) {
-			random_num = (int)(ct_random_float(state, 0.0f, 1.0f) * 100);
+			random_num = (int)(ct_random_float(&rng, 0.0f, 1.0f) * 100);
 			count[random_num]++;
 		}
 		sched_yield();
@@ -188,8 +188,8 @@ static inline void test_random_float(uint64_t test_number) {
 
 static inline void test_random_double(uint64_t test_number) {
 	// 初始化随机数生成器
-	ct_random_buf_t state;
-	ct_random_init(state);
+	ct_random_t rng;
+	ct_random_init(&rng);
 
 	// 定义统计数组,用于记录每个随机数落在的区间
 	int count[100] = {0};
@@ -197,7 +197,7 @@ static inline void test_random_double(uint64_t test_number) {
 	int random_num = 0;
 	for (register uint64_t i = 0; i < 100 * test_number;) {
 		for (uint64_t n = 0; n < 50 * test_number; n++, i++) {
-			random_num = (int)(ct_random_double(state, 0.0, 1.0) * 100);
+			random_num = (int)(ct_random_double(&rng, 0.0, 1.0) * 100);
 			count[random_num]++;
 		}
 		sched_yield();

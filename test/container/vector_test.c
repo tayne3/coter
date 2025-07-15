@@ -2,10 +2,9 @@
  * @file vector_test.c
  * @brief 向量测试
  * @author tayne3@dingtalk.com
- * @date 2023.12.15
  */
-#include "base/ct_random.h"
-#include "container/ct_vector.h"
+#include "coter/base/random.h"
+#include "coter/container/vector.h"
 #include "cunit.h"
 
 static inline void test_vector_resize(void) {

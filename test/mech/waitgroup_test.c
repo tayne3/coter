@@ -2,10 +2,9 @@
  * @file ct_waitgroup_test.c
  * @brief 等待组相关单元测试
  * @author tayne3
- * @date 2024.4.27
  */
 #include "cunit.h"
-#include "mech/ct_waitgroup.h"
+#include "coter/mech/waitgroup.h"
 
 // 结构体用于线程传递参数
 typedef struct {

@@ -2,9 +2,8 @@
  * @file bytes_concurrent_test.c
  * @brief 字节数组并发操作测试
  * @author tayne3@dingtalk.com
- * @date 2023.11.30
  */
-#include "container/ct_bytes.h"
+#include "coter/container/bytes.h"
 #include "cunit.h"
 
 /**

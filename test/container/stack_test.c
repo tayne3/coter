@@ -2,9 +2,8 @@
  * @file stack_test.c
  * @brief 栈测试
  * @author tayne3@dingtalk.com
- * @date 2023.11.30
  */
-#include "container/ct_stack.h"
+#include "coter/container/stack.h"
 #include "cunit.h"
 
 static inline int test_stack_init(void) {

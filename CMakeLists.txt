@@ -14,8 +14,8 @@ include(cmake/SetupPthreads.cmake)
 include(cmake/SetupLibrarys.cmake)
 
 configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/base/prefix/ct_config.h.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/include/base/prefix/ct_config.h"
+    "include/coter/base/config.h.in"
+    "include/coter/base/config.h"
     @ONLY
 )
 

@@ -2,7 +2,6 @@
  * @file app.h
  * @brief Application 实例
  * @author tayne3@dingtalk.com
- * @date 2024.2.6
  */
 #ifndef _APP_H
 #define _APP_H

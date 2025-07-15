@@ -2,7 +2,6 @@
  * @file excep.h
  * @brief 异常信息
  * @author tayne3@dingtalk.com
- * @date 2024.2.6
  */
 #ifndef _EXCEP_H
 #define _EXCEP_H
@@ -10,7 +9,7 @@
 extern "C" {
 #endif
 
-#include "base/ct_platform.h"
+#include "coter/base/platform.h"
 
 // 异常信息
 typedef struct excep {

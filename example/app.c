@@ -2,17 +2,16 @@
  * @file app.c
  * @brief Application 实例
  * @author tayne3@dingtalk.com
- * @date 2024.2.6
  */
 #include "app.h"
 
 #include <setjmp.h>
 #include <signal.h>
 
-#include "base/index.h"
-#include "container/ct_list.h"
+#include "coter/base.h"
+#include "coter/container.h"
+#include "coter/mech.h"
 #include "excep.h"
-#include "mech/index.h"
 
 // -------------------------[STATIC DECLARATION]-------------------------
 

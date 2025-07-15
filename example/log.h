@@ -2,7 +2,6 @@
  * @file log.h
  * @brief 日志宏
  * @author tayne3@dingtalk.com
- * @date 2024.2.6
  */
 #ifndef _LOG_H
 #define _LOG_H
@@ -10,8 +9,8 @@
 extern "C" {
 #endif
 
-#include "base/ct_platform.h"
-#include "mech/ct_log.h"
+#include "coter/base/platform.h"
+#include "coter/mech/log.h"
 
 #define LogType_Default 0
 

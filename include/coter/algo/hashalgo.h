@@ -1,0 +1,67 @@
+/**
+ * @file ct_hashalgo.h
+ * @brief Hash算法实现
+ * @author tayne3@dingtalk.com
+ */
+#ifndef _CT_HASHALGO_H
+#define _CT_HASHALGO_H
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include "coter/base/platform.h"
+
+/**
+ * @brief Time33 算法 / DJBX33A 算法 (Daniel J. Bernstein, Times 33 with Addition)
+ * @param data 源字符串
+ * @param size 源字符串长度
+ * @return 32位哈希值
+ */
+uint32_t ct_hashalgo_times33(const char *data, size_t size) __ct_nonnull(1);
+
+/**
+ * @brief BKDR 算法
+ * @param data 源字符串
+ * @param size 源字符串长度
+ * @return 32位哈希值
+ */
+uint32_t ct_hashalgo_bkdr(const char *data, size_t size) __ct_nonnull(1);
+
+/**
+ * @brief PJW 算法
+ * @param data 源字符串
+ * @param size 源字符串长度
+ * @return 32位哈希值
+ */
+uint32_t ct_hashalgo_pjw(const char *data, size_t size) __ct_nonnull(1);
+
+/**
+ * @brief MurmurHash2 算法
+ * @param data 源字符串
+ * @param size 源字符串长度
+ * @return 32位哈希值
+ */
+uint32_t ct_hashalgo_murmurhash2(const char *data, size_t size) __ct_nonnull(1);
+
+/**
+ * @brief MurmurHash2 算法
+ * @param data 源字符串
+ * @param size 源字符串长度
+ * @param seed 种子
+ * @return 64位哈希值
+ */
+uint64_t ct_hashalgo_murmurhash2_64(const char *data, size_t size, uint64_t seed) __ct_nonnull(1);
+
+/**
+ * @brief SipHash 算法
+ * @param data 源字符串
+ * @param size 源字符串长度
+ * @param sipct_hashalgo_keys 128位密钥
+ * @return 64位哈希值
+ */
+uint64_t ct_hashalgo_siphash_64(const char *data, size_t size, const uint8_t sipct_hashalgo_keys[16]) __ct_nonnull(1);
+
+#ifdef __cplusplus
+}
+#endif
+#endif  // _CT_HASHALGO_H

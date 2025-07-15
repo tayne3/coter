@@ -2,9 +2,8 @@
  * @file platform_test.c
  * @brief 平台相关测试
  * @author tayne3@dingtalk.com
- * @date 2023.12.18
  */
-#include "base/ct_platform.h"
+#include "coter/base/platform.h"
 #include "cunit.h"
 
 static inline void test_offset_of(void) {

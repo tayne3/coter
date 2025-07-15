@@ -2,9 +2,8 @@
  * @file bytes_test.c
  * @brief 字节数组测试
  * @author tayne3@dingtalk.com
- * @date 2023.11.30
  */
-#include "container/ct_bytes.h"
+#include "coter/container/bytes.h"
 #include "cunit.h"
 
 #define TEST_SMALL_SIZE 16

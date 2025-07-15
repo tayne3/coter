@@ -2,12 +2,11 @@
  * @file evmsg_test.c
  * @brief 事件消息测试
  * @author tayne3@dingtalk.com
- * @date 2023.12.18
  */
-#include "base/ct_platform.h"
+#include "coter/base/platform.h"
 #include "cunit.h"
-#include "mech/ct_evmsg.h"
-#include "mech/ct_thpool.h"
+#include "coter/mech/evmsg.h"
+#include "coter/mech/thpool.h"
 
 #define TEST_THREAD_NUMBER 3
 #define TEST_DATA_NUMBER   10000

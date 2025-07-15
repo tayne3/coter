@@ -2,11 +2,10 @@
  * @file bytepool_test.c
  * @brief 字节池测试
  * @author tayne3@dingtalk.com
- * @date 2024.2.10
  */
-#include "base/ct_time.h"
+#include "coter/base/time.h"
 #include "cunit.h"
-#include "mech/ct_bytepool.h"
+#include "coter/mech/bytepool.h"
 
 #define TEST_THREADS    24
 #define TEST_ITERATIONS 20480

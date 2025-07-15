@@ -2,11 +2,10 @@
  * @file log_print_test.c
  * @brief 日志打印测试
  * @author tayne3@dingtalk.com
- * @date 2024.11.25
  */
-#include "base/ct_platform.h"
+#include "coter/base/platform.h"
 #include "cunit.h"
-#include "mech/ct_log.h"
+#include "coter/mech/log.h"
 
 #define test_basic_verbose(...) CTLogger_HandleBasic(Verbose, 0, __VA_ARGS__)
 #define test_basic_debug(...)   CTLogger_HandleBasic(Debug, 0, __VA_ARGS__)

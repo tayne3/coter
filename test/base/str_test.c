@@ -2,9 +2,8 @@
  * @file str_test.c
  * @brief 字符串相关测试
  * @author tayne3@dingtalk.com
- * @date 2023.11.30
  */
-#include "base/ct_platform.h"
+#include "coter/base/platform.h"
 #include "cunit.h"
 
 #if defined(__GNUC__) && (__GNUC__ >= 7)

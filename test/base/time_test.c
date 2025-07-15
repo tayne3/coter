@@ -2,9 +2,8 @@
  * @file time_test.c
  * @brief 时间相关测试
  * @author tayne3@dingtalk.com
- * @date 2023.12.18
  */
-#include "base/ct_time.h"
+#include "coter/base/time.h"
 #include "cunit.h"
 
 // 辅助函数: 修改系统时间 (需要管理员权限)

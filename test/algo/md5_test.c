@@ -2,9 +2,8 @@
  * @file md5_test.c
  * @brief MD5加密算法测试
  * @author tayne3@dingtalk.com
- * @date 2023.11.30
  */
-#include "algo/ct_md5.h"
+#include "coter/algo/md5.h"
 #include "cunit.h"
 
 static const struct ct_md5_test {

@@ -2,10 +2,9 @@
  * @file cron_next_test.c
  * @brief 定时任务相关测试
  * @author tayne3@dingtalk.com
- * @date 2023.12.18
  */
 #include "cunit.h"
-#include "mech/ct_cron.h"
+#include "coter/mech/cron.h"
 
 // 辅助函数
 static inline ct_time_t create_test_time(int year, int month, int day, int hour, int min, int sec) {

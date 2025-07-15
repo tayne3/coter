@@ -2,12 +2,11 @@
  * @file jobpool_test.c
  * @brief 任务池测试
  * @author tayne3@dingtalk.com
- * @date 2023.12.03
  */
-#include "base/ct_platform.h"
-#include "base/ct_time.h"
+#include "coter/base/platform.h"
+#include "coter/base/time.h"
 #include "cunit.h"
-#include "mech/ct_jobpool.h"
+#include "coter/mech/jobpool.h"
 
 #define TEST_DATA_MAX 10000
 

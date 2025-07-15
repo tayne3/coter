@@ -2,9 +2,8 @@
  * @file hashalgo_test.c
  * @brief Hash 算法测试
  * @author tayne3@dingtalk.com
- * @date 2023.12.28
  */
-#include "algo/ct_hashalgo.h"
+#include "coter/algo/hashalgo.h"
 #include "cunit.h"
 
 #define TEST_HASH_NUMBER 100
