@@ -1,7 +1,6 @@
 /**
  * @file app.h
  * @brief Application 实例
- * @author tayne3@dingtalk.com
  */
 #ifndef _APP_H
 #define _APP_H

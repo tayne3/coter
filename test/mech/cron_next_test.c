@@ -1,7 +1,6 @@
 /**
  * @file cron_next_test.c
  * @brief 定时任务相关测试
- * @author tayne3@dingtalk.com
  */
 #include "cunit.h"
 #include "coter/mech/cron.h"

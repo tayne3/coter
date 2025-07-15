@@ -1,10 +1,9 @@
 /**
  * @file ct_packet.h
  * @brief 报文缓冲盒子
- * @author tayne3@dingtalk.com
  */
-#ifndef _CT_PACKET_H
-#define _CT_PACKET_H
+#ifndef COTER_PACKET_H
+#define COTER_PACKET_H
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -534,4 +533,4 @@ uint16_t ct_packet_put_doubles(ct_packet_buf_t self, const double *buffer, uint1
 #ifdef __cplusplus
 }
 #endif
-#endif  // _CT_PACKET_H
+#endif  // COTER_PACKET_H

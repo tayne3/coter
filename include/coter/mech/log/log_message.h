@@ -1,10 +1,9 @@
 /**
  * @file ct_log_message.h
  * @brief 日志消息
- * @author tayne3@dingtalk.com
  */
-#ifndef _CT_LOG_MESSAGE_H
-#define _CT_LOG_MESSAGE_H
+#ifndef COTER_LOG_MESSAGE_H
+#define COTER_LOG_MESSAGE_H
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -21,4 +20,4 @@ typedef struct ct_log_message {
 #ifdef __cplusplus
 }
 #endif
-#endif  // _CT_LOG_MESSAGE_H
+#endif  // COTER_LOG_MESSAGE_H

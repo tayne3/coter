@@ -1,10 +1,9 @@
 /**
  * @file ct_msgqueue.h
  * @brief 消息队列
- * @author tayne3@dingtalk.com
  */
-#ifndef _CT_MSGQUEUE_H
-#define _CT_MSGQUEUE_H
+#ifndef COTER_MSGQUEUE_H
+#define COTER_MSGQUEUE_H
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -97,4 +96,4 @@ bool ct_msgqueue_try_dequeue(ct_msgqueue_buf_t self, void *item) __ct_nonnull(1)
 #ifdef __cplusplus
 }
 #endif
-#endif  // _CT_MSGQUEUE_H
+#endif  // COTER_MSGQUEUE_H

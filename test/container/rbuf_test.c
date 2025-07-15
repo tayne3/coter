@@ -1,7 +1,6 @@
 /**
  * @file rbuf_test.c
  * @brief 环形缓冲区测试
- * @author tayne3@dingtalk.com
  */
 #include "coter/container/rbuf.h"
 #include "cunit.h"

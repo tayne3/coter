@@ -1,7 +1,6 @@
 /**
  * @file ct_logger.c
  * @brief 日志器
- * @author tayne3@dingtalk.com
  */
 #include "coter/mech/log/logger.h"
 

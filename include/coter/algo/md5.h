@@ -2,8 +2,8 @@
  * @file ct_md5.h
  * @brief MD5加密算法
  */
-#ifndef _CT_MD5_H
-#define _CT_MD5_H
+#ifndef COTER_MD5_H
+#define COTER_MD5_H
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -88,4 +88,4 @@ void ct_md5_final(ct_md5_ctx_t *self, uint8_t digest[16]);
 #ifdef __cplusplus
 }
 #endif
-#endif  // _CT_MD5_H
+#endif  // COTER_MD5_H

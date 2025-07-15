@@ -1,7 +1,6 @@
 /**
  * @file atomic_test.c
  * @brief 原子操作相关测试
- * @author tayne3@dingtalk.com
  */
 #include "coter/base/atomic.h"
 #include "cunit.h"

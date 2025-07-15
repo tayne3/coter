@@ -1,7 +1,6 @@
 /**
  * @file ct_timer.c
  * @brief 软件定时器实现
- * @author tayne3@dingtalk.com
  */
 #include "coter/mech/timer.h"
 

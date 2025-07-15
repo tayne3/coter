@@ -1,7 +1,6 @@
 /**
  * @file ct_jobpool.c
  * @brief 任务池实现
- * @author tayne3@dingtalk.com
  */
 #include "coter/mech/jobpool.h"
 

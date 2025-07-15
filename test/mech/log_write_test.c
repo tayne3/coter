@@ -1,7 +1,6 @@
 /**
  * @file log_write_test.c
  * @brief 日志写入测试
- * @author tayne3@dingtalk.com
  */
 #include "coter/base/platform.h"
 #include "cunit.h"

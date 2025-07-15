@@ -1,7 +1,6 @@
 /**
  * @file ct_threadcache.c
  * @brief 线程缓存
- * @author tayne3@dingtalk.com
  */
 #include "coter/mech/threadcache.h"
 

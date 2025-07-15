@@ -1,7 +1,6 @@
 /**
  * @file ct_utils.c
  * @brief 工具函数
- * @author tayne3@dingtalk.com
  */
 #include "coter/base/utils.h"
 

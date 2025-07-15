@@ -1,7 +1,6 @@
 /**
  * @file timer_test.c
  * @brief 定时器测试
- * @author tayne3@dingtalk.com
  */
 #include "cunit.h"
 #include "coter/mech/thpool.h"

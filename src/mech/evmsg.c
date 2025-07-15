@@ -1,7 +1,6 @@
 /**
  * @file ct_evmsg.c
  * @brief 事件消息机制
- * @author tayne3@dingtalk.com
  */
 #include "coter/mech/evmsg.h"
 

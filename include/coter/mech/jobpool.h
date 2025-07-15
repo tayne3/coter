@@ -1,10 +1,9 @@
 /**
  * @file ct_jobpool.h
  * @brief 任务池实现
- * @author tayne3@dingtalk.com
  */
-#ifndef _CT_JOBPOOL_H
-#define _CT_JOBPOOL_H
+#ifndef COTER_JOBPOOL_H
+#define COTER_JOBPOOL_H
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -45,4 +44,4 @@ void ct_jobpool_submit(ct_jobpool_t* self, ct_jobpool_routine_t routine, void* a
 #ifdef __cplusplus
 }
 #endif
-#endif  // _CT_JOBPOOL_H
+#endif  // COTER_JOBPOOL_H

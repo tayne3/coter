@@ -1,7 +1,6 @@
 /**
  * @file evmsg_test.c
  * @brief 事件消息测试
- * @author tayne3@dingtalk.com
  */
 #include "coter/base/platform.h"
 #include "cunit.h"

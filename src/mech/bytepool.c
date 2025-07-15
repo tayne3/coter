@@ -1,7 +1,6 @@
 /**
  * @file ct_bytepool.c
  * @brief 字节池
- * @author tayne3@dingtalk.com
  */
 #include "coter/mech/bytepool.h"
 

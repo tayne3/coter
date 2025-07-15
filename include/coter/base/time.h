@@ -1,10 +1,9 @@
 /**
  * @file ct_time.h
  * @brief 时间
- * @author tayne3@dingtalk.com
  */
-#ifndef _CT_TIME_H
-#define _CT_TIME_H
+#ifndef COTER_TIME_H
+#define COTER_TIME_H
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -134,4 +133,4 @@ char* ct_tm_fmt(const struct tm* tm, char* buf) __ct_nonnull(1, 2);
 #ifdef __cplusplus
 }
 #endif
-#endif  // _CT_TIME_H
+#endif  // COTER_TIME_H

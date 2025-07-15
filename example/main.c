@@ -1,7 +1,6 @@
 /**
  * @file main.c
  * @brief 程序入口
- * @author tayne3@dingtalk.com
  */
 #include "app.h"
 #include "coter/mech/timer.h"

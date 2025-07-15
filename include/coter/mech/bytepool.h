@@ -1,10 +1,9 @@
 /**
  * @file ct_bytepool.h
  * @brief 字节池
- * @author tayne3@dingtalk.com
  */
-#ifndef _CT_BYTEPOOL_H
-#define _CT_BYTEPOOL_H
+#ifndef COTER_BYTEPOOL_H
+#define COTER_BYTEPOOL_H
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -47,4 +46,4 @@ void ct_bytepool_put(ct_bytepool_t* self, ct_bytes_t* bytes) __ct_nonnull(1);
 #ifdef __cplusplus
 }
 #endif
-#endif  // _CT_BYTEPOOL_H
+#endif  // COTER_BYTEPOOL_H

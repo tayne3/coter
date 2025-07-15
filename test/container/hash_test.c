@@ -1,7 +1,6 @@
 /**
  * @file hash_test.c
  * @brief 哈希表测试
- * @author tayne3@dingtalk.com
  */
 #include "coter/base/any.h"
 #include "coter/base/platform.h"

@@ -1,7 +1,6 @@
 /**
  * @file hash.c
  * @brief Hash实现
- * @author tayne3@dingtalk.com
  */
 #include "coter/algo/hashalgo.h"
 

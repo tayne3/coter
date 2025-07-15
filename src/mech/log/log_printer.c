@@ -1,7 +1,6 @@
 /**
  * @file ct_log_printer.c
  * @brief 日志打印器
- * @author tayne3@dingtalk.com
  */
 #include "coter/mech/log/log_printer.h"
 

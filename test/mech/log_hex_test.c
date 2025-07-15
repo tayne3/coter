@@ -1,7 +1,6 @@
 /**
  * @file log_hex_test.c
  * @brief 日志十六进制测试
- * @author tayne3@dingtalk.com
  */
 #include "coter/base/platform.h"
 #include "cunit.h"

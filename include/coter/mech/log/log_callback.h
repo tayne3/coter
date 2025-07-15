@@ -1,10 +1,9 @@
 /**
  * @file ct_log_callback.h
  * @brief 日志回调器
- * @author tayne3@dingtalk.com
  */
-#ifndef _CT_LOG_CALLBACK_H
-#define _CT_LOG_CALLBACK_H
+#ifndef COTER_LOG_CALLBACK_H
+#define COTER_LOG_CALLBACK_H
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -61,4 +60,4 @@ void ct_log_callback_schedule(ct_log_callback_t *self) __ct_nonnull(1);
 #ifdef __cplusplus
 }
 #endif
-#endif  // _CT_LOG_CALLBACK_H
+#endif  // COTER_LOG_CALLBACK_H

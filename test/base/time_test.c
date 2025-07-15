@@ -1,7 +1,6 @@
 /**
  * @file time_test.c
  * @brief 时间相关测试
- * @author tayne3@dingtalk.com
  */
 #include "coter/base/time.h"
 #include "cunit.h"

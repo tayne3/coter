@@ -1,7 +1,6 @@
 /**
  * @file utils_test.c
  * @brief 工具函数测试
- * @author tayne3@dingtalk.com
  */
 #include "coter/base/utils.h"
 #include "cunit.h"

@@ -1,10 +1,9 @@
 /**
  * @file ct_timer.h
  * @brief 软件定时器实现
- * @author tayne3@dingtalk.com
  */
-#ifndef _CT_TIMER_H
-#define _CT_TIMER_H
+#ifndef COTER_TIMER_H
+#define COTER_TIMER_H
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -56,4 +55,4 @@ void ct_timer_stop(ct_timer_id_t id);
 #ifdef __cplusplus
 }
 #endif
-#endif  // _CT_TIMER_H
+#endif  // COTER_TIMER_H

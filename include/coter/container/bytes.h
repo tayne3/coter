@@ -1,10 +1,9 @@
 /**
  * @file ct_bytes.h
  * @brief 字节数组
- * @author tayne3@dingtalk.com
  */
-#ifndef _CT_BYTES_H
-#define _CT_BYTES_H
+#ifndef COTER_BYTES_H
+#define COTER_BYTES_H
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -65,4 +64,4 @@ size_t ct_bytes_write(ct_bytes_t *self, const void *data, size_t length) __ct_no
 #ifdef __cplusplus
 }
 #endif
-#endif  // _CT_BYTES_H
+#endif  // COTER_BYTES_H

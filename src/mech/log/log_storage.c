@@ -1,7 +1,6 @@
 /**
  * @file ct_log_storage.c
  * @brief 日志存储器
- * @author tayne3@dingtalk.com
  */
 #include "coter/mech/log/log_storage.h"
 

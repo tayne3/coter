@@ -1,7 +1,6 @@
 /**
  * @file ct_packet.c
  * @brief 报文缓冲盒子
- * @author tayne3@dingtalk.com
  */
 #include "coter/container/packet.h"
 

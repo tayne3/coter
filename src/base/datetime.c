@@ -1,7 +1,6 @@
 /**
  * @file ct_datetime.c
  * @brief 日期时间
- * @author tayne3@dingtalk.com
  */
 #include "coter/base/datetime.h"
 

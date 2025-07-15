@@ -1,10 +1,9 @@
 /**
  * @file ct_random.h
  * @brief 随机数实现
- * @author tayne3@dingtalk.com
  */
-#ifndef _CT_RANDOM_H
-#define _CT_RANDOM_H
+#ifndef COTER_RANDOM_H
+#define COTER_RANDOM_H
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -239,4 +238,4 @@ void ct_random_string(ct_random_t *self, char *str, size_t length) __ct_throw __
 #ifdef __cplusplus
 }
 #endif
-#endif  // _CT_RANDOM_H
+#endif  // COTER_RANDOM_H

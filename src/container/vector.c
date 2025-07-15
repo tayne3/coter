@@ -1,7 +1,6 @@
 /**
  * @file ct_vector.c
  * @brief 动态数组实现
- * @author tayne3@dingtalk.com
  */
 #include "coter/container/vector.h"
 

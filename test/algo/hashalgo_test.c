@@ -1,7 +1,6 @@
 /**
  * @file hashalgo_test.c
  * @brief Hash 算法测试
- * @author tayne3@dingtalk.com
  */
 #include "coter/algo/hashalgo.h"
 #include "cunit.h"

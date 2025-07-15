@@ -5,10 +5,9 @@
  *  定义了链表的数据结构和相关操作函数，包含链表的初始化、插入、删除、查询等操作。
  *  链表是一种常见的数据结构，用于存储和访问一系列元素。
  *  本文件定义了链表的节点结构体和链表的基本操作函数。
- * @author tayne3@dingtalk.com
  */
-#ifndef _CT_LIST_H
-#define _CT_LIST_H
+#ifndef COTER_LIST_H
+#define COTER_LIST_H
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -116,4 +115,4 @@ void ct_list_splice_next(ct_list_buf_t self, ct_list_buf_t list) __ct_nonnull(1,
 #ifdef __cplusplus
 }
 #endif
-#endif  // _CT_LIST_H
+#endif  // COTER_LIST_H

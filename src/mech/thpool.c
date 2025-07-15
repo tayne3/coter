@@ -1,7 +1,6 @@
 /**
  * @file ct_thpool.c
  * @brief 线程池实现
- * @author tayne3@dingtalk.com
  */
 #include "coter/mech/thpool.h"
 

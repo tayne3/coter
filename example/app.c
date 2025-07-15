@@ -1,7 +1,6 @@
 /**
  * @file app.c
  * @brief Application 实例
- * @author tayne3@dingtalk.com
  */
 #include "app.h"
 

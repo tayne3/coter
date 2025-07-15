@@ -1,7 +1,6 @@
 /**
  * @file log.h
  * @brief 日志宏
- * @author tayne3@dingtalk.com
  */
 #ifndef _LOG_H
 #define _LOG_H

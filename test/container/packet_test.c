@@ -1,7 +1,6 @@
 /**
  * @file packet_test.c
  * @brief 报文缓冲盒子测试
- * @author tayne3@dingtalk.com
  */
 #include "coter/container/packet.h"
 #include "cunit.h"

@@ -1,7 +1,6 @@
 /**
  * @file queue_test.c
  * @brief 队列测试
- * @author tayne3@dingtalk.com
  */
 #include "coter/base/any.h"
 #include "coter/container/queue.h"

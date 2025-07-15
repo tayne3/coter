@@ -4,10 +4,9 @@
  * @note
  * 	定义了队列的数据结构和相关操作函数,包含队列的初始化、插入、删除、查询等操作。
  * 	队列是一种先进先出（FIFO）的数据结构，可以用于存储和访问一系列元素。
- * @author tayne3@dingtalk.com
  */
-#ifndef _CT_QUEUE_H
-#define _CT_QUEUE_H
+#ifndef COTER_QUEUE_H
+#define COTER_QUEUE_H
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -79,4 +78,4 @@ int ct_queue_traverse(ct_queue_buf_t self, int (*callback)(void* item, void* arg
 #ifdef __cplusplus
 }
 #endif
-#endif  // _CT_QUEUE_H
+#endif  // COTER_QUEUE_H

@@ -1,10 +1,9 @@
 /**
  * @file ct_log.h
  * @brief 日志功能
- * @author tayne3@dingtalk.com
  */
-#ifndef _CT_LOG_H
-#define _CT_LOG_H
+#ifndef COTER_LOG_H
+#define COTER_LOG_H
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -84,4 +83,4 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#endif  // _CT_LOG_H
+#endif  // COTER_LOG_H

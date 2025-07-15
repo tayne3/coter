@@ -1,7 +1,6 @@
 /**
  * @file ct_random.c
  * @brief 随机数实现
- * @author tayne3@dingtalk.com
  */
 #include "coter/base/random.h"
 

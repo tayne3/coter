@@ -1,10 +1,9 @@
 /**
  * @file ct_log_storage.h
  * @brief 日志存储器
- * @author tayne3@dingtalk.com
  */
-#ifndef _CT_LOG_STORAGE_H
-#define _CT_LOG_STORAGE_H
+#ifndef COTER_LOG_STORAGE_H
+#define COTER_LOG_STORAGE_H
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -63,4 +62,4 @@ void ct_log_storage_schedule(ct_log_storage_t *self, ct_time64_t tick) __ct_nonn
 #ifdef __cplusplus
 }
 #endif
-#endif  // _CT_LOG_STORAGE_H
+#endif  // COTER_LOG_STORAGE_H

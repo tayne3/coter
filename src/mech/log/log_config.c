@@ -1,7 +1,6 @@
 /**
  * @file ct_log_config.c
  * @brief 日志配置
- * @author tayne3@dingtalk.com
  */
 #include "coter/mech/log/log_config.h"
 

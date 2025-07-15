@@ -1,7 +1,6 @@
 /**
  * @file list_test.c
  * @brief 链表测试
- * @author tayne3@dingtalk.com
  */
 #include "coter/container/list.h"
 #include "cunit.h"

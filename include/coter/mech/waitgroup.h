@@ -1,10 +1,9 @@
 /**
  * @file ct_waitgroup.h
  * @brief 等待组实现
- * @author tayne3@dingtalk.com
  */
-#ifndef _CT_WAITGROUP_H
-#define _CT_WAITGROUP_H
+#ifndef COTER_WAITGROUP_H
+#define COTER_WAITGROUP_H
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -61,4 +60,4 @@ void ct_waitgroup_wait(ct_waitgroup_t* wg);
 #ifdef __cplusplus
 }
 #endif
-#endif  // _CT_WAITGROUP_H
+#endif  // COTER_WAITGROUP_H

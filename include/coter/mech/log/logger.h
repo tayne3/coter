@@ -1,10 +1,9 @@
 /**
  * @file ct_logger.h
  * @brief 日志器
- * @author tayne3@dingtalk.com
  */
-#ifndef _CT_LOGGER_H
-#define _CT_LOGGER_H
+#ifndef COTER_LOGGER_H
+#define COTER_LOGGER_H
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -74,4 +73,4 @@ void ct_log_handle(size_t type_id, int level, const char *buf, size_t size) __ct
 #ifdef __cplusplus
 }
 #endif
-#endif  // _CT_LOGGER_H
+#endif  // COTER_LOGGER_H

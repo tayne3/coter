@@ -1,10 +1,9 @@
 /**
  * @file ct_evmsg.h
  * @brief 事件消息中枢
- * @author tayne3@dingtalk.com
  */
-#ifndef _CT_EVMSG_H
-#define _CT_EVMSG_H
+#ifndef COTER_EVMSG_H
+#define COTER_EVMSG_H
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -80,4 +79,4 @@ void ct_evmsg_publish(ct_evmsg_center_ptr_t center, ct_evmsg_buf_t msg) __ct_non
 #ifdef __cplusplus
 }
 #endif
-#endif  // _CT_EVMSG_H
+#endif  // COTER_EVMSG_H

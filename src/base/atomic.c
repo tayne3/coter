@@ -1,7 +1,6 @@
 /**
  * @file ct_atomic.c
  * @brief 原子操作
- * @author tayne3@dingtalk.com
  */
 #include "coter/base/atomic.h"
 

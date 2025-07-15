@@ -1,7 +1,6 @@
 /**
  * @file md5_test.c
  * @brief MD5加密算法测试
- * @author tayne3@dingtalk.com
  */
 #include "coter/algo/md5.h"
 #include "cunit.h"

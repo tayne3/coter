@@ -1,13 +1,12 @@
 /**
  * @file ct_any.h
  * @brief 定义 ct_any_t 类型
- * @author tayne3@dingtalk.com
  * @note
  * Any 是一种任意类型的数据, 支持各种内置类型和指针;
  * Any 允许传递任意内置类型的数据, 但取出时的类型需要与放入时的类型一致;
  */
-#ifndef _CT_ANY_H
-#define _CT_ANY_H
+#ifndef COTER_ANY_H
+#define COTER_ANY_H
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -219,4 +218,4 @@ ct_any_type_t ct_any_type(const ct_any_t* self) __ct_throw __ct_nonnull(1);
 #ifdef __cplusplus
 }
 #endif
-#endif  // _CT_ANY_H
+#endif  // COTER_ANY_H

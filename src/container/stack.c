@@ -5,7 +5,6 @@
  *  定义了栈的数据结构和相关操作函数，包含栈的初始化、入栈、出栈、查询等操作。
  *  栈是一种后进先出（LIFO）的数据结构，可以用于存储和访问一系列元素。
  *  本文件定义了栈的结构体和基本操作函数。
- * @author tayne3@dingtalk.com
  */
 #include "coter/container/stack.h"
 

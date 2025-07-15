@@ -1,10 +1,9 @@
 /**
  * @file ct_hashalgo.h
  * @brief Hash算法实现
- * @author tayne3@dingtalk.com
  */
-#ifndef _CT_HASHALGO_H
-#define _CT_HASHALGO_H
+#ifndef COTER_HASHALGO_H
+#define COTER_HASHALGO_H
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -64,4 +63,4 @@ uint64_t ct_hashalgo_siphash_64(const char *data, size_t size, const uint8_t sip
 #ifdef __cplusplus
 }
 #endif
-#endif  // _CT_HASHALGO_H
+#endif  // COTER_HASHALGO_H

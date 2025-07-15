@@ -1,7 +1,6 @@
 /**
  * @file bytepool_test.c
  * @brief 字节池测试
- * @author tayne3@dingtalk.com
  */
 #include "coter/base/time.h"
 #include "cunit.h"

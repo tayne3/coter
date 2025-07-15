@@ -1,10 +1,9 @@
 /**
  * @file ct_thpool.h
  * @brief 线程池实现
- * @author tayne3@dingtalk.com
  */
-#ifndef _CT_THPOOL_H
-#define _CT_THPOOL_H
+#ifndef COTER_THPOOL_H
+#define COTER_THPOOL_H
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -85,4 +84,4 @@ void ct_thpool_default_config(ct_thpool_config_t* config);
 #ifdef __cplusplus
 }
 #endif
-#endif  // _CT_THPOOL_H
+#endif  // COTER_THPOOL_H

@@ -1,10 +1,9 @@
 /**
  * @file ct_event.h
  * @brief 事件机制
- * @author tayne3@dingtalk.com
  */
-#ifndef _CT_EVENT_H
-#define _CT_EVENT_H
+#ifndef COTER_EVENT_H
+#define COTER_EVENT_H
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -1,7 +1,6 @@
 /**
  * @file ct_log_callback.c
  * @brief 日志回调器
- * @author tayne3@dingtalk.com
  */
 #include "coter/mech/log/log_callback.h"
 

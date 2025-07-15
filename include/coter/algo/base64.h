@@ -1,10 +1,9 @@
 /**
  * @file ct_base64.h
  * @brief base64算法
- * @author tayne3@dingtalk.com
  */
-#ifndef _CT_BASE64_H
-#define _CT_BASE64_H
+#ifndef COTER_BASE64_H
+#define COTER_BASE64_H
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -54,4 +53,4 @@ size_t ct_base64_decode(const char *src, size_t n, char *dst, size_t len);
 #ifdef __cplusplus
 }
 #endif
-#endif  // _CT_BASE64_H
+#endif  // COTER_BASE64_H

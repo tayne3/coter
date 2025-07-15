@@ -1,7 +1,6 @@
 /**
  * @file base64_test.c
  * @brief base64算法测试
- * @author tayne3@dingtalk.com
  */
 #include "coter/algo/base64.h"
 #include "cunit.h"

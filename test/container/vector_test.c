@@ -1,7 +1,6 @@
 /**
  * @file vector_test.c
  * @brief 向量测试
- * @author tayne3@dingtalk.com
  */
 #include "coter/base/random.h"
 #include "coter/container/vector.h"

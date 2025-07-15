@@ -1,7 +1,6 @@
 /**
  * @file bytes_test.c
  * @brief 字节数组测试
- * @author tayne3@dingtalk.com
  */
 #include "coter/container/bytes.h"
 #include "cunit.h"

@@ -1,7 +1,6 @@
 /**
  * @file ct_cron.c
  * @brief 软件cron任务实现
- * @author tayne3@dingtalk.com
  */
 #include "coter/mech/cron.h"
 

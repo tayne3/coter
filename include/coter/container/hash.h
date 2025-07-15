@@ -14,10 +14,9 @@
  * 		当两个键通过哈希函数映射到同一个索引位置时就会产生碰撞冲突。
  *  - 拉链法:
  * 		将可能发生碰撞的位置建立链表结构,同一个位置可能映射多个键值对,通过迭代链表查找目标键值对。这种方法利用指针记录冲突数据,查询速度较慢但利用空间小。
- * @author tayne3@dingtalk.com
  */
-#ifndef _CT_HASH_H
-#define _CT_HASH_H
+#ifndef COTER_HASH_H
+#define COTER_HASH_H
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -160,4 +159,4 @@ ct_any_t ct_hash_value_s(ct_hash_buf_t self, const char *key, ct_any_t default_v
 #ifdef __cplusplus
 }
 #endif
-#endif  // _CT_HASH_H
+#endif  // COTER_HASH_H

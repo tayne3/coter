@@ -1,7 +1,6 @@
 /**
  * @file log_print_test.c
  * @brief 日志打印测试
- * @author tayne3@dingtalk.com
  */
 #include "coter/base/platform.h"
 #include "cunit.h"

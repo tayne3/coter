@@ -1,10 +1,9 @@
 /**
  * @file ct_str.h
  * @brief 字符串相关
- * @author tayne3@dingtalk.com
  */
-#ifndef _CT_STR_H
-#define _CT_STR_H
+#ifndef COTER_STR_H
+#define COTER_STR_H
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -183,4 +182,4 @@ static inline const char *ct_basename(const char *path) {
 #ifdef __cplusplus
 }
 #endif
-#endif  // _CT_STR_H
+#endif  // COTER_STR_H

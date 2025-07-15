@@ -1,7 +1,6 @@
 /**
  * @file ct_waitgroup.c
  * @brief 等待组实现
- * @author tayne3@dingtalk.com
  */
 #include "coter/mech/waitgroup.h"
 

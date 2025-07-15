@@ -1,7 +1,6 @@
 /**
  * @file ct_base64.c
  * @brief base64算法
- * @author tayne3@dingtalk.com
  */
 #include "coter/algo/base64.h"
 

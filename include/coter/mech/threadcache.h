@@ -1,10 +1,9 @@
 /**
  * @file ct_threadcache.h
  * @brief 线程缓存
- * @author tayne3@dingtalk.com
  */
-#ifndef _CT_THREADCACHE_H
-#define _CT_THREADCACHE_H
+#ifndef COTER_THREADCACHE_H
+#define COTER_THREADCACHE_H
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -77,4 +76,4 @@ int __ct_threadcache_detail(ct_threadcache_t *self, const char *file, int line, 
 #ifdef __cplusplus
 }
 #endif
-#endif  // _CT_THREADCACHE_H
+#endif  // COTER_THREADCACHE_H

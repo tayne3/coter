@@ -1,7 +1,6 @@
 /**
  * @file platform_test.c
  * @brief 平台相关测试
- * @author tayne3@dingtalk.com
  */
 #include "coter/base/platform.h"
 #include "cunit.h"

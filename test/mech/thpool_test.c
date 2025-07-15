@@ -1,7 +1,6 @@
 /**
  * @file thpool_test.c
  * @brief 线程池测试
- * @author tayne3@dingtalk.com
  */
 #include "coter/base/platform.h"
 #include "coter/base/time.h"

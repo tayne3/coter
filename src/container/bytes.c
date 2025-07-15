@@ -1,7 +1,6 @@
 /**
  * @file ct_bytes.c
  * @brief 字节数组
- * @author tayne3@dingtalk.com
  */
 #include "coter/container/bytes.h"
 

@@ -1,10 +1,9 @@
 /**
  * @file ct_cron.h
  * @brief cron任务管理
- * @author tayne3@dingtalk.com
  */
-#ifndef _CT_CRON_H
-#define _CT_CRON_H
+#ifndef COTER_CRON_H
+#define COTER_CRON_H
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -93,4 +92,4 @@ ct_time_t ct_cron_next_timeout(ct_time_t now, int minute, int hour, int day, int
 #ifdef __cplusplus
 }
 #endif
-#endif  // _CT_CRON_H
+#endif  // COTER_CRON_H

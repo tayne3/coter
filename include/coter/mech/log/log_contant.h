@@ -1,10 +1,9 @@
 /**
  * @file ct_log_contant.h
  * @brief 日志常量
- * @author tayne3@dingtalk.com
  */
-#ifndef _CT_LOG_CONSTANT_H
-#define _CT_LOG_CONSTANT_H
+#ifndef COTER_LOG_CONSTANT_H
+#define COTER_LOG_CONSTANT_H
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -44,4 +43,4 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#endif  // _CT_LOG_CONSTANT_H
+#endif  // COTER_LOG_CONSTANT_H

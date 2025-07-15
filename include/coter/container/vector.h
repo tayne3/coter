@@ -1,10 +1,9 @@
 /**
  * @file ct_vector.h
  * @brief 动态数组实现
- * @author tayne3@dingtalk.com
  */
-#ifndef _CT_VECTOR_H
-#define _CT_VECTOR_H
+#ifndef COTER_VECTOR_H
+#define COTER_VECTOR_H
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -80,4 +79,4 @@ bool ct_vector_resize(ct_vector_buf_t self, size_t size) __ct_nonnull(1);
 #ifdef __cplusplus
 }
 #endif
-#endif  // _CT_VECTOR_H
+#endif  // COTER_VECTOR_H

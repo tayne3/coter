@@ -4,10 +4,9 @@
  * @note
  *  定义了环形缓冲区结构体和相关操作宏，用于实现环形缓冲区的功能。
  *  环形缓冲区是一种循环队列的实现，可以高效地存储和访问数据。
- * @author tayne3@dingtalk.com
  */
-#ifndef _CT_RBUF_H
-#define _CT_RBUF_H
+#ifndef COTER_RBUF_H
+#define COTER_RBUF_H
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -118,4 +117,4 @@ void *ct_rbuf_items(const ct_rbuf_buf_t self, size_t offset, size_t size[1]) __c
 #ifdef __cplusplus
 }
 #endif
-#endif  // _CT_RBUF_H
+#endif  // COTER_RBUF_H

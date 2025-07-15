@@ -1,7 +1,6 @@
 /**
  * @file ct_msgqueue.c
  * @brief 消息队列
- * @author tayne3@dingtalk.com
  */
 #include "coter/mech/msgqueue.h"
 

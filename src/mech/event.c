@@ -1,7 +1,6 @@
 /**
  * @file ct_event.c
  * @brief 事件机制
- * @author tayne3@dingtalk.com
  */
 #include "coter/mech/event.h"
 

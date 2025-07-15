@@ -1,7 +1,6 @@
 /**
  * @file jobpool_test.c
  * @brief 任务池测试
- * @author tayne3@dingtalk.com
  */
 #include "coter/base/platform.h"
 #include "coter/base/time.h"

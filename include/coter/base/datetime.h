@@ -1,10 +1,9 @@
 /**
  * @file ct_datetime.h
  * @brief 日期时间
- * @author tayne3@dingtalk.com
  */
-#ifndef _CT_DATETIME_H
-#define _CT_DATETIME_H
+#ifndef COTER_DATETIME_H
+#define COTER_DATETIME_H
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -273,4 +272,4 @@ ct_datetime_t __ct_datetime_compile(const char* _date, const char* _time);
 #ifdef __cplusplus
 }
 #endif
-#endif  // _CT_DATETIME_H
+#endif  // COTER_DATETIME_H

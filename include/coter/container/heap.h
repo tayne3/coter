@@ -5,10 +5,9 @@
  * 	定义了堆的数据结构和相关操作函数，包含堆的初始化、插入、删除、查询等操作。
  * 	堆是一种特殊的完全二叉树结构，可以用于高效地维护一组元素，并支持快速的插入和删除操作。
  * 	本文件定义了堆的结构体和基本操作函数。
- * @author tayne3@dingtalk.com
  */
-#ifndef _CT_HEAP_H
-#define _CT_HEAP_H
+#ifndef COTER_HEAP_H
+#define COTER_HEAP_H
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -87,4 +86,4 @@ bool ct_heap_copy(ct_heap_buf_t self, ct_heap_t* target) __ct_nonnull(1, 2);
 #ifdef __cplusplus
 }
 #endif
-#endif  // _CT_HEAP_H
+#endif  // COTER_HEAP_H

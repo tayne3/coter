@@ -1,10 +1,9 @@
 /**
  * @file ct_atomic.h
  * @brief 原子操作
- * @author tayne3@dingtalk.com
  */
-#ifndef _CT_ATOMIC_H
-#define _CT_ATOMIC_H
+#ifndef COTER_ATOMIC_H
+#define COTER_ATOMIC_H
 #ifdef __cplusplus  // c++11
 #if __cplusplus < 201103L
 #error "C++11 or higher is required"
@@ -197,4 +196,4 @@ static inline long ct_atomic_sub(ct_atomic_t* p, long value) {
 #endif  // HAVE_STDATOMIC_H
 
 #endif
-#endif  // _CT_ATOMIC_H
+#endif  // COTER_ATOMIC_H

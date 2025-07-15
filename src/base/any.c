@@ -1,7 +1,6 @@
 /**
  * @file ct_any.c
  * @brief 定义 ct_any_t 类型
- * @author tayne3@dingtalk.com
  */
 #include "coter/base/any.h"
 

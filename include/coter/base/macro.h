@@ -2,10 +2,9 @@
  * @file ct_macro.h
  * @brief 基本定义和宏
  * @note 提供了基本定义和宏，包括基本类型、宏、通用宏和特定于平台的宏
- * @author tayne3@dingtalk.com
  */
-#ifndef _CT_MACRO_H
-#define _CT_MACRO_H
+#ifndef COTER_MACRO_H
+#define COTER_MACRO_H
 
 #include "coter/base/config.h"
 
@@ -446,4 +445,4 @@ typedef struct ct_context {
 #   define __ct_noreturn
 # endif
 
-#endif // _CT_MACRO_H
+#endif // COTER_MACRO_H

@@ -1,10 +1,9 @@
 /**
  * @file ct_utils.h
  * @brief 工具函数
- * @author tayne3@dingtalk.com
  */
-#ifndef _CT_UTILS_H
-#define _CT_UTILS_H
+#ifndef COTER_UTILS_H
+#define COTER_UTILS_H
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -27,4 +26,4 @@ void *ct_reverse_memmove(void *dest, const void *src, size_t n) __ct_nonnull(1, 
 #ifdef __cplusplus
 }
 #endif
-#endif  // _CT_UTILS_H
+#endif  // COTER_UTILS_H

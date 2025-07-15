@@ -1,5 +1,5 @@
-#ifndef _CT_CONFIG_H
-#define _CT_CONFIG_H
+#ifndef COTER_CONFIG_H
+#define COTER_CONFIG_H
 
 #include "pthread.h"
 
@@ -105,4 +105,4 @@
 #define HAVE_STRUCT_TIMESPEC @HAVE_STRUCT_TIMESPEC@
 #endif
 
-#endif // _CT_CONFIG_H
+#endif // COTER_CONFIG_H

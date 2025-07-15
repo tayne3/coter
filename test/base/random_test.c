@@ -1,7 +1,6 @@
 /**
  * @file random_test.c
  * @brief 随机数测试
- * @author tayne3@dingtalk.com
  */
 #include "coter/base/random.h"
 

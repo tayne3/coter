@@ -1,7 +1,6 @@
 /**
  * @file stack_test.c
  * @brief 栈测试
- * @author tayne3@dingtalk.com
  */
 #include "coter/container/stack.h"
 #include "cunit.h"

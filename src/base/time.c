@@ -1,7 +1,6 @@
 /**
  * @file ct_time.c
  * @brief 时间相关
- * @author tayne3@dingtalk.com
  */
 #include "coter/base/time.h"
 

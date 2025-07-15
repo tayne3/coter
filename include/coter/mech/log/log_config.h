@@ -1,10 +1,9 @@
 /**
  * @file ct_log_config.h
  * @brief 日志配置
- * @author tayne3@dingtalk.com
  */
-#ifndef _CT_LOG_CONFIG_H
-#define _CT_LOG_CONFIG_H
+#ifndef COTER_LOG_CONFIG_H
+#define COTER_LOG_CONFIG_H
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -39,4 +38,4 @@ void ct_log_config_default(ct_log_config_t* config) __ct_nonnull(1);
 #ifdef __cplusplus
 }
 #endif
-#endif  // _CT_LOG_CONFIG_H
+#endif  // COTER_LOG_CONFIG_H
