@@ -105,11 +105,16 @@ static inline void test_unaffected_by_system_time(void) {
 }
 
 int main(int argc, char *argv[]) {
-	bool is_quiet = false;
+	bool test_system_time = false;
+	bool is_quiet         = false;
 	for (int i = 1; i < argc; i++) {
+		if (strncmp(argv[i], "-t", 2) == 0) {
+			test_system_time = true;
+			continue;
+		}
 		if (strncmp(argv[i], "-q", 2) == 0) {
 			is_quiet = true;
-			break;
+			continue;
 		}
 	}
 
@@ -119,7 +124,7 @@ int main(int argc, char *argv[]) {
 	test_millisecond_precision();
 	cunit_println("Finish! test_millisecond_precision();");
 
-	if (is_admin() == 0) {
+	if (test_system_time && is_admin() == 0) {
 		cunit_println("Warning: About to change system time, please ensure you have administrator privileges");
 		if (!is_quiet) {
 			cunit_println("Press Enter to continue...");
