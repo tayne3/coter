@@ -366,26 +366,17 @@ static inline void test_list_foreach_entry_safe(void) {
 }
 
 int main(void) {
-	test_list_basic();
-	cunit_println("Finish! test_list_init();");
+	cunit_init();
 
-	test_list_operations();
-	cunit_println("Finish! test_list_operations();");
+	CUNIT_SUITE_BEGIN("list", NULL, NULL)
+	CUNIT_TEST("basic", test_list_basic)
+	CUNIT_TEST("operations", test_list_operations)
+	CUNIT_TEST("splice", test_list_splice)
+	CUNIT_TEST("foreach", test_list_foreach)
+	CUNIT_TEST("foreach_entry", test_list_foreach_entry)
+	CUNIT_TEST("foreach_entry_from", test_list_foreach_entry_from)
+	CUNIT_TEST("foreach_entry_safe", test_list_foreach_entry_safe)
+	CUNIT_SUITE_END()
 
-	test_list_splice();
-	cunit_println("Finish! test_list_splice();");
-
-	test_list_foreach();
-	cunit_println("Finish! test_list_foreach();");
-
-	test_list_foreach_entry();
-	cunit_println("Finish! test_list_foreach_entry();");
-
-	test_list_foreach_entry_from();
-	cunit_println("Finish! test_list_foreach_entry_from();");
-
-	test_list_foreach_entry_safe();
-	cunit_println("Finish! test_list_foreach_entry_safe();");
-
-	cunit_pass();
+	return cunit_run();
 }

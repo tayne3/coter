@@ -268,32 +268,19 @@ static void test_concurrent_add_done(void) {
 
 // 执行所有测试
 int main(void) {
-	test_init_destroy();
-	cunit_println("Finish! test_init_destroy()");
+	cunit_init();
 
-	test_single_task();
-	cunit_println("Finish! test_single_task()");
+	CUNIT_SUITE_BEGIN("waitgroup", NULL, NULL)
+	CUNIT_TEST("init_destroy", test_init_destroy)
+	CUNIT_TEST("single_task", test_single_task)
+	CUNIT_TEST("multiple_tasks", test_multiple_tasks)
+	CUNIT_TEST("repeated_add_done", test_repeated_add_done)
+	CUNIT_TEST("multiple_wait", test_multiple_wait)
+	CUNIT_TEST("add_zero_tasks", test_add_zero_tasks)
+	CUNIT_TEST("done_exceed_add", test_done_exceed_add)
+	CUNIT_TEST("dynamic_add_tasks", test_dynamic_add_tasks)
+	CUNIT_TEST("concurrent_add_done", test_concurrent_add_done)
+	CUNIT_SUITE_END()
 
-	test_multiple_tasks();
-	cunit_println("Finish! test_multiple_tasks()");
-
-	test_repeated_add_done();
-	cunit_println("Finish! test_repeated_add_done()");
-
-	test_multiple_wait();
-	cunit_println("Finish! test_multiple_wait()");
-
-	test_add_zero_tasks();
-	cunit_println("Finish! test_add_zero_tasks()");
-
-	test_done_exceed_add();
-	cunit_println("Finish! test_done_exceed_add()");
-
-	test_dynamic_add_tasks();
-	cunit_println("Finish! test_dynamic_add_tasks()");
-
-	test_concurrent_add_done();
-	cunit_println("Finish! test_concurrent_add_done()");
-
-	cunit_pass();
+	return cunit_run();
 }

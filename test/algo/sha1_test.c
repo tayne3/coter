@@ -43,7 +43,7 @@ static const struct ct_sha1_test {
 	},
 };
 
-static inline int test_sha1_hex(void) {
+void test_sha1_hex(void) {
 	const int size = (int)ct_arrsize(ct_sha1_test_all);
 	for (int i = 0; i < size; i++) {
 		char sha1[41] = {0};
@@ -53,13 +53,14 @@ static inline int test_sha1_hex(void) {
 
 		assert_str_eq(sha1, it->target, "i=%d", i);
 	}
-
-	return 0;
 }
 
 int main(void) {
-	test_sha1_hex();
-	cunit_println("Finish! test_sha1_hex();");
+	cunit_init();
 
-	cunit_pass();
+	CUNIT_SUITE_BEGIN("sha1", NULL, NULL)
+	CUNIT_TEST("sha1", test_sha1_hex)
+	CUNIT_SUITE_END()
+
+	return cunit_run();
 }

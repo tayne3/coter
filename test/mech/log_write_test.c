@@ -174,8 +174,11 @@ static inline void test_write_performance_comparison(void) {
 }
 
 int main(void) {
-	test_write_performance_comparison();
-	cunit_println("Finish! test_write_performance_comparison();");
+	cunit_init();
 
-	cunit_pass();
+	CUNIT_SUITE_BEGIN("log_write", NULL, NULL)
+	CUNIT_TEST("performance_comparison", test_write_performance_comparison)
+	CUNIT_SUITE_END()
+
+	return cunit_run();
 }

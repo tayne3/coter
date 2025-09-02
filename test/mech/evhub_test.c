@@ -198,26 +198,23 @@ static void test_edge_cases(void) {
 }
 
 int main(void) {
-	test_single_subscriber();
-	cunit_println("Finish! test_single_subscriber()");
+	cunit_init();
 
-	test_multiple_subscribers();
-	cunit_println("Finish! test_multiple_subscribers()");
+	CUNIT_SUITE_BEGIN("evhub.core", NULL, NULL)
+	CUNIT_TEST("should receive notification for a subscribed event", test_single_subscriber)
+	CUNIT_TEST("should notify all subscribers for an event", test_multiple_subscribers)
+	CUNIT_TEST("should pass data correctly with the event", test_data_passing)
+	CUNIT_TEST("should only notify subscribers of the relevant event type", test_multiple_event_types)
+	CUNIT_SUITE_END()
 
-	test_unsubscribe();
-	cunit_println("Finish! test_unsubscribe()");
+	CUNIT_SUITE_BEGIN("evhub.lifecycle", NULL, NULL)
+	CUNIT_TEST("should not receive notification after unsubscribing", test_unsubscribe)
+	CUNIT_TEST("should complete successfully when publishing with no subscribers", test_publish_no_subscriber)
+	CUNIT_SUITE_END()
 
-	test_publish_no_subscriber();
-	cunit_println("Finish! test_publish_no_subscriber()");
+	CUNIT_SUITE_BEGIN("evhub.edge_cases", NULL, NULL)
+	CUNIT_TEST("should handle duplicate subscriptions and invalid unsubscriptions correctly", test_edge_cases)
+	CUNIT_SUITE_END()
 
-	test_data_passing();
-	cunit_println("Finish! test_data_passing()");
-
-	test_multiple_event_types();
-	cunit_println("Finish! test_multiple_event_types()");
-
-	test_edge_cases();
-	cunit_println("Finish! test_edge_cases()");
-
-	cunit_pass();
+	return cunit_run();
 }

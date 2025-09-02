@@ -191,23 +191,16 @@ static inline void test_memory_management(void) {
 }
 
 int main(void) {
-	test_init();
-	cunit_println("Finish! test_init();");
+	cunit_init();
 
-	test_basic_operations();
-	cunit_println("Finish! test_basic_operations();");
+	CUNIT_SUITE_BEGIN("bytes", NULL, NULL)
+	CUNIT_TEST("init", test_init)
+	CUNIT_TEST("basic_operations", test_basic_operations)
+	CUNIT_TEST("edge_cases", test_edge_cases)
+	CUNIT_TEST("multiple_operations", test_multiple_operations)
+	CUNIT_TEST("special_cases", test_special_cases)
+	CUNIT_TEST("memory_management", test_memory_management)
+	CUNIT_SUITE_END()
 
-	test_edge_cases();
-	cunit_println("Finish! test_edge_cases();");
-
-	test_multiple_operations();
-	cunit_println("Finish! test_multiple_operations();");
-
-	test_special_cases();
-	cunit_println("Finish! test_special_cases();");
-
-	test_memory_management();
-	cunit_println("Finish! test_memory_management();");
-
-	cunit_pass();
+	return cunit_run();
 }

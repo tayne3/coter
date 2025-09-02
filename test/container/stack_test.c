@@ -5,7 +5,7 @@
 #include "coter/container/stack.h"
 #include "cunit.h"
 
-static inline int test_stack_init(void) {
+void test_stack_init(void) {
 	ct_stack_t   stack;
 	ct_any_t     buffer[1000];
 	const size_t max = ct_arrsize(buffer);
@@ -22,11 +22,9 @@ static inline int test_stack_init(void) {
 			assert_true(!ct_stack_isfull(&stack));
 		}
 	}
-
-	return 0;
 }
 
-static inline int test_stack_push(void) {
+void test_stack_push(void) {
 	ct_stack_t   stack;
 	ct_any_t     buffer[777];
 	const size_t max = ct_arrsize(buffer);
@@ -55,11 +53,9 @@ static inline int test_stack_push(void) {
 	assert_int_eq(ct_stack_size(&stack), 0);
 	assert_true(ct_stack_isempty(&stack));
 	assert_true(!ct_stack_isfull(&stack));
-
-	return 0;
 }
 
-static inline int test_stack_pop(void) {
+void test_stack_pop(void) {
 	ct_stack_t   stack;
 	ct_any_t     buffer[777];
 	const size_t max = ct_arrsize(buffer);
@@ -97,11 +93,9 @@ static inline int test_stack_pop(void) {
 	assert_int_eq(ct_stack_size(&stack), 0);
 	assert_true(ct_stack_isempty(&stack));
 	assert_true(!ct_stack_isfull(&stack));
-
-	return 0;
 }
 
-static inline int test_stack_top(void) {
+void test_stack_top(void) {
 	ct_stack_t   stack;
 	ct_any_t     buffer[777];
 	const size_t max = ct_arrsize(buffer);
@@ -146,22 +140,17 @@ static inline int test_stack_top(void) {
 	assert_int_eq(ct_stack_size(&stack), 0);
 	assert_true(ct_stack_isempty(&stack));
 	assert_true(!ct_stack_isfull(&stack));
-
-	return 0;
 }
 
 int main(void) {
-	test_stack_init();
-	cunit_println("Finish! test_stack_init();");
+	cunit_init();
 
-	test_stack_push();
-	cunit_println("Finish! test_stack_push();");
+	CUNIT_SUITE_BEGIN("stack", NULL, NULL)
+	CUNIT_TEST("init", test_stack_init)
+	CUNIT_TEST("push", test_stack_push)
+	CUNIT_TEST("pop", test_stack_pop)
+	CUNIT_TEST("top", test_stack_top)
+	CUNIT_SUITE_END()
 
-	test_stack_pop();
-	cunit_println("Finish! test_stack_pop();");
-
-	test_stack_top();
-	cunit_println("Finish! test_stack_top();");
-
-	cunit_pass();
+	return cunit_run();
 }

@@ -12,7 +12,7 @@ static char          test_buf[TEST_BUF_SIZE + 1];
 static ct_rbuf_buf_t rbuf;
 
 // 测试初始化
-static inline void test_init(void) {
+void test_init(void) {
 	ct_rbuf_init(rbuf, test_buf, sizeof(char), TEST_BUF_SIZE);
 	assert_uint32_eq(ct_rbuf_max(rbuf), TEST_BUF_SIZE);
 	assert_uint32_eq(ct_rbuf_size(rbuf), 0);
@@ -21,7 +21,7 @@ static inline void test_init(void) {
 }
 
 // 测试 put/take 单元素操作
-static inline void test_put_take(void) {
+void test_put_take(void) {
 	assert_true(ct_rbuf_isempty(rbuf));
 	ct_rbuf_clear(rbuf);
 
@@ -58,7 +58,7 @@ static inline void test_put_take(void) {
 }
 
 // 测试清空操作
-static inline void test_clear(void) {
+void test_clear(void) {
 	assert_true(ct_rbuf_isempty(rbuf));
 	ct_rbuf_clear(rbuf);
 
@@ -72,7 +72,7 @@ static inline void test_clear(void) {
 }
 
 // 测试满和空条件
-static inline void test_full_empty(void) {
+void test_full_empty(void) {
 	assert_true(ct_rbuf_isempty(rbuf));
 	ct_rbuf_clear(rbuf);
 
@@ -89,7 +89,7 @@ static inline void test_full_empty(void) {
 }
 
 // 测试 puts/takes 多元素操作
-static inline void test_puts_takes(void) {
+void test_puts_takes(void) {
 	assert_true(ct_rbuf_isempty(rbuf));
 	ct_rbuf_clear(rbuf);
 
@@ -115,7 +115,7 @@ static inline void test_puts_takes(void) {
 }
 
 // 测试 gets/remove 多元素操作
-static inline void test_gets_remove(void) {
+void test_gets_remove(void) {
 	assert_true(ct_rbuf_isempty(rbuf));
 	ct_rbuf_clear(rbuf);
 
@@ -174,7 +174,7 @@ static inline void test_gets_remove(void) {
 }
 
 // 测试 分段获取操作
-static inline void test_items(void) {
+void test_items(void) {
 	assert_true(ct_rbuf_isempty(rbuf));
 	ct_rbuf_clear(rbuf);
 
@@ -281,26 +281,17 @@ static inline void test_items(void) {
 }
 
 int main(void) {
-	test_init();
-	cunit_println("Finish! test_init();");
+	cunit_init();
 
-	test_put_take();
-	cunit_println("Finish! test_put_take();");
+	CUNIT_SUITE_BEGIN("rbuf", NULL, NULL)
+	CUNIT_TEST("init", test_init)
+	CUNIT_TEST("put_take", test_put_take)
+	CUNIT_TEST("clear", test_clear)
+	CUNIT_TEST("full_empty", test_full_empty)
+	CUNIT_TEST("puts_takes", test_puts_takes)
+	CUNIT_TEST("gets_remove", test_gets_remove)
+	CUNIT_TEST("items", test_items)
+	CUNIT_SUITE_END()
 
-	test_clear();
-	cunit_println("Finish! test_clear();");
-
-	test_full_empty();
-	cunit_println("Finish! test_full_empty();");
-
-	test_puts_takes();
-	cunit_println("Finish! test_puts_takes();");
-
-	test_gets_remove();
-	cunit_println("Finish! test_gets_remove();");
-
-	test_items();
-	cunit_println("Finish! test_items();");
-
-	cunit_pass();
+	return cunit_run();
 }

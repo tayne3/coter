@@ -67,7 +67,7 @@ struct ct_base64_test {
 	},
 };
 
-static inline int test_base64_decode(void) {
+void test_base64_decode(void) {
 	char buf[1024];
 	assert_uint32_eq(ct_base64_decode("AAA=", 4, buf, 0), 0);
 	assert_uint32_eq(ct_base64_decode("AAA=", 4, buf, 1), 0);
@@ -87,11 +87,9 @@ static inline int test_base64_decode(void) {
 			assert_str_eq(buf, it->source, "i = %d, length = %d\n", i, length);
 		}
 	}
-
-	return 0;
 }
 
-static inline int test_base64_encode(void) {
+void test_base64_encode(void) {
 	char buf[1024];
 	assert_uint32_eq(ct_base64_encode((uint8_t *)"a", 1, buf, 0), 0);
 	assert_uint32_eq(ct_base64_encode((uint8_t *)"a", 1, buf, 1), 0);
@@ -120,16 +118,15 @@ static inline int test_base64_encode(void) {
 			assert_uint32_eq(n, CT_BASE64_ENCODE_LENGTH(length), "i = %d, length = %d\n", i, length);
 		}
 	}
-
-	return 0;
 }
 
 int main(void) {
-	test_base64_decode();
-	cunit_println("Finish! test_base64_decode();");
+	cunit_init();
 
-	test_base64_encode();
-	cunit_println("Finish! test_base64_encode();");
+	CUNIT_SUITE_BEGIN("base64", NULL, NULL)
+	CUNIT_TEST("decode", test_base64_decode)
+	CUNIT_TEST("encode", test_base64_encode)
+	CUNIT_SUITE_END()
 
-	cunit_pass();
+	return cunit_run();
 }

@@ -299,18 +299,27 @@ static void test_log_long_text(const size_t text_size) {
 	rmdir("test_log_out");
 }
 
-int main(void) {
-	test_log_hex();
-	cunit_println("Finish! test_log_hex();");
-
+void test_log_long_text_512(void) {
 	test_log_long_text(512);
-	cunit_println("Finish! test_log_long_text(512);");
+}
 
+void test_log_long_text_1024(void) {
 	test_log_long_text(1024);
-	cunit_println("Finish! test_log_long_text(1024);");
+}
 
+void test_log_long_text_2048(void) {
 	test_log_long_text(2048);
-	cunit_println("Finish! test_log_long_text(2048);");
+}
 
-	cunit_pass();
+int main(void) {
+	cunit_init();
+
+	CUNIT_SUITE_BEGIN("log_hex", NULL, NULL)
+	CUNIT_TEST("hex", test_log_hex)
+	CUNIT_TEST("long_text_512", test_log_long_text_512)
+	CUNIT_TEST("long_text_1024", test_log_long_text_1024)
+	CUNIT_TEST("long_text_2048", test_log_long_text_2048)
+	CUNIT_SUITE_END()
+
+	return cunit_run();
 }

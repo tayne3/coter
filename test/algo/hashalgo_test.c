@@ -7,7 +7,7 @@
 
 #define TEST_HASH_NUMBER 100
 
-static inline int test_hash_siphash(void) {
+void test_hash_siphash(void) {
 	const uint64_t vectors[64] = {
 		0x726fdb47dd0e0e31ULL, 0x74f839c593dc67fdULL, 0x0d6c8009d9a94f5aULL, 0x85676696d7fb7e2dULL,
 		0xcf2794e0277187b7ULL, 0x18765564cd99a68dULL, 0xcbc9466e58fee3ceULL, 0xab0200f58b01d137ULL,
@@ -43,13 +43,14 @@ static inline int test_hash_siphash(void) {
 									   "n = %d, i = %d\n", n, i);
 		}
 	}
-
-	return 0;
 }
 
 int main(void) {
-	test_hash_siphash();
-	cunit_println("Finish! test_hash_siphash();");
+	cunit_init();
 
-	cunit_pass();
+	CUNIT_SUITE_BEGIN("hashalgo", NULL, NULL)
+	CUNIT_TEST("siphash", test_hash_siphash)
+	CUNIT_SUITE_END()
+
+	return cunit_run();
 }

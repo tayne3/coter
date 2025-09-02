@@ -259,8 +259,11 @@ static void test_bytes_concurrent(void) {
 }
 
 int main(void) {
-	test_bytes_concurrent();
-	cunit_println("Finish! test_bytes_concurrent();");
+	cunit_init();
 
-	cunit_pass();
+	CUNIT_SUITE_BEGIN("bytes_concurrent", NULL, NULL)
+	CUNIT_TEST("concurrent", test_bytes_concurrent)
+	CUNIT_SUITE_END()
+
+	return cunit_run();
 }

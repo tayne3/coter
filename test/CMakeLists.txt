@@ -1,7 +1,7 @@
 CPMAddPackage(
     NAME CUnit
     GIT_REPOSITORY "http://192.168.1.47:3000/tayne3/CUnit.git"
-    VERSION 0.1.8
+    VERSION 0.2.0
 )
 
 file(GLOB_RECURSE test_source_files CONFIGURE_DEPENDS *.c *.cpp *.cc)
@@ -11,5 +11,4 @@ foreach(test_src ${test_source_files})
     target_include_directories(${test_name} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     target_link_libraries(${test_name} coter::coter cunit::cunit)
     add_test(NAME ${test_name} COMMAND ${test_name})
-    set_tests_properties(${test_name} PROPERTIES FAIL_REGULAR_EXPRESSION "failed")
 endforeach()

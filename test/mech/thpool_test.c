@@ -303,7 +303,7 @@ static inline void test_performance_comparison(void) {
 		pthread_t* threads = (pthread_t*)malloc(sizeof(pthread_t) * NUM_TASKS);
 		if (!threads) {
 			cunit_println("Failed to allocate memory for threads.");
-			cunit_fatal();
+			assert_true(false);
 		}
 
 		counter_t counter_no_pool;
@@ -391,29 +391,18 @@ static inline void test_performance_comparison(void) {
 }
 
 int main(void) {
-	test_create_destroy();
-	cunit_println("Finish! test_create_destroy();");
+	cunit_init();
 
-	test_submit_execute();
-	cunit_println("Finish! test_submit_execute();");
+	CUNIT_SUITE_BEGIN("thpool", NULL, NULL)
+	CUNIT_TEST("create_destroy", test_create_destroy)
+	CUNIT_TEST("submit_execute", test_submit_execute)
+	CUNIT_TEST("submit_null_task", test_submit_null_task)
+	CUNIT_TEST("capacity_limit", test_capacity_limit)
+	CUNIT_TEST("non_blocking", test_non_blocking)
+	CUNIT_TEST("concurrent_submit", test_concurrent_submit)
+	CUNIT_TEST("close_behavior", test_close_behavior)
+	CUNIT_TEST("performance_comparison", test_performance_comparison)
+	CUNIT_SUITE_END()
 
-	test_submit_null_task();
-	cunit_println("Finish! test_submit_null_task();");
-
-	test_capacity_limit();
-	cunit_println("Finish! test_capacity_limit();");
-
-	test_non_blocking();
-	cunit_println("Finish! test_non_blocking();");
-
-	test_concurrent_submit();
-	cunit_println("Finish! test_concurrent_submit();");
-
-	test_close_behavior();
-	cunit_println("Finish! test_close_behavior();");
-
-	test_performance_comparison();
-	cunit_println("Finish! test_performance_comparison();");
-
-	cunit_pass();
+	return cunit_run();
 }

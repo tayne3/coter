@@ -91,11 +91,12 @@ static inline void test_container_of(void) {
 }
 
 int main(void) {
-	test_offset_of();
-	cunit_println("Finish! test_offset_of();");
+	cunit_init();
 
-	test_container_of();
-	cunit_println("Finish! test_container_of();");
+	CUNIT_SUITE_BEGIN("platform", NULL, NULL)
+	CUNIT_TEST("offset_of", test_offset_of)
+	CUNIT_TEST("container_of", test_container_of)
+	CUNIT_SUITE_END()
 
-	cunit_pass();
+	return cunit_run();
 }

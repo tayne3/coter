@@ -259,23 +259,16 @@ static void test_vector_capacity_management(void) {
 }
 
 int main(void) {
-	test_vector_init();
-	cunit_println("Finish! test_vector_init();");
+	cunit_init();
 
-	test_vector_push_pop();
-	cunit_println("Finish! test_vector_push_pop();");
+	CUNIT_SUITE_BEGIN("vector", NULL, NULL)
+	CUNIT_TEST("init", test_vector_init)
+	CUNIT_TEST("push_pop", test_vector_push_pop)
+	CUNIT_TEST("access", test_vector_access)
+	CUNIT_TEST("insert", test_vector_insert)
+	CUNIT_TEST("erase", test_vector_erase)
+	CUNIT_TEST("capacity_management", test_vector_capacity_management)
+	CUNIT_SUITE_END()
 
-	test_vector_access();
-	cunit_println("Finish! test_vector_access();");
-
-	test_vector_insert();
-	cunit_println("Finish! test_vector_insert();");
-
-	test_vector_erase();
-	cunit_println("Finish! test_vector_erase();");
-
-	test_vector_capacity_management();
-	cunit_println("Finish! test_vector_capacity_management();");
-
-	cunit_pass();
+	return cunit_run();
 }

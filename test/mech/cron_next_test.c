@@ -253,77 +253,34 @@ static inline void test_weekly_precision(void) {
 }
 
 int main(void) {
-	test_cron_minutely();
-	cunit_println("Finish! test_cron_minutely();");
+	cunit_init();
 
-	test_cron_hourly();
-	cunit_println("Finish! test_cron_hourly();");
+	CUNIT_SUITE_BEGIN("cron_next", NULL, NULL)
+	CUNIT_TEST("minutely", test_cron_minutely)
+	CUNIT_TEST("hourly", test_cron_hourly)
+	CUNIT_TEST("daily", test_cron_daily)
+	CUNIT_TEST("weekly", test_cron_weekly)
+	CUNIT_TEST("monthly", test_cron_monthly)
+	CUNIT_TEST("yearly", test_cron_yearly)
+	CUNIT_TEST("invalid_params", test_invalid_params)
+	CUNIT_TEST("cross_month_boundary", test_cross_month_boundary)
+	CUNIT_TEST("cross_year_boundary", test_cross_year_boundary)
+	CUNIT_TEST("leap_year", test_leap_year)
+	CUNIT_TEST("non_leap_year", test_non_leap_year)
+	CUNIT_TEST("day_31_skip", test_day_31_skip)
+	CUNIT_TEST("day_30_skip", test_day_30_skip)
+	CUNIT_TEST("multiple_month_skip", test_multiple_month_skip)
+	CUNIT_TEST("weekly_cross_month", test_weekly_cross_month)
+	CUNIT_TEST("weekly_cross_year", test_weekly_cross_year)
+	CUNIT_TEST("time_passed_same_day", test_time_passed_same_day)
+	CUNIT_TEST("time_passed_monthly", test_time_passed_monthly)
+	CUNIT_TEST("complex_monthly_time", test_complex_monthly_time)
+	CUNIT_TEST("complex_yearly_time", test_complex_yearly_time)
+	CUNIT_TEST("leap_year_yearly_skip", test_leap_year_yearly_skip)
+	CUNIT_TEST("boundary_max_day", test_boundary_max_day)
+	CUNIT_TEST("boundary_yearly_passed", test_boundary_yearly_passed)
+	CUNIT_TEST("weekly_precision", test_weekly_precision)
+	CUNIT_SUITE_END()
 
-	test_cron_daily();
-	cunit_println("Finish! test_cron_daily();");
-
-	test_cron_weekly();
-	cunit_println("Finish! test_cron_weekly();");
-
-	test_cron_monthly();
-	cunit_println("Finish! test_cron_monthly();");
-
-	test_cron_yearly();
-	cunit_println("Finish! test_cron_yearly();");
-
-	test_invalid_params();
-	cunit_println("Finish! test_invalid_params();");
-
-	test_cross_month_boundary();
-	cunit_println("Finish! test_cross_month_boundary();");
-
-	test_cross_year_boundary();
-	cunit_println("Finish! test_cross_year_boundary();");
-
-	test_leap_year();
-	cunit_println("Finish! test_leap_year();");
-
-	test_non_leap_year();
-	cunit_println("Finish! test_non_leap_year();");
-
-	test_day_31_skip();
-	cunit_println("Finish! test_day_31_skip();");
-
-	test_day_30_skip();
-	cunit_println("Finish! test_day_30_skip();");
-
-	test_multiple_month_skip();
-	cunit_println("Finish! test_multiple_month_skip();");
-
-	test_weekly_cross_month();
-	cunit_println("Finish! test_weekly_cross_month();");
-
-	test_weekly_cross_year();
-	cunit_println("Finish! test_weekly_cross_year();");
-
-	test_time_passed_same_day();
-	cunit_println("Finish! test_time_passed_same_day();");
-
-	test_time_passed_monthly();
-	cunit_println("Finish! test_time_passed_monthly();");
-
-	test_complex_monthly_time();
-	cunit_println("Finish! test_complex_monthly_time();");
-
-	test_complex_yearly_time();
-	cunit_println("Finish! test_complex_yearly_time();");
-
-	test_leap_year_yearly_skip();
-	cunit_println("Finish! test_leap_year_yearly_skip();");
-
-	test_boundary_max_day();
-	cunit_println("Finish! test_boundary_max_day();");
-
-	test_boundary_yearly_passed();
-	cunit_println("Finish! test_boundary_yearly_passed();");
-
-	test_weekly_precision();
-	cunit_println("Finish! test_weekly_precision();");
-
-	cunit_pass();
+	return cunit_run();
 }

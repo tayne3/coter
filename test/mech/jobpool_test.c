@@ -80,16 +80,27 @@ static inline void test_jobpool_add(size_t data_count, size_t task_count, size_t
 	assert_uint32_eq(test_end_number, test_data_size);
 }
 
-int main(void) {
+void test_jobpool_add_10_1_10(void) {
 	test_jobpool_add(10, 1, 10);
-	cunit_println("Finish! test_jobpool_add(10, 1, 10);");
+}
 
+void test_jobpool_add_10_10_1(void) {
 	test_jobpool_add(10, 10, 1);
-	cunit_println("Finish! test_jobpool_add(10, 10, 1);");
+}
 
+void test_jobpool_add_500_50_50(void) {
 	test_jobpool_add(500, 50, 50);
-	cunit_println("Finish! test_jobpool_add(500, 50, 50);");
+}
+
+int main(void) {
+	cunit_init();
+
+	CUNIT_SUITE_BEGIN("jobpool", NULL, NULL)
+	CUNIT_TEST("add_10_1_10", test_jobpool_add_10_1_10)
+	CUNIT_TEST("add_10_10_1", test_jobpool_add_10_10_1)
+	CUNIT_TEST("add_500_50_50", test_jobpool_add_500_50_50)
+	CUNIT_SUITE_END()
 
 	pthread_mutex_destroy(test_mutex);
-	cunit_pass();
+	return cunit_run();
 }

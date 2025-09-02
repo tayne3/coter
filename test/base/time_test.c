@@ -116,25 +116,24 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	test_timestamp_increment();
-	cunit_println("Finish! test_timestamp_increment();");
+	cunit_init();
 
-	test_millisecond_precision();
-	cunit_println("Finish! test_millisecond_precision();");
-
+	CUNIT_SUITE_BEGIN("time", NULL, NULL)
+	CUNIT_TEST("timestamp_increment", test_timestamp_increment)
+	CUNIT_TEST("millisecond_precision", test_millisecond_precision)
 	if (test_system_time && is_admin() == 0) {
 		cunit_println("Warning: About to change system time, please ensure you have administrator privileges");
 		if (!is_quiet) {
 			cunit_println("Press Enter to continue...");
 			getchar();
 		}
-		test_unaffected_by_system_time();
-		cunit_println("Finish! test_unaffected_by_system_time();");
+		CUNIT_TEST("unaffected_by_system_time", test_unaffected_by_system_time)
 	} else {
 		cunit_println("Warning: Running without administrator privileges.");
 		cunit_println("The following tests requiring elevated permissions will be skipped:");
 		cunit_println(" - test_unaffected_by_system_time");
 	}
+	CUNIT_SUITE_END()
 
-	cunit_pass();
+	return cunit_run();
 }

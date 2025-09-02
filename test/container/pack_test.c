@@ -376,29 +376,18 @@ static void test_pack_edge_cases(void) {
 }
 
 int main(void) {
-	test_pack_basic();
-	cunit_println("Finish! test_pack_basic();");
+	cunit_init();
 
-	test_pack_integers();
-	cunit_println("Finish! test_pack_integers();");
+	CUNIT_SUITE_BEGIN("pack", NULL, NULL)
+	CUNIT_TEST("basic", test_pack_basic)
+	CUNIT_TEST("integers", test_pack_integers)
+	CUNIT_TEST("floats", test_pack_floats)
+	CUNIT_TEST("strings", test_pack_strings)
+	CUNIT_TEST("endianness", test_pack_endianness)
+	CUNIT_TEST("swap", test_pack_swap)
+	CUNIT_TEST("combinations", test_pack_combinations)
+	CUNIT_TEST("edge_cases", test_pack_edge_cases)
+	CUNIT_SUITE_END()
 
-	test_pack_floats();
-	cunit_println("Finish! test_pack_floats();");
-
-	test_pack_strings();
-	cunit_println("Finish! test_pack_strings();");
-
-	test_pack_endianness();
-	cunit_println("Finish! test_pack_endianness();");
-
-	test_pack_swap();
-	cunit_println("Finish! test_pack_swap();");
-
-	test_pack_combinations();
-	cunit_println("Finish! test_pack_combinations();");
-
-	test_pack_edge_cases();
-	cunit_println("Finish! test_pack_edge_cases();");
-
-	cunit_pass();
+	return cunit_run();
 }

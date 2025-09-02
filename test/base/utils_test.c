@@ -259,20 +259,15 @@ static void test_reverse_memmove_complex(void) {
 }
 
 int main(void) {
-	test_reverse_memcpy_basic();
-	cunit_println("Finish! test_reverse_memcpy_basic();");
+	cunit_init();
 
-	test_reverse_memcpy_long();
-	cunit_println("Finish! test_reverse_memcpy_long();");
+	CUNIT_SUITE_BEGIN("utils", NULL, NULL)
+	CUNIT_TEST("reverse_memcpy_basic", test_reverse_memcpy_basic)
+	CUNIT_TEST("reverse_memcpy_long", test_reverse_memcpy_long)
+	CUNIT_TEST("reverse_memmove_basic", test_reverse_memmove_basic)
+	CUNIT_TEST("reverse_memmove_long", test_reverse_memmove_long)
+	CUNIT_TEST("reverse_memmove_complex", test_reverse_memmove_complex)
+	CUNIT_SUITE_END()
 
-	test_reverse_memmove_basic();
-	cunit_println("Finish! test_reverse_memmove_basic();");
-
-	test_reverse_memmove_long();
-	cunit_println("Finish! test_reverse_memmove_long();");
-
-	test_reverse_memmove_complex();
-	cunit_println("Finish! test_reverse_memmove_complex();");
-
-	cunit_pass();
+	return cunit_run();
 }

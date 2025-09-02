@@ -120,8 +120,11 @@ static inline void test_hash_basic(void) {
 }
 
 int main(void) {
-	test_hash_basic();
-	cunit_println("Finish! test_hash_basic();");
+	cunit_init();
 
-	cunit_pass();
+	CUNIT_SUITE_BEGIN("hash", NULL, NULL)
+	CUNIT_TEST("basic", test_hash_basic)
+	CUNIT_SUITE_END()
+
+	return cunit_run();
 }

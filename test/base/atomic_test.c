@@ -199,23 +199,16 @@ static inline void test_boundary_conditions(void) {
 }
 
 int main(void) {
-	test_atomic_flag();
-	cunit_println("Finish! test_atomic_flag();");
+	cunit_init();
 
-	test_atomic_inc_dec();
-	cunit_println("Finish! test_atomic_inc_dec();");
+	CUNIT_SUITE_BEGIN("atomic", NULL, NULL)
+	CUNIT_TEST("flag", test_atomic_flag)
+	CUNIT_TEST("inc_dec", test_atomic_inc_dec)
+	CUNIT_TEST("add_sub", test_atomic_add_sub)
+	CUNIT_TEST("load_store", test_atomic_load_store)
+	CUNIT_TEST("operations_multi_threaded", test_atomic_operations_multi_threaded)
+	CUNIT_TEST("boundary_conditions", test_boundary_conditions)
+	CUNIT_SUITE_END()
 
-	test_atomic_add_sub();
-	cunit_println("Finish! test_atomic_add_sub();");
-
-	test_atomic_load_store();
-	cunit_println("Finish! test_atomic_load_store();");
-
-	test_atomic_operations_multi_threaded();
-	cunit_println("Finish! test_atomic_operations_multi_threaded();");
-
-	test_boundary_conditions();
-	cunit_println("Finish! test_boundary_conditions();");
-
-	cunit_pass();
+	return cunit_run();
 }

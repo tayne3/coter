@@ -150,29 +150,22 @@ int main(void) {
 	// 初始化cron任务管理
 	ct_cron_mgr_init(mock_current_time, thpool);
 
-	test_basic_functionality();
-	cunit_println("Finish! test_basic_functionality()");
+	cunit_init();
 
-	test_every_minute_cron();
-	cunit_println("Finish! test_every_minute_cron()");
+	CUNIT_SUITE_BEGIN("cron", NULL, NULL)
+	CUNIT_TEST("basic_functionality", test_basic_functionality)
+	CUNIT_TEST("every_minute_cron", test_every_minute_cron)
+	CUNIT_TEST("hourly_cron", test_hourly_cron)
+	CUNIT_TEST("daily_cron", test_daily_cron)
+	CUNIT_TEST("weekly_cron", test_weekly_cron)
+	CUNIT_TEST("monthly_cron", test_monthly_cron)
+	CUNIT_TEST("multiple_crons", test_multiple_crons)
+	CUNIT_SUITE_END()
 
-	test_hourly_cron();
-	cunit_println("Finish! test_hourly_cron()");
-
-	test_daily_cron();
-	cunit_println("Finish! test_daily_cron()");
-
-	test_weekly_cron();
-	cunit_println("Finish! test_weekly_cron()");
-
-	test_monthly_cron();
-	cunit_println("Finish! test_monthly_cron()");
-
-	test_multiple_crons();
-	cunit_println("Finish! test_multiple_crons()");
+	const int ret = cunit_run();
 
 	// 销毁线程池
 	ct_thpool_destroy(thpool);
 
-	cunit_pass();
+	return ret;
 }

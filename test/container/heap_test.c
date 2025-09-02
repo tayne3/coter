@@ -10,7 +10,7 @@ static inline bool ct_heap_sort_func(const ct_any_t* a, const ct_any_t* b) {
 	return ct_any_value_int(*a) <= ct_any_value_int(*b);
 }
 
-static inline int test_heap_init(void) {
+void test_heap_init(void) {
 	ct_heap_t    heap;
 	ct_any_t     all[1000];
 	const size_t max = ct_arrsize(all);
@@ -30,11 +30,9 @@ static inline int test_heap_init(void) {
 	assert_uint32_eq(ct_heap_size(&heap), 0);
 	assert_true(ct_heap_isempty(&heap));
 	assert_true(!ct_heap_isfull(&heap));
-
-	return 0;
 }
 
-static inline int test_heap_insert(void) {
+void test_heap_insert(void) {
 	ct_heap_t    heap;
 	ct_any_t     all[10];
 	const size_t max = ct_arrsize(all);
@@ -64,11 +62,9 @@ static inline int test_heap_insert(void) {
 	assert_uint32_eq(ct_heap_size(&heap), 0);
 	assert_true(ct_heap_isempty(&heap));
 	assert_true(!ct_heap_isfull(&heap));
-
-	return 0;
 }
 
-static inline int test_heap_remove(void) {
+void test_heap_remove(void) {
 	ct_heap_t    heap;
 	ct_any_t     all[10];
 	const size_t max = ct_arrsize(all);
@@ -112,19 +108,16 @@ static inline int test_heap_remove(void) {
 	assert_uint32_eq(ct_heap_size(&heap), 0);
 	assert_true(ct_heap_isempty(&heap));
 	assert_true(!ct_heap_isfull(&heap));
-
-	return 0;
 }
 
 int main(void) {
-	test_heap_init();
-	cunit_println("Finish! test_heap_init();");
+	cunit_init();
 
-	test_heap_insert();
-	cunit_println("Finish! test_heap_insert();");
+	CUNIT_SUITE_BEGIN("heap", NULL, NULL)
+	CUNIT_TEST("init", test_heap_init)
+	CUNIT_TEST("insert", test_heap_insert)
+	CUNIT_TEST("remove", test_heap_remove)
+	CUNIT_SUITE_END()
 
-	test_heap_remove();
-	cunit_println("Finish! test_heap_remove();");
-
-	cunit_pass();
+	return cunit_run();
 }

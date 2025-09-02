@@ -266,20 +266,15 @@ static inline void test_queue_traverse(void) {
 }
 
 int main(void) {
-	test_queue_init();
-	cunit_println("Finish! test_queue_init();");
+	cunit_init();
 
-	test_queue_enqueue();
-	cunit_println("Finish! test_queue_enqueue();");
+	CUNIT_SUITE_BEGIN("queue", NULL, NULL)
+	CUNIT_TEST("init", test_queue_init)
+	CUNIT_TEST("enqueue", test_queue_enqueue)
+	CUNIT_TEST("dequeue", test_queue_dequeue)
+	CUNIT_TEST("head", test_queue_head)
+	CUNIT_TEST("traverse", test_queue_traverse)
+	CUNIT_SUITE_END()
 
-	test_queue_dequeue();
-	cunit_println("Finish! test_queue_dequeue();");
-
-	test_queue_head();
-	cunit_println("Finish! test_queue_head();");
-
-	test_queue_traverse();
-	cunit_println("Finish! test_queue_traverse();");
-
-	cunit_pass();
+	return cunit_run();
 }

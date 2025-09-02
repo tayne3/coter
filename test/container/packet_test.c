@@ -1987,56 +1987,27 @@ static void test_packet_offset(void) {
 }
 
 int main(void) {
-	test_packet_init();
-	cunit_println("Finish! test_packet_init();");
+	cunit_init();
 
-	test_packet_reset();
-	cunit_println("Finish! test_packet_reset();");
+	CUNIT_SUITE_BEGIN("packet", NULL, NULL)
+	CUNIT_TEST("init", test_packet_init)
+	CUNIT_TEST("reset", test_packet_reset)
+	CUNIT_TEST("clean", test_packet_clean)
+	CUNIT_TEST("u8", test_packet_u8)
+	CUNIT_TEST("u16", test_packet_u16)
+	CUNIT_TEST("u32", test_packet_u32)
+	CUNIT_TEST("u64", test_packet_u64)
+	CUNIT_TEST("float", test_packet_float)
+	CUNIT_TEST("double", test_packet_double)
+	CUNIT_TEST("u8s", test_packet_u8s)
+	CUNIT_TEST("u16s", test_packet_u16s)
+	CUNIT_TEST("u32s", test_packet_u32s)
+	CUNIT_TEST("u64s", test_packet_u64s)
+	CUNIT_TEST("floats", test_packet_floats)
+	CUNIT_TEST("doubles", test_packet_doubles)
+	CUNIT_TEST("boundary", test_packet_boundary)
+	CUNIT_TEST("offset", test_packet_offset)
+	CUNIT_SUITE_END()
 
-	test_packet_clean();
-	cunit_println("Finish! test_packet_clean();");
-
-	test_packet_u8();
-	cunit_println("Finish! test_packet_u8();");
-
-	test_packet_u16();
-	cunit_println("Finish! test_packet_u16();");
-
-	test_packet_u32();
-	cunit_println("Finish! test_packet_u32();");
-
-	test_packet_u64();
-	cunit_println("Finish! test_packet_u64();");
-
-	test_packet_float();
-	cunit_println("Finish! test_packet_float();");
-
-	test_packet_double();
-	cunit_println("Finish! test_packet_double();");
-
-	test_packet_u8s();
-	cunit_println("Finish! test_packet_u8s();");
-
-	test_packet_u16s();
-	cunit_println("Finish! test_packet_u16s();");
-
-	test_packet_u32s();
-	cunit_println("Finish! test_packet_u32s();");
-
-	test_packet_u64s();
-	cunit_println("Finish! test_packet_u64s();");
-
-	test_packet_floats();
-	cunit_println("Finish! test_packet_floats();");
-
-	test_packet_doubles();
-	cunit_println("Finish! test_packet_doubles();");
-
-	test_packet_boundary();
-	cunit_println("Finish! test_packet_boundary();");
-
-	test_packet_offset();
-	cunit_println("Finish! test_packet_offset();");
-
-	cunit_pass();
+	return cunit_run();
 }

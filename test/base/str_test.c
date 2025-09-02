@@ -184,14 +184,13 @@ static inline void test_strncpy_s(void) {
 }
 
 int main(void) {
-	test_snprintf();
-	cunit_println("Finish! test_snprintf();");
+	cunit_init();
 
-	test_snprintf_s();
-	cunit_println("Finish! test_snprintf_s();");
+	CUNIT_SUITE_BEGIN("str", NULL, NULL)
+	CUNIT_TEST("snprintf", test_snprintf)
+	CUNIT_TEST("snprintf_s", test_snprintf_s)
+	CUNIT_TEST("strncpy_s", test_strncpy_s)
+	CUNIT_SUITE_END()
 
-	test_strncpy_s();
-	cunit_println("Finish! test_strncpy_s();");
-
-	cunit_pass();
+	return cunit_run();
 }

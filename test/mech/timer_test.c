@@ -173,29 +173,22 @@ int main(void) {
 	// 初始化定时器中枢
 	ct_timer_mgr_init(mock_current_time, thpool);
 
-	test_basic_functionality();
-	cunit_println("Finish! test_basic_functionality()");
+	cunit_init();
 
-	test_single_timer();
-	cunit_println("Finish! test_single_timer()");
+	CUNIT_SUITE_BEGIN("timer", NULL, NULL)
+	CUNIT_TEST("basic_functionality", test_basic_functionality)
+	CUNIT_TEST("single_timer", test_single_timer)
+	CUNIT_TEST("repeating_timer", test_repeating_timer)
+	CUNIT_TEST("precise_timer", test_precise_timer)
+	CUNIT_TEST("zero_millisecond_timer", test_zero_millisecond_timer)
+	CUNIT_TEST("multiple_timers", test_multiple_timers)
+	CUNIT_TEST("restart_timer", test_restart_timer)
+	CUNIT_SUITE_END()
 
-	test_repeating_timer();
-	cunit_println("Finish! test_repeating_timer()");
-
-	test_precise_timer();
-	cunit_println("Finish! test_precise_timer()");
-
-	test_zero_millisecond_timer();
-	cunit_println("Finish! test_zero_millisecond_timer()");
-
-	test_multiple_timers();
-	cunit_println("Finish! test_multiple_timers()");
-
-	test_restart_timer();
-	cunit_println("Finish! test_restart_timer()");
+	const int ret = cunit_run();
 
 	// 销毁线程池
 	ct_thpool_destroy(thpool);
 
-	cunit_pass();
+	return ret;
 }

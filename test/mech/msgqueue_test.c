@@ -118,18 +118,31 @@ static inline void test_msgqueue(size_t data_size, size_t buffer_size) {
 	free(test_buffer);
 }
 
-int main(void) {
+static void test_msgqueue_10_1(void) {
 	test_msgqueue(10, 1);
-	cunit_println("Finish! test_msgqueue(10, 1);");
+}
 
+static void test_msgqueue_1_10(void) {
 	test_msgqueue(1, 10);
-	cunit_println("Finish! test_msgqueue(1, 10);");
+}
 
+static void test_msgqueue_500_10(void) {
 	test_msgqueue(500, 10);
-	cunit_println("Finish! test_msgqueue(500, 10);");
+}
 
+static void test_msgqueue_500_500(void) {
 	test_msgqueue(500, 500);
-	cunit_println("Finish! test_msgqueue(500, 500);");
+}
 
-	cunit_pass();
+int main(void) {
+	cunit_init();
+
+	CUNIT_SUITE_BEGIN("msgqueue", NULL, NULL)
+	CUNIT_TEST("msgqueue_10_1", test_msgqueue_10_1)
+	CUNIT_TEST("msgqueue_1_10", test_msgqueue_1_10)
+	CUNIT_TEST("msgqueue_500_10", test_msgqueue_500_10)
+	CUNIT_TEST("msgqueue_500_500", test_msgqueue_500_500)
+	CUNIT_SUITE_END()
+
+	return cunit_run();
 }

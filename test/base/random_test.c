@@ -214,27 +214,46 @@ static inline void test_random_double(uint64_t test_number) {
 	assert_true(is_ok);
 }
 
-int main(void) {
+void test_random_bool_wrapper(void) {
 	test_random_bool(10000);
-	cunit_println("Finish! test_random_bool(10000);");
+}
 
+void test_random_uint8_wrapper(void) {
 	test_random_uint8(10000);
-	cunit_println("Finish! test_random_uint8(10000);");
+}
 
+void test_random_uint16_wrapper(void) {
 	test_random_uint16(10000);
-	cunit_println("Finish! test_random_uint16(10000);");
+}
 
+void test_random_uint32_wrapper(void) {
 	test_random_uint32(10000);
-	cunit_println("Finish! test_random_uint32(10000);");
+}
 
+void test_random_uint64_wrapper(void) {
 	test_random_uint64(10000);
-	cunit_println("Finish! test_random_uint64(10000);");
+}
 
+void test_random_float_wrapper(void) {
 	test_random_float(10000);
-	cunit_println("Finish! test_random_float(10000);");
+}
 
+void test_random_double_wrapper(void) {
 	test_random_double(10000);
-	cunit_println("Finish! test_random_double(10000);");
+}
 
-	cunit_pass();
+int main(void) {
+	cunit_init();
+
+	CUNIT_SUITE_BEGIN("random", NULL, NULL)
+	CUNIT_TEST("bool", test_random_bool_wrapper)
+	CUNIT_TEST("uint8", test_random_uint8_wrapper)
+	CUNIT_TEST("uint16", test_random_uint16_wrapper)
+	CUNIT_TEST("uint32", test_random_uint32_wrapper)
+	CUNIT_TEST("uint64", test_random_uint64_wrapper)
+	CUNIT_TEST("float", test_random_float_wrapper)
+	CUNIT_TEST("double", test_random_double_wrapper)
+	CUNIT_SUITE_END()
+
+	return cunit_run();
 }

@@ -342,29 +342,18 @@ static void test_vector_define_struct(void) {
 }
 
 int main(void) {
-	test_vector_define_init();
-	cunit_println("Finish! test_vector_define_init();");
+	cunit_init();
 
-	test_vector_define_push_pop();
-	cunit_println("Finish! test_vector_define_push_pop();");
+	CUNIT_SUITE_BEGIN("vector_define", NULL, NULL)
+	CUNIT_TEST("init", test_vector_define_init)
+	CUNIT_TEST("push_pop", test_vector_define_push_pop)
+	CUNIT_TEST("access", test_vector_define_access)
+	CUNIT_TEST("insert", test_vector_define_insert)
+	CUNIT_TEST("erase", test_vector_define_erase)
+	CUNIT_TEST("capacity_management", test_vector_define_capacity_management)
+	CUNIT_TEST("double", test_vector_define_double)
+	CUNIT_TEST("struct", test_vector_define_struct)
+	CUNIT_SUITE_END()
 
-	test_vector_define_access();
-	cunit_println("Finish! test_vector_define_access();");
-
-	test_vector_define_insert();
-	cunit_println("Finish! test_vector_define_insert();");
-
-	test_vector_define_erase();
-	cunit_println("Finish! test_vector_define_erase();");
-
-	test_vector_define_capacity_management();
-	cunit_println("Finish! test_vector_define_capacity_management();");
-
-	test_vector_define_double();
-	cunit_println("Finish! test_vector_define_double();");
-
-	test_vector_define_struct();
-	cunit_println("Finish! test_vector_define_struct();");
-
-	cunit_pass();
+	return cunit_run();
 }

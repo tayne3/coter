@@ -35,7 +35,7 @@ static const struct ct_md5_test {
 	},
 };
 
-static inline int test_cmd5(void) {
+void test_cmd5(void) {
 	uint8_t buffer[16];
 
 	const int size = (int)ct_arrsize(ct_md5_test_all);
@@ -48,13 +48,14 @@ static inline int test_cmd5(void) {
 		ct_md5_final(&ctx, buffer);
 		assert_str_hex(buffer, it->target, 16, "i=%d", i);
 	}
-
-	return 0;
 }
 
 int main(void) {
-	test_cmd5();
-	cunit_println("Finish! test_cmd5();");
+	cunit_init();
 
-	cunit_pass();
+	CUNIT_SUITE_BEGIN("md5", NULL, NULL)
+	CUNIT_TEST("md5", test_cmd5)
+	CUNIT_SUITE_END()
+
+	return cunit_run();
 }

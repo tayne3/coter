@@ -180,17 +180,14 @@ static void test_bytepool_performance(void) {
 int main(void) {
 	srand((unsigned int)time(NULL));  // 初始化随机数生成器
 
-	test_bytepool_basic_operations();
-	cunit_println("Finish! test_bytepool_basic_operations();");
+	cunit_init();
 
-	test_bytepool_edge_cases();
-	cunit_println("Finish! test_bytepool_edge_cases();");
+	CUNIT_SUITE_BEGIN("bytepool", NULL, NULL)
+	CUNIT_TEST("basic_operations", test_bytepool_basic_operations)
+	CUNIT_TEST("edge_cases", test_bytepool_edge_cases)
+	CUNIT_TEST("concurrency", test_bytepool_concurrency)
+	CUNIT_TEST("performance", test_bytepool_performance)
+	CUNIT_SUITE_END()
 
-	test_bytepool_concurrency();
-	cunit_println("Finish! test_bytepool_concurrency();");
-
-	test_bytepool_performance();
-	cunit_println("Finish! test_bytepool_performance();");
-
-	cunit_pass();
+	return cunit_run();
 }

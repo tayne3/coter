@@ -189,24 +189,36 @@ static void test_callback_performance_comparison(size_t limit) {
 	(void)rmdir("test_log_out");
 }
 
-int main(void) {
+void test_callback_performance_comparison_0(void) {
 	test_callback_performance_comparison(0);
-	cunit_println("Finish! test_callback_performance_comparison(0);");
-
+}
+void test_callback_performance_comparison_11(void) {
 	test_callback_performance_comparison(11);
-	cunit_println("Finish! test_callback_performance_comparison(11);");
-
+}
+void test_callback_performance_comparison_99(void) {
 	test_callback_performance_comparison(99);
-	cunit_println("Finish! test_callback_performance_comparison(99);");
-
+}
+void test_callback_performance_comparison_417(void) {
 	test_callback_performance_comparison(417);
-	cunit_println("Finish! test_callback_performance_comparison(417);");
-
+}
+void test_callback_performance_comparison_739(void) {
 	test_callback_performance_comparison(739);
-	cunit_println("Finish! test_callback_performance_comparison(739);");
-
+}
+void test_callback_performance_comparison_999(void) {
 	test_callback_performance_comparison(999);
-	cunit_println("Finish! test_callback_performance_comparison(999);");
+}
 
-	cunit_pass();
+int main(void) {
+	cunit_init();
+
+	CUNIT_SUITE_BEGIN("log_callback", NULL, NULL)
+	CUNIT_TEST("comparison_0", test_callback_performance_comparison_0)
+	CUNIT_TEST("comparison_11", test_callback_performance_comparison_11)
+	CUNIT_TEST("comparison_99", test_callback_performance_comparison_99)
+	CUNIT_TEST("comparison_417", test_callback_performance_comparison_417)
+	CUNIT_TEST("comparison_739", test_callback_performance_comparison_739)
+	CUNIT_TEST("comparison_999", test_callback_performance_comparison_999)
+	CUNIT_SUITE_END()
+
+	return cunit_run();
 }
