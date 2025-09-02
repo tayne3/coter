@@ -29,8 +29,7 @@ static struct gapp {
 	ct_time_t   now;   // 当前时间 (秒级)
 	ct_time64_t tick;  // 系统运行时间 (毫秒级)
 
-	ct_thpool_t*       thpool;       // 全局线程池
-	ct_evmsg_center_t* evmsgCenter;  // 事件消息中枢
+	ct_thpool_t* thpool;  // 全局线程池
 
 	jmp_buf jmp;         // 上下文信息
 	bool    isShutdown;  // 是否关闭
@@ -50,11 +49,10 @@ static struct gapp {
 	pthread_t logThread;     // 日志线程
 #endif
 } gapp[1] = {{
-	.now         = 0,
-	.tick        = 0,
-	.thpool      = NULL,
-	.evmsgCenter = NULL,
-	.isShutdown  = false,
+	.now        = 0,
+	.tick       = 0,
+	.thpool     = NULL,
+	.isShutdown = false,
 }};
 
 #ifdef CT_OS_WIN
@@ -148,10 +146,9 @@ gapp_t* gapp_create(void) {
 
 	ap_welcome();
 
-	gapp->thpool      = ct_thpool_create(64, NULL);            // 创建全局线程池
-	gapp->evmsgCenter = ct_evmsg_center_create(gapp->thpool);  // 初始化事件消息中枢
-	ct_timer_mgr_init(gapp->tick, gapp->thpool);               // 初始化定时器中枢
-	ct_cron_mgr_init(gapp->now, gapp->thpool);                 // 初始化cron任务中枢
+	gapp->thpool = ct_thpool_create(64, NULL);    // 创建全局线程池
+	ct_timer_mgr_init(gapp->tick, gapp->thpool);  // 初始化定时器中枢
+	ct_cron_mgr_init(gapp->now, gapp->thpool);    // 初始化cron任务中枢
 	return gapp;
 }
 
@@ -169,9 +166,8 @@ int gapp_exec(gapp_t* self) {
 	for (; !gapp->isShutdown;) {
 		gapp->now  = ct_current_second();
 		gapp->tick = ct_getuptime_ms();
-		ct_cron_mgr_schedule(gapp->now);              // 执行cron任务调度
-		ct_timer_mgr_schedule(gapp->tick);            // 执行定时器调度
-		ct_evmsg_center_schedule(gapp->evmsgCenter);  // 执行事件消息调度
+		ct_cron_mgr_schedule(gapp->now);    // 执行cron任务调度
+		ct_timer_mgr_schedule(gapp->tick);  // 执行定时器调度
 		ct_msleep(10);
 	}
 
@@ -188,7 +184,6 @@ Fail:
 
 	ap_atexit_exec();  // 执行退出回调
 
-	ct_evmsg_center_destroy(gapp->evmsgCenter);
 	pthread_mutex_destroy(&gapp->atExitMutex);
 	exit(EXIT_FAILURE);
 	return EXIT_FAILURE;

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.14)
 
 include(cmake/PreventInSourceBuilds.cmake)
 include(cmake/GitVersion.cmake)
-gitversion_extract(VERSION PROJECT_VERSION DEFAULT_VERSION 0.7.0)
+git_version_info(VERSION PROJECT_VERSION DEFAULT_VERSION 0.7.0)
 project(coter VERSION ${PROJECT_VERSION})
 
 include(cmake/ProjectIsTopLevel.cmake)
