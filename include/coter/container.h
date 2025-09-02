@@ -7,3 +7,4 @@
 #include "container/rbuf.h"
 #include "container/stack.h"
 #include "container/vector.h"
+#include "container/vector_define.h"

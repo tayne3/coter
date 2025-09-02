@@ -6,106 +6,175 @@
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
-#define CT_VECTOR_ITEM(self, idx) (&(self)->_all[idx * (self)->_byte])  // 动态数组-指定元素
-#define CT_VECTOR_MAX(self)       ((self)->_max)                        // 动态数组-最大容量
-#define CT_VECTOR_SIZE(self)      ((self)->_size)                       // 动态数组-当前大小
-#define CT_VECTOR_MEMORY_MAX      0x80000000                            // 动态数组-最大内存限制
+#define CT_VECTOR_ITEM(self, idx) (&(self)->_all[(idx) * (self)->_byte])  // 动态数组-指定元素
+#define CT_VECTOR_CAP(self)       ((self)->_cap)                          // 动态数组-最大容量
+#define CT_VECTOR_SIZE(self)      ((self)->_size)                         // 动态数组-当前大小
+#define CT_VECTOR_MEMORY_MAX      0x80000000                              // 动态数组-最大内存限制
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
-void ct_vector_init(ct_vector_buf_t self, size_t byte, size_t max) {
+void ct_vector_init(ct_vector_t* self, size_t byte, size_t capacity) {
 	assert(self);
 	assert(byte);
-	assert(max);
-	assert(byte * max <= CT_VECTOR_MEMORY_MAX);
-
-	self->_all = calloc(max, byte);
+	assert(byte * capacity <= CT_VECTOR_MEMORY_MAX);
+	self->_all = calloc(capacity, byte);
 	assert(self->_all);
-
 	self->_byte = byte;
-	self->_max = self->_size = max;
+	self->_cap  = capacity;
+	self->_size = 0;
 }
 
-void ct_vector_destroy(ct_vector_buf_t self) {
+void ct_vector_destroy(ct_vector_t* self) {
 	assert(self);
-
 	if (self->_all) {
 		free(self->_all);
 		self->_all = NULL;
 	}
-	self->_byte = self->_max = self->_size = 0;
+	self->_byte = self->_cap = self->_size = 0;
 }
 
-size_t ct_vector_size(const ct_vector_buf_t self) {
+void ct_vector_clear(ct_vector_t* self) {
 	assert(self);
+	self->_size = 0;
+}
 
+size_t ct_vector_capacity(const ct_vector_t* self) {
+	assert(self);
+	return CT_VECTOR_CAP(self);
+}
+
+size_t ct_vector_size(const ct_vector_t* self) {
+	assert(self);
 	return CT_VECTOR_SIZE(self);
 }
 
-void* ct_vector_at(ct_vector_buf_t self, size_t idx) {
+bool ct_vector_empty(const ct_vector_t* self) {
 	assert(self);
-	assert(self->_byte);
-	assert(self->_all);
-
-	if (idx >= self->_size) {
-		return NULL;
-	}
-
-	return CT_VECTOR_ITEM(self, idx);
+	return CT_VECTOR_SIZE(self) == 0;
 }
 
-const void* ct_vector_value(const ct_vector_buf_t self, size_t idx) {
+bool ct_vector_resize(ct_vector_t* self, size_t new_size) {
 	assert(self);
-	assert(self->_byte);
-	assert(self->_all);
-
-	if (idx >= self->_size) {
-		return NULL;
-	}
-
-	return CT_VECTOR_ITEM(self, idx);
-}
-
-bool ct_vector_insert(ct_vector_buf_t self, size_t idx, const void* data) {
-	assert(self);
-	assert(self->_byte);
-	assert(self->_all);
-
-	if (idx >= self->_size) {
-		if (!ct_vector_resize(self, idx + 1)) {
+	if (new_size > self->_cap) {
+		if (!ct_vector_reserve(self, new_size)) {
 			return false;
 		}
 	}
-
-	memcpy(CT_VECTOR_ITEM(self, idx), data, self->_byte);
+	if (new_size > self->_size) {
+		memset(CT_VECTOR_ITEM(self, self->_size), 0, (new_size - self->_size) * self->_byte);
+	}
+	self->_size = new_size;
 	return true;
 }
 
-bool ct_vector_resize(ct_vector_buf_t self, size_t size) {
+bool ct_vector_reserve(ct_vector_t* self, size_t capacity) {
 	assert(self);
-	assert(self->_byte);
-	assert(self->_all);
-
-	if (size <= self->_max) {
-		self->_size = size;
+	if (self->_cap >= capacity) {
 		return true;
 	}
-
-	const size_t max    = self->_max * 2 < size ? size : self->_max * 2;
-	const size_t blocks = max * self->_byte;
-	if (blocks > CT_VECTOR_MEMORY_MAX) {
-		return false;
+	size_t new_cap = self->_cap == 0 ? 1 : self->_cap;
+	while (new_cap < capacity) {
+		new_cap *= 2;
 	}
+	if (self->_byte * new_cap > CT_VECTOR_MEMORY_MAX) {
+		return false; /* out of memory */
+	}
+	char* new_all = realloc(self->_all, self->_byte * new_cap);
+	if (!new_all) {
+		return false; /* realloc failed */
+	}
+	self->_all = new_all;
+	self->_cap = new_cap;
+	return true;
+}
 
-	char* new_all = realloc(self->_all, blocks);
+bool ct_vector_shrink(ct_vector_t* self) {
+	assert(self);
+	if (self->_cap == self->_size) {
+		return true;
+	}
+	if (self->_size == 0) {
+		free(self->_all);
+		self->_all = NULL;
+		self->_cap = 0;
+		return true;
+	}
+	char* new_all = realloc(self->_all, self->_byte * self->_size);
 	if (!new_all) {
 		return false;
 	}
 	self->_all = new_all;
-
-	self->_max  = max;
-	self->_size = size;
+	self->_cap = self->_size;
 	return true;
+}
+
+bool ct_vector_insert(ct_vector_t* self, size_t idx, const void* data) {
+	assert(self);
+	if (idx > self->_size) {
+		return false;
+	}
+	if (!ct_vector_reserve(self, self->_size + 1)) {
+		return false;
+	}
+	if (idx < self->_size) {
+		memmove(CT_VECTOR_ITEM(self, idx + 1), CT_VECTOR_ITEM(self, idx), (self->_size - idx) * self->_byte);
+	}
+	memcpy(CT_VECTOR_ITEM(self, idx), data, self->_byte);
+	++self->_size;
+	return true;
+}
+
+bool ct_vector_push(ct_vector_t* self, const void* data) {
+	assert(self);
+	if (self->_size >= self->_cap) {
+		if (!ct_vector_reserve(self, self->_size + 1)) {
+			return false;
+		}
+	}
+	memcpy(CT_VECTOR_ITEM(self, self->_size), data, self->_byte);
+	++self->_size;
+	return true;
+}
+
+bool ct_vector_erase(ct_vector_t* self, size_t idx) {
+	assert(self);
+	if (idx >= self->_size) {
+		return false;
+	}
+	if (idx < self->_size - 1) {
+		memmove(CT_VECTOR_ITEM(self, idx), CT_VECTOR_ITEM(self, idx + 1), (self->_size - idx - 1) * self->_byte);
+	}
+	--self->_size;
+	return true;
+}
+
+bool ct_vector_pop(ct_vector_t* self) {
+	assert(self);
+	if (self->_size == 0) {
+		return false;
+	}
+	--self->_size;
+	return true;
+}
+
+void* ct_vector_at(ct_vector_t* self, size_t idx) {
+	assert(self);
+	return idx >= self->_size ? NULL : CT_VECTOR_ITEM(self, idx);
+}
+
+const void* ct_vector_value(const ct_vector_t* self, size_t idx) {
+	assert(self);
+	return idx >= self->_size ? NULL : CT_VECTOR_ITEM(self, idx);
+}
+
+void* ct_vector_front(ct_vector_t* self) {
+	assert(self);
+	return self->_size == 0 ? NULL : CT_VECTOR_ITEM(self, 0);
+}
+
+void* ct_vector_back(ct_vector_t* self) {
+	assert(self);
+	return self->_size == 0 ? NULL : CT_VECTOR_ITEM(self, self->_size - 1);
 }
 
 // -------------------------[STATIC DEFINITION]-------------------------
