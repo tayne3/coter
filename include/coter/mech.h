@@ -1,5 +1,6 @@
 #include "mech/bytepool.h"
 #include "mech/cron.h"
+#include "mech/evhub.h"
 #include "mech/jobpool.h"
 #include "mech/log.h"
 #include "mech/msgqueue.h"
