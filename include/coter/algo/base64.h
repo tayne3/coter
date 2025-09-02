@@ -4,11 +4,12 @@
  */
 #ifndef COTER_BASE64_H
 #define COTER_BASE64_H
+
+#include "coter/base/platform.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "coter/base/platform.h"
 
 #define CT_BASE64_ENCODE_LENGTH(length) ((((length) / 3) * 4) + (((length) % 3) == 0 ? 0 : 4))
 #define CT_BASE64_DECODE_LENGTH(length) ((((length) / 4) * 3) + (((length) % 4) == 0 ? 0 : 3))

@@ -4,12 +4,13 @@
  */
 #ifndef COTER_MSGQUEUE_H
 #define COTER_MSGQUEUE_H
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #include "coter/base/platform.h"
 #include "coter/container/queue.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * @brief 消息队列

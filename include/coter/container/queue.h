@@ -7,11 +7,12 @@
  */
 #ifndef COTER_QUEUE_H
 #define COTER_QUEUE_H
+
+#include "coter/base/platform.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "coter/base/platform.h"
 
 /**
  * @brief 队列结构体

@@ -4,11 +4,12 @@
  */
 #ifndef COTER_PACKET_H
 #define COTER_PACKET_H
+
+#include "coter/base/platform.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "coter/base/platform.h"
 
 /**
  * @brief 报文缓冲盒子
@@ -40,7 +41,12 @@ typedef struct ct_packet {
 } ct_packet_t, ct_packet_buf_t[1];
 
 #define CT_PACKET_INIT(__buffer, __max) \
-	{ ._buffer = (__buffer), ._past = 0, ._total = 0, ._max = (__max), }
+	{                                   \
+		._buffer = (__buffer),          \
+		._past   = 0,                   \
+		._total  = 0,                   \
+		._max    = (__max),             \
+	}
 
 #define ct_packet_max(self)              ((self)->_max)                          // 获取 最大大小
 #define ct_packet_set_max(self, __max)   ((self)->_max = (uint16_t)(__max))      // 设置 最大大小

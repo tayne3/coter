@@ -4,11 +4,12 @@
  */
 #ifndef COTER_BYTEPOOL_H
 #define COTER_BYTEPOOL_H
+
+#include "coter/container/bytes.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "coter/container/bytes.h"
 
 /**
  * @brief 字节池指针

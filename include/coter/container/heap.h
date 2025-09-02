@@ -8,12 +8,13 @@
  */
 #ifndef COTER_HEAP_H
 #define COTER_HEAP_H
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #include "coter/base/any.h"
 #include "coter/base/platform.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 // 排序比较函数类型 (返回值: true=触发交换, false=无操作)
 typedef bool (*ct_heap_sort_t)(const ct_any_t*, const ct_any_t*);

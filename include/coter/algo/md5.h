@@ -4,11 +4,12 @@
  */
 #ifndef COTER_MD5_H
 #define COTER_MD5_H
+
+#include "coter/base/platform.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "coter/base/platform.h"
 
 /**
  * @brief MD5算法上下文 (MD5 context)

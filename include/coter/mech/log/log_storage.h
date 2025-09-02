@@ -4,13 +4,14 @@
  */
 #ifndef COTER_LOG_STORAGE_H
 #define COTER_LOG_STORAGE_H
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #include "coter/base/platform.h"
 #include "coter/base/time.h"
 #include "coter/container/bytes.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct ct_bytepool;
 struct ct_log_config;

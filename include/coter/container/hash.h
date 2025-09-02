@@ -17,12 +17,13 @@
  */
 #ifndef COTER_HASH_H
 #define COTER_HASH_H
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #include "coter/base/any.h"
 #include "coter/base/platform.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 // 哈希值类型
 typedef uint32_t ct_hash32_t;

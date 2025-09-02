@@ -4,11 +4,12 @@
  */
 #ifndef COTER_RANDOM_H
 #define COTER_RANDOM_H
+
+#include "coter/base/platform.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "coter/base/platform.h"
 
 /**
  * @brief 随机数句柄

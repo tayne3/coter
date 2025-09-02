@@ -4,11 +4,12 @@
  */
 #ifndef COTER_TIME_H
 #define COTER_TIME_H
+
+#include "coter/base/platform.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "coter/base/platform.h"
 
 #ifdef _MSC_VER
 struct timezone {

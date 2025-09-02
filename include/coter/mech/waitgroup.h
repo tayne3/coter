@@ -4,11 +4,12 @@
  */
 #ifndef COTER_WAITGROUP_H
 #define COTER_WAITGROUP_H
+
+#include "coter/base/platform.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "coter/base/platform.h"
 
 /**
  * @brief 等待组
@@ -22,8 +23,7 @@ typedef struct ct_waitgroup {
 	pthread_cond_t  cond;     // 条件变量
 } ct_waitgroup_t;
 
-#define CT_WAITGROUP_INITIALIZER \
-	{ .counter = 0, .mutex = PTHREAD_MUTEX_INITIALIZER, .cond = PTHREAD_COND_INITIALIZER }
+#define CT_WAITGROUP_INITIALIZER {.counter = 0, .mutex = PTHREAD_MUTEX_INITIALIZER, .cond = PTHREAD_COND_INITIALIZER}
 
 /**
  * @brief 初始化等待组

@@ -4,11 +4,12 @@
  */
 #ifndef COTER_THREADCACHE_H
 #define COTER_THREADCACHE_H
+
+#include "coter/base/platform.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "coter/base/platform.h"
 
 /// 线程缓存
 typedef struct ct_threadcache ct_threadcache_t;

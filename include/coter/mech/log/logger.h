@@ -4,12 +4,13 @@
  */
 #ifndef COTER_LOGGER_H
 #define COTER_LOGGER_H
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #include "coter/base/time.h"
 #include "log_config.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * @brief 初始化日志器

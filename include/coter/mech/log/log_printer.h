@@ -4,11 +4,12 @@
  */
 #ifndef COTER_LOG_PRINTER_H
 #define COTER_LOG_PRINTER_H
+
+#include "coter/base/platform.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "coter/base/platform.h"
 
 struct ct_bytepool;
 struct ct_log_config;

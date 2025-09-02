@@ -8,11 +8,12 @@
  */
 #ifndef COTER_LIST_H
 #define COTER_LIST_H
+
+#include "coter/base/platform.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "coter/base/platform.h"
 
 struct ct_list;
 

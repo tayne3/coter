@@ -4,11 +4,12 @@
  */
 #ifndef COTER_THPOOL_H
 #define COTER_THPOOL_H
+
+#include "coter/base/platform.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "coter/base/platform.h"
 
 // F(code, name, describe)
 #define CTTHPOOL_ERROR_FOREACH(F)        \

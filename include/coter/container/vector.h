@@ -4,12 +4,14 @@
  */
 #ifndef COTER_VECTOR_H
 #define COTER_VECTOR_H
+
+#include "coter/base/any.h"
+#include "coter/base/platform.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "coter/base/any.h"
-#include "coter/base/platform.h"
 /**
  * @brief 动态数组结构体
  * @details

@@ -7,11 +7,12 @@
  */
 #ifndef COTER_ANY_H
 #define COTER_ANY_H
+
+#include "coter/base/platform.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "coter/base/platform.h"
 
 // Any 数据类型
 enum ct_any_type {

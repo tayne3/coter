@@ -4,11 +4,12 @@
  */
 #ifndef COTER_JOBPOOL_H
 #define COTER_JOBPOOL_H
+
+#include "coter/base/platform.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "coter/base/platform.h"
 
 // 任务池执行函数
 typedef void (*ct_jobpool_routine_t)(void*);

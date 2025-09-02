@@ -4,11 +4,12 @@
  */
 #ifndef COTER_STR_H
 #define COTER_STR_H
+
+#include "macro.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "macro.h"
 
 // clang-format off
 

@@ -4,12 +4,13 @@
  */
 #ifndef COTER_EVENT_H
 #define COTER_EVENT_H
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #include "coter/base/any.h"
 #include "coter/base/platform.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 // 单事件id
 typedef uint8_t ct_event_id_t;
@@ -30,10 +31,12 @@ typedef struct ct_event {
 } ct_event_t, ct_event_buf_t[1];
 
 // 事件-初始化
-#define CT_EVENT_INITIALIZER                                                                   \
-	{                                                                                          \
-		.ids = 0ULL, .mutex = {PTHREAD_MUTEX_INITIALIZER}, .cond = {PTHREAD_COND_INITIALIZER}, \
-		.args = {CT_ANY_INIT_INVALID},                                                         \
+#define CT_EVENT_INITIALIZER                  \
+	{                                         \
+		.ids   = 0ULL,                        \
+		.mutex = {PTHREAD_MUTEX_INITIALIZER}, \
+		.cond  = {PTHREAD_COND_INITIALIZER},  \
+		.args  = {CT_ANY_INIT_INVALID},       \
 	}
 // 事件-空
 #define CT_EVENT_NULL (ct_event_t) CT_EVENT_INITIALIZER

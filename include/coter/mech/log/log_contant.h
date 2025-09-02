@@ -4,12 +4,13 @@
  */
 #ifndef COTER_LOG_CONSTANT_H
 #define COTER_LOG_CONSTANT_H
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #include "coter/base/platform.h"
 #include "coter/base/time.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define CTLog_StyleBasic  0  // 基本信息
 #define CTLog_StyleBrief  1  // 简洁信息

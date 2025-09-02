@@ -4,13 +4,14 @@
  */
 #ifndef COTER_PLATFORM_H
 #define COTER_PLATFORM_H
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #include "macro.h"
 #include "str.h"
 #include "pthread.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 // clang-format off
 

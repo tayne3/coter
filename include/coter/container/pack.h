@@ -25,11 +25,12 @@
  */
 #ifndef CT_PACK_H
 #define CT_PACK_H
+
+#include "coter/base/platform.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "coter/base/platform.h"
 
 /**
  * @brief Pack data into a buffer

@@ -8,12 +8,13 @@
  */
 #ifndef COTER_STACK_H
 #define COTER_STACK_H
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #include "coter/base/any.h"
 #include "coter/base/platform.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * @brief 栈结构体
@@ -26,7 +27,11 @@ typedef struct ct_stack {
 
 // 初始化
 #define CT_STACK_INIT(__buffer, __max) \
-	{ ._all = (void*)__buffer, ._max = __max, ._size = 0, }
+	{                                  \
+		._all  = (void*)__buffer,      \
+		._max  = __max,                \
+		._size = 0,                    \
+	}
 
 #define ct_stack_max(self)     ((self)->_max)                   // 获取 栈 最大容量
 #define ct_stack_size(self)    ((self)->_size)                  // 获取 栈 大小

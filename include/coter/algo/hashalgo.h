@@ -4,11 +4,12 @@
  */
 #ifndef COTER_HASHALGO_H
 #define COTER_HASHALGO_H
+
+#include "coter/base/platform.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "coter/base/platform.h"
 
 /**
  * @brief Time33 算法 / DJBX33A 算法 (Daniel J. Bernstein, Times 33 with Addition)

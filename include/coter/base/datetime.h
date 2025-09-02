@@ -4,11 +4,12 @@
  */
 #ifndef COTER_DATETIME_H
 #define COTER_DATETIME_H
+
+#include "coter/base/time.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "coter/base/time.h"
 
 /**
  * @brief 日期时间结构体

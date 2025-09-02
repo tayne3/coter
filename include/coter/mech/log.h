@@ -4,13 +4,14 @@
  */
 #ifndef COTER_LOG_H
 #define COTER_LOG_H
+
+#include "coter/mech/threadcache.h"
+#include "log/log_contant.h"
+#include "log/logger.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "log/log_contant.h"
-#include "log/logger.h"
-#include "coter/mech/threadcache.h"
 
 #define CTLogger_HandleBasic(__flag, __type, ...)                                                               \
 	do {                                                                                                        \

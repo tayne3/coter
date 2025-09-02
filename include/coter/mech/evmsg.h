@@ -4,11 +4,12 @@
  */
 #ifndef COTER_EVMSG_H
 #define COTER_EVMSG_H
+
+#include "coter/base/platform.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "coter/base/platform.h"
 
 struct ct_thpool;
 
@@ -43,8 +44,7 @@ typedef struct ct_evmsg {
 	size_t  size;  // 事件数据大小
 } ct_evmsg_t, ct_evmsg_buf_t[1];
 
-#define CT_EVMSG_MSG_INIT(_type, _id, _data, _size) \
-	{ .type = _type, .id = _id, .size = _size, .data = _data }
+#define CT_EVMSG_MSG_INIT(_type, _id, _data, _size) {.type = _type, .id = _id, .size = _size, .data = _data}
 
 /**
  * @brief 消息处理函数类型

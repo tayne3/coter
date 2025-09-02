@@ -4,13 +4,14 @@
  */
 #ifndef COTER_LOG_MESSAGE_H
 #define COTER_LOG_MESSAGE_H
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #include "coter/base/atomic.h"
 #include "coter/base/platform.h"
 #include "coter/container/bytes.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct ct_log_message {
 	ct_bytes_t *bytes;     /**< 字节数组 */

@@ -4,11 +4,12 @@
  */
 #ifndef COTER_UTILS_H
 #define COTER_UTILS_H
+
+#include "coter/base/macro.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "coter/base/macro.h"
 
 /**
  * @brief 反向拷贝指定字节数的数据

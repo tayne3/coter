@@ -4,11 +4,12 @@
  */
 #ifndef _CT_SHA1_H_
 #define _CT_SHA1_H_
+
+#include "coter/base/platform.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "coter/base/platform.h"
 
 /**
  * @struct ct_sha1_ctx_t

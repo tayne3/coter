@@ -7,11 +7,12 @@
  */
 #ifndef COTER_RBUF_H
 #define COTER_RBUF_H
+
+#include "coter/base/platform.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "coter/base/platform.h"
 
 /**
  * @brief 环形缓冲区结构体
@@ -27,7 +28,14 @@ typedef struct ct_rbuf {
 
 // 初始化
 #define CT_RBUF_INIT(__buffer, __byte, __max) \
-	{ ._all = (void *)__buffer, ._byte = __byte, ._max = __max, ._head = 0, ._tail = 0, ._size = 0, }
+	{                                         \
+		._all  = (void *)__buffer,            \
+		._byte = __byte,                      \
+		._max  = __max,                       \
+		._head = 0,                           \
+		._tail = 0,                           \
+		._size = 0,                           \
+	}
 
 #define ct_rbuf_max(self)       ((self)->_max)                                       // 获取 最大容量
 #define ct_rbuf_size(self)      ((self)->_size)                                      // 获取 大小
