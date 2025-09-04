@@ -14,47 +14,25 @@
 # | COTER_BUILD_EXAMPLE       | Top-Level (Option)  | OFF                                           | Build example programs.                                       |
 # | COTER_BUILD_TEST          | Top-Level (Option)  | OFF                                           | Build test programs.                                          |
 # |---------------------------|---------------------|-----------------------------------------------|---------------------------------------------------------------|
-#
-# =======================================================================================================================
-# 项目构建选项和变量
-#
-# 概述：
-#   本模块定义了标准的 CMake 构建选项和项目特定的变量，这些选项和变量控制
-#   编译过程，例如构建类型、库类型（共享/静态）以及是否构建示例或测试。
-#
-# |---------------------------|---------------------|-----------------------------------------------|---------------------------------------------------------------|
-# | Variable / Option         | Availability        | Default                                       | Description                                                   |
-# |===========================|=====================|===============================================|===============================================================|
-# | CMAKE_BUILD_TYPE          | 总是                | "Debug" (如果未设置)                          | 标准 CMake 变量：Debug, Release, MinSizeRel, RelWithDebInfo。 |
-# | COTER_BUILD_SHARED        | 总是 (选项)         | OFF                                           | 如果为 ON 构建共享库，为 OFF 构建静态库。                     |
-# | COTER_BUILD_EXAMPLE       | 顶层项目 (选项)     | OFF                                           | 构建示例程序。                                                |
-# | COTER_BUILD_TEST          | 顶层项目 (选项)     | OFF                                           | 构建测试程序。                                                |
-# |---------------------------|---------------------|-----------------------------------------------|---------------------------------------------------------------|
 
-if(NOT CMAKE_BUILD_TYPE)
-	set(CMAKE_BUILD_TYPE Debug)
-	set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
-	mark_as_advanced(CMAKE_BUILD_TYPE)
-endif()
-if(("${CMAKE_BUILD_TYPE}" STREQUAL "Debug") # For debugging purposes, includes symbol table and unoptimized code (-O0 -g)
-	OR ("${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo")) # Includes optimized code and symbol table for debugging when errors occur (-O2 -g -DNDEBUG)
-	set(PROJECT_BUILD_DEBUG ON)
-elseif(("${CMAKE_BUILD_TYPE}" STREQUAL "Release") # For release purposes, includes optimized code and typically does not include symbol table (-O3 -DNDEBUG)
-	OR ("${CMAKE_BUILD_TYPE}" STREQUAL "MinSizeRel")) # Minimizes binary size, enables optimizations, and removes unnecessary symbols (-Os -DNDEBUG)
-	set(PROJECT_BUILD_DEBUG OFF)
-else()
-	message(FATAL_ERROR "Unsupported build type: ${CMAKE_BUILD_TYPE}.")
+if(NOT CMAKE_CONFIGURATION_TYPES)
+	if(NOT CMAKE_BUILD_TYPE)
+		set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the type of build." FORCE)
+		set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
+	endif()
+	if(("${CMAKE_BUILD_TYPE}" STREQUAL "Debug") # For debugging purposes, includes symbol table and unoptimized code (-O0 -g)
+		OR ("${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo")) # Includes optimized code and symbol table for debugging when errors occur (-O2 -g -DNDEBUG)
+		set(PROJECT_BUILD_DEBUG ON)
+	elseif(("${CMAKE_BUILD_TYPE}" STREQUAL "Release") # For release purposes, includes optimized code and typically does not include symbol table (-O3 -DNDEBUG)
+		OR ("${CMAKE_BUILD_TYPE}" STREQUAL "MinSizeRel")) # Minimizes binary size, enables optimizations, and removes unnecessary symbols (-Os -DNDEBUG)
+		set(PROJECT_BUILD_DEBUG OFF)
+	else()
+		message(FATAL_ERROR "Unsupported build type: ${CMAKE_BUILD_TYPE}.")
+	endif()
 endif()
 
 option(COTER_BUILD_SHARED "build shared library" OFF)
 mark_as_advanced(COTER_BUILD_SHARED)
-if(COTER_BUILD_SHARED)
-    set(PROJECT_LIB_TYPE SHARED)
-    set(PROJECT_LIB_NAME shared)
-else()
-    set(PROJECT_LIB_TYPE STATIC)
-    set(PROJECT_LIB_NAME static)
-endif()
 
 if(PROJECT_IS_TOP_LEVEL)
     option(COTER_BUILD_EXAMPLE "build example program" OFF)

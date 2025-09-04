@@ -20,16 +20,21 @@ configure_file(
 )
 
 file(GLOB_RECURSE project_source_files CONFIGURE_DEPENDS src/*.c)
-add_library(${PROJECT_NAME} ${PROJECT_LIB_TYPE} ${project_source_files})
-target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}_compile_dependency)
-target_include_directories(${PROJECT_NAME} PUBLIC 
+if(COTER_BUILD_SHARED)
+    add_library(coter SHARED ${project_source_files})
+    add_library(coter::shared ALIAS coter)
+    message(STATUS "coter ${PROJECT_VERSION} shared library")
+else()
+    add_library(coter STATIC ${project_source_files})
+    add_library(coter::static ALIAS coter)
+    message(STATUS "coter ${PROJECT_VERSION} static library")
+endif()
+add_library(coter::coter ALIAS coter)
+target_link_libraries(coter PRIVATE coter_compile_dependency)
+target_include_directories(coter PUBLIC 
     ${CMAKE_CURRENT_SOURCE_DIR}/include 
     ${CMAKE_CURRENT_BINARY_DIR}/include
 )
-
-add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
-add_library(${PROJECT_NAME}::${PROJECT_LIB_NAME} ALIAS ${PROJECT_NAME})
-message(STATUS "${PROJECT_NAME} ${PROJECT_VERSION} ${PROJECT_LIB_NAME} library")
 
 if(COTER_BUILD_TEST)
     enable_testing()
