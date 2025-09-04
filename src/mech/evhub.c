@@ -61,17 +61,14 @@ int ct_evhub_unsubscribe(ct_evhub_t *self, uint32_t type, ct_evhub_callback_t cb
 	return ret;
 }
 
-int ct_evhub_publish(ct_evhub_t *self, ct_evmsg_t *msg) {
+int ct_evhub_publish(ct_evhub_t *self, uint32_t type, void *data) {
 	assert(self);
-	if (!msg) {
-		return -1;
-	}
 	evhub__sub_t *sub;
 	pthread_rwlock_rdlock(&self->rwlock);
 	for (size_t i = 0; i < ct_vector_size(&self->sub_list); ++i) {
 		sub = (evhub__sub_t *)ct_vector_at(&self->sub_list, i);
-		if (sub && sub->type == msg->type) {
-			sub->cb(msg, sub->user_data);
+		if (sub && sub->type == type) {
+			sub->cb(type, data, sub->user_data);
 		}
 	}
 	pthread_rwlock_unlock(&self->rwlock);

@@ -27,21 +27,21 @@ typedef struct {
 		.is_expected = false,    \
 	}
 
-static void handler_a(ct_evmsg_t *msg, void *user_data) {
+static void handler_a(uint32_t type, void *data, void *user_data) {
 	test_context_t *ctx = (test_context_t *)user_data;
 	if (ctx) {
 		ctx->count_a++;
 	}
 }
 
-static void handler_b(ct_evmsg_t *msg, void *user_data) {
+static void handler_b(uint32_t type, void *data, void *user_data) {
 	test_context_t *ctx = (test_context_t *)user_data;
 	if (ctx) {
 		ctx->count_b++;
 	}
 }
 
-static void handler_data_check(ct_evmsg_t *msg, void *user_data) {
+static void handler_data_check(uint32_t type, void *data, void *user_data) {
 	test_context_t *ctx = (test_context_t *)user_data;
 	if (!ctx) {
 		return;
@@ -49,8 +49,7 @@ static void handler_data_check(ct_evmsg_t *msg, void *user_data) {
 
 	ctx->count_c++;
 	const char *expected_data = "hello";
-	if (msg->type == EVENT_TYPE_C && msg->size == strlen(expected_data) &&
-		strcmp((const char *)msg->data, expected_data) == 0) {
+	if (type == EVENT_TYPE_C && data && strcmp((const char *)data, expected_data) == 0) {
 		ctx->is_expected = true;
 	} else {
 		ctx->is_expected = false;
@@ -65,13 +64,11 @@ static void test_single_subscriber(void) {
 
 	assert_int32_eq(0, ct_evhub_subscribe(hub, EVENT_TYPE_A, handler_a, &ctx));
 
-	ct_evmsg_t msg = {.type = EVENT_TYPE_A};
-	assert_int32_eq(0, ct_evhub_publish(hub, &msg));
+	assert_int32_eq(0, ct_evhub_publish(hub, EVENT_TYPE_A, NULL));
 	assert_int32_eq(ctx.count_a, 1);
 
 	// Publish another type, callback should not be called
-	msg.type = EVENT_TYPE_B;
-	assert_int32_eq(0, ct_evhub_publish(hub, &msg));
+	assert_int32_eq(0, ct_evhub_publish(hub, EVENT_TYPE_B, NULL));
 	assert_int32_eq(ctx.count_a, 1);
 
 	ct_evhub_deinit(hub);
@@ -86,8 +83,7 @@ static void test_multiple_subscribers(void) {
 	assert_int32_eq(0, ct_evhub_subscribe(hub, EVENT_TYPE_A, handler_a, &ctx));
 	assert_int32_eq(0, ct_evhub_subscribe(hub, EVENT_TYPE_A, handler_b, &ctx));
 
-	ct_evmsg_t msg = {.type = EVENT_TYPE_A};
-	assert_int32_eq(0, ct_evhub_publish(hub, &msg));
+	assert_int32_eq(0, ct_evhub_publish(hub, EVENT_TYPE_A, NULL));
 
 	assert_int32_eq(ctx.count_a, 1);
 	assert_int32_eq(ctx.count_b, 1);
@@ -103,14 +99,13 @@ static void test_unsubscribe(void) {
 
 	assert_int32_eq(0, ct_evhub_subscribe(hub, EVENT_TYPE_A, handler_a, &ctx));
 
-	ct_evmsg_t msg = {.type = EVENT_TYPE_A, .data = NULL, .size = 0};
-	assert_int32_eq(0, ct_evhub_publish(hub, &msg));
+	assert_int32_eq(0, ct_evhub_publish(hub, EVENT_TYPE_A, NULL));
 	assert_int32_eq(ctx.count_a, 1);
 
 	assert_int32_eq(0, ct_evhub_unsubscribe(hub, EVENT_TYPE_A, handler_a));
 
 	// Publish again, callback should not be called
-	assert_int32_eq(0, ct_evhub_publish(hub, &msg));
+	assert_int32_eq(0, ct_evhub_publish(hub, EVENT_TYPE_A, NULL));
 	assert_int32_eq(ctx.count_a, 1);
 
 	ct_evhub_deinit(hub);
@@ -122,8 +117,7 @@ static void test_publish_no_subscriber(void) {
 	ct_evhub_t hub[1];
 	ct_evhub_init(hub);
 
-	ct_evmsg_t msg = {.type = EVENT_TYPE_A, .data = NULL, .size = 0};
-	assert_int32_eq(0, ct_evhub_publish(hub, &msg));
+	assert_int32_eq(0, ct_evhub_publish(hub, EVENT_TYPE_A, NULL));
 
 	assert_int32_eq(ctx.count_a, 0);
 	assert_int32_eq(ctx.count_b, 0);
@@ -140,9 +134,8 @@ static void test_data_passing(void) {
 
 	assert_int32_eq(0, ct_evhub_subscribe(hub, EVENT_TYPE_C, handler_data_check, &ctx));
 
-	char       data[] = "hello";
-	ct_evmsg_t msg    = {.type = EVENT_TYPE_C, .data = data, .size = strlen(data)};
-	assert_int32_eq(0, ct_evhub_publish(hub, &msg));
+	char data[] = "hello";
+	assert_int32_eq(0, ct_evhub_publish(hub, EVENT_TYPE_C, data));
 
 	assert_int32_eq(ctx.count_c, 1);
 	assert_true(ctx.is_expected);
@@ -160,14 +153,12 @@ static void test_multiple_event_types(void) {
 	assert_int32_eq(0, ct_evhub_subscribe(hub, EVENT_TYPE_B, handler_b, &ctx));
 
 	// Publish A
-	ct_evmsg_t msg_a = {.type = EVENT_TYPE_A, .data = NULL, .size = 0};
-	assert_int32_eq(0, ct_evhub_publish(hub, &msg_a));
+	assert_int32_eq(0, ct_evhub_publish(hub, EVENT_TYPE_A, NULL));
 	assert_int32_eq(ctx.count_a, 1);
 	assert_int32_eq(ctx.count_b, 0);
 
 	// Publish B
-	ct_evmsg_t msg_b = {.type = EVENT_TYPE_B, .data = NULL, .size = 0};
-	assert_int32_eq(0, ct_evhub_publish(hub, &msg_b));
+	assert_int32_eq(0, ct_evhub_publish(hub, EVENT_TYPE_B, NULL));
 	assert_int32_eq(ctx.count_a, 1);
 	assert_int32_eq(ctx.count_b, 1);
 
@@ -190,8 +181,7 @@ static void test_edge_cases(void) {
 	assert_int32_eq(0, ct_evhub_unsubscribe(hub, EVENT_TYPE_A, handler_a));
 	assert_int32_ne(0, ct_evhub_unsubscribe(hub, EVENT_TYPE_A, handler_a));
 
-	ct_evmsg_t msg = {.type = EVENT_TYPE_B, .data = NULL, .size = 0};
-	assert_int32_eq(0, ct_evhub_publish(hub, &msg));
+	assert_int32_eq(0, ct_evhub_publish(hub, EVENT_TYPE_B, NULL));
 	assert_int32_eq(ctx.count_b, 2);
 
 	ct_evhub_deinit(hub);
