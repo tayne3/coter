@@ -9,20 +9,11 @@
 #include "str.h"
 #include "pthread.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 // clang-format off
 
 // COMPILER
 #if defined (_MSC_VER)
 #define CT_COMPILER_MSVC
-
-// #undef  HAVE_STDATOMIC_H
-// #define HAVE_STDATOMIC_H        0
-// #undef  HAVE_SYS_TIME_H
-// #define HAVE_SYS_TIME_H         0
 
 #pragma warning (disable: 4018) // signed/unsigned comparison
 #pragma warning (disable: 4100) // unused param
@@ -81,8 +72,6 @@ extern "C" {
     #ifndef inline
     #define inline __inline
     #endif
-    #include <winsock2.h>
-    #include <ws2tcpip.h>  
     #include <windows.h>
     #include <process.h>   
     #include <direct.h>    
@@ -154,7 +143,4 @@ extern "C" {
 #include <fcntl.h>
 #endif
 
-#ifdef __cplusplus
-}
-#endif
 #endif  // COTER_PLATFORM_H

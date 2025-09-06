@@ -211,32 +211,6 @@ typedef int ct_endian_t;
 #	define __CT_WORDSIZE 32
 # endif
 
-// # ifdef WIN32
-// #	ifdef __cplusplus
-// #		define DLL_EXPORT_C_DECL     extern "C" __declspec(dllexport)
-// #		define DLL_IMPORT_C_DECL     extern "C" __declspec(dllimport)
-// #		define DLL_EXPORT_DECL       extern __declspec(dllexport)
-// #		define DLL_IMPORT_DECL       extern __declspec(dllimport)
-// #		define DLL_EXPORT_CLASS_DECL __declspec(dllexport)
-// #		define DLL_IMPORT_CLASS_DECL __declspec(dllimport)
-// # 	else
-// #		define DLL_EXPORT_DECL __declspec(dllexport)
-// #		define DLL_IMPORT_DECL __declspec(dllimport)
-// # 	endif
-// # else
-// #	ifdef __cplusplus
-// #		define DLL_EXPORT_C_DECL extern "C"
-// #		define DLL_IMPORT_C_DECL extern "C"
-// #		define DLL_EXPORT_DECL   extern
-// #		define DLL_IMPORT_DECL   extern
-// #		define DLL_EXPORT_CLASS_DECL
-// #		define DLL_IMPORT_CLASS_DECL
-// # 	else
-// #		define DLL_EXPORT_DECL extern
-// #		define DLL_IMPORT_DECL extern
-// #	endif
-// # endif
-
 # ifndef __GNUC_PREREQ
 # 	define __GNUC_PREREQ(a, b)	0
 # endif
@@ -271,41 +245,6 @@ typedef int ct_endian_t;
 #	define __ct_file__		"(nil)"
 #	define __ct_line__		0
 # endif
-
-#if 0
-// context information
-typedef struct ct_context {
-	const char *file;
-	const char *func;
-	int         line;
-} ct_context_t;
-
-#define CT_CONTEXT_INIT(_file, _func, _line) {.file = (_file), .func = (_func), .line = (_line)}
-#define CT_CONTEXT_CURR                      (ct_context_t)CT_CONTEXT_INIT(__ct_file__, __ct_func__, __ct_line__)
-#define CT_CONTEXT_ISVALID(_ctx)             ((_ctx)->line > 0)
-
-#define __ct_assert_fail(expr)                                                                      \
-	do {                                                                                            \
-		fprintf(stderr, "%s:%d: assert failed: `%s`." STR_NEWLINE, __ct_file__, __ct_line__, expr); \
-		raise(SIGABRT);                                                                             \
-	} while (0)
-
-// assert
-#ifdef NDEBUG
-#define ASSERT(expr) ((void)(0))
-#elif defined __cplusplus
-#define ASSERT(expr) (static_cast<bool>(expr) ? (void)(0) : __ct_assert_fail(#expr))
-#elif !defined __GNUC__ || defined __STRICT_ANSI__
-#define ASSERT(expr) ((expr) ? (void)(0) : __ct_assert_fail(#expr))
-#else
-#define ASSERT(expr)                               \
-	((void)sizeof((expr) ? 1 : 0), __extension__({ \
-		 if (!(expr)) {                            \
-			 __ct_assert_fail(#expr);              \
-		 }                                         \
-	 }))
-#endif
-#endif
 
 # ifndef __THROW
 # 	define __THROW
