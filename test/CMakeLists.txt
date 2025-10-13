@@ -1,7 +1,7 @@
 CPMAddPackage(
     NAME CUnit
     GIT_REPOSITORY "http://192.168.1.47:3000/tayne3/CUnit.git"
-    VERSION 0.2.0
+    VERSION 0.2.2
 )
 
 file(GLOB_RECURSE test_source_files CONFIGURE_DEPENDS *.c *.cpp *.cc)
