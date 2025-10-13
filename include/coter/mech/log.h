@@ -24,29 +24,29 @@ extern "C" {
 		}                                                                                                       \
 	} while (0)
 
-#define CTLogger_HandleBrief(__flag, __type, ...)                                                               \
-	do {                                                                                                        \
-		if (ct_log_is_enable(__type, CTLog_Level##__flag)) {                                                    \
-			ct_threadcache_t *__cache = ct_threadcache_get();                                                   \
-			const int         __size  = __ct_threadcache_brief(                                                 \
-                __cache, CTLog_Style##__flag CTLog_String##__flag "|%s|%s\x1b[0m ", __VA_ARGS__);      \
-			if (__size > 0) {                                                                                   \
-				ct_log_handle(__type, CTLog_Level##__flag, ct_threadcache_get_buffer(__cache), (size_t)__size); \
-			}                                                                                                   \
-		}                                                                                                       \
+#define CTLogger_HandleBrief(__flag, __type, ...)                                                                     \
+	do {                                                                                                              \
+		if (ct_log_is_enable(__type, CTLog_Level##__flag)) {                                                          \
+			ct_threadcache_t *__cache = ct_threadcache_get();                                                         \
+			const int         __size  = __ct_threadcache_brief(                                                       \
+                __cache, "\x1b[2m%s %s " CTLog_Style##__flag CTLog_String##__flag "\x1b[0m ", __VA_ARGS__); \
+			if (__size > 0) {                                                                                         \
+				ct_log_handle(__type, CTLog_Level##__flag, ct_threadcache_get_buffer(__cache), (size_t)__size);       \
+			}                                                                                                         \
+		}                                                                                                             \
 	} while (0)
 
-#define CTLogger_HandleDetail(__flag, __type, ...)                                                              \
-	do {                                                                                                        \
-		if (ct_log_is_enable(__type, CTLog_Level##__flag)) {                                                    \
-			ct_threadcache_t *__cache = ct_threadcache_get();                                                   \
-			const int         __size  = __ct_threadcache_detail(                                                \
-                __cache, STR_SEPARATOR __ct_file__, __ct_line__,                                       \
-                CTLog_Style##__flag CTLog_String##__flag "|%s|%s\x1b[0m [%.*s:%d] ", __VA_ARGS__);     \
-			if (__size > 0) {                                                                                   \
-				ct_log_handle(__type, CTLog_Level##__flag, ct_threadcache_get_buffer(__cache), (size_t)__size); \
-			}                                                                                                   \
-		}                                                                                                       \
+#define CTLogger_HandleDetail(__flag, __type, ...)                                                                     \
+	do {                                                                                                               \
+		if (ct_log_is_enable(__type, CTLog_Level##__flag)) {                                                           \
+			ct_threadcache_t *__cache = ct_threadcache_get();                                                          \
+			const int         __size  = __ct_threadcache_detail(                                                       \
+                __cache, STR_SEPARATOR __ct_file__, __ct_line__,                                              \
+				"\x1b[2m%s %s " CTLog_Style##__flag CTLog_String##__flag " \x1b[37;1m%.*s:%d \x1b[36;22m>\x1b[0m ", __VA_ARGS__); \
+			if (__size > 0) {                                                                                          \
+				ct_log_handle(__type, CTLog_Level##__flag, ct_threadcache_get_buffer(__cache), (size_t)__size);        \
+			}                                                                                                          \
+		}                                                                                                              \
 	} while (0)
 
 #define CTLogger_HandleHex(__flag, __type, __buf, __len)                                              \

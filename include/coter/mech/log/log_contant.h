@@ -12,34 +12,31 @@
 extern "C" {
 #endif
 
-#define CTLog_StyleBasic  0  // 基本信息
-#define CTLog_StyleBrief  1  // 简洁信息
-#define CTLog_StyleDetail 2  // 详细信息
+#define CTLog_StyleBasic  0  // 基本样式
+#define CTLog_StyleBrief  1  // 简洁样式
+#define CTLog_StyleDetail 2  // 详细样式
 
-#define CTLog_LevelVerbose 0  // 变量信息
-#define CTLog_LevelDebug   1  // 调试信息
-#define CTLog_LevelTrace   2  // 跟踪信息
-#define CTLog_LevelWarning 3  // 警告信息
-#define CTLog_LevelError   4  // 错误信息
+#define CTLog_LevelVerbose 0  // 变量日志
+#define CTLog_LevelDebug   1  // 调试日志
+#define CTLog_LevelTrace   2  // 跟踪日志
+#define CTLog_LevelWarning 3  // 警告日志
+#define CTLog_LevelError   4  // 错误日志
 #define CTLog_LevelFatal   5  // 致命错误
 
-#define CTLog_StringVerbose "VBOSE"
-#define CTLog_StringDebug   "DEBUG"
-#define CTLog_StringTrace   "TRACE"
-#define CTLog_StringWarning "WARNG"
-#define CTLog_StringError   "ERROR"
-#define CTLog_StringFatal   "FATAL"
+#define CTLog_StringVerbose "VER"
+#define CTLog_StringDebug   "DBG"
+#define CTLog_StringTrace   "TRC"
+#define CTLog_StringWarning "WRN"
+#define CTLog_StringError   "ERR"
+#define CTLog_StringFatal   "FTL"
 
-// 日志样式字符串-起始
-#define CTLog_StyleVerbose "\x1B[32;2m"
-#define CTLog_StyleDebug   "\x1B[32;2m"
-#define CTLog_StyleTrace   "\x1B[36;2m"
-#define CTLog_StyleWarning "\x1B[33;2m"
-#define CTLog_StyleError   "\x1B[31;2m"
-#define CTLog_StyleFatal   "\x1B[31;2m"
-
-// 日志样式字符串-结束
-#define CTLog_StyleEnd "\x1B[0m"
+// 日志样式字符串
+#define CTLog_StyleVerbose "\x1b[34;22m"
+#define CTLog_StyleDebug   "\x1b[37;22m"
+#define CTLog_StyleTrace   "\x1b[32;22m"
+#define CTLog_StyleWarning "\x1b[33;22m"
+#define CTLog_StyleError   "\x1b[31;22m"
+#define CTLog_StyleFatal   "\x1b[31;22m"
 
 #ifdef __cplusplus
 }
