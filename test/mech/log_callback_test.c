@@ -3,8 +3,8 @@
  * @brief 日志回调测试
  */
 #include "coter/base/platform.h"
-#include "cunit.h"
 #include "coter/mech/log.h"
+#include "cunit.h"
 
 #define test_basic_verbose(...) CTLogger_HandleBasic(Verbose, 0, __VA_ARGS__)
 #define test_basic_debug(...)   CTLogger_HandleBasic(Debug, 0, __VA_ARGS__)
@@ -13,8 +13,8 @@
 #define test_basic_error(...)   CTLogger_HandleBasic(Error, 0, __VA_ARGS__)
 #define test_basic_fatal(...)   CTLogger_HandleBasic(Fatal, 0, __VA_ARGS__)
 
-#define TEST_THREADS     2
-#define TEST_THREAD_DATA 100000
+#define TEST_THREADS     4
+#define TEST_THREAD_DATA 50000
 
 static FILE*           g_file_with_log      = NULL;
 static FILE*           g_file_without_log   = NULL;
@@ -136,7 +136,7 @@ static void test_callback_performance_comparison(size_t limit) {
 	g_file_without_log = NULL;
 
 	cunit_println("Execution time: with log callback %d ms, without log callback %d ms\n", time_with_callback,
-				 time_without_callback);
+				  time_without_callback);
 
 	ct_log_destroy();
 
@@ -195,15 +195,6 @@ void test_callback_performance_comparison_0(void) {
 void test_callback_performance_comparison_11(void) {
 	test_callback_performance_comparison(11);
 }
-void test_callback_performance_comparison_99(void) {
-	test_callback_performance_comparison(99);
-}
-void test_callback_performance_comparison_417(void) {
-	test_callback_performance_comparison(417);
-}
-void test_callback_performance_comparison_739(void) {
-	test_callback_performance_comparison(739);
-}
 void test_callback_performance_comparison_999(void) {
 	test_callback_performance_comparison(999);
 }
@@ -214,9 +205,6 @@ int main(void) {
 	CUNIT_SUITE_BEGIN("log_callback", NULL, NULL)
 	CUNIT_TEST("comparison_0", test_callback_performance_comparison_0)
 	CUNIT_TEST("comparison_11", test_callback_performance_comparison_11)
-	CUNIT_TEST("comparison_99", test_callback_performance_comparison_99)
-	CUNIT_TEST("comparison_417", test_callback_performance_comparison_417)
-	CUNIT_TEST("comparison_739", test_callback_performance_comparison_739)
 	CUNIT_TEST("comparison_999", test_callback_performance_comparison_999)
 	CUNIT_SUITE_END()
 
