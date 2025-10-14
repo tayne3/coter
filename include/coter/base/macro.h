@@ -65,19 +65,27 @@
 # endif
 
 // OS
-# if defined(WINCE) || defined(_WIN32_WCE)
-#	define CT_OS_WINCE
-# elif defined(WIN64) || defined(_WIN64) || defined(__WIN64__)
+# if defined(WIN64) || defined(_WIN64) || defined(__WIN64__)
 #	define CT_OS_WIN64
 # elif defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
 #	define CT_OS_WIN32
-# elif defined(__linux__) || defined(__linux)
+# elif defined(WINCE) || defined(_WIN32_WCE)
+#	define CT_OS_WINCE
+# elif defined(linux) || defined(__linux__) || defined(__linux)
 #	define CT_OS_LINUX
+# elif defined(__APPLE__) && (defined(__GNUC__) || defined(__xlC__) || defined(__xlc__))
+#    include <TargetConditionals.h>
+#    if defined(TARGET_OS_MAC) && TARGET_OS_MAC
+#        define CT_OS_MAC
+#    elif defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE
+#        define CT_OS_IOS
+#    endif
+#    define CT_OS_DARWIN
 # else
 #	error "Unsupported platform!"
 # endif
 
-#if defined(CT_OS_WIN32) || defined(CT_OS_WIN64)
+#if defined(CT_OS_WIN64) || defined(CT_OS_WIN32) || defined(CT_OS_WINCE)
     #define CT_OS_WIN
 #else
     #define CT_OS_UNIX

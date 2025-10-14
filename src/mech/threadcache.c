@@ -6,13 +6,11 @@
 
 #include "coter/base/time.h"
 
-// -------------------------[STATIC DECLARATION]-------------------------
-
-#if __CT_WORDSIZE == 32
-#define TID_STR_LENGTH 8
-#else
-#define TID_STR_LENGTH 16
+#ifdef CT_OS_LINUX
+#include <sys/syscall.h>
 #endif
+
+// -------------------------[STATIC DECLARATION]-------------------------
 
 /**
  * @brief 线程缓存
@@ -28,10 +26,10 @@ struct ct_threadcache {
 	const char *_filename;         // 最后一次访问的文件名
 	int         _filename_length;  // 最后一次访问的文件名长度
 
-	char   tm_str[24];                   // 缓存的时间字符串
-	char   tid_str[TID_STR_LENGTH + 1];  // 线程ID字符串
-	char  *buffer;                       // 输出缓冲区
-	size_t buffer_size;                  // 缓冲区大小
+	char   tm_str[24];   // 缓存的时间字符串
+	char   tid_str[19];  // 线程ID字符串
+	char  *buffer;       // 输出缓冲区
+	size_t buffer_size;  // 缓冲区大小
 };
 
 // 线程本地存储键
@@ -40,39 +38,28 @@ static pthread_key_t timecache_key;
 static pthread_once_t timecache_key_once = PTHREAD_ONCE_INIT;
 
 /// 线程退出时清理缓存的回调函数
-static void tc_thread_destroy(void *ptr);
+static void tc__thread_destroy(void *ptr);
 /// 创建线程本地存储键
-static void tc_thread_create_key(void);
-/// 整数转字符串 (两位数)
-static inline void i2s_2(char **p, int value);
-/// 整数转字符串 (三位数)
-static inline void i2s_3(char **p, int value);
+static void tc__thread_create_key(void);
 /// 更新时间字符串
-static void tc_update_tmstr(ct_threadcache_t *self);
+static void tc__update_tmstr(ct_threadcache_t *self);
+/// 获取当前线程 ID 字符串
+static inline void tc__gettid_str(char *str, size_t max);
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
 ct_threadcache_t *ct_threadcache_get(void) {
-	pthread_once(&timecache_key_once, tc_thread_create_key);
+	pthread_once(&timecache_key_once, tc__thread_create_key);
 	ct_threadcache_t *self = pthread_getspecific(timecache_key);
 	if (!self) {
-		self = calloc(1, sizeof(ct_threadcache_t));
-#ifdef CT_OS_WIN
-		const DWORD tid = GetCurrentThreadId();
-#else
-		const pthread_t tid = pthread_self();
-#endif
-#if __CT_WORDSIZE == 32
-		sprintf(self->tid_str, "%08lX", tid);
-#else
-		sprintf(self->tid_str, "%016lX", tid);
-#endif
+		self         = calloc(1, sizeof(ct_threadcache_t));
 		self->buffer = malloc(1024);
 		if (!self->buffer) {
 			self->buffer_size = 0;
 		} else {
 			self->buffer_size = 1024;
 		}
+		tc__gettid_str(self->tid_str, sizeof(self->tid_str));
 		pthread_setspecific(timecache_key, self);
 	}
 	return self;
@@ -127,7 +114,7 @@ int __ct_threadcache_basic(ct_threadcache_t *self, const char *fmt, ...) {
 
 int __ct_threadcache_brief(ct_threadcache_t *self, const char *info, const char *fmt, ...) {
 	assert(self);
-	tc_update_tmstr(self);
+	tc__update_tmstr(self);
 	const int prefix_size = sprintf(self->buffer, info, self->tm_str, self->tid_str);
 
 	int     result;
@@ -170,7 +157,7 @@ int __ct_threadcache_brief(ct_threadcache_t *self, const char *info, const char 
 int __ct_threadcache_detail(ct_threadcache_t *self, const char *file, int line, const char *info, const char *fmt,
 							...) {
 	assert(self);
-	tc_update_tmstr(self);
+	tc__update_tmstr(self);
 	if (self->last_file != file) {
 		size_t      _file_length = strlen(file);
 		const char *_filename    = 1 + (const char *)ct_memrchr(file, STR_SEPARATOR_CHAR, _file_length);
@@ -223,7 +210,7 @@ int __ct_threadcache_detail(ct_threadcache_t *self, const char *file, int line, 
 
 // -------------------------[STATIC DEFINITION]-------------------------
 
-static void tc_thread_destroy(void *ptr) {
+static void tc__thread_destroy(void *ptr) {
 	ct_threadcache_t *self = (ct_threadcache_t *)ptr;
 	if (self->buffer) {
 		free(self->buffer);
@@ -232,22 +219,24 @@ static void tc_thread_destroy(void *ptr) {
 	free(self);
 }
 
-static void tc_thread_create_key(void) {
-	pthread_key_create(&timecache_key, tc_thread_destroy);
+static void tc__thread_create_key(void) {
+	pthread_key_create(&timecache_key, tc__thread_destroy);
 }
 
+/// 整数转字符串 (两位数)
 static inline void i2s_2(char **p, int value) {
 	*(*p)++ = '0' + value / 10;
 	*(*p)++ = '0' + value % 10;
 }
 
+/// 整数转字符串 (三位数)
 static inline void i2s_3(char **p, int value) {
 	*(*p)++ = '0' + value / 100;
 	*(*p)++ = '0' + (value / 10) % 10;
 	*(*p)++ = '0' + value % 10;
 }
 
-static void tc_update_tmstr(ct_threadcache_t *self) {
+static void tc__update_tmstr(ct_threadcache_t *self) {
 	struct timeval tv;
 	gettimeofday(&tv, NULL);
 
@@ -298,4 +287,28 @@ static void tc_update_tmstr(ct_threadcache_t *self) {
 	i2s_3(&p, (int)(tv.tv_usec / 1000));
 
 	return;  // 跨分钟或首次调用，重新生成完整时间字符串 ([%02d.%02d.%02d-%02d:%02d:%02d.%03d])
+}
+
+static inline void tc__gettid_str(char *str, size_t max) {
+#ifdef CT_OS_WIN
+	const DWORD tid = GetCurrentThreadId();
+#if ULONG_MAX == 0xFFFFFFFF
+	snprintf(str, max, "0x%08lX", tid);
+#else
+	snprintf(str, max, "0x%016lX", tid);
+#endif
+#elif defined(CT_OS_LINUX)
+	const long int tid = syscall(SYS_gettid);
+#if ULONG_MAX == 0xFFFFFFFF
+	snprintf(str, max, "0x%08lX", tid);
+#else
+	snprintf(str, max, "0x%016lX", tid);
+#endif
+#elif defined(CT_OS_DARWIN)
+	uint64_t tid = 0;
+	pthread_threadid_np(NULL, &tid);
+	snprintf(str, max, "0x%016lX", tid);
+#else
+#error "Unsupported platform!"
+#endif
 }
