@@ -87,7 +87,7 @@ static inline void ct_localtime_now(struct tm* tm) {
 #define ct_localtime_s(tm, ts) localtime_s(tm, ts)
 #else
 #define ct_localtime_r(ts, tm) localtime_r(ts, tm)
-#define ct_localtime_s(tm, ts) localtime_r(tm, ts)
+#define ct_localtime_s(tm, ts) localtime_r(ts, tm)
 #endif
 
 // 将日期时间结构体转换为时间戳
