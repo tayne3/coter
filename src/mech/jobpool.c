@@ -18,17 +18,17 @@
 typedef struct job {
 	ct_jobpool_routine_t routine;  // 执行函数
 	void*                arg;      // 执行参数
-} job_t, job_buf_t[1];
+} job_t;
 
 // 初始化
-#define CT_THPOOL_JOB_INIT(_routine, _arg) {.routine = _routine, .arg = _arg}
+#define CT_JOBPOOL_JOB_INIT(_routine, _arg) {.routine = _routine, .arg = _arg}
 
 typedef struct unit {
 	ct_list_buf_t  list;       // 链表节点
 	pthread_t      thread;     // 线程
 	ct_msgqueue_t* job_queue;  // 工作队列
-	job_buf_t      job;        // 工作
-} unit_t, unit_buf_t[1];
+	job_t          job[1];     // 工作
+} unit_t;
 
 /**
  * @brief 任务池
@@ -127,13 +127,16 @@ void ct_jobpool_destroy(ct_jobpool_t* self) {
 	free(self);
 }
 
-void ct_jobpool_submit(ct_jobpool_t* self, ct_jobpool_routine_t routine, void* arg) {
-	assert(self);
-	assert(routine);
-
+int ct_jobpool_submit(ct_jobpool_t* self, ct_jobpool_routine_t routine, void* arg) {
+	if (!self || !routine) {
+		return -1;
+	}
 	// 将工作加入消息队列
-	const job_buf_t job = {CT_THPOOL_JOB_INIT(routine, arg)};
-	ct_msgqueue_enqueue(self->job_queue, job);
+	const job_t job = CT_JOBPOOL_JOB_INIT(routine, arg);
+	if (!ct_msgqueue_enqueue(self->job_queue, &job)) {
+		return -1;
+	}
+	return 0;
 }
 
 // -------------------------[STATIC DEFINITION]-------------------------

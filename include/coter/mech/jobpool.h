@@ -40,7 +40,7 @@ void ct_jobpool_destroy(ct_jobpool_t* self) __ct_nonnull(1);
  * @param routine 执行函数
  * @param arg 执行参数
  */
-void ct_jobpool_submit(ct_jobpool_t* self, ct_jobpool_routine_t routine, void* arg) __ct_nonnull(1, 2);
+int ct_jobpool_submit(ct_jobpool_t* self, ct_jobpool_routine_t routine, void* arg) __ct_nonnull(1, 2);
 
 #ifdef __cplusplus
 }
