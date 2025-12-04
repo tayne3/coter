@@ -41,16 +41,16 @@ include(CheckLibraryExists)
 
 # Use standard pthread on non-Windows platforms
 if(NOT WIN32)
-    set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
-    find_package(Threads REQUIRED)
+  set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
+  find_package(Threads REQUIRED)
 
-    if(CMAKE_USE_PTHREADS_INIT)
-        set(PTHREADS_LIBS ${CMAKE_THREAD_LIBS_INIT})
-        message(STATUS "Found pthread library: ${CMAKE_THREAD_LIBS_INIT}")
-    else()
-        message(FATAL_ERROR "Could not find pthread library. See README.Win32 for more information.")
-    endif()
-    return()
+  if(CMAKE_USE_PTHREADS_INIT)
+    set(PTHREADS_LIBS ${CMAKE_THREAD_LIBS_INIT})
+    message(STATUS "Found pthread library: ${CMAKE_THREAD_LIBS_INIT}")
+  else()
+    message(FATAL_ERROR "Could not find pthread library. See README.Win32 for more information.")
+  endif()
+  return()
 endif()
 
 # ------------------------------------------------------------------------------
@@ -60,16 +60,16 @@ endif()
 # Check for system installed pthread libraries first
 check_library_exists(pthreads pthread_create "" CMAKE_HAVE_PTHREADS_CREATE)
 if(CMAKE_HAVE_PTHREADS_CREATE)
-    message(STATUS "Found pthreads library")
-    set(PTHREADS_LIBS "-lpthreads")
-    return()
+  message(STATUS "Found pthreads library")
+  set(PTHREADS_LIBS "-lpthreads")
+  return()
 endif()
 
 check_library_exists(pthread pthread_create "" CMAKE_HAVE_PTHREAD_CREATE)
 if(CMAKE_HAVE_PTHREAD_CREATE)
-    message(STATUS "Found pthread library")
-    set(PTHREADS_LIBS "-lpthread")
-    return()
+  message(STATUS "Found pthread library")
+  set(PTHREADS_LIBS "-lpthread")
+  return()
 endif()
 
 # ------------------------------------------------------------------------------
@@ -80,10 +80,12 @@ message(STATUS "No system pthread library found, building from source")
 
 # Fetch and build pthread-win32
 CPMAddPackage(
-    NAME pthread-win32
-    GIT_REPOSITORY "https://github.com/GerHobbelt/pthread-win32.git"
-    GIT_TAG "3309f4d6e7538f349ae450347b02132ecb0606a7"
-    OPTIONS "BUILD_SHARED_LIBS OFF" "BUILD_TESTING OFF"
+  NAME pthread-win32
+  GIT_REPOSITORY "https://github.com/GerHobbelt/pthread-win32.git"
+  GIT_TAG "3309f4d6e7538f349ae450347b02132ecb0606a7"
+  GIT_SHALLOW TRUE
+  OPTIONS "BUILD_SHARED_LIBS OFF" 
+          "BUILD_TESTING OFF"
 )
 
 # ------------------------------------------------------------------------------
@@ -92,19 +94,19 @@ CPMAddPackage(
 
 # Apply and validate exception handling scheme configuration
 if(NOT DEFINED PTHREADS_EXCEPTION_SCHEME)
-    # Use default scheme if not specified
-    set(PTHREADS_EXCEPTION_SCHEME "C")
-    message(STATUS "Using default exception scheme: Console Mode (C)")
+  # Use default scheme if not specified
+  set(PTHREADS_EXCEPTION_SCHEME "C")
+  message(STATUS "Using default exception scheme: Console Mode (C)")
 else()
-    # Validate the provided scheme
-    if(NOT PTHREADS_EXCEPTION_SCHEME STREQUAL "C" AND
-       NOT PTHREADS_EXCEPTION_SCHEME STREQUAL "CE" AND
-       NOT PTHREADS_EXCEPTION_SCHEME STREQUAL "SE")
-        message(FATAL_ERROR "Invalid exception scheme. Only C, CE, and SE modes are allowed. See documentation for details.")
-    elseif(NOT MSVC AND PTHREADS_EXCEPTION_SCHEME STREQUAL "SE")
-        message(FATAL_ERROR "Structured Exception Handling (SE) is only allowed with MSVC compiler.")
-    endif()
-    message(STATUS "Using exception scheme: ${PTHREADS_EXCEPTION_SCHEME}")
+  # Validate the provided scheme
+  if(NOT PTHREADS_EXCEPTION_SCHEME STREQUAL "C" AND
+      NOT PTHREADS_EXCEPTION_SCHEME STREQUAL "CE" AND
+      NOT PTHREADS_EXCEPTION_SCHEME STREQUAL "SE")
+    message(FATAL_ERROR "Invalid exception scheme. Only C, CE, and SE modes are allowed. See documentation for details.")
+  elseif(NOT MSVC AND PTHREADS_EXCEPTION_SCHEME STREQUAL "SE")
+    message(FATAL_ERROR "Structured Exception Handling (SE) is only allowed with MSVC compiler.")
+  endif()
+  message(STATUS "Using exception scheme: ${PTHREADS_EXCEPTION_SCHEME}")
 endif()
 
 # Set the final pthread library name based on the exception scheme
