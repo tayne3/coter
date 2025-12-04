@@ -1,6 +1,11 @@
+# ===========================================
+# Setup System Libraries
+#
+# Overview:
+#   Checks for and links against required system libraries based on feature detection
+#   rather than hardcoded OS checks where possible.
+# ===========================================
 
-# see configure
-# Checks for header files
 project_check_header("stdbool.h")
 project_check_header("stdint.h")
 project_check_header("stdatomic.h")
@@ -31,11 +36,18 @@ project_check_library_function("rt" "clock_gettime" "")
 
 target_link_libraries(${PROJECT_NAME}_compile_dependency INTERFACE ${PTHREADS_LIBS})
 if(WIN32)
-  target_link_libraries(${PROJECT_NAME}_compile_dependency INTERFACE secur32 crypt32 winmm iphlpapi ws2_32)
-  target_link_libraries(${PROJECT_NAME}_compile_dependency INTERFACE dbghelp)
+  target_link_libraries(${PROJECT_NAME}_compile_dependency INTERFACE 
+    secur32 crypt32 winmm iphlpapi ws2_32 dbghelp
+  )
 elseif(UNIX)
-  target_link_libraries(${PROJECT_NAME}_compile_dependency INTERFACE pthread m dl)
-  if(CMAKE_COMPILER_IS_GNUCC)
+  check_library_exists(m pow "" HAVE_LIBM)
+  if(HAVE_LIBM)
+    target_link_libraries(${PROJECT_NAME}_compile_dependency INTERFACE m)
+  endif()
+  if(CMAKE_DL_LIBS)
+    target_link_libraries(${PROJECT_NAME}_compile_dependency INTERFACE ${CMAKE_DL_LIBS})
+  endif()
+  if(HAVE_CLOCK_GETTIME_IN_RT)
     target_link_libraries(${PROJECT_NAME}_compile_dependency INTERFACE rt)
   endif()
 endif()
