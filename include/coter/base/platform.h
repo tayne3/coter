@@ -5,9 +5,7 @@
 #ifndef COTER_PLATFORM_H
 #define COTER_PLATFORM_H
 
-#include "macro.h"
-#include "str.h"
-#include "pthread.h"
+#include "coter/base/str.h"
 
 // clang-format off
 
@@ -72,6 +70,7 @@
     #ifndef inline
     #define inline __inline
     #endif
+    #include <winsock2.h>
     #include <windows.h>
     #include <process.h>   
     #include <direct.h>    

@@ -5,7 +5,7 @@
 #ifndef COTER_STR_H
 #define COTER_STR_H
 
-#include "macro.h"
+#include "coter/base/macro.h"
 
 #ifdef __cplusplus
 extern "C" {

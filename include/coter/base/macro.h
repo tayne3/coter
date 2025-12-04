@@ -250,14 +250,6 @@ typedef int ct_endian_t;
 #	define __ct_line__		0
 # endif
 
-# ifndef __THROW
-# 	define __THROW
-# endif
-
-# ifndef __THROWNL
-# 	define __THROWNL
-# endif
-
 // inline
 # ifndef CT_INLINE
 #   define CT_INLINE 				static inline
@@ -285,107 +277,10 @@ typedef int ct_endian_t;
 #   define __ct_packed_aligned__(_n)
 # endif
 
-// 标记函数不会抛出异常
-# if !defined __cplusplus && __GNUC_PREREQ (3,3)
-#   define __ct_throw 								__THROW
+# if !defined __cplusplus && __GNUC_PREREQ (3,3) && defined(__THROW)
+#   define __ct_throw __THROW
 # else
 #   define __ct_throw
-# endif
-// 标记函数可能引发异常
-# if !defined __cplusplus && __GNUC_PREREQ (2,8)
-#   define __ct_thrownl 							__THROWNL
-# else
-#   define __ct_thrownl
-# endif
-// 标记函数分配内存
-# if __GNUC_PREREQ(2,96) 
-#   define __ct_attribute_malloc__ 					__attribute_malloc__
-# else
-#   define __ct_attribute_malloc__
-# endif
-// 标记函数参数为可变长度
-# if __GNUC_PREREQ (4,3) 
-#   define __ct_attribute_alloc_size__(...)			__attribute_alloc_size__ (__VA_ARGS__)
-# else
-#   define __ct_attribute_alloc_size__(...)
-# endif
-// 标记纯函数 (在相同的输入下，总是返回相同的输出，且不会产生任何副作用)
-#if __GNUC_PREREQ (2,96)
-#   define __ct_attribute_pure__ 					__attribute_pure__
-# else
-#   define __ct_attribute_pure__
-#endif
-// 标记常量函数
-# if __GNUC_PREREQ (2,5) 
-#   define __ct_attribute_const__ 					__attribute_const__
-# else
-#   define __ct_attribute_const__
-# endif
-// 即使某个函数或变量没有被使用, 也不要将其优化掉
-# if __GNUC_PREREQ (3,1)
-#   define __ct_attribute_used__ 					__attribute_used__
-# else
-#   define __ct_attribute_used__
-# endif
-// 标记函数不内联
-# if __GNUC_PREREQ (3,1)
-#   define __ct_attribute_noinline__ 				__attribute_noinline__
-# else
-#   define __ct_attribute_noinline__
-# endif
-// 标记函数已弃用
-# if __GNUC_PREREQ (3,2)
-#   define __ct_attribute_deprecated__				__attribute_deprecated__
-# else 
-#   define __ct_attribute_deprecated__
-# endif
-// 标记函数已弃用, 并指定打印的消息
-# if __GNUC_PREREQ (3,2) 
-# 	if __GNUC_PREREQ (4,5)
-#   	define __ct_attribute_deprecated_msg__(msg)	__attribute_deprecated_msg__(msg)
-#	elif __glibc_clang_has_extension (__attribute_deprecated_with_message__)
-#   	define __ct_attribute_deprecated_msg__(msg)	__attribute_deprecated_msg__(msg)
-# 	else
-#   	define __ct_attribute_deprecated_msg__(msg)	__attribute_deprecated__
-# 	endif
-# else
-#   define __ct_attribute_deprecated_msg__(msg)
-# endif
-// 指定 format 参数
-# if __GNUC_PREREQ (2,8)
-#   define __ct_attribute_format_arg__(x)			__attribute_format_arg__(x)
-# else 
-#   define __ct_attribute_format_arg__(x)
-# endif
-// 标记非空参数
-# if __GNUC_PREREQ (3,3)
-#   define __ct_nonnull(...)						__nonnull((__VA_ARGS__))
-# else
-#   define __ct_nonnull(...)
-# endif
-// 标记函数返回值会被使用
-# if __GNUC_PREREQ (3,4)  
-#   define __ct_attribute_wur__						__attribute_warn_unused_result__
-# else
-#   define __ct_attribute_wur__
-# endif
-// 将错误消息与调用点的源位置相关联, 而不是与函数内的源位置相关联
-# if __GNUC_PREREQ (4,3) 
-#   define __ct_attribute_artificial__				__attribute_artificial__
-# else
-#   define __ct_attribute_artificial__
-# endif
-// restrict
-# if __GNUC_PREREQ (4,3)
-#   define __ct_restrict							__restrict
-# else
-#   define __ct_restrict
-# endif
-// 标记函数不返回
-# if __GNUC_PREREQ (2,8) && defined(_Noreturn)
-#   define __ct_noreturn							_Noreturn
-# else
-#   define __ct_noreturn
 # endif
 
 #endif // COTER_MACRO_H
