@@ -1,7 +1,7 @@
 CPMAddPackage(
   NAME cunit
   GIT_REPOSITORY "http://192.168.1.47:3000/tayne3/cunit.git"
-  VERSION 0.2.2
+  VERSION 0.2.3
   GIT_SHALLOW TRUE
 )
 
