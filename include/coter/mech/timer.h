@@ -26,8 +26,9 @@ typedef void (*ct_timer_callback_t)(void *);
  * @brief 定时器管理初始化
  * @param tick 运行时间 (ms)
  * @param thpool 任务池
+ * @return int 成功返回0，失败返回非0值
  */
-void ct_timer_mgr_init(ct_time64_t tick, struct ct_thpool *thpool) __ct_nonnull(2);
+int ct_timer_mgr_init(ct_time64_t tick, struct ct_thpool *thpool);
 
 /**
  * @brief 定时器调度

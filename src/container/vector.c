@@ -14,18 +14,28 @@
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
 void ct_vector_init(ct_vector_t* self, size_t byte, size_t capacity) {
-	assert(self);
-	assert(byte);
-	assert(byte * capacity <= CT_VECTOR_MEMORY_MAX);
+	if (!self) {
+		return;
+	}
+	if (!byte) {
+		return;
+	}
+	if (byte * capacity > CT_VECTOR_MEMORY_MAX) {
+		return;
+	}
 	self->_all = calloc(capacity, byte);
-	assert(self->_all);
+	if (!self->_all) {
+		return;
+	}
 	self->_byte = byte;
 	self->_cap  = capacity;
 	self->_size = 0;
 }
 
 void ct_vector_destroy(ct_vector_t* self) {
-	assert(self);
+	if (!self) {
+		return;
+	}
 	if (self->_all) {
 		free(self->_all);
 		self->_all = NULL;
@@ -34,27 +44,37 @@ void ct_vector_destroy(ct_vector_t* self) {
 }
 
 void ct_vector_clear(ct_vector_t* self) {
-	assert(self);
+	if (!self) {
+		return;
+	}
 	self->_size = 0;
 }
 
 size_t ct_vector_capacity(const ct_vector_t* self) {
-	assert(self);
+	if (!self) {
+		return 0;
+	}
 	return CT_VECTOR_CAP(self);
 }
 
 size_t ct_vector_size(const ct_vector_t* self) {
-	assert(self);
+	if (!self) {
+		return 0;
+	}
 	return CT_VECTOR_SIZE(self);
 }
 
 bool ct_vector_empty(const ct_vector_t* self) {
-	assert(self);
+	if (!self) {
+		return true;
+	}
 	return CT_VECTOR_SIZE(self) == 0;
 }
 
 bool ct_vector_resize(ct_vector_t* self, size_t new_size) {
-	assert(self);
+	if (!self) {
+		return false;
+	}
 	if (new_size > self->_cap) {
 		if (!ct_vector_reserve(self, new_size)) {
 			return false;
@@ -68,7 +88,9 @@ bool ct_vector_resize(ct_vector_t* self, size_t new_size) {
 }
 
 bool ct_vector_reserve(ct_vector_t* self, size_t capacity) {
-	assert(self);
+	if (!self) {
+		return false;
+	}
 	if (self->_cap >= capacity) {
 		return true;
 	}
@@ -89,7 +111,9 @@ bool ct_vector_reserve(ct_vector_t* self, size_t capacity) {
 }
 
 bool ct_vector_shrink(ct_vector_t* self) {
-	assert(self);
+	if (!self) {
+		return false;
+	}
 	if (self->_cap == self->_size) {
 		return true;
 	}
@@ -109,7 +133,9 @@ bool ct_vector_shrink(ct_vector_t* self) {
 }
 
 bool ct_vector_insert(ct_vector_t* self, size_t idx, const void* data) {
-	assert(self);
+	if (!self) {
+		return false;
+	}
 	if (idx > self->_size) {
 		return false;
 	}
@@ -125,7 +151,9 @@ bool ct_vector_insert(ct_vector_t* self, size_t idx, const void* data) {
 }
 
 bool ct_vector_push(ct_vector_t* self, const void* data) {
-	assert(self);
+	if (!self) {
+		return false;
+	}
 	if (self->_size >= self->_cap) {
 		if (!ct_vector_reserve(self, self->_size + 1)) {
 			return false;
@@ -137,7 +165,9 @@ bool ct_vector_push(ct_vector_t* self, const void* data) {
 }
 
 bool ct_vector_erase(ct_vector_t* self, size_t idx) {
-	assert(self);
+	if (!self) {
+		return false;
+	}
 	if (idx >= self->_size) {
 		return false;
 	}
@@ -149,7 +179,9 @@ bool ct_vector_erase(ct_vector_t* self, size_t idx) {
 }
 
 bool ct_vector_pop(ct_vector_t* self) {
-	assert(self);
+	if (!self) {
+		return false;
+	}
 	if (self->_size == 0) {
 		return false;
 	}
@@ -158,22 +190,30 @@ bool ct_vector_pop(ct_vector_t* self) {
 }
 
 void* ct_vector_at(ct_vector_t* self, size_t idx) {
-	assert(self);
+	if (!self) {
+		return NULL;
+	}
 	return idx >= self->_size ? NULL : CT_VECTOR_ITEM(self, idx);
 }
 
 const void* ct_vector_value(const ct_vector_t* self, size_t idx) {
-	assert(self);
+	if (!self) {
+		return NULL;
+	}
 	return idx >= self->_size ? NULL : CT_VECTOR_ITEM(self, idx);
 }
 
 void* ct_vector_front(ct_vector_t* self) {
-	assert(self);
+	if (!self) {
+		return NULL;
+	}
 	return self->_size == 0 ? NULL : CT_VECTOR_ITEM(self, 0);
 }
 
 void* ct_vector_back(ct_vector_t* self) {
-	assert(self);
+	if (!self) {
+		return NULL;
+	}
 	return self->_size == 0 ? NULL : CT_VECTOR_ITEM(self, self->_size - 1);
 }
 

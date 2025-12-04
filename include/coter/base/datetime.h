@@ -66,7 +66,7 @@ ct_datetime_t ct_datetime_localtime(time_t seconds);
  * printf("timestamp: %ld\n", timestamp);
  * @endcode
  */
-time_t ct_datetime_mktime(const ct_datetime_t* dt) __ct_nonnull(1);
+time_t ct_datetime_mktime(const ct_datetime_t* dt);
 
 /**
  * @brief 计算过去的日期
@@ -81,7 +81,7 @@ time_t ct_datetime_mktime(const ct_datetime_t* dt) __ct_nonnull(1);
  * printf("一周前：%04d-%02d-%02d\n", dt.year, dt.month, dt.day);
  * @endcode
  */
-ct_datetime_t* ct_datetime_past(ct_datetime_t* dt, int days) __ct_nonnull(1);
+ct_datetime_t* ct_datetime_past(ct_datetime_t* dt, int days);
 
 /**
  * @brief 计算未来的日期
@@ -96,7 +96,7 @@ ct_datetime_t* ct_datetime_past(ct_datetime_t* dt, int days) __ct_nonnull(1);
  * printf("30天后：%04d-%02d-%02d\n", dt.year, dt.month, dt.day);
  * @endcode
  */
-ct_datetime_t* ct_datetime_future(ct_datetime_t* dt, int days) __ct_nonnull(1);
+ct_datetime_t* ct_datetime_future(ct_datetime_t* dt, int days);
 
 #define CT_TIME_FMT        "%02d:%02d:%02d"
 #define CT_TIME_FMT_BUFLEN 12
@@ -116,7 +116,7 @@ ct_datetime_t* ct_datetime_future(ct_datetime_t* dt, int days) __ct_nonnull(1);
  * printf("duration: %s\n", buf); // 输出：duration: 01:01:01
  * @endcode
  */
-char* ct_datetime_duration_fmt(int sec, char* buf) __ct_nonnull(2);
+char* ct_datetime_duration_fmt(int sec, char* buf);
 
 #define CT_DATETIME_FMT        "%04d-%02d-%02d %02d:%02d:%02d"
 #define CT_DATETIME_FMT_ISO    "%04d-%02d-%02dT%02d:%02d:%02d.%03dZ"
@@ -137,7 +137,7 @@ char* ct_datetime_duration_fmt(int sec, char* buf) __ct_nonnull(2);
  * printf("当前日期时间：%s\n", buf);
  * @endcode
  */
-char* ct_datetime_fmt(const ct_datetime_t* dt, char* buf) __ct_nonnull(1, 2);
+char* ct_datetime_fmt(const ct_datetime_t* dt, char* buf);
 
 /**
  * @brief 格式化ISO日期时间
@@ -155,7 +155,7 @@ char* ct_datetime_fmt(const ct_datetime_t* dt, char* buf) __ct_nonnull(1, 2);
  * printf("ISO 格式日期时间：%s\n", buf);
  * @endcode
  */
-char* ct_datetime_fmt_iso(const ct_datetime_t* dt, char* buf) __ct_nonnull(1, 2);
+char* ct_datetime_fmt_iso(const ct_datetime_t* dt, char* buf);
 
 #define CT_GMTIME_FMT        "%.3s, %02d %.3s %04d %02d:%02d:%02d GMT"
 #define CT_GMTIME_FMT_BUFLEN 30
@@ -206,7 +206,7 @@ int ct_datetime_days_of_month(int month, int year);
  * printf("Feb 对应的月份数字：%d\n", month_num); // 输出：Feb 对应的月份数字：2
  * @endcode
  */
-int ct_datetime_month_atoi(const char* month) __ct_nonnull(1);
+int ct_datetime_month_atoi(const char* month);
 
 /**
  * @brief 将月份数字转换为名称
@@ -236,7 +236,7 @@ const char* ct_datetime_month_itoa(int month);
  * printf("Mon 对应的星期数字：%d\n", weekday_num); // 输出：Mon 对应的星期数字：1
  * @endcode
  */
-int ct_datetime_weekday_atoi(const char* weekday) __ct_nonnull(1);
+int ct_datetime_weekday_atoi(const char* weekday);
 
 /**
  * @brief 将星期数字转换为名称

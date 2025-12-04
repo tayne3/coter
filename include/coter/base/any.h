@@ -64,8 +64,7 @@ typedef struct ct_any {
 // 空
 #define ct_any_null ((ct_any_t)CT_ANY_INIT_INVALID)
 // 初始化
-#define CT_ANY_INIT_SPECIFY(_x, _t) \
-	{ .f64[0] = {.u64 = (uint64_t)(_x)}, .type = (_t) }
+#define CT_ANY_INIT_SPECIFY(_x, _t) {.f64[0] = {.u64 = (uint64_t)(_x)}, .type = (_t)}
 
 /**
  * @brief Any 函数组
@@ -176,7 +175,7 @@ void ct_any_methods_update_default(ct_any_t* src, const ct_any_t* value);
  * @param self Any 对象指针
  * @return 如果有效，返回 true；否则，返回 false
  */
-bool ct_any_isvalid(const ct_any_t* self) __ct_throw __ct_nonnull(1);
+bool ct_any_isvalid(const ct_any_t* self) __ct_throw;
 
 /**
  * @brief 将 Any 对象 转换为字符串
@@ -185,7 +184,7 @@ bool ct_any_isvalid(const ct_any_t* self) __ct_throw __ct_nonnull(1);
  * @param max 最大长度
  * @return 字符串长度
  */
-size_t ct_any_to_string(const ct_any_t* self, char* buf, size_t max) __ct_throw __ct_nonnull(1);
+size_t ct_any_to_string(const ct_any_t* self, char* buf, size_t max) __ct_throw;
 
 /**
  * @brief 比较两个 Any 对象 的大小
@@ -193,28 +192,28 @@ size_t ct_any_to_string(const ct_any_t* self, char* buf, size_t max) __ct_throw 
  * @param r 右操作数
  * @return -1=小于; 0=等于; 1=大于; -2=错误
  */
-int ct_any_compare(const ct_any_t* l, const ct_any_t* r) __ct_throw __ct_nonnull(1);
+int ct_any_compare(const ct_any_t* l, const ct_any_t* r) __ct_throw;
 
 /**
  * @brief 交换两个 Any 对象 的值
  * @param l 左操作数
  * @param r 右操作数
  */
-void ct_any_swap(ct_any_t* l, ct_any_t* r) __ct_throw __ct_nonnull(1);
+void ct_any_swap(ct_any_t* l, ct_any_t* r) __ct_throw;
 
 /**
  * @brief 拷贝 Any 对象 的值
  * @param self 目标 Any 对象
  * @param other 源 Any 对象
  */
-void ct_any_copy(ct_any_t* self, const ct_any_t* other) __ct_throw __ct_nonnull(1);
+void ct_any_copy(ct_any_t* self, const ct_any_t* other) __ct_throw;
 
 /**
  * @brief 获取 类型
  * @param self Any 对象指针
  * @return 数据类型
  */
-ct_any_type_t ct_any_type(const ct_any_t* self) __ct_throw __ct_nonnull(1);
+ct_any_type_t ct_any_type(const ct_any_t* self) __ct_throw;
 
 #ifdef __cplusplus
 }

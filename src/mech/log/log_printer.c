@@ -29,7 +29,9 @@ struct ct_log_printer {
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
 ct_log_printer_t *ct_log_printer_create(struct ct_bytepool *bytepool) {
-	assert(bytepool);
+	if (!bytepool) {
+		return NULL;
+	}
 	ct_log_printer_t *self = (ct_log_printer_t *)malloc(sizeof(ct_log_printer_t));
 	if (!self) {
 		return NULL;
@@ -49,8 +51,9 @@ ct_log_printer_t *ct_log_printer_create(struct ct_bytepool *bytepool) {
 }
 
 void ct_log_printer_destroy(ct_log_printer_t *self) {
-	assert(self);
-	assert(self->producer_buffer);
+	if (!self || !self->producer_buffer) {
+		return;
+	}
 
 	pthread_mutex_lock(&self->producer_mutex);
 	pthread_mutex_lock(&self->consumer_mutex);
@@ -72,10 +75,9 @@ void ct_log_printer_destroy(ct_log_printer_t *self) {
 }
 
 void ct_log_printer_handle(ct_log_printer_t *self, const char *buf, size_t size) {
-	assert(self);
-	assert(self->producer_buffer);
-	assert(buf);
-	assert(size > 0);
+	if (!self || !self->producer_buffer || !buf || !size) {
+		return;
+	}
 
 	char        *last_newline = ct_memrchr(buf, '\n', size);
 	const size_t flush_size   = last_newline ? (last_newline - buf + 1) : 0;
@@ -128,7 +130,9 @@ void ct_log_printer_handle(ct_log_printer_t *self, const char *buf, size_t size)
 }
 
 void ct_log_printer_flush(ct_log_printer_t *self) {
-	assert(self);
+	if (!self) {
+		return;
+	}
 
 	pthread_mutex_lock(&self->producer_mutex);
 	if (!ct_bytes_isempty(self->producer_buffer)) {
@@ -146,7 +150,9 @@ void ct_log_printer_flush(ct_log_printer_t *self) {
 }
 
 void ct_log_printer_schedule(ct_log_printer_t *self) {
-	assert(self);
+	if (!self) {
+		return;
+	}
 	if (ct_atomic_flag_test_and_set(&self->consumer_flag)) {
 		return;
 	}

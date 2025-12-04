@@ -80,8 +80,9 @@ static inline bool storage_file_writable_set(const char *filename);
 
 ct_log_storage_t *ct_log_storage_create(ct_time64_t tick, struct ct_bytepool *bytepool,
 										const struct ct_log_config *config) {
-	assert(config);
-	assert(bytepool);
+	if (!config || !bytepool) {
+		return NULL;
+	}
 	ct_log_storage_t *self = (ct_log_storage_t *)malloc(sizeof(ct_log_storage_t));
 	if (!self) {
 		return NULL;
@@ -111,7 +112,9 @@ ct_log_storage_t *ct_log_storage_create(ct_time64_t tick, struct ct_bytepool *by
 }
 
 void ct_log_storage_destroy(ct_log_storage_t *self) {
-	assert(self);
+	if (!self) {
+		return;
+	}
 
 	pthread_mutex_lock(&self->producer_mutex);
 	pthread_mutex_lock(&self->consumer_mutex);
@@ -137,9 +140,9 @@ void ct_log_storage_destroy(ct_log_storage_t *self) {
 }
 
 void ct_log_storage_handle(ct_log_storage_t *self, const char *buf, size_t size) {
-	assert(self);
-	assert(buf);
-	assert(size > 0);
+	if (!self || !buf || !size ) {
+		return;
+	}
 
 	pthread_mutex_lock(&self->producer_mutex);
 	do {
@@ -165,7 +168,9 @@ void ct_log_storage_handle(ct_log_storage_t *self, const char *buf, size_t size)
 }
 
 void ct_log_storage_flush(ct_log_storage_t *self) {
-	assert(self);
+	if (!self) {
+		return;
+	}
 
 	pthread_mutex_lock(&self->producer_mutex);
 	if (!ct_bytes_isempty(self->producer_buffer)) {
@@ -185,7 +190,9 @@ void ct_log_storage_flush(ct_log_storage_t *self) {
 }
 
 void ct_log_storage_schedule(ct_log_storage_t *self, ct_time64_t tick) {
-	assert(self);
+	if (!self) {
+		return;
+	}
 	if (tick >= self->next_save_time) {
 		self->next_save_time = tick + (self->autosave_interval * 1000);
 		ct_log_storage_flush(self);
@@ -374,7 +381,9 @@ static inline bool storage_file_init(ct_log_storage_t *self) {
 }
 
 static inline bool storage_file_next(ct_log_storage_t *self) {
-	assert(self);
+	if (!self) {
+		return false;
+	}
 	if (self->file) {
 		fclose(self->file);  // 关闭文件
 	}
@@ -400,7 +409,9 @@ static inline bool storage_file_next(ct_log_storage_t *self) {
 }
 
 static inline bool storage_folder_create_recursive(const char *path) {
-	assert(path);
+	if (!path) {
+		return false;
+	}
 	const size_t str_len = strlen(path);
 
 	if (!str_len) {

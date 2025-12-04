@@ -18,9 +18,9 @@
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
 void ct_rbuf_init(ct_rbuf_buf_t self, void *buffer, size_t byte, size_t max) {
-	assert(self);
-	assert(buffer);
-	assert(byte);
+	if (!self || !buffer || !byte) {
+		return;
+	}
 
 	self->_all  = (char *)buffer;
 	self->_byte = byte;
@@ -30,8 +30,9 @@ void ct_rbuf_init(ct_rbuf_buf_t self, void *buffer, size_t byte, size_t max) {
 }
 
 bool ct_rbuf_put(ct_rbuf_buf_t self, const void *item) {
-	assert(self);
-	assert(self->_byte);
+	if (!self || !self->_byte) {
+		return false;
+	}
 
 	if (ct_rbuf_isfull(self)) {
 		return false;
@@ -46,8 +47,9 @@ bool ct_rbuf_put(ct_rbuf_buf_t self, const void *item) {
 }
 
 bool ct_rbuf_take(ct_rbuf_buf_t self, void *item) {
-	assert(self);
-	assert(self->_byte);
+	if (!self || !self->_byte) {
+		return false;
+	}
 
 	if (ct_rbuf_isempty(self)) {
 		return false;
@@ -62,8 +64,9 @@ bool ct_rbuf_take(ct_rbuf_buf_t self, void *item) {
 }
 
 size_t ct_rbuf_puts(ct_rbuf_buf_t self, const void *items, size_t size) {
-	assert(self);
-	assert(self->_byte);
+	if (!self || !self->_byte) {
+		return 0;
+	}
 
 	{
 		const size_t available = self->_max - self->_size;
@@ -89,8 +92,9 @@ size_t ct_rbuf_puts(ct_rbuf_buf_t self, const void *items, size_t size) {
 }
 
 size_t ct_rbuf_takes(ct_rbuf_buf_t self, void *items, size_t size) {
-	assert(self);
-	assert(self->_byte);
+	if (!self || !self->_byte) {
+		return 0;
+	}
 
 	{
 		const size_t available = self->_size;
@@ -116,8 +120,9 @@ size_t ct_rbuf_takes(ct_rbuf_buf_t self, void *items, size_t size) {
 }
 
 size_t ct_rbuf_gets(ct_rbuf_buf_t self, void *items, size_t size) {
-	assert(self);
-	assert(self->_byte);
+	if (!self || !self->_byte) {
+		return 0;
+	}
 
 	{
 		const size_t available = self->_size;
@@ -140,8 +145,9 @@ size_t ct_rbuf_gets(ct_rbuf_buf_t self, void *items, size_t size) {
 }
 
 size_t ct_rbuf_remove(ct_rbuf_buf_t self, size_t size) {
-	assert(self);
-	assert(self->_byte);
+	if (!self || !self->_byte) {
+		return 0;
+	}
 
 	if (size > self->_size) {
 		size = self->_size;
@@ -152,8 +158,12 @@ size_t ct_rbuf_remove(ct_rbuf_buf_t self, size_t size) {
 }
 
 void *ct_rbuf_items(const ct_rbuf_buf_t self, size_t offset, size_t size[1]) {
-	assert(self);
-	assert(self->_byte);
+	if (!self || !self->_byte) {
+		if (size) {
+			*size = 0;
+		}
+		return NULL;
+	}
 
 	if (offset >= self->_size) {
 		if (size) {

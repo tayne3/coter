@@ -68,21 +68,21 @@ typedef struct ct_heap {
 		 idx++, it   = (type*)(self)->_all[idx].d.ptr)
 
 // 初始化堆
-void ct_heap_init(ct_heap_buf_t self, ct_any_t* all, size_t max, ct_heap_sort_t sort) __ct_nonnull(1, 2);
+void ct_heap_init(ct_heap_buf_t self, ct_any_t* all, size_t max, ct_heap_sort_t sort);
 // 向上调整堆
-void ct_heap_up(ct_heap_buf_t self, size_t idx) __ct_nonnull(1);
+void ct_heap_up(ct_heap_buf_t self, size_t idx);
 // 向下调整堆
-void ct_heap_down(ct_heap_buf_t self, size_t idx) __ct_nonnull(1);
+void ct_heap_down(ct_heap_buf_t self, size_t idx);
 // 重新排序
-void ct_heap_reorder(ct_heap_buf_t self) __ct_nonnull(1);
+void ct_heap_reorder(ct_heap_buf_t self);
 // 插入元素
-void ct_heap_insert(ct_heap_buf_t self, ct_any_t data) __ct_nonnull(1);
+void ct_heap_insert(ct_heap_buf_t self, ct_any_t data);
 // 移除堆顶元素
-void ct_heap_remove(ct_heap_buf_t self) __ct_nonnull(1);
+void ct_heap_remove(ct_heap_buf_t self);
 // 获取并移除堆顶元素
-ct_any_t ct_heap_take(ct_heap_buf_t self) __ct_nonnull(1);
+ct_any_t ct_heap_take(ct_heap_buf_t self);
 // 拷贝所有元素到目标堆
-bool ct_heap_copy(ct_heap_buf_t self, ct_heap_t* target) __ct_nonnull(1, 2);
+bool ct_heap_copy(ct_heap_buf_t self, ct_heap_t* target);
 
 #ifdef __cplusplus
 }

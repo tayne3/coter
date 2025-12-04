@@ -12,7 +12,7 @@
 
 ct_bytes_t *ct_bytes_create(size_t capacity) {
 	capacity         = (capacity ? capacity : 1024UL);
-	ct_bytes_t *self = (ct_bytes_t *)malloc(capacity + (sizeof(ct_bytes_t) << 1UL) - OFFSET_OF(ct_bytes_t, buffer));
+	ct_bytes_t *self = (ct_bytes_t *)malloc(sizeof(ct_bytes_t) - 1 + capacity);
 	if (self == NULL) {
 		return NULL;
 	}
@@ -24,13 +24,16 @@ ct_bytes_t *ct_bytes_create(size_t capacity) {
 }
 
 void ct_bytes_destroy(ct_bytes_t *self) {
-	assert(self);
+	if (!self) {
+		return;
+	}
 	free(self);
 }
 
 size_t ct_bytes_write(ct_bytes_t *self, const void *data, size_t length) {
-	assert(self);
-	assert(data);
+	if (!self || !data || !length) {
+		return 0;
+	}
 
 	const size_t available_space = ct_bytes_available(self);
 	if (length > available_space) {

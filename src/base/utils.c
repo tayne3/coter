@@ -9,10 +9,7 @@
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
 void *ct_reverse_memcpy(void *dest, const void *src, size_t n) {
-	assert(dest);
-	assert(src);
-
-	if (dest == src) {
+	if (!dest || !src || !n || dest == src) {
 		return dest;
 	}
 
@@ -59,8 +56,9 @@ void *ct_reverse_memcpy(void *dest, const void *src, size_t n) {
 }
 
 void *ct_reverse_memmove(void *dest, const void *src, size_t n) {
-	assert(dest);
-	assert(src);
+	if (!dest || !src || !n) {
+		return dest;
+	}
 
 	const uint8_t *s = (const uint8_t *)src;
 	uint8_t       *d = (uint8_t *)dest;

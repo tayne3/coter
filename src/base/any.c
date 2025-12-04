@@ -38,7 +38,9 @@ void ct_any_update(const ct_any_methods_buf_t methods, ct_any_t* src, const ct_a
 }
 
 void ct_any_methods_ctor_default(ct_any_t* src, const ct_any_t* value) {
-	*src = *value;
+	if (src && value) {
+		*src = *value;
+	}
 }
 
 void ct_any_methods_dtor_default(ct_any_t* src) {
@@ -46,18 +48,19 @@ void ct_any_methods_dtor_default(ct_any_t* src) {
 }
 
 void ct_any_methods_update_default(ct_any_t* src, const ct_any_t* value) {
-	*src = *value;
+	if (src && value) {
+		*src = *value;
+	}
 }
 
 bool ct_any_isvalid(const ct_any_t* self) {
-	assert(self);
-	return self->type != CTAny_TypeInvalid;
+	return self && self->type != CTAny_TypeInvalid;
 }
 
 size_t ct_any_to_string(const ct_any_t* self, char* buf, size_t max) {
-	assert(self);
-	assert(buf);
-	assert(max > 0);
+	if (!self || !buf || !max) {
+		return 0;
+	}
 	switch (self->type) {
 		case CTAny_TypeBool: return ct_snprintf_s(buf, max, "%d", self->_d->b);
 		case CTAny_TypeFloat: return ct_snprintf_s(buf, max, "%f", self->_d->f32);
@@ -80,9 +83,7 @@ size_t ct_any_to_string(const ct_any_t* self, char* buf, size_t max) {
 }
 
 int ct_any_compare(const ct_any_t* l, const ct_any_t* r) {
-	assert(l);
-	assert(r);
-	if (l->type != r->type) {
+	if (!l || !r || l->type != r->type) {
 		return -2;
 	}
 	switch (l->type) {
@@ -107,8 +108,9 @@ int ct_any_compare(const ct_any_t* l, const ct_any_t* r) {
 }
 
 void ct_any_swap(ct_any_t* l, ct_any_t* r) {
-	assert(l);
-	assert(r);
+	if (!l || !r) {
+		return;
+	}
 	l->_d->u64 ^= r->_d->u64;
 	r->_d->u64 ^= l->_d->u64;
 	l->_d->u64 ^= r->_d->u64;
@@ -118,15 +120,15 @@ void ct_any_swap(ct_any_t* l, ct_any_t* r) {
 }
 
 void ct_any_copy(ct_any_t* self, const ct_any_t* other) {
-	assert(self);
-	assert(other);
+	if (!self || !other) {
+		return;
+	}
 	self->type    = other->type;
 	self->_d->u64 = other->_d->u64;
 }
 
 ct_any_type_t ct_any_type(const ct_any_t* self) {
-	assert(self);
-	return self->type;
+	return self ? self->type : CTAny_TypeInvalid;
 }
 
 // -------------------------[STATIC DEFINITION]-------------------------

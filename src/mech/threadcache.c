@@ -66,17 +66,20 @@ ct_threadcache_t *ct_threadcache_get(void) {
 }
 
 char *ct_threadcache_get_buffer(ct_threadcache_t *self) {
-	assert(self);
+	if (!self) {
+		return NULL;
+	}
 	return self->buffer;
 }
 
 size_t ct_threadcache_get_buffer_size(ct_threadcache_t *self) {
-	assert(self);
-	return self->buffer_size;
+	return self ? self->buffer_size : 0;
 }
 
 int __ct_threadcache_basic(ct_threadcache_t *self, const char *fmt, ...) {
-	assert(self);
+	if (!self) {
+		return -1;
+	}
 	int     result;
 	va_list args;
 	va_start(args, fmt);
@@ -113,7 +116,9 @@ int __ct_threadcache_basic(ct_threadcache_t *self, const char *fmt, ...) {
 }
 
 int __ct_threadcache_brief(ct_threadcache_t *self, const char *info, const char *fmt, ...) {
-	assert(self);
+	if (!self) {
+		return -1;
+	}
 	tc__update_tmstr(self);
 	const int prefix_size = sprintf(self->buffer, info, self->tm_str, self->tid_str);
 
@@ -156,7 +161,9 @@ int __ct_threadcache_brief(ct_threadcache_t *self, const char *info, const char 
 
 int __ct_threadcache_detail(ct_threadcache_t *self, const char *file, int line, const char *info, const char *fmt,
 							...) {
-	assert(self);
+	if (!self) {
+		return -1;
+	}
 	tc__update_tmstr(self);
 	if (self->last_file != file) {
 		size_t      _file_length = strlen(file);
@@ -307,7 +314,7 @@ static inline void tc__gettid_str(char *str, size_t max) {
 #elif defined(CT_OS_DARWIN)
 	uint64_t tid = 0;
 	pthread_threadid_np(NULL, &tid);
-	snprintf(str, max, "0x%016lX", tid);
+	snprintf(str, max, "0x%016llX", tid);
 #else
 #error "Unsupported platform!"
 #endif

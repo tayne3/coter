@@ -20,8 +20,7 @@ void ct_msgqueue_init(ct_msgqueue_buf_t self, void *buffer, size_t byte, size_t 
 }
 
 void ct_msgqueue_close(ct_msgqueue_buf_t self) {
-	assert(self);
-	if (self->is_shut) {
+	if (!self || self->is_shut) {
 		return;
 	}
 
@@ -37,7 +36,9 @@ void ct_msgqueue_close(ct_msgqueue_buf_t self) {
 }
 
 void ct_msgqueue_destroy(ct_msgqueue_buf_t self) {
-	assert(self);
+	if (!self) {
+		return;
+	}
 
 	ct_msgqueue_close(self);
 	pthread_cond_destroy(self->not_full);
@@ -46,7 +47,9 @@ void ct_msgqueue_destroy(ct_msgqueue_buf_t self) {
 }
 
 bool ct_msgqueue_isempty(ct_msgqueue_buf_t self) {
-	assert(self);
+	if (!self) {
+		return true;
+	}
 	bool is_empty;
 	pthread_mutex_lock(self->mutex);
 	is_empty = ct_queue_isempty(self->queue);
@@ -55,7 +58,9 @@ bool ct_msgqueue_isempty(ct_msgqueue_buf_t self) {
 }
 
 bool ct_msgqueue_isfull(ct_msgqueue_buf_t self) {
-	assert(self);
+	if (!self) {
+		return true;
+	}
 	bool is_full;
 	pthread_mutex_lock(self->mutex);
 	is_full = ct_queue_isfull(self->queue);
@@ -64,8 +69,9 @@ bool ct_msgqueue_isfull(ct_msgqueue_buf_t self) {
 }
 
 bool ct_msgqueue_enqueue(ct_msgqueue_buf_t self, const void *item) {
-	assert(self);
-	assert(item);
+	if (!self || !item) {
+		return false;
+	}
 	if (self->is_shut) {
 		return false;
 	}
@@ -93,8 +99,9 @@ bool ct_msgqueue_enqueue(ct_msgqueue_buf_t self, const void *item) {
 }
 
 bool ct_msgqueue_dequeue(ct_msgqueue_buf_t self, void *item) {
-	assert(self);
-	assert(item);
+	if (!self || !item) {
+		return false;
+	}
 	if (self->is_shut) {
 		return false;
 	}
@@ -122,8 +129,9 @@ bool ct_msgqueue_dequeue(ct_msgqueue_buf_t self, void *item) {
 }
 
 bool ct_msgqueue_try_enqueue(ct_msgqueue_buf_t self, const void *item) {
-	assert(self);
-	assert(item);
+	if (!self || !item) {
+		return false;
+	}
 	if (self->is_shut) {
 		return false;
 	}
@@ -144,8 +152,9 @@ bool ct_msgqueue_try_enqueue(ct_msgqueue_buf_t self, const void *item) {
 }
 
 bool ct_msgqueue_try_dequeue(ct_msgqueue_buf_t self, void *item) {
-	assert(self);
-	assert(item);
+	if (!self || !item) {
+		return false;
+	}
 	if (self->is_shut) {
 		return false;
 	}

@@ -9,7 +9,9 @@
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
 int ct_waitgroup_init(ct_waitgroup_t* wg) {
-	assert(wg != NULL);
+	if (!wg) {
+		return -1;
+	}
 	if (pthread_mutex_init(&wg->mutex, NULL) != 0) {
 		return -1;
 	}
@@ -22,21 +24,26 @@ int ct_waitgroup_init(ct_waitgroup_t* wg) {
 }
 
 void ct_waitgroup_destroy(ct_waitgroup_t* wg) {
-	assert(wg != NULL);
+	if (!wg) {
+		return;
+	}
 	pthread_mutex_destroy(&wg->mutex);
 	pthread_cond_destroy(&wg->cond);
 }
 
 void ct_waitgroup_add(ct_waitgroup_t* wg, int delta) {
-	assert(wg != NULL);
-	assert(delta >= 0);  // delta必须为非负数
+	if (!wg || delta < 0) {
+		return;
+	}
 	pthread_mutex_lock(&wg->mutex);
 	wg->counter += delta;
 	pthread_mutex_unlock(&wg->mutex);
 }
 
 void ct_waitgroup_done(ct_waitgroup_t* wg) {
-	assert(wg != NULL);
+	if (!wg) {
+		return;
+	}
 	pthread_mutex_lock(&wg->mutex);
 	wg->counter--;
 	if (wg->counter == 0) {
@@ -46,7 +53,9 @@ void ct_waitgroup_done(ct_waitgroup_t* wg) {
 }
 
 void ct_waitgroup_wait(ct_waitgroup_t* wg) {
-	assert(wg != NULL);
+	if (!wg) {
+		return;
+	}
 	pthread_mutex_lock(&wg->mutex);
 	while (wg->counter > 0) {
 		pthread_cond_wait(&wg->cond, &wg->mutex);

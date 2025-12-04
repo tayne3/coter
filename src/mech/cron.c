@@ -433,7 +433,9 @@ static inline cron_t *ct_cron_take_triggered_task(void) {
 }
 
 static inline void ct_cron_execute_task_callback(void *arg) {
-	assert(arg);
+	if (!arg) {
+		return;
+	}
 
 	cron_t *task = (cron_t *)arg;
 	task->callback(task->callback_arg);
@@ -460,7 +462,9 @@ Close:
 }
 
 static inline void ct_cron_trigger_handler_callback(void *arg) {
-	assert(arg);
+	if (!arg) {
+		return;
+	}
 	cron_t *task = (cron_t *)arg;
 	if (task->is_active) {
 		ct_cron_execute_task_callback(task);
@@ -530,8 +534,10 @@ Finish:
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
-void ct_cron_mgr_init(ct_time_t now, struct ct_thpool *thpool) {
-	assert(thpool);
+int ct_cron_mgr_init(ct_time_t now, struct ct_thpool *thpool) {
+	if (!thpool) {
+		return -1;
+	}
 	ct_heap_init(g_cron_mgr->trigger_heap, g_cron_mgr->heap_storage, CT_CRON_MAX_TASKS, ct_cron_task_compare);
 	ct_list_init(g_cron_mgr->idle_task_list);
 	ct_cron_task_init(CT_CRON_NULL_TASK, 0);
@@ -546,6 +552,7 @@ void ct_cron_mgr_init(ct_time_t now, struct ct_thpool *thpool) {
 
 	g_cron_mgr->current_time = now;
 	g_cron_mgr->thread_pool  = thpool;
+	return 0;
 }
 
 bool ct_cron_mgr_schedule(ct_time_t now) {
@@ -578,7 +585,9 @@ bool ct_cron_mgr_schedule(ct_time_t now) {
 }
 
 ct_cron_id_t ct_cron_start(int minute, int hour, int day, int week, int month, ct_cron_callback_t callback, void *arg) {
-	assert(callback);
+	if (!arg) {
+		return CT_CRON_ID_NULL;
+	}
 	// 计算下一次执行时间
 	ct_time_t trigger_next = ct_cron_next_timeout(g_cron_mgr->current_time, minute, hour, day, week, month);
 	if (trigger_next == -1) {

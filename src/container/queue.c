@@ -16,9 +16,9 @@
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
 void ct_queue_init(ct_queue_buf_t self, void* buffer, size_t byte, size_t max) {
-	assert(self);
-	assert(buffer);
-	assert(byte);
+	if (!self || !buffer || !byte) {
+		return;
+	}
 
 	self->_all  = buffer;
 	self->_byte = byte;
@@ -28,9 +28,9 @@ void ct_queue_init(ct_queue_buf_t self, void* buffer, size_t byte, size_t max) {
 }
 
 bool ct_queue_enqueue(ct_queue_buf_t self, const void* item) {
-	assert(self);
-	assert(self->_byte);
-	assert(item);
+	if (!self || !self->_byte || !item) {
+		return false;
+	}
 
 	if (ct_queue_isfull(self)) {
 		return false;
@@ -42,9 +42,9 @@ bool ct_queue_enqueue(ct_queue_buf_t self, const void* item) {
 }
 
 bool ct_queue_dequeue(ct_queue_buf_t self, void* item) {
-	assert(self);
-	assert(self->_byte);
-	assert(item);
+	if (!self || !self->_byte || !item) {
+		return false;
+	}
 
 	if (ct_queue_isempty(self)) {
 		return false;
@@ -56,9 +56,9 @@ bool ct_queue_dequeue(ct_queue_buf_t self, void* item) {
 }
 
 bool ct_queue_head(ct_queue_buf_t self, void* item) {
-	assert(self);
-	assert(self->_byte);
-	assert(item);
+	if (!self || !self->_byte || !item) {
+		return false;
+	}
 
 	if (ct_queue_isempty(self)) {
 		return false;
@@ -68,9 +68,9 @@ bool ct_queue_head(ct_queue_buf_t self, void* item) {
 }
 
 int ct_queue_traverse(ct_queue_buf_t self, int (*callback)(void* item, void* arg), void* item, void* arg) {
-	assert(self);
-	assert(self->_byte);
-	assert(callback);
+	if (!self || !self->_byte || !callback) {
+		return -1;
+	}
 
 	size_t idx = self->_head;
 	for (size_t i = 0; i < self->_size; i++) {

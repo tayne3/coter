@@ -42,13 +42,13 @@ typedef void (*ct_evhub_callback_t)(uint32_t type, void *data, void *user_data);
  * @brief 初始化事件中枢
  * @param self 事件中枢指针
  */
-void ct_evhub_init(ct_evhub_t *self) __ct_nonnull(1);
+void ct_evhub_init(ct_evhub_t *self) ;
 
 /**
  * @brief 反初始化事件中枢
  * @param self 事件中枢指针
  */
-void ct_evhub_deinit(ct_evhub_t *self) __ct_nonnull(1);
+void ct_evhub_deinit(ct_evhub_t *self) ;
 
 /**
  * @brief 订阅事件
@@ -58,7 +58,7 @@ void ct_evhub_deinit(ct_evhub_t *self) __ct_nonnull(1);
  * @param user_data 用户数据
  * @return 0=成功, 其他=失败
  */
-int ct_evhub_subscribe(ct_evhub_t *self, uint32_t type, ct_evhub_callback_t cb, void *user_data) __ct_nonnull(1);
+int ct_evhub_subscribe(ct_evhub_t *self, uint32_t type, ct_evhub_callback_t cb, void *user_data) ;
 
 /**
  * @brief 取消订阅事件
@@ -67,7 +67,7 @@ int ct_evhub_subscribe(ct_evhub_t *self, uint32_t type, ct_evhub_callback_t cb, 
  * @param cb 事件回调函数
  * @return 0=成功, 其他=失败
  */
-int ct_evhub_unsubscribe(ct_evhub_t *self, uint32_t type, ct_evhub_callback_t cb) __ct_nonnull(1);
+int ct_evhub_unsubscribe(ct_evhub_t *self, uint32_t type, ct_evhub_callback_t cb) ;
 
 /**
  * @brief 发布事件
@@ -76,7 +76,7 @@ int ct_evhub_unsubscribe(ct_evhub_t *self, uint32_t type, ct_evhub_callback_t cb
  * @param data 事件数据
  * @return 0=成功, 其他=失败
  */
-int ct_evhub_publish(ct_evhub_t *self, uint32_t type, void *data) __ct_nonnull(1);
+int ct_evhub_publish(ct_evhub_t *self, uint32_t type, void *data) ;
 
 #ifdef __cplusplus
 }

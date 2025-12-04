@@ -17,7 +17,7 @@ extern "C" {
  * @param size 源字符串长度
  * @return 32位哈希值
  */
-uint32_t ct_hashalgo_times33(const char *data, size_t size) __ct_nonnull(1);
+uint32_t ct_hashalgo_times33(const char *data, size_t size) ;
 
 /**
  * @brief BKDR 算法
@@ -25,7 +25,7 @@ uint32_t ct_hashalgo_times33(const char *data, size_t size) __ct_nonnull(1);
  * @param size 源字符串长度
  * @return 32位哈希值
  */
-uint32_t ct_hashalgo_bkdr(const char *data, size_t size) __ct_nonnull(1);
+uint32_t ct_hashalgo_bkdr(const char *data, size_t size) ;
 
 /**
  * @brief PJW 算法
@@ -33,7 +33,7 @@ uint32_t ct_hashalgo_bkdr(const char *data, size_t size) __ct_nonnull(1);
  * @param size 源字符串长度
  * @return 32位哈希值
  */
-uint32_t ct_hashalgo_pjw(const char *data, size_t size) __ct_nonnull(1);
+uint32_t ct_hashalgo_pjw(const char *data, size_t size) ;
 
 /**
  * @brief MurmurHash2 算法
@@ -41,7 +41,7 @@ uint32_t ct_hashalgo_pjw(const char *data, size_t size) __ct_nonnull(1);
  * @param size 源字符串长度
  * @return 32位哈希值
  */
-uint32_t ct_hashalgo_murmurhash2(const char *data, size_t size) __ct_nonnull(1);
+uint32_t ct_hashalgo_murmurhash2(const char *data, size_t size) ;
 
 /**
  * @brief MurmurHash2 算法
@@ -50,7 +50,7 @@ uint32_t ct_hashalgo_murmurhash2(const char *data, size_t size) __ct_nonnull(1);
  * @param seed 种子
  * @return 64位哈希值
  */
-uint64_t ct_hashalgo_murmurhash2_64(const char *data, size_t size, uint64_t seed) __ct_nonnull(1);
+uint64_t ct_hashalgo_murmurhash2_64(const char *data, size_t size, uint64_t seed) ;
 
 /**
  * @brief SipHash 算法
@@ -59,7 +59,7 @@ uint64_t ct_hashalgo_murmurhash2_64(const char *data, size_t size, uint64_t seed
  * @param sipct_hashalgo_keys 128位密钥
  * @return 64位哈希值
  */
-uint64_t ct_hashalgo_siphash_64(const char *data, size_t size, const uint8_t sipct_hashalgo_keys[16]) __ct_nonnull(1);
+uint64_t ct_hashalgo_siphash_64(const char *data, size_t size, const uint8_t sipct_hashalgo_keys[16]) ;
 
 #ifdef __cplusplus
 }

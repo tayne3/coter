@@ -28,21 +28,21 @@ ct_bytepool_t* ct_bytepool_create(size_t max_size, size_t bytes_capacity);
  * @brief 销毁字节池
  * @param self 字节池指针
  */
-void ct_bytepool_destroy(ct_bytepool_t* self) __ct_nonnull(1);
+void ct_bytepool_destroy(ct_bytepool_t* self) ;
 
 /**
  * @brief 从字节池获取一个字节数组
  * @param self 字节池指针
  * @return 返回获取的字节数组指针
  */
-ct_bytes_t* ct_bytepool_get(ct_bytepool_t* self) __ct_nonnull(1);
+ct_bytes_t* ct_bytepool_get(ct_bytepool_t* self) ;
 
 /**
  * @brief 将字节数组放回字节池
  * @param self 字节池指针
  * @param bytes 要放回的字节数组指针
  */
-void ct_bytepool_put(ct_bytepool_t* self, ct_bytes_t* bytes) __ct_nonnull(1);
+void ct_bytepool_put(ct_bytepool_t* self, ct_bytes_t* bytes) ;
 
 #ifdef __cplusplus
 }

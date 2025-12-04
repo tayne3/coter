@@ -24,7 +24,9 @@ static inline uint64_t ct_random_xoroshiro_next(ct_random_t *self);
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
 void ct_random_init(ct_random_t *self) {
-	assert(self);
+	if (!self) {
+		return;
+	}
 	const time_t t = time(NULL);
 	srand((unsigned)t);
 	self->_s[0] = t;
@@ -32,12 +34,16 @@ void ct_random_init(ct_random_t *self) {
 }
 
 bool ct_random_bool(ct_random_t *self) {
-	assert(self);
+	if (!self) {
+		return false;
+	}
 	return ct_random_uint8(self, 0, 2);
 }
 
 uint8_t ct_random_uint8(ct_random_t *self, uint8_t min, uint8_t max) {
-	assert(self);
+	if (!self) {
+		return 0;
+	}
 	union {
 		uint8_t  u8[8];
 		uint64_t u64;
@@ -46,16 +52,20 @@ uint8_t ct_random_uint8(ct_random_t *self, uint8_t min, uint8_t max) {
 }
 
 int8_t ct_random_int8(ct_random_t *self, int8_t min, int8_t max) {
-	assert(self);
+	if (!self) {
+		return 0;
+	}
 	union {
 		int8_t   i8[8];
 		uint64_t u64;
-	} data = {.u64 = ct_random_xoroshiro_next(self) % (max - min) + min};
+	} data = {.u64 = ct_random_xoroshiro_next(self) % ((uint8_t)max - (uint8_t)min) + min};
 	return data.i8[0];
 }
 
 uint16_t ct_random_uint16(ct_random_t *self, uint16_t min, uint16_t max) {
-	assert(self);
+	if (!self) {
+		return 0;
+	}
 	union {
 		uint16_t u16[4];
 		uint64_t u64;
@@ -64,16 +74,20 @@ uint16_t ct_random_uint16(ct_random_t *self, uint16_t min, uint16_t max) {
 }
 
 int16_t ct_random_int16(ct_random_t *self, int16_t min, int16_t max) {
-	assert(self);
+	if (!self) {
+		return 0;
+	}
 	union {
 		uint16_t i16[4];
 		uint64_t u64;
-	} data = {.u64 = ct_random_xoroshiro_next(self) % (max - min) + min};
+	} data = {.u64 = ct_random_xoroshiro_next(self) % ((uint16_t)max - (uint16_t)min) + min};
 	return data.i16[0];
 }
 
 uint32_t ct_random_uint32(ct_random_t *self, uint32_t min, uint32_t max) {
-	assert(self);
+	if (!self) {
+		return 0;
+	}
 	union {
 		uint32_t u32[2];
 		uint64_t u64;
@@ -82,41 +96,51 @@ uint32_t ct_random_uint32(ct_random_t *self, uint32_t min, uint32_t max) {
 }
 
 int32_t ct_random_int32(ct_random_t *self, int32_t min, int32_t max) {
-	assert(self);
+	if (!self) {
+		return 0;
+	}
 	union {
 		int32_t  i32[2];
 		uint64_t u64;
-	} data = {.u64 = ct_random_xoroshiro_next(self) % (max - min) + min};
+	} data = {.u64 = ct_random_xoroshiro_next(self) % ((uint32_t)max - (uint32_t)min) + min};
 	return data.i32[0];
 }
 
 uint64_t ct_random_uint64(ct_random_t *self, uint64_t min, uint64_t max) {
-	assert(self);
+	if (!self) {
+		return 0;
+	}
 	return (ct_random_xoroshiro_next(self) % (max - min)) + min;
 }
 
 int64_t ct_random_int64(ct_random_t *self, int64_t min, int64_t max) {
-	assert(self);
+	if (!self) {
+		return 0;
+	}
 	return ((int64_t)ct_random_xoroshiro_next(self) % (max - min)) + min;
 }
 
 float ct_random_float(ct_random_t *self, float min, float max) {
-	assert(self);
+	if (!self) {
+		return 0;
+	}
 	const float value = (float)ct_random_uint32(self, 0, UINT16_MAX) / (float)UINT16_MAX;
 	return min + value * (max - min);
 }
 
 double ct_random_double(ct_random_t *self, double min, double max) {
-	assert(self);
+	if (!self) {
+		return 0;
+	}
 	const double value = (double)ct_random_xoroshiro_next(self) / (double)UINT64_MAX;
 	return min + value * (max - min);
 }
 
 void ct_random_string(ct_random_t *self, char *str, size_t length) {
-	assert(self);
-	assert(str);
+	if (!self || !str) {
+		return;
+	}
 	const char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-
 	for (size_t i = 0; i < length; ++i) {
 		str[i] = charset[ct_random_uint8(self, 0, sizeof(charset) - 1)];
 	}
@@ -130,7 +154,9 @@ static inline uint64_t ct_random_rotl(uint64_t x, int k) {
 }
 
 static inline uint64_t ct_random_xoroshiro_next(ct_random_t *self) {
-	assert(self);
+	if (!self) {
+		return 0;
+	}
 	uint64_t       s0     = self->_s[0];
 	uint64_t       s1     = self->_s[1];
 	const uint64_t result = s0 + s1;

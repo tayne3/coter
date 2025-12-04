@@ -32,7 +32,9 @@ ct_bytepool_t *ct_bytepool_create(size_t max_size, size_t bytes_capacity) {
 }
 
 void ct_bytepool_destroy(ct_bytepool_t *self) {
-	assert(self);
+	if (!self) {
+		return;
+	}
 	pthread_mutex_lock(&self->lock);
 	ct_list_foreach_entry_safe (bytes, self->bytes_list, ct_bytes_t, list) {
 		ct_list_remove(bytes->list);
@@ -44,18 +46,21 @@ void ct_bytepool_destroy(ct_bytepool_t *self) {
 }
 
 ct_bytes_t *ct_bytepool_get(ct_bytepool_t *self) {
-	assert(self);
+	if (!self) {
+		return NULL;
+	}
 	ct_bytes_t *bytes = NULL;
 
 	if ((size_t)ct_atomic_load(&self->size) > 0) {
 		pthread_mutex_lock(&self->lock);
 		if ((size_t)ct_atomic_load(&self->size) > 0) {
 			bytes = ct_list_last_entry(self->bytes_list, ct_bytes_t, list);
-			ct_list_remove(bytes->list);
-			ct_atomic_sub(&self->size, 1);
-			pthread_mutex_unlock(&self->lock);
-			assert(bytes);
-			return bytes;
+			if (bytes) {
+				ct_list_remove(bytes->list);
+				ct_atomic_sub(&self->size, 1);
+				pthread_mutex_unlock(&self->lock);
+				return bytes;
+			}
 		}
 		pthread_mutex_unlock(&self->lock);
 	}
@@ -64,8 +69,9 @@ ct_bytes_t *ct_bytepool_get(ct_bytepool_t *self) {
 }
 
 void ct_bytepool_put(ct_bytepool_t *self, ct_bytes_t *bytes) {
-	assert(self);
-	assert(bytes);
+	if (!self || !bytes) {
+		return;
+	}
 
 	ct_bytes_clear(bytes);
 

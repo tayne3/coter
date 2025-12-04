@@ -58,6 +58,9 @@ ct_datetime_t ct_datetime_localtime(time_t seconds) {
 }
 
 time_t ct_datetime_mktime(const ct_datetime_t* dt) {
+	if (!dt) {
+		return (time_t)-1;
+	}
 	time_t ts;
 	time(&ts);
 	struct tm tm;
@@ -84,7 +87,12 @@ time_t ct_datetime_mktime(const ct_datetime_t* dt) {
 }
 
 ct_datetime_t* ct_datetime_past(ct_datetime_t* dt, int days) {
-	assert(days >= 0);
+	if (!dt) {
+		return NULL;
+	}
+	if (days < 0) {
+		return ct_datetime_future(dt, -days);
+	}
 	int sub = days;
 	while (sub) {
 		if (dt->day > sub) {
@@ -103,7 +111,12 @@ ct_datetime_t* ct_datetime_past(ct_datetime_t* dt, int days) {
 }
 
 ct_datetime_t* ct_datetime_future(ct_datetime_t* dt, int days) {
-	assert(days >= 0);
+	if (!dt) {
+		return NULL;
+	}
+	if (days < 0) {
+		return ct_datetime_past(dt, -days);
+	}
 	int sub = days;
 	int mdays;
 	while (sub) {
@@ -124,6 +137,9 @@ ct_datetime_t* ct_datetime_future(ct_datetime_t* dt, int days) {
 }
 
 char* ct_datetime_duration_fmt(int sec, char* buf) {
+	if (!buf) {
+		return NULL;
+	}
 	int h, m, s;
 	m = sec / 60;
 	s = sec % 60;
@@ -134,16 +150,25 @@ char* ct_datetime_duration_fmt(int sec, char* buf) {
 }
 
 char* ct_datetime_fmt(const ct_datetime_t* dt, char* buf) {
+	if (!buf) {
+		return NULL;
+	}
 	sprintf(buf, CT_DATETIME_FMT, dt->year, dt->month, dt->day, dt->hour, dt->min, dt->sec);
 	return buf;
 }
 
 char* ct_datetime_fmt_iso(const ct_datetime_t* dt, char* buf) {
+	if (!buf) {
+		return NULL;
+	}
 	sprintf(buf, CT_DATETIME_FMT_ISO, dt->year, dt->month, dt->day, dt->hour, dt->min, dt->sec, dt->ms);
 	return buf;
 }
 
 char* ct_datetime_gmtime_fmt(time_t t, char* buf) {
+	if (!buf) {
+		return NULL;
+	}
 	struct tm* tm = gmtime(&t);
 	// strftime(buf, CT_GMTIME_FMT_BUFLEN, "%a, %d %b %Y %H:%M:%S GMT", tm);
 	sprintf(buf, CT_GMTIME_FMT, s_weekdays[tm->tm_wday], tm->tm_mday, s_months[tm->tm_mon], tm->tm_year + 1900,
@@ -160,6 +185,9 @@ int ct_datetime_days_of_month(int month, int year) {
 }
 
 int ct_datetime_month_atoi(const char* month) {
+	if (!month) {
+		return 0;
+	}
 	for (int i = 0; i < 12; i++) {
 		if (strnicmp(month, s_months[i], strlen(month)) == 0) {
 			return i + 1;
@@ -169,11 +197,16 @@ int ct_datetime_month_atoi(const char* month) {
 }
 
 const char* ct_datetime_month_itoa(int month) {
-	assert(month >= 1 && month <= 12);
+	if (month <= 0 || month > 12) {
+		return STR_NULL;
+	}
 	return s_months[month - 1];
 }
 
 int ct_datetime_weekday_atoi(const char* weekday) {
+	if (!weekday) {
+		return 0;
+	}
 	for (int i = 0; i < 7; i++) {
 		if (strnicmp(weekday, s_weekdays[i], strlen(weekday)) == 0) {
 			return i;
@@ -183,7 +216,9 @@ int ct_datetime_weekday_atoi(const char* weekday) {
 }
 
 const char* ct_datetime_weekday_itoa(int weekday) {
-	assert(weekday >= 0 && weekday <= 7);
+	if (weekday < 0 || weekday > 7) {
+		return STR_NULL;
+	}
 	if (weekday == 7) {
 		weekday = 0;
 	}

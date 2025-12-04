@@ -51,7 +51,7 @@ ct_bytes_t *ct_bytes_create(size_t capacity);
  * @brief 字节数组-销毁
  * @param self 字节数组
  */
-void ct_bytes_destroy(ct_bytes_t *self) __ct_nonnull(1);
+void ct_bytes_destroy(ct_bytes_t *self);
 
 /**
  * @brief 字节数组-写入数据
@@ -60,7 +60,7 @@ void ct_bytes_destroy(ct_bytes_t *self) __ct_nonnull(1);
  * @param length 写入数据长度
  * @return 实际写入的数据长度
  */
-size_t ct_bytes_write(ct_bytes_t *self, const void *data, size_t length) __ct_nonnull(1, 2);
+size_t ct_bytes_write(ct_bytes_t *self, const void *data, size_t length);
 
 #ifdef __cplusplus
 }

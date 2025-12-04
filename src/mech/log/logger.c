@@ -39,8 +39,9 @@ static struct ct_logger {
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
 int ct_log_init(ct_time64_t tick, size_t type_size, const ct_log_config_t* type_config) {
-	assert(type_size > 0);
-	assert(type_config);
+	if (type_size <= 0 || !type_config) {
+		return -1;
+	}
 
 	glogger->bytepool = ct_bytepool_create(1024, 1024);
 	if (!glogger->bytepool) {
@@ -112,12 +113,16 @@ void ct_log_destroy(void) {
 }
 
 void ct_log_set_level(size_t type_id, int level) {
-	assert(type_id < glogger->type_size);
+	if (type_id >= glogger->type_size) {
+		return;
+	}
 	glogger->datas[type_id].level = level;
 }
 
 int ct_log_get_level(const size_t type_id) {
-	assert(type_id < glogger->type_size);
+	if (type_id >= glogger->type_size) {
+		return -1;
+	}
 	return glogger->datas[type_id].level;
 }
 
@@ -152,9 +157,14 @@ bool ct_log_is_enable(size_t type_id, int level) {
 }
 
 void ct_log_handle(size_t type_id, int level, const char* buf, size_t size) {
-	assert(buf);
+	if (!buf) {
+		return;
+	}
 	ct_unused(level);
 	struct ct_log_data* data = &glogger->datas[type_id];
+	if (!data) {
+		return;
+	}
 	if (!data->disable_print) {
 		ct_log_printer_handle(glogger->printer, buf, size);
 	}

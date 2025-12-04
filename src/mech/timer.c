@@ -130,8 +130,10 @@ static inline bool tr_istrigger(ct_timer_t *self);
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
-void ct_timer_mgr_init(ct_time64_t tick, struct ct_thpool *thpool) {
-	assert(thpool);
+int ct_timer_mgr_init(ct_time64_t tick, struct ct_thpool *thpool) {
+	if (!thpool) {
+		return -1;
+	}
 	ct_heap_init(mgr->heap, mgr->heap_buffer, CT_TIMER_MAX, tr_sorting);  // 初始化最小堆
 	ct_list_init(mgr->idle_list);                                         // 初始化可用定时器链表
 	tr_init(CT_TIMER_NULL, 0);                                            // 初始化空定时器
@@ -146,6 +148,7 @@ void ct_timer_mgr_init(ct_time64_t tick, struct ct_thpool *thpool) {
 
 	mgr->time_tick = tick;
 	mgr->thpool    = thpool;
+	return 0;
 }
 
 bool ct_timer_mgr_schedule(ct_time64_t tick) {
@@ -169,9 +172,7 @@ bool ct_timer_mgr_schedule(ct_time64_t tick) {
 }
 
 ct_timer_id_t ct_timer_start(ct_time64_t interval, bool is_loop, bool is_now, ct_timer_callback_t callback, void *arg) {
-	assert(callback);
-	if (interval == 0) {
-		// printf("start timer error, timer interval is 0." STR_NEWLINE);
+	if (!callback || !interval) {
 		return CT_TIMER_ID_NULL;
 	}
 
@@ -246,7 +247,9 @@ static inline void tr_init(ct_timer_t *self, uint32_t idx) {
 }
 
 static inline void mgr_trigger_callback(void *arg) {
-	assert(arg);
+	if (!arg) {
+		return;
+	}
 	ct_timer_t *self = (ct_timer_t *)arg;
 	if (self->is_active) {
 		// ct_thpool_submit(mgr->thpool, mgr_timer_callback, self);
@@ -273,7 +276,9 @@ static inline void mgr_trigger_callback(void *arg) {
 }
 
 static inline void mgr_timer_callback(void *arg) {
-	assert(arg);
+	if (!arg) {
+		return;
+	}
 	ct_timer_t *self = (ct_timer_t *)arg;
 	self->callback(self->arg);
 

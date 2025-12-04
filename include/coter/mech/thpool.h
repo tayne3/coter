@@ -53,14 +53,14 @@ ct_thpool_t* ct_thpool_create(size_t size, ct_thpool_config_t* config) __ct_thro
  *
  * @param self 线程池指针
  */
-void ct_thpool_close(ct_thpool_t* self) __ct_nonnull(1);
+void ct_thpool_close(ct_thpool_t* self) ;
 
 /**
  * @brief 销毁线程池
  *
  * @param self 线程池指针
  */
-void ct_thpool_destroy(ct_thpool_t* self) __ct_nonnull(1);
+void ct_thpool_destroy(ct_thpool_t* self) ;
 
 /**
  * @brief 提交任务
@@ -70,7 +70,7 @@ void ct_thpool_destroy(ct_thpool_t* self) __ct_nonnull(1);
  * @param arg 执行参数
  * @return 0=成功; 非0=失败
  */
-int ct_thpool_submit(ct_thpool_t* self, ct_thpool_routine_t routine, void* arg) __ct_nonnull(1);
+int ct_thpool_submit(ct_thpool_t* self, ct_thpool_routine_t routine, void* arg) ;
 
 /**
  * @brief 获取错误描述

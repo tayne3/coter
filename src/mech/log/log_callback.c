@@ -37,9 +37,9 @@ static void cb_schedule_no_limit(ct_log_callback_t *self);
 static void cb_schedule_with_limit(ct_log_callback_t *self);
 
 ct_log_callback_t *ct_log_callback_create(struct ct_bytepool *bytepool, const struct ct_log_config *config) {
-	assert(config);
-	assert(bytepool);
-	assert(config->callback_routine);
+	if (!config || !bytepool || !config->callback_routine) {
+		return NULL;
+	}
 	ct_log_callback_t *self = (ct_log_callback_t *)malloc(sizeof(ct_log_callback_t));
 	if (!self) {
 		return NULL;
@@ -70,8 +70,9 @@ ct_log_callback_t *ct_log_callback_create(struct ct_bytepool *bytepool, const st
 }
 
 void ct_log_callback_destroy(ct_log_callback_t *self) {
-	assert(self);
-	assert(self->producer_buffer);
+	if (!self || !self->producer_buffer) {
+		return;
+	}
 
 	ct_log_callback_flush(self);
 	ct_log_callback_schedule(self);
@@ -90,10 +91,9 @@ void ct_log_callback_destroy(ct_log_callback_t *self) {
 }
 
 void ct_log_callback_handle(ct_log_callback_t *self, const char *buf, size_t size) {
-	assert(self);
-	assert(self->producer_buffer);
-	assert(buf);
-	assert(size > 0);
+	if (!self || !self->producer_buffer || !buf || !size) {
+		return;
+	}
 
 	char        *last_newline = ct_memrchr(buf, '\n', size);
 	const size_t flush_size   = last_newline ? (last_newline - buf + 1) : 0;
@@ -146,7 +146,9 @@ void ct_log_callback_handle(ct_log_callback_t *self, const char *buf, size_t siz
 }
 
 void ct_log_callback_flush(ct_log_callback_t *self) {
-	assert(self);
+	if (!self) {
+		return;
+	}
 
 	pthread_mutex_lock(&self->producer_mutex);
 	if (!ct_bytes_isempty(self->producer_buffer)) {
@@ -168,7 +170,9 @@ void ct_log_callback_schedule(ct_log_callback_t *self) {
 }
 
 static void cb_schedule_no_limit(ct_log_callback_t *self) {
-	assert(self);
+	if (!self) {
+		return;
+	}
 	if (ct_atomic_flag_test_and_set(&self->consumer_flag)) {
 		return;
 	}
@@ -186,8 +190,9 @@ static void cb_schedule_no_limit(ct_log_callback_t *self) {
 }
 
 static void cb_schedule_with_limit(ct_log_callback_t *self) {
-	assert(self);
-	assert(self->schedule_buffer);
+	if (!self || !self->schedule_buffer) {
+		return;
+	}
 	if (ct_atomic_flag_test_and_set(&self->consumer_flag)) {
 		return;
 	}

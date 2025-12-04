@@ -242,6 +242,40 @@ void test_random_double_wrapper(void) {
 	test_random_double(10000);
 }
 
+// Boundary tests for signed integers
+static inline void test_random_int8_boundary(void) {
+	ct_random_t rng;
+	ct_random_init(&rng);
+
+	// Test full range
+	for (int i = 0; i < 1000; i++) {
+		int8_t val = ct_random_int8(&rng, INT8_MIN, INT8_MAX);
+		assert_true(val >= INT8_MIN && val <= INT8_MAX);
+	}
+}
+
+static inline void test_random_int16_boundary(void) {
+	ct_random_t rng;
+	ct_random_init(&rng);
+
+	// Test full range
+	for (int i = 0; i < 1000; i++) {
+		int16_t val = ct_random_int16(&rng, INT16_MIN, INT16_MAX);
+		assert_true(val >= INT16_MIN && val <= INT16_MAX);
+	}
+}
+
+static inline void test_random_int32_boundary(void) {
+	ct_random_t rng;
+	ct_random_init(&rng);
+
+	// Test full range (this previously caused overflow)
+	for (int i = 0; i < 1000; i++) {
+		int32_t val = ct_random_int32(&rng, INT32_MIN, INT32_MAX);
+		assert_true(val >= INT32_MIN && val <= INT32_MAX);
+	}
+}
+
 int main(void) {
 	cunit_init();
 
@@ -253,6 +287,9 @@ int main(void) {
 	CUNIT_TEST("uint64", test_random_uint64_wrapper)
 	CUNIT_TEST("float", test_random_float_wrapper)
 	CUNIT_TEST("double", test_random_double_wrapper)
+	CUNIT_TEST("int8_boundary", test_random_int8_boundary)
+	CUNIT_TEST("int16_boundary", test_random_int16_boundary)
+	CUNIT_TEST("int32_boundary", test_random_int32_boundary)
 	CUNIT_SUITE_END()
 
 	return cunit_run();

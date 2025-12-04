@@ -109,7 +109,9 @@ ct_thpool_t* ct_thpool_create(size_t size, ct_thpool_config_t* config) {
 }
 
 void ct_thpool_close(ct_thpool_t* self) {
-	assert(self);
+	if (!self) {
+		return;
+	}
 	if (ctl_is_closed(self)) {
 		return;
 	}
@@ -142,7 +144,9 @@ void ct_thpool_close(ct_thpool_t* self) {
 }
 
 void ct_thpool_destroy(ct_thpool_t* self) {
-	assert(self);
+	if (!self) {
+		return;
+	}
 	ct_thpool_close(self);
 
 	while (ct_atomic_load(&self->status.total_size) > 0) {
@@ -160,7 +164,9 @@ void ct_thpool_destroy(ct_thpool_t* self) {
 }
 
 int ct_thpool_submit(ct_thpool_t* self, ct_thpool_routine_t routine, void* arg) {
-	assert(self);
+	if (!self) {
+		return CTThPoolError_Closed;
+	}
 	if (!routine) {
 		return CTThPoolError_TaskNull;
 	}
@@ -171,7 +177,6 @@ int ct_thpool_submit(ct_thpool_t* self, ct_thpool_routine_t routine, void* arg) 
 	worker_t* worker = NULL;
 	const int ret    = ctl_retrieve_worker(self, &worker);
 	if (ret == 0) {
-		assert(worker);
 		ctl_worker_input(worker, routine, arg);
 	}
 	return ret;
@@ -190,7 +195,9 @@ const char* ct_thpool_strerror(int error_code) {
 }
 
 void ct_thpool_default_config(ct_thpool_config_t* config) {
-	assert(config);
+	if (!config) {
+		return;
+	}
 	config->thread_attr  = NULL;
 	config->idle_timeout = 1000;
 	config->non_blocking = false;
@@ -236,17 +243,19 @@ static inline void ctl_status_init(ct_thpool_t* self, size_t size) {
 }
 
 static inline int ctl_retrieve_worker(ct_thpool_t* self, worker_t** worker) {
-	assert(self);
-	assert(worker);
+	if (!self || !worker) {
+		return CTThPoolError_Closed;
+	}
 	pthread_mutex_lock(self->worker_mutex);
 
 Retry:
 	if (!ct_list_isempty(self->worker_head)) {
 		*worker = ct_list_first_entry(self->worker_head, worker_t, list);
-		assert(*worker);
-		ct_list_remove((*worker)->list);
-		pthread_mutex_unlock(self->worker_mutex);
-		return 0;
+		if (*worker) {
+			ct_list_remove((*worker)->list);
+			pthread_mutex_unlock(self->worker_mutex);
+			return 0;
+		}
 	}
 
 	const long capacity = ct_atomic_load(&self->status.capacity);
@@ -324,9 +333,13 @@ static inline worker_t* ctl_worker_create(ct_thpool_t* self) {
 
 static inline void* ctl_worker_thread(void* arg) {
 	worker_t* worker = (worker_t*)arg;
-	assert(worker);
+	if (!worker) {
+		return NULL;
+	}
 	ct_thpool_t* pool = worker->thpool;
-	assert(pool);
+	if (!pool) {
+		return NULL;
+	}
 
 	task_t task;
 	while (ct_msgqueue_dequeue(worker->tasks, &task)) {
@@ -348,14 +361,17 @@ static inline void* ctl_worker_thread(void* arg) {
 }
 
 static inline void ctl_worker_input(worker_t* worker, ct_thpool_routine_t routine, void* arg) {
-	assert(worker);
-	assert(routine);
+	if (!worker || !routine) {
+		return;
+	}
 	const task_t task = TASK_INIT(routine, arg);
 	ct_msgqueue_enqueue(worker->tasks, &task);
 }
 
 static inline void ctl_worker_finish(worker_t* worker) {
-	assert(worker);
+	if (!worker) {
+		return;
+	}
 	ct_msgqueue_close(worker->tasks);
 }
 

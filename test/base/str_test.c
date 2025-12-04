@@ -10,7 +10,8 @@
 #endif
 
 static inline void test_snprintf(void) {
-	char buf[100];
+	char       buf[100];
+	const char truncate[100] = "Truncate";
 
 	{
 		const int len = ct_snprintf(buf, sizeof(buf), "Hello %s %d 5678", "World", 1234);
@@ -19,37 +20,37 @@ static inline void test_snprintf(void) {
 	}
 
 	{
-		const int len = ct_snprintf(buf, 1, "Truncate");
+		const int len = ct_snprintf(buf, 1, truncate);
 		assert_int_eq(len, 8);
 		assert_str_eq(buf, "");
 	}
 
 	{
-		const int len = ct_snprintf(buf, 8, "Truncate");
+		const int len = ct_snprintf(buf, 8, truncate);
 		assert_int_eq(len, 8);
 		assert_str_eq(buf, "Truncat");
 	}
 
 	{
-		const int len = ct_snprintf(buf, 9, "Truncate");
+		const int len = ct_snprintf(buf, 9, truncate);
 		assert_int_eq(len, 8);
 		assert_str_eq(buf, "Truncate");
 	}
 
 	{
-		const int len = ct_snprintf(buf, 1, "%.*s", 1, "Truncate");
+		const int len = ct_snprintf(buf, 1, "%.*s", 1, truncate);
 		assert_int_eq(len, 1);
 		assert_str_eq(buf, "");
 	}
 
 	{
-		const int len = ct_snprintf(buf, 8, "%.*s", 8, "Truncate");
+		const int len = ct_snprintf(buf, 8, "%.*s", 8, truncate);
 		assert_int_eq(len, 8);
 		assert_str_eq(buf, "Truncat");
 	}
 
 	{
-		const int len = ct_snprintf(buf, 9, "%.*s", 8, "Truncate");
+		const int len = ct_snprintf(buf, 9, "%.*s", 8, truncate);
 		assert_int_eq(len, 8);
 		assert_str_eq(buf, "Truncate");
 	}

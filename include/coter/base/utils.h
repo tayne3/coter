@@ -19,10 +19,10 @@ extern "C" {
  * @param n 要复制的字节数
  * @return 返回目标缓冲区的指针
  */
-void *ct_reverse_memcpy(void *dest, const void *src, size_t n) __ct_nonnull(1, 2);
+void *ct_reverse_memcpy(void *dest, const void *src, size_t n);
 // #define ct_copy_backward ct_reverse_memcpy
 
-void *ct_reverse_memmove(void *dest, const void *src, size_t n) __ct_nonnull(1, 2);
+void *ct_reverse_memmove(void *dest, const void *src, size_t n);
 
 #ifdef __cplusplus
 }

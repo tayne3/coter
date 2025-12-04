@@ -31,7 +31,7 @@ ct_jobpool_t* ct_jobpool_create(size_t thread_max, size_t job_max) __ct_throw;
  *
  * @param self 需要销毁的任务池指针, 不能为空指针
  */
-void ct_jobpool_destroy(ct_jobpool_t* self) __ct_nonnull(1);
+void ct_jobpool_destroy(ct_jobpool_t* self);
 
 /**
  * @brief 向任务池中添加一个工作
@@ -40,7 +40,7 @@ void ct_jobpool_destroy(ct_jobpool_t* self) __ct_nonnull(1);
  * @param routine 执行函数
  * @param arg 执行参数
  */
-int ct_jobpool_submit(ct_jobpool_t* self, ct_jobpool_routine_t routine, void* arg) __ct_nonnull(1, 2);
+int ct_jobpool_submit(ct_jobpool_t* self, ct_jobpool_routine_t routine, void* arg);
 
 #ifdef __cplusplus
 }

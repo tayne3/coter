@@ -17,7 +17,9 @@ static inline uint64_t hg_to_uint64s(const uint8_t *array, ct_endian_t endian);
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
 uint32_t ct_hashalgo_times33(const char *data, size_t size) {
-	assert(data);
+	if (!data) {
+		return 0;
+	}
 	register uint32_t hash = 5381U;
 
 	for (size_t i = 0; i < size; i++) {
@@ -28,7 +30,9 @@ uint32_t ct_hashalgo_times33(const char *data, size_t size) {
 }
 
 uint32_t ct_hashalgo_bkdr(const char *data, size_t size) {
-	assert(data);
+	if (!data) {
+		return 0;
+	}
 	register uint32_t hash = 0U;
 
 	for (size_t i = 0; i < size; i++) {
@@ -39,7 +43,9 @@ uint32_t ct_hashalgo_bkdr(const char *data, size_t size) {
 }
 
 uint32_t ct_hashalgo_pjw(const char *data, size_t size) {
-	assert(data);
+	if (!data) {
+		return 0;
+	}
 	uint32_t val = 0U, tmp;
 
 	for (size_t i = 0; i < size; i++) {
@@ -52,7 +58,9 @@ uint32_t ct_hashalgo_pjw(const char *data, size_t size) {
 }
 
 uint32_t ct_hashalgo_murmurhash2(const char *data, size_t size) {
-	assert(data);
+	if (!data) {
+		return 0;
+	}
 	uint32_t k, h = 0 ^ size;
 
 	for (; size >= 4;) {
@@ -86,7 +94,9 @@ uint32_t ct_hashalgo_murmurhash2(const char *data, size_t size) {
 }
 
 uint64_t ct_hashalgo_murmurhash2_64(const char *data, size_t size, uint64_t seed) {
-	assert(data);
+	if (!data) {
+		return 0;
+	}
 	const uint64_t m = 0xc6a4a7935bd1e995ULL;
 	const int      r = 47;
 
@@ -130,7 +140,9 @@ uint64_t ct_hashalgo_murmurhash2_64(const char *data, size_t size, uint64_t seed
 }
 
 uint64_t ct_hashalgo_siphash_64(const char *data, size_t size, const uint8_t siphash_keys[16]) {
-	assert(data);
+	if (!data) {
+		return 0;
+	}
 #define ROTATE(x, b) (uint64_t)(((x) << (b)) | ((x) >> (64 - (b))))
 
 #define HALF_ROUND(a, b, c, d, s, t) \
@@ -213,7 +225,9 @@ uint64_t ct_hashalgo_siphash_64(const char *data, size_t size, const uint8_t sip
 // -------------------------[STATIC DEFINITION]-------------------------
 
 static inline uint64_t hg_to_uint64s(const uint8_t *array, ct_endian_t endian) {
-	assert(array);
+	if (!array) {
+		return 0;
+	}
 	if (endian == CTEndian_System) {
 		return (uint64_t)array[0] | ((uint64_t)array[1] << 8) | ((uint64_t)array[2] << 16) |
 			   ((uint64_t)array[3] << 24) | ((uint64_t)array[4] << 32) | ((uint64_t)array[5] << 40) |

@@ -12,20 +12,23 @@ typedef struct {
 } evhub__sub_t;
 
 void ct_evhub_init(ct_evhub_t *self) {
-	assert(self);
+	if (!self) {
+		return;
+	}
 	pthread_rwlock_init(&self->rwlock, NULL);
 	ct_vector_init(&self->sub_list, sizeof(evhub__sub_t), 0);
 }
 
 void ct_evhub_deinit(ct_evhub_t *self) {
-	assert(self);
+	if (!self) {
+		return;
+	}
 	pthread_rwlock_destroy(&self->rwlock);
 	ct_vector_destroy(&self->sub_list);
 }
 
 int ct_evhub_subscribe(ct_evhub_t *self, uint32_t type, ct_evhub_callback_t cb, void *user_data) {
-	assert(self);
-	if (!cb) {
+	if (!self || !cb) {
 		return -1;
 	}
 	pthread_rwlock_wrlock(&self->rwlock);
@@ -43,8 +46,7 @@ int ct_evhub_subscribe(ct_evhub_t *self, uint32_t type, ct_evhub_callback_t cb, 
 }
 
 int ct_evhub_unsubscribe(ct_evhub_t *self, uint32_t type, ct_evhub_callback_t cb) {
-	assert(self);
-	if (!cb) {
+	if (!self || !cb) {
 		return -1;
 	}
 	int           ret = -1;
@@ -62,7 +64,9 @@ int ct_evhub_unsubscribe(ct_evhub_t *self, uint32_t type, ct_evhub_callback_t cb
 }
 
 int ct_evhub_publish(ct_evhub_t *self, uint32_t type, void *data) {
-	assert(self);
+	if (!self) {
+		return -1;
+	}
 	evhub__sub_t *sub;
 	pthread_rwlock_rdlock(&self->rwlock);
 	for (size_t i = 0; i < ct_vector_size(&self->sub_list); ++i) {

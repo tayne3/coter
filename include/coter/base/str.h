@@ -58,7 +58,9 @@ extern "C" {
  * @return 输出的实际字符数(不包含字符串结束符)。如果缓冲区长度不足,输出的字符串会被截断,且返回输出需要的总长度。
  */
 static inline int ct_snprintf(char *__s, size_t __maxlen, const char *__format, ...) {
-	assert(__format);
+	if (!__format) {
+		return -1;
+	}
 
 	int     ret;
 	va_list args;

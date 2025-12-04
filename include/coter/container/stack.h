@@ -44,8 +44,9 @@ typedef struct ct_stack {
  * @param self 栈-变量指针
  * @param buffer 缓冲区地址
  * @param max 缓冲区大小
+ * @return int 成功返回0，失败返回非0值
  */
-void ct_stack_init(ct_stack_buf_t self, ct_any_t* buffer, size_t max) __ct_nonnull(1, 2);
+int ct_stack_init(ct_stack_buf_t self, ct_any_t* buffer, size_t max);
 
 /**
  * @brief 将元素value推入栈顶
@@ -53,7 +54,7 @@ void ct_stack_init(ct_stack_buf_t self, ct_any_t* buffer, size_t max) __ct_nonnu
  * @param item 要添加的元素
  * @return 栈状态
  */
-bool ct_stack_push(ct_stack_buf_t self, ct_any_t item) __ct_nonnull(1);
+bool ct_stack_push(ct_stack_buf_t self, ct_any_t item);
 
 /**
  * @brief 弹出栈顶的元素
@@ -61,7 +62,7 @@ bool ct_stack_push(ct_stack_buf_t self, ct_any_t item) __ct_nonnull(1);
  * @param item 用于存储元素的指针
  * @return 成功返回 true，失败返回 false
  */
-bool ct_stack_pop(ct_stack_buf_t self, ct_any_t* item) __ct_nonnull(1);
+bool ct_stack_pop(ct_stack_buf_t self, ct_any_t* item);
 
 /**
  * @brief 返回栈顶元素, 但不将其从栈中移除
@@ -69,7 +70,7 @@ bool ct_stack_pop(ct_stack_buf_t self, ct_any_t* item) __ct_nonnull(1);
  * @param item 用于存储元素的指针
  * @return 成功返回 true，失败返回 false
  */
-bool ct_stack_top(ct_stack_buf_t self, ct_any_t* item) __ct_nonnull(1);
+bool ct_stack_top(ct_stack_buf_t self, ct_any_t* item);
 
 #ifdef __cplusplus
 }

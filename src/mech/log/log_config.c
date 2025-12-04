@@ -11,7 +11,9 @@
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
 void ct_log_config_default(ct_log_config_t* config) {
-	assert(config);
+	if (!config) {
+		return;
+	}
 
 	config->level         = CTLog_LevelTrace;
 	config->disable_print = false;

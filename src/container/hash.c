@@ -39,11 +39,15 @@ static inline bool ct_hash_resize(ct_hash_buf_t self, size_t max);
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
 void ct_hash_init(ct_hash_buf_t self) {
-	assert(self);
+	if (!self) {
+		return;
+	}
 
 	// 申请内存
 	self->all = (ct_hash_pair_t **)calloc(CT_HASH_DEFAULT_MAX, sizeof(ct_hash_pair_t *));
-	assert(self->all);
+	if (!self->all) {
+		return;
+	}
 
 	self->methods      = ct_any_methods_default;
 	self->max          = CT_HASH_DEFAULT_MAX;
@@ -52,8 +56,9 @@ void ct_hash_init(ct_hash_buf_t self) {
 }
 
 void ct_hash_init_s(ct_hash_buf_t self, size_t max, bool allow_resize, ct_any_methods_t methods) {
-	assert(self);
-	assert(max > 0);
+	if (!self || !max) {
+		return;
+	}
 
 	if (max > CT_HASH_MEMORY_MAX) {
 		max = CT_HASH_MEMORY_MAX;
@@ -61,7 +66,9 @@ void ct_hash_init_s(ct_hash_buf_t self, size_t max, bool allow_resize, ct_any_me
 
 	// 申请内存
 	self->all = (ct_hash_pair_t **)calloc(max, sizeof(ct_hash_pair_t *));
-	assert(self->all);
+	if (!self->all) {
+		return;
+	}
 
 	self->methods      = methods;
 	self->max          = max;
@@ -70,7 +77,9 @@ void ct_hash_init_s(ct_hash_buf_t self, size_t max, bool allow_resize, ct_any_me
 }
 
 void ct_hash_destroy(ct_hash_buf_t self) {
-	assert(self);
+	if (!self) {
+		return;
+	}
 
 	// 清空元素
 	ct_hash_clear(self);
@@ -82,8 +91,9 @@ void ct_hash_destroy(ct_hash_buf_t self) {
 }
 
 void ct_hash_reserve(ct_hash_buf_t self, size_t max) {
-	assert(self);
-
+	if (!self) {
+		return;
+	}
 	if (self->max < max && max < CT_HASH_MEMORY_MAX) {
 		ct_hash_resize(self, max);
 	}
@@ -98,7 +108,9 @@ bool ct_hash_isempty(const ct_hash_buf_t self) {
 }
 
 bool ct_hash_contains(const ct_hash_buf_t self, const char *key) {
-	assert(self);
+	if (!self) {
+		return false;
+	}
 
 	if (STR_ISEMPTY(key) || CT_HASH_ISEMPTY(self)) {
 		return false;
@@ -128,8 +140,9 @@ bool ct_hash_contains(const ct_hash_buf_t self, const char *key) {
 }
 
 bool ct_hash_insert(ct_hash_buf_t self, const char *key, ct_any_t value) {
-	assert(self);
-
+	if (!self) {
+		return false;
+	}
 	if (STR_ISEMPTY(key)) {
 		return false;
 	}
@@ -170,7 +183,9 @@ bool ct_hash_insert(ct_hash_buf_t self, const char *key, ct_any_t value) {
 	}
 
 	ct_hash_pair_t *new_pair = (ct_hash_pair_t *)malloc(sizeof(ct_hash_pair_t) + key_length);
-	assert(new_pair);
+	if (!new_pair) {
+		return false;
+	}
 
 	ct_any_ctor(&self->methods, &new_pair->value, &value);
 	strncpy(new_pair->key, key, key_length + 1);
@@ -183,7 +198,9 @@ bool ct_hash_insert(ct_hash_buf_t self, const char *key, ct_any_t value) {
 }
 
 bool ct_hash_remove(ct_hash_buf_t self, const char *key) {
-	assert(self);
+	if (!self) {
+		return false;
+	}
 
 	do {
 		if (STR_ISEMPTY(key) || CT_HASH_ISEMPTY(self)) {
@@ -224,7 +241,9 @@ bool ct_hash_remove(ct_hash_buf_t self, const char *key) {
 }
 
 void ct_hash_clear(ct_hash_buf_t self) {
-	assert(self);
+	if (!self) {
+		return;
+	}
 
 	ct_hash_pair_t *it, *pos;
 
@@ -248,7 +267,9 @@ void ct_hash_clear(ct_hash_buf_t self) {
 }
 
 ct_any_t ct_hash_value(ct_hash_buf_t self, const char *key) {
-	assert(self);
+	if (!self) {
+		return ct_any_null;
+	}
 
 	do {
 		if (STR_ISEMPTY(key) || CT_HASH_ISEMPTY(self)) {
@@ -280,7 +301,9 @@ ct_any_t ct_hash_value(ct_hash_buf_t self, const char *key) {
 }
 
 bool ct_hash_value_r(ct_hash_buf_t self, const char *key, ct_any_t *value) {
-	assert(self);
+	if (!self) {
+		return false;
+	}
 
 	bool is_ok = false;
 
@@ -321,7 +344,9 @@ bool ct_hash_value_r(ct_hash_buf_t self, const char *key, ct_any_t *value) {
 }
 
 ct_any_t ct_hash_value_s(ct_hash_buf_t self, const char *key, ct_any_t default_value) {
-	assert(self);
+	if (!self) {
+		return ct_any_null;
+	}
 
 	do {
 		if (STR_ISEMPTY(key) || CT_HASH_ISEMPTY(self)) {
@@ -355,7 +380,9 @@ ct_any_t ct_hash_value_s(ct_hash_buf_t self, const char *key, ct_any_t default_v
 // -------------------------[STATIC DEFINITION]-------------------------
 
 static inline bool ct_hash_resize(ct_hash_buf_t self, size_t max) {
-	assert(self && self->all);
+	if (!self || !self->all) {
+		return false;
+	}
 
 	ct_hash_pair_t **const old_all = self->all;
 	const size_t           old_max = self->max;

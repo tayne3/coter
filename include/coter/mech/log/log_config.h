@@ -34,7 +34,7 @@ typedef struct ct_log_config {
 	size_t callback_limit;                                               ///< 日志回调限制 (0: 不限制)
 } ct_log_config_t;
 
-void ct_log_config_default(ct_log_config_t* config) __ct_nonnull(1);
+void ct_log_config_default(ct_log_config_t* config);
 
 #ifdef __cplusplus
 }

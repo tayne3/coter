@@ -47,19 +47,24 @@ static inline void* ct_jobpool_thread_do_regular(void* arg);
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
 ct_jobpool_t* ct_jobpool_create(size_t thread_max, size_t job_max) {
-	assert(thread_max);
-	assert(job_max);
+	if (!thread_max || !job_max) {
+		return NULL;
+	}
 
 	// 创建任务池
 	ct_jobpool_t* self = (ct_jobpool_t*)malloc(sizeof(ct_jobpool_t));
-	assert(self);
+	if (!self) {
+		return NULL;
+	}
 
 	self->thread_max = thread_max;
 	self->job_max    = job_max;
 
 	// 创建消息队列缓冲区
 	self->job_buffer = (job_t*)calloc(job_max, sizeof(job_t));
-	assert(self->job_buffer);
+	if (!self->job_buffer) {
+		return NULL;
+	}
 	// 初始化消息队列
 	ct_msgqueue_init(self->job_queue, self->job_buffer, sizeof(job_t), job_max);
 
@@ -83,7 +88,9 @@ ct_jobpool_t* ct_jobpool_create(size_t thread_max, size_t job_max) {
 	// 启动线程
 	for (size_t i = 0; i < thread_max; i++) {
 		unit = (unit_t*)malloc(sizeof(unit_t));
-		assert(unit);
+		if (!unit) {
+			break;
+		}
 
 		unit->job_queue = self->job_queue;
 		ct_list_init(unit->list);
@@ -105,8 +112,9 @@ ct_jobpool_t* ct_jobpool_create(size_t thread_max, size_t job_max) {
 }
 
 void ct_jobpool_destroy(ct_jobpool_t* self) {
-	assert(self);
-	assert(self->job_buffer);
+	if (!self) {
+		return;
+	}
 
 	// 关闭消息队列
 	ct_msgqueue_close(self->job_queue);
@@ -122,7 +130,9 @@ void ct_jobpool_destroy(ct_jobpool_t* self) {
 	ct_msgqueue_destroy(self->job_queue);
 
 	// 释放缓冲区内存
-	free(self->job_buffer);
+	if (self->job_buffer) {
+		free(self->job_buffer);
+	}
 	// 释放任务池内存
 	free(self);
 }

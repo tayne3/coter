@@ -11,7 +11,9 @@
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
 void ct_packet_init(ct_packet_buf_t self, uint8_t *_buffer, uint16_t _max) {
-	assert(self);
+	if (!self) {
+		return;
+	}
 	self->_buffer = _buffer;
 	self->_total  = 0;
 	self->_past   = 0;
@@ -19,23 +21,26 @@ void ct_packet_init(ct_packet_buf_t self, uint8_t *_buffer, uint16_t _max) {
 }
 
 void ct_packet_reset(ct_packet_buf_t self) {
-	assert(self);
+	if (!self) {
+		return;
+	}
 	self->_total = 0;
 	self->_past  = 0;
 }
 
 void ct_packet_clean(ct_packet_buf_t self) {
-	assert(self);
-	assert(self->_buffer);
+	if (!self || !self->_buffer) {
+		return;
+	}
 	memset(self->_buffer, 0, self->_total);
 	self->_total = 0;
 	self->_past  = 0;
 }
 
 uint8_t ct_packet_get_u8(const ct_packet_buf_t self, uint16_t offset) {
-	assert(self);
-	assert(self->_buffer);
-	assert(offset + self->_past + sizeof(uint8_t) <= self->_total);
+	if (!self || !self->_buffer) {
+		return 0;
+	}
 
 	if (offset + self->_past + sizeof(uint8_t) > self->_total) {
 		return 0;
@@ -45,9 +50,9 @@ uint8_t ct_packet_get_u8(const ct_packet_buf_t self, uint16_t offset) {
 }
 
 uint16_t ct_packet_get_u16(const ct_packet_buf_t self, uint16_t offset, ct_endian_t endian) {
-	assert(self);
-	assert(self->_buffer);
-	assert(offset + self->_past + sizeof(uint16_t) <= self->_total);
+	if (!self || !self->_buffer) {
+		return 0;
+	}
 
 	if (offset + self->_past + sizeof(uint16_t) > self->_total) {
 		return 0;
@@ -65,9 +70,9 @@ uint16_t ct_packet_get_u16(const ct_packet_buf_t self, uint16_t offset, ct_endia
 }
 
 uint32_t ct_packet_get_u32(const ct_packet_buf_t self, uint16_t offset, ct_endian_t endian) {
-	assert(self);
-	assert(self->_buffer);
-	assert(offset + self->_past + sizeof(uint32_t) <= self->_total);
+	if (!self || !self->_buffer) {
+		return 0;
+	}
 
 	if (offset + self->_past + sizeof(uint32_t) > self->_total) {
 		return 0;
@@ -85,9 +90,9 @@ uint32_t ct_packet_get_u32(const ct_packet_buf_t self, uint16_t offset, ct_endia
 }
 
 uint64_t ct_packet_get_u64(const ct_packet_buf_t self, uint16_t offset, ct_endian_t endian) {
-	assert(self);
-	assert(self->_buffer);
-	assert(offset + self->_past + sizeof(uint64_t) <= self->_total);
+	if (!self || !self->_buffer) {
+		return 0;
+	}
 
 	if (offset + self->_past + sizeof(uint64_t) > self->_total) {
 		return 0;
@@ -105,9 +110,9 @@ uint64_t ct_packet_get_u64(const ct_packet_buf_t self, uint16_t offset, ct_endia
 }
 
 float ct_packet_get_float(const ct_packet_buf_t self, uint16_t offset, ct_endian_t endian) {
-	assert(self);
-	assert(self->_buffer);
-	assert(offset + self->_past + sizeof(float) <= self->_total);
+	if (!self || !self->_buffer) {
+		return 0;
+	}
 
 	if (offset + self->_past + sizeof(float) > self->_total) {
 		return 0;
@@ -125,9 +130,9 @@ float ct_packet_get_float(const ct_packet_buf_t self, uint16_t offset, ct_endian
 }
 
 double ct_packet_get_double(const ct_packet_buf_t self, uint16_t offset, ct_endian_t endian) {
-	assert(self);
-	assert(self->_buffer);
-	assert(offset + self->_past + sizeof(double) <= self->_total);
+	if (!self || !self->_buffer) {
+		return 0;
+	}
 
 	if (offset + self->_past + sizeof(double) > self->_total) {
 		return 0;
@@ -145,9 +150,9 @@ double ct_packet_get_double(const ct_packet_buf_t self, uint16_t offset, ct_endi
 }
 
 uint8_t ct_packet_take_u8(ct_packet_buf_t self) {
-	assert(self);
-	assert(self->_buffer);
-	assert(self->_past + sizeof(uint8_t) <= self->_total);
+	if (!self || !self->_buffer) {
+		return 0;
+	}
 
 	if (self->_past + sizeof(uint8_t) > self->_total) {
 		return 0;
@@ -159,9 +164,9 @@ uint8_t ct_packet_take_u8(ct_packet_buf_t self) {
 }
 
 uint16_t ct_packet_take_u16(ct_packet_buf_t self, ct_endian_t endian) {
-	assert(self);
-	assert(self->_buffer);
-	assert(self->_past + sizeof(uint16_t) <= self->_total);
+	if (!self || !self->_buffer) {
+		return 0;
+	}
 
 	if (self->_past + sizeof(uint16_t) > self->_total) {
 		return 0;
@@ -181,9 +186,9 @@ uint16_t ct_packet_take_u16(ct_packet_buf_t self, ct_endian_t endian) {
 }
 
 uint32_t ct_packet_take_u32(ct_packet_buf_t self, ct_endian_t endian) {
-	assert(self);
-	assert(self->_buffer);
-	assert(self->_past + sizeof(uint32_t) <= self->_total);
+	if (!self || !self->_buffer) {
+		return 0;
+	}
 
 	if (self->_past + sizeof(uint32_t) > self->_total) {
 		return 0;
@@ -202,9 +207,9 @@ uint32_t ct_packet_take_u32(ct_packet_buf_t self, ct_endian_t endian) {
 }
 
 uint64_t ct_packet_take_u64(ct_packet_buf_t self, ct_endian_t endian) {
-	assert(self);
-	assert(self->_buffer);
-	assert(self->_past + sizeof(uint64_t) <= self->_total);
+	if (!self || !self->_buffer) {
+		return 0;
+	}
 
 	if (self->_past + sizeof(uint64_t) > self->_total) {
 		return 0;
@@ -224,9 +229,9 @@ uint64_t ct_packet_take_u64(ct_packet_buf_t self, ct_endian_t endian) {
 }
 
 float ct_packet_take_float(ct_packet_buf_t self, ct_endian_t endian) {
-	assert(self);
-	assert(self->_buffer);
-	assert(self->_past + sizeof(float) <= self->_total);
+	if (!self || !self->_buffer) {
+		return 0;
+	}
 
 	if (self->_past + sizeof(float) > self->_total) {
 		return 0;
@@ -245,9 +250,9 @@ float ct_packet_take_float(ct_packet_buf_t self, ct_endian_t endian) {
 }
 
 double ct_packet_take_double(ct_packet_buf_t self, ct_endian_t endian) {
-	assert(self);
-	assert(self->_buffer);
-	assert(self->_past + sizeof(double) <= self->_total);
+	if (!self || !self->_buffer) {
+		return 0;
+	}
 
 	if (self->_past + sizeof(double) > self->_total) {
 		return 0;
@@ -266,9 +271,9 @@ double ct_packet_take_double(ct_packet_buf_t self, ct_endian_t endian) {
 }
 
 void ct_packet_skip(ct_packet_buf_t self, uint16_t length) {
-	assert(self);
-	assert(self->_buffer);
-	assert(self->_past + length <= self->_total);
+	if (!self || !self->_buffer) {
+		return;
+	}
 
 	if (self->_past + length > self->_total) {
 		return;
@@ -278,9 +283,9 @@ void ct_packet_skip(ct_packet_buf_t self, uint16_t length) {
 }
 
 void ct_packet_set_u8(ct_packet_buf_t self, uint16_t offset, uint8_t value) {
-	assert(self);
-	assert(self->_buffer);
-	assert(offset + self->_past + sizeof(uint8_t) <= self->_total);
+	if (!self || !self->_buffer) {
+		return;
+	}
 
 	if (offset + self->_past + sizeof(uint8_t) > self->_total) {
 		return;  // 超出缓冲区范围
@@ -291,9 +296,9 @@ void ct_packet_set_u8(ct_packet_buf_t self, uint16_t offset, uint8_t value) {
 }
 
 void ct_packet_set_u16(ct_packet_buf_t self, uint16_t offset, uint16_t value, ct_endian_t endian) {
-	assert(self);
-	assert(self->_buffer);
-	assert(offset + self->_past + sizeof(uint16_t) <= self->_total);
+	if (!self || !self->_buffer) {
+		return;
+	}
 
 	if (offset + self->_past + sizeof(uint16_t) > self->_total) {
 		return;  // 超出缓冲区范围
@@ -310,9 +315,9 @@ void ct_packet_set_u16(ct_packet_buf_t self, uint16_t offset, uint16_t value, ct
 }
 
 void ct_packet_set_u32(ct_packet_buf_t self, uint16_t offset, uint32_t value, ct_endian_t endian) {
-	assert(self);
-	assert(self->_buffer);
-	assert(offset + self->_past + sizeof(uint32_t) <= self->_total);
+	if (!self || !self->_buffer) {
+		return;
+	}
 
 	if (offset + self->_past + sizeof(uint32_t) > self->_total) {
 		return;  // 超出缓冲区范围
@@ -329,9 +334,9 @@ void ct_packet_set_u32(ct_packet_buf_t self, uint16_t offset, uint32_t value, ct
 }
 
 void ct_packet_set_u64(ct_packet_buf_t self, uint16_t offset, uint64_t value, ct_endian_t endian) {
-	assert(self);
-	assert(self->_buffer);
-	assert(offset + self->_past + sizeof(uint64_t) <= self->_total);
+	if (!self || !self->_buffer) {
+		return;
+	}
 
 	if (offset + self->_past + sizeof(uint64_t) > self->_total) {
 		return;  // 超出缓冲区范围
@@ -348,9 +353,9 @@ void ct_packet_set_u64(ct_packet_buf_t self, uint16_t offset, uint64_t value, ct
 }
 
 void ct_packet_set_float(ct_packet_buf_t self, uint16_t offset, float value, ct_endian_t endian) {
-	assert(self);
-	assert(self->_buffer);
-	assert(offset + self->_past + sizeof(float) <= self->_total);
+	if (!self || !self->_buffer) {
+		return;
+	}
 
 	if (offset + self->_past + sizeof(float) > self->_total) {
 		return;  // 超出缓冲区范围
@@ -367,9 +372,9 @@ void ct_packet_set_float(ct_packet_buf_t self, uint16_t offset, float value, ct_
 }
 
 void ct_packet_set_double(ct_packet_buf_t self, uint16_t offset, double value, ct_endian_t endian) {
-	assert(self);
-	assert(self->_buffer);
-	assert(offset + self->_past + sizeof(double) <= self->_total);
+	if (!self || !self->_buffer) {
+		return;
+	}
 
 	if (offset + self->_past + sizeof(double) > self->_total) {
 		return;  // 超出缓冲区范围
@@ -385,8 +390,9 @@ void ct_packet_set_double(ct_packet_buf_t self, uint16_t offset, double value, c
 }
 
 void ct_packet_put_u8(ct_packet_buf_t self, uint8_t value) {
-	assert(self);
-	assert(self->_buffer);
+	if (!self || !self->_buffer) {
+		return;
+	}
 
 	if (self->_total + sizeof(uint8_t) > self->_max) {
 		return;
@@ -399,8 +405,9 @@ void ct_packet_put_u8(ct_packet_buf_t self, uint8_t value) {
 }
 
 void ct_packet_put_u16(ct_packet_buf_t self, uint16_t value, ct_endian_t endian) {
-	assert(self);
-	assert(self->_buffer);
+	if (!self || !self->_buffer) {
+		return;
+	}
 
 	if (self->_total + sizeof(uint16_t) > self->_max) {
 		return;
@@ -418,8 +425,9 @@ void ct_packet_put_u16(ct_packet_buf_t self, uint16_t value, ct_endian_t endian)
 }
 
 void ct_packet_put_u32(ct_packet_buf_t self, uint32_t value, ct_endian_t endian) {
-	assert(self);
-	assert(self->_buffer);
+	if (!self || !self->_buffer) {
+		return;
+	}
 
 	if (self->_total + sizeof(uint32_t) > self->_max) {
 		return;
@@ -437,8 +445,9 @@ void ct_packet_put_u32(ct_packet_buf_t self, uint32_t value, ct_endian_t endian)
 }
 
 void ct_packet_put_u64(ct_packet_buf_t self, uint64_t value, ct_endian_t endian) {
-	assert(self);
-	assert(self->_buffer);
+	if (!self || !self->_buffer) {
+		return;
+	}
 
 	if (self->_total + sizeof(uint64_t) > self->_max) {
 		return;
@@ -456,8 +465,9 @@ void ct_packet_put_u64(ct_packet_buf_t self, uint64_t value, ct_endian_t endian)
 }
 
 void ct_packet_put_float(ct_packet_buf_t self, float value, ct_endian_t endian) {
-	assert(self);
-	assert(self->_buffer);
+	if (!self || !self->_buffer) {
+		return;
+	}
 
 	if (self->_total + sizeof(float) > self->_max) {
 		return;
@@ -475,8 +485,9 @@ void ct_packet_put_float(ct_packet_buf_t self, float value, ct_endian_t endian) 
 }
 
 void ct_packet_put_double(ct_packet_buf_t self, double value, ct_endian_t endian) {
-	assert(self);
-	assert(self->_buffer);
+	if (!self || !self->_buffer) {
+		return;
+	}
 
 	if (self->_total + sizeof(double) > self->_max) {
 		return;
@@ -494,15 +505,17 @@ void ct_packet_put_double(ct_packet_buf_t self, double value, ct_endian_t endian
 }
 
 void ct_packet_over(ct_packet_buf_t self) {
-	assert(self);
-	assert(self->_buffer);
+	if (!self || !self->_buffer) {
+		return;
+	}
 
 	self->_past = self->_total;
 }
 
 uint16_t ct_packet_get_u8s(const ct_packet_buf_t self, uint16_t offset, uint8_t *buffer, uint16_t max) {
-	assert(self);
-	assert(self->_buffer);
+	if (!self || !self->_buffer) {
+		return 0;
+	}
 
 	if (offset + self->_past + sizeof(uint8_t) > self->_total) {
 		return 0;
@@ -517,8 +530,9 @@ uint16_t ct_packet_get_u8s(const ct_packet_buf_t self, uint16_t offset, uint8_t 
 
 uint16_t ct_packet_get_u16s(const ct_packet_buf_t self, uint16_t offset, uint16_t *buffer, uint16_t max,
 							ct_endian_t endian) {
-	assert(self);
-	assert(self->_buffer);
+	if (!self || !self->_buffer) {
+		return 0;
+	}
 
 	if (offset + self->_past + sizeof(uint16_t) > self->_total) {
 		return 0;
@@ -544,8 +558,9 @@ uint16_t ct_packet_get_u16s(const ct_packet_buf_t self, uint16_t offset, uint16_
 
 uint16_t ct_packet_get_u32s(const ct_packet_buf_t self, uint16_t offset, uint32_t *buffer, uint16_t max,
 							ct_endian_t endian) {
-	assert(self);
-	assert(self->_buffer);
+	if (!self || !self->_buffer) {
+		return 0;
+	}
 
 	if (offset + self->_past + sizeof(uint32_t) > self->_total) {
 		return 0;
@@ -571,8 +586,9 @@ uint16_t ct_packet_get_u32s(const ct_packet_buf_t self, uint16_t offset, uint32_
 
 uint16_t ct_packet_get_u64s(const ct_packet_buf_t self, uint16_t offset, uint64_t *buffer, uint16_t max,
 							ct_endian_t endian) {
-	assert(self);
-	assert(self->_buffer);
+	if (!self || !self->_buffer) {
+		return 0;
+	}
 
 	if (offset + self->_past + sizeof(uint64_t) > self->_total) {
 		return 0;
@@ -607,8 +623,9 @@ uint16_t ct_packet_get_doubles(const ct_packet_buf_t self, uint16_t offset, doub
 }
 
 uint16_t ct_packet_take_u8s(ct_packet_buf_t self, uint8_t *buffer, uint16_t max) {
-	assert(self);
-	assert(self->_buffer);
+	if (!self || !self->_buffer) {
+		return 0;
+	}
 
 	if (self->_past + sizeof(uint8_t) > self->_total) {
 		return 0;
@@ -625,8 +642,9 @@ uint16_t ct_packet_take_u8s(ct_packet_buf_t self, uint8_t *buffer, uint16_t max)
 }
 
 uint16_t ct_packet_take_u16s(ct_packet_buf_t self, uint16_t *buffer, uint16_t max, ct_endian_t endian) {
-	assert(self);
-	assert(self->_buffer);
+	if (!self || !self->_buffer) {
+		return 0;
+	}
 
 	if (self->_past + sizeof(uint16_t) > self->_total) {
 		return 0;
@@ -652,8 +670,9 @@ uint16_t ct_packet_take_u16s(ct_packet_buf_t self, uint16_t *buffer, uint16_t ma
 }
 
 uint16_t ct_packet_take_u32s(ct_packet_buf_t self, uint32_t *buffer, uint16_t max, ct_endian_t endian) {
-	assert(self);
-	assert(self->_buffer);
+	if (!self || !self->_buffer) {
+		return 0;
+	}
 
 	if (self->_past + sizeof(uint32_t) > self->_total) {
 		return 0;
@@ -679,8 +698,9 @@ uint16_t ct_packet_take_u32s(ct_packet_buf_t self, uint32_t *buffer, uint16_t ma
 }
 
 uint16_t ct_packet_take_u64s(ct_packet_buf_t self, uint64_t *buffer, uint16_t max, ct_endian_t endian) {
-	assert(self);
-	assert(self->_buffer);
+	if (!self || !self->_buffer) {
+		return 0;
+	}
 
 	if (self->_past + sizeof(uint64_t) > self->_total) {
 		return 0;
@@ -714,8 +734,9 @@ uint16_t ct_packet_take_doubles(ct_packet_buf_t self, double *buffer, uint16_t m
 }
 
 uint16_t ct_packet_put_u8s(ct_packet_buf_t self, const uint8_t *buffer, uint16_t length) {
-	assert(self);
-	assert(self->_buffer);
+	if (!self || !self->_buffer) {
+		return 0;
+	}
 
 	if (self->_total + sizeof(uint8_t) > self->_max) {
 		return 0;
@@ -731,8 +752,9 @@ uint16_t ct_packet_put_u8s(ct_packet_buf_t self, const uint8_t *buffer, uint16_t
 }
 
 uint16_t ct_packet_put_u16s(ct_packet_buf_t self, const uint16_t *buffer, uint16_t length, ct_endian_t endian) {
-	assert(self);
-	assert(self->_buffer);
+	if (!self || !self->_buffer) {
+		return 0;
+	}
 
 	if (self->_total + sizeof(uint16_t) > self->_max) {
 		return 0;
@@ -758,8 +780,9 @@ uint16_t ct_packet_put_u16s(ct_packet_buf_t self, const uint16_t *buffer, uint16
 }
 
 uint16_t ct_packet_put_u32s(ct_packet_buf_t self, const uint32_t *buffer, uint16_t length, ct_endian_t endian) {
-	assert(self);
-	assert(self->_buffer);
+	if (!self || !self->_buffer) {
+		return 0;
+	}
 
 	if (self->_total + sizeof(uint32_t) > self->_max) {
 		return 0;
@@ -785,8 +808,9 @@ uint16_t ct_packet_put_u32s(ct_packet_buf_t self, const uint32_t *buffer, uint16
 }
 
 uint16_t ct_packet_put_u64s(ct_packet_buf_t self, const uint64_t *buffer, uint16_t length, ct_endian_t endian) {
-	assert(self);
-	assert(self->_buffer);
+	if (!self || !self->_buffer) {
+		return 0;
+	}
 
 	if (self->_total + sizeof(uint64_t) > self->_max) {
 		return 0;

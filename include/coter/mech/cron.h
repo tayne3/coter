@@ -26,8 +26,9 @@ typedef void (*ct_cron_callback_t)(void*);
  * @brief cron任务管理初始化
  * @param now 当前时间 (s)
  * @param thpool 任务池
+ * @return int 成功返回0，失败返回非0值
  */
-void ct_cron_mgr_init(ct_time_t now, struct ct_thpool* thpool) __ct_nonnull(2);
+int ct_cron_mgr_init(ct_time_t now, struct ct_thpool* thpool);
 
 /**
  * @brief cron任务调度
