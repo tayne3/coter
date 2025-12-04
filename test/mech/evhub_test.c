@@ -28,6 +28,8 @@ typedef struct {
 	}
 
 static void handler_a(uint32_t type, void *data, void *user_data) {
+	ct_unused(type);
+	ct_unused(data);
 	test_context_t *ctx = (test_context_t *)user_data;
 	if (ctx) {
 		ctx->count_a++;
@@ -35,6 +37,8 @@ static void handler_a(uint32_t type, void *data, void *user_data) {
 }
 
 static void handler_b(uint32_t type, void *data, void *user_data) {
+	ct_unused(type);
+	ct_unused(data);
 	test_context_t *ctx = (test_context_t *)user_data;
 	if (ctx) {
 		ctx->count_b++;
