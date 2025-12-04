@@ -197,11 +197,7 @@ typedef int ct_endian_t;
 
 // offset of member
 # ifndef OFFSET_OF
-# 	ifdef __compiler_offsetof
-#   	define OFFSET_OF(_type, _member)			offsetof(_type, _member)
-# 	else
-#       define OFFSET_OF(_type, _member)            (uintmax_t)((char*)(&((_type*)0)->_member))
-# 	endif
+#   define OFFSET_OF(_type, _member)				offsetof(_type, _member)
 # endif
 // container of
 # ifndef CONTAINER_OF
