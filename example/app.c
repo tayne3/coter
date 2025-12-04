@@ -12,6 +12,10 @@
 #include "coter/mech.h"
 #include "excep.h"
 
+#ifdef CT_OS_DARWIN
+#include <sys/event.h>
+#endif
+
 // -------------------------[STATIC DECLARATION]-------------------------
 
 typedef struct atexit {
@@ -206,8 +210,9 @@ int global_atexit(void (*callback)(void)) {
 }
 
 int global_async(void (*routine)(void*), void* arg) {
-	assert(gapp->thpool);
-	assert(routine);
+	if (!gapp->thpool || !routine) {
+		return -1;
+	}
 	return ct_thpool_submit(gapp->thpool, routine, arg);
 }
 
@@ -340,12 +345,14 @@ LONG WINAPI MyUnhandledExceptionFilter(EXCEPTION_POINTERS* exp) {
 	return EXCEPTION_EXECUTE_HANDLER;
 	ct_unused(exp);
 }
-#else
+#elif defined(CT_OS_LINUX)
 static void ap_signal_handler(int sig) {
 	ap_crash(sig, strsignal(sig), true);
 }
 
 static void* ap_signal_thread(void* arg) {
+	ct_unused(arg);
+
 	sigset_t set;
 	sigemptyset(&set);
 	sigaddset(&set, SIGINT);
@@ -376,6 +383,74 @@ static void* ap_signal_thread(void* arg) {
 	}
 
 	return NULL;
-	ct_unused(arg);
 }
+#elif defined(CT_OS_DARWIN)
+static void ap_signal_handler(int sig) {
+	ap_crash(sig, strsignal(sig), true);
+}
+
+static void* ap_signal_thread(void* arg) {
+	ct_unused(arg);
+
+	sigset_t set;
+	sigemptyset(&set);
+	sigaddset(&set, SIGINT);
+	sigaddset(&set, SIGTERM);
+	sigaddset(&set, SIGABRT);
+	sigaddset(&set, SIGBUS);
+
+	int kq = kqueue();
+	if (kq == -1) {
+		perror("kqueue");
+		return NULL;
+	}
+	struct kevent changes[4];
+	EV_SET(&changes[0], SIGINT, EVFILT_SIGNAL, EV_ADD, 0, 0, NULL);
+	EV_SET(&changes[1], SIGTERM, EVFILT_SIGNAL, EV_ADD, 0, 0, NULL);
+	EV_SET(&changes[2], SIGABRT, EVFILT_SIGNAL, EV_ADD, 0, 0, NULL);
+	EV_SET(&changes[3], SIGBUS, EVFILT_SIGNAL, EV_ADD, 0, 0, NULL);
+	if (kevent(kq, changes, 4, NULL, 0, NULL) == -1) {
+		perror("kevent register");
+		close(kq);
+		return NULL;
+	}
+
+	struct timespec timeout;
+	timeout.tv_sec      = 1;
+	timeout.tv_nsec     = 0;
+	excep_t       excep = EXCEP_NULL;
+	struct kevent events[1];
+
+	for (; !gapp->isShutdown;) {
+		int n = kevent(kq, NULL, 0, events, 1, &timeout);
+		if (n == -1) {
+			if (errno == EINTR) {
+				continue;
+			}
+			perror("kevent wait");
+			break;
+		}
+		if (n == 0) {
+			continue;  // Timeout
+		}
+		if (events[0].filter == EVFILT_SIGNAL) {
+			int sig      = (int)events[0].ident;
+			excep.code   = sig;
+			excep.msg    = strsignal(sig);
+			excep.is_sig = true;
+			if (ct_msgqueue_enqueue(gapp->exitMQ, &excep)) {
+				break;
+			} else {
+				ap_occurred(&excep);
+				ap_log_deinit();
+				exit(EXIT_FAILURE);
+			}
+		}
+	}
+
+	close(kq);
+	return NULL;
+}
+#else
+#error "Unsupported platform"
 #endif
