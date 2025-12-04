@@ -11,12 +11,21 @@
 extern "C" {
 #endif
 
-#ifdef _MSC_VER
+#if !HAVE_STRUCT_TIMEVAL
+struct timeval {
+	long tv_sec;
+	long tv_usec;
+};
+#endif
+
+#if !HAVE_STRUCT_TIMEZONE
 struct timezone {
 	int tz_minuteswest; /* of Greenwich */
 	int tz_dsttime;     /* type of dst correction to apply */
 };
+#endif
 
+#ifdef _MSC_VER
 #include <sys/timeb.h>
 static inline int gettimeofday(struct timeval* tv, struct timezone* tz) {
 	struct _timeb tb;

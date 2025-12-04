@@ -14,12 +14,12 @@ include(${CMAKE_CURRENT_LIST_DIR}/cmake/SetupPthreads.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/SetupLibrarys.cmake)
 
 if(COTER_BUILD_SHARED)
-  set(COTER coter_shared)
   add_library(coter_shared SHARED)
+  set(COTER coter_shared)
   message(STATUS "coter v${PROJECT_VERSION} shared library")
 else()
-  set(COTER coter_static)
   add_library(coter_static STATIC)
+  set(COTER coter_static)
   message(STATUS "coter v${PROJECT_VERSION} static library")
 endif()
 add_library(coter::coter ALIAS ${COTER})
@@ -31,11 +31,11 @@ configure_file(
 )
 
 file(GLOB_RECURSE project_source_files CONFIGURE_DEPENDS src/*.c)
-target_sources(${COTER} PUBLIC ${project_source_files})
-target_link_libraries(${COTER} PRIVATE coter_compile_dependency)
+target_sources(${COTER} PRIVATE ${project_source_files})
+target_link_libraries(${COTER} PUBLIC coter_compile_dependency)
 target_include_directories(${COTER} PUBLIC 
   ${CMAKE_CURRENT_SOURCE_DIR}/include 
-  ${CMAKE_CURRENT_BINARY_DIR}/include
+  ${CMAKE_CURRENT_BINARY_DIR}/include   
 )
 
 if(COTER_BUILD_TEST)

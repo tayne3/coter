@@ -21,13 +21,6 @@ endif()
 
 add_library(${PROJECT_NAME}_compile_dependency INTERFACE)
 target_compile_features(${PROJECT_NAME}_compile_dependency INTERFACE c_std_99)
-if(CMAKE_BUILD_TYPE)
-	if(PROJECT_BUILD_DEBUG)
-		target_compile_definitions(${PROJECT_NAME}_compile_dependency INTERFACE -DDEBUG)
-	else()
-		target_compile_definitions(${PROJECT_NAME}_compile_dependency INTERFACE -DNDEBUG)
-	endif()
-endif()
 
 # set source charset to utf-8 for MSVC
 if(CMAKE_C_COMPILER_ID STREQUAL "MSVC")

@@ -32,6 +32,12 @@ project_check_function("pthread_spin_lock" "pthread.h")
 project_check_function("pthread_mutex_timedlock" "pthread.h")
 
 project_check_struct("struct timespec" "tv_sec" "time.h")
+project_check_struct("struct timezone" "tz_minuteswest" "sys/time.h")
+if(WIN32)
+  project_check_struct("struct timeval" "tv_sec" "winsock2.h")
+else()
+  project_check_struct("struct timeval" "tv_sec" "sys/time.h")
+endif()
 project_check_library_function("rt" "clock_gettime" "")
 
 target_link_libraries(${PROJECT_NAME}_compile_dependency INTERFACE ${PTHREADS_LIBS})

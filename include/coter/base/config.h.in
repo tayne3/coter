@@ -1,7 +1,7 @@
 #ifndef COTER_CONFIG_H
 #define COTER_CONFIG_H
 
-#include "pthread.h"
+#include <pthread.h>
 
 #define __coter_version_string__   "@PROJECT_VERSION@"
 #define __coter_version_major__    @PROJECT_VERSION_MAJOR@
@@ -103,6 +103,14 @@
 
 #ifndef HAVE_STRUCT_TIMESPEC
 #define HAVE_STRUCT_TIMESPEC @HAVE_STRUCT_TIMESPEC@
+#endif
+
+#ifndef HAVE_STRUCT_TIMEZONE
+#define HAVE_STRUCT_TIMEZONE @HAVE_STRUCT_TIMEZONE@
+#endif
+
+#ifndef HAVE_STRUCT_TIMEVAL
+#define HAVE_STRUCT_TIMEVAL @HAVE_STRUCT_TIMEVAL@
 #endif
 
 #endif // COTER_CONFIG_H
