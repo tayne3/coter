@@ -37,10 +37,10 @@ typedef struct worker {
  * @brief 线程池状态
  */
 typedef struct status {
-	ct_atomic_t capacity;    // 最大线程数 (为0表示不限制)
-	ct_atomic_t total_size;  // 总线程数
-	ct_atomic_t wait_size;   // 等待任务数
-	ct_atomic_t closed;      // 是否关闭
+	ct_atomic_long_t capacity;    // 最大线程数 (为0表示不限制)
+	ct_atomic_long_t total_size;  // 总线程数
+	ct_atomic_long_t wait_size;   // 等待任务数
+	ct_atomic_long_t closed;      // 是否关闭
 } status_t;
 
 /**
@@ -57,7 +57,7 @@ struct ct_thpool {
 	pthread_t monitor_thread;  // 监视线程
 };
 
-#define ctl_is_closed(pool) ct_atomic_load(&(pool)->status.closed)
+#define ctl_is_closed(pool) ct_atomic_long_load(&(pool)->status.closed)
 
 // 初始化 线程池属性
 static inline void ctl_config_init(ct_thpool_t* self, ct_thpool_config_t* attr);
@@ -115,7 +115,7 @@ void ct_thpool_close(ct_thpool_t* self) {
 	if (ctl_is_closed(self)) {
 		return;
 	}
-	ct_atomic_store(&self->status.closed, 1);
+	ct_atomic_long_store(&self->status.closed, 1);
 
 	if (self->config.idle_timeout > 0) {
 		pthread_join(self->monitor_thread, NULL);
@@ -149,7 +149,7 @@ void ct_thpool_destroy(ct_thpool_t* self) {
 	}
 	ct_thpool_close(self);
 
-	while (ct_atomic_load(&self->status.total_size) > 0) {
+	while (ct_atomic_long_load(&self->status.total_size) > 0) {
 		ct_msleep(10);
 	}
 	pthread_mutex_destroy(self->worker_mutex);
@@ -258,8 +258,8 @@ Retry:
 		}
 	}
 
-	const long capacity = ct_atomic_load(&self->status.capacity);
-	if (capacity == 0 || capacity > ct_atomic_load(&self->status.total_size)) {
+	const long capacity = ct_atomic_long_load(&self->status.capacity);
+	if (capacity == 0 || capacity > ct_atomic_long_load(&self->status.total_size)) {
 		pthread_mutex_unlock(self->worker_mutex);
 		*worker = ctl_worker_create(self);
 		if (!*worker) {
@@ -269,14 +269,14 @@ Retry:
 	}
 
 	if (self->config.non_blocking ||
-		(self->config.max_tasks > 0 && ct_atomic_load(&self->status.wait_size) >= (long)self->config.max_tasks)) {
+		(self->config.max_tasks > 0 && ct_atomic_long_load(&self->status.wait_size) >= (long)self->config.max_tasks)) {
 		pthread_mutex_unlock(self->worker_mutex);
 		return CTThPoolError_Overload;
 	}
 
-	ct_atomic_inc(&self->status.wait_size);
+	ct_atomic_long_add(&self->status.wait_size, 1);
 	pthread_cond_wait(self->worker_cond, self->worker_mutex);
-	ct_atomic_dec(&self->status.wait_size);
+	ct_atomic_long_sub(&self->status.wait_size, 1);
 
 	if (ctl_is_closed(self)) {
 		pthread_mutex_unlock(self->worker_mutex);
@@ -290,8 +290,8 @@ static inline bool ctl_revert_worker(ct_thpool_t* self, worker_t* worker) {
 	if (ctl_is_closed(self)) {
 		return false;
 	}
-	const long capacity = ct_atomic_load(&self->status.capacity);
-	if ((capacity > 0 && capacity <= ct_atomic_load(&self->status.total_size))) {
+	const long capacity = ct_atomic_long_load(&self->status.capacity);
+	if ((capacity > 0 && capacity <= ct_atomic_long_load(&self->status.total_size))) {
 		pthread_mutex_lock(self->worker_mutex);
 		pthread_cond_broadcast(self->worker_cond);
 		pthread_mutex_unlock(self->worker_mutex);
@@ -327,7 +327,7 @@ static inline worker_t* ctl_worker_create(ct_thpool_t* self) {
 		free(worker);
 		return NULL;
 	}
-	ct_atomic_inc(&self->status.total_size);
+	ct_atomic_long_add(&self->status.total_size, 1);
 	return worker;
 }
 
@@ -352,7 +352,7 @@ static inline void* ctl_worker_thread(void* arg) {
 		}
 	}
 
-	ct_atomic_dec(&pool->status.total_size);
+	ct_atomic_long_sub(&pool->status.total_size, 1);
 	pthread_mutex_lock(pool->worker_mutex);
 	pthread_cond_signal(pool->worker_cond);
 	pthread_mutex_unlock(pool->worker_mutex);
@@ -386,7 +386,7 @@ static inline void* ctl_monitor_thread(void* arg) {
 			last = now;
 
 			const ct_time64_t expiry_time = now - pool->config.idle_timeout;
-			const size_t      total_size  = ct_atomic_load(&pool->status.total_size);
+			const size_t      total_size  = ct_atomic_long_load(&pool->status.total_size);
 
 			ct_list_buf_t stale_head;
 			ct_list_init(stale_head);
@@ -411,7 +411,7 @@ static inline void* ctl_monitor_thread(void* arg) {
 			}
 
 			// 如果所有线程都是过期的且有等待任务，则通知工作者
-			if ((total_size == 0 || total_size == stale_size) && ct_atomic_load(&pool->status.wait_size) > 0) {
+			if ((total_size == 0 || total_size == stale_size) && ct_atomic_long_load(&pool->status.wait_size) > 0) {
 				pthread_cond_broadcast(pool->worker_cond);
 			}
 		}

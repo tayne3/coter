@@ -5,7 +5,7 @@
 #ifndef COTER_PLATFORM_H
 #define COTER_PLATFORM_H
 
-#include "coter/base/str.h"
+#include "coter/base/macro.h"
 
 // clang-format off
 

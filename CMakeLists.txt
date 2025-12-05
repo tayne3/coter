@@ -12,6 +12,7 @@ include(${CMAKE_CURRENT_LIST_DIR}/cmake/CPM.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/ProjectFunctions.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/SetupPthreads.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/SetupLibrarys.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/SetupAtomic.cmake)
 
 if(COTER_BUILD_SHARED)
   add_library(coter_shared SHARED)
