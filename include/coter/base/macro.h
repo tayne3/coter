@@ -64,6 +64,32 @@
 #	define strnicmp    strncasecmp
 # endif
 
+// empty string
+# ifndef STR_NULL
+#   define STR_NULL ""
+# endif
+
+// string is empty
+# ifndef STR_ISEMPTY
+#   define STR_ISEMPTY(_s) 	(!(_s) || !*(const char *)(_s))
+# endif
+
+// newline
+# ifdef _MSC_VER
+#   define STR_NEWLINE "\r\n"
+# else
+#   define STR_NEWLINE "\n"
+# endif
+
+// separator
+# ifdef _MSC_VER
+#   define STR_SEPARATOR "\\"
+#   define STR_SEPARATOR_CHAR '\\'
+# else
+#   define STR_SEPARATOR "/"
+#   define STR_SEPARATOR_CHAR '/'
+# endif
+
 // OS
 # if defined(WIN64) || defined(_WIN64) || defined(__WIN64__)
 #	define CT_OS_WIN64
@@ -148,7 +174,7 @@ typedef int ct_endian_t;
 #   define CTEndian_IsLittle 0
 #   define CTEndian_IsBig 1
 # else
-#	define CTEndian_System ((*(unsigned char *)&(unsigned int){1}) == 0)
+#	define CTEndian_System ((*(unsigned char *)&(unsigned int){1}) == 1)
 #	define CTEndian_SystemUnknown 1
 #   define CTEndian_IsLittle (CTEndian_System == CTEndian_Little)
 #   define CTEndian_IsBig (CTEndian_System == CTEndian_Big)
@@ -219,10 +245,6 @@ typedef int ct_endian_t;
 # 	define __GNUC_PREREQ(a, b)	0
 # endif
 
-# ifndef __glibc_clang_has_extension
-# 	define __glibc_clang_has_extension(...)	0
-# endif
-
 // current function name, file name, and line number
 # if defined __cplusplus ? __GNUC_PREREQ (2, 6) : __GNUC_PREREQ (2, 4)
 #	define __ct_func__		__extension__ __PRETTY_FUNCTION__
@@ -249,6 +271,8 @@ typedef int ct_endian_t;
 #	define __ct_file__		"(nil)"
 #	define __ct_line__		0
 # endif
+
+# define __ct_filename__  (strrchr(STR_SEPARATOR __ct_file__, STR_SEPARATOR_CHAR) + 1)
 
 // inline
 # ifndef CT_INLINE

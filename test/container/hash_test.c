@@ -2,9 +2,11 @@
  * @file hash_test.c
  * @brief 哈希表测试
  */
+#include "coter/container/hash.h"
+
 #include "coter/base/any.h"
 #include "coter/base/platform.h"
-#include "coter/container/hash.h"
+#include "coter/base/str.h"
 #include "cunit.h"
 #include "sched.h"
 

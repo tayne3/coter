@@ -5,6 +5,7 @@
 #include "coter/mech/log/log_printer.h"
 
 #include "coter/base/atomic.h"
+#include "coter/base/str.h"
 #include "coter/mech/bytepool.h"
 #include "coter/mech/log/log_config.h"
 

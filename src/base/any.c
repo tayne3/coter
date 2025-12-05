@@ -5,6 +5,7 @@
 #include "coter/base/any.h"
 
 #include "coter/base/platform.h"
+#include "coter/base/str.h"
 
 // -------------------------[STATIC DECLARATION]-------------------------
 

@@ -11,43 +11,6 @@
 extern "C" {
 #endif
 
-// clang-format off
-
-// bool string
-# ifndef STR_BOOL
-#   define STR_BOOL(_b) 	((_b) ? "true" : "false")
-# endif
-
-// newline
-# ifdef _MSC_VER
-#   define STR_NEWLINE      "\r\n"
-# else
-#   define STR_NEWLINE      "\n"
-# endif
-
-// separator
-# ifdef _MSC_VER
-#   define STR_SEPARATOR 		"\\"
-#   define STR_SEPARATOR_CHAR	'\\'
-# else
-#   define STR_SEPARATOR    	"/"
-#   define STR_SEPARATOR_CHAR	'/'
-# endif
-
-// empty string
-# ifndef STR_NULL
-#   define STR_NULL         ""
-# endif
-
-// string is empty
-# ifndef STR_ISEMPTY
-#   define STR_ISEMPTY(_s) 	(!(_s) || !*(const char *)(_s))
-# endif
-
-# define __ct_filename__  (strrchr(STR_SEPARATOR __ct_file__, STR_SEPARATOR_CHAR) + 1)
-
-// clang-format on
-
 #ifdef CT_OS_WIN
 /**
  * @brief 格式化输出字符串

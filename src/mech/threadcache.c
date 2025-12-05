@@ -4,6 +4,7 @@
  */
 #include "coter/mech/threadcache.h"
 
+#include "coter/base/str.h"
 #include "coter/base/time.h"
 
 #ifdef CT_OS_LINUX

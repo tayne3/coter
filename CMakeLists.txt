@@ -25,7 +25,7 @@ endif()
 add_library(coter::coter ALIAS ${COTER})
 
 configure_file(
-  "include/coter/base/config.h.in"
+  "src/base/config.h.in"
   "include/coter/base/config.h"
   @ONLY
 )

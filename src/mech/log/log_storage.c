@@ -6,6 +6,7 @@
 
 #include "coter/base/atomic.h"
 #include "coter/base/platform.h"
+#include "coter/base/str.h"
 #include "coter/mech/bytepool.h"
 #include "coter/mech/log/log_config.h"
 
@@ -140,7 +141,7 @@ void ct_log_storage_destroy(ct_log_storage_t *self) {
 }
 
 void ct_log_storage_handle(ct_log_storage_t *self, const char *buf, size_t size) {
-	if (!self || !buf || !size ) {
+	if (!self || !buf || !size) {
 		return;
 	}
 

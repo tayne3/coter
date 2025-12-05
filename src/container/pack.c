@@ -62,7 +62,7 @@ static void doreverse(int reverse, void *buf, size_t n) {
 		return;
 	}
 	char *a = (char *)buf;
-	for (size_t i = 0, j = n - 1; i < j; i++, j--) {
+	for (size_t i = 0, j = n - 1; i < j; ++i, --j) {
 		const char t = a[i];
 		a[i]         = a[j];
 		a[j]         = t;

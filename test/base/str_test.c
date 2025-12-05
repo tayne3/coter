@@ -2,6 +2,8 @@
  * @file str_test.c
  * @brief 字符串相关测试
  */
+#include "coter/base/str.h"
+
 #include "coter/base/platform.h"
 #include "cunit.h"
 
