@@ -46,9 +46,8 @@ tasks:
       BUILD_DIR: "cmake-build-{{.BUILD_TYPE | lower}}"
     deps:
       - task: build
-    dir: "{{.BUILD_DIR}}"
     cmds:
-      - ctest --output-on-failure
+      - ctest --test-dir {{.BUILD_DIR}} -C {{.BUILD_TYPE}} --output-on-failure
 
   clean:
     desc: Clean the build directory
