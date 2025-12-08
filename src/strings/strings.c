@@ -1,8 +1,8 @@
 /**
- * @file utils.c
- * @brief 工具函数
+ * @file strings.c
+ * @brief 字符串相关
  */
-#include "coter/mem/alloc.h"
+#include "coter/strings/strings.h"
 
 // -------------------------[STATIC DECLARATION]-------------------------
 

@@ -4,7 +4,7 @@
  */
 #include "coter/container/packet.h"
 
-#include "coter/mem/alloc.h"
+#include "coter/strings/strings.h"
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
