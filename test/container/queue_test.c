@@ -2,8 +2,9 @@
  * @file queue_test.c
  * @brief 队列测试
  */
-#include "coter/base/any.h"
 #include "coter/container/queue.h"
+
+#include "coter/types/any.h"
 #include "cunit.h"
 
 // 测试初始化

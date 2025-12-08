@@ -1,5 +1,5 @@
 /**
- * @file ct_list.h
+ * @file list.h
  * @brief 链表实现
  * @note
  *  定义了链表的数据结构和相关操作函数，包含链表的初始化、插入、删除、查询等操作。
@@ -9,7 +9,7 @@
 #ifndef COTER_LIST_H
 #define COTER_LIST_H
 
-#include "coter/base/platform.h"
+#include "coter/core/platform.h"
 
 #ifdef __cplusplus
 extern "C" {

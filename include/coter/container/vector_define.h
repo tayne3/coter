@@ -5,8 +5,8 @@
 #ifndef COTER_VECTOR_DEFINE_H
 #define COTER_VECTOR_DEFINE_H
 
-#include "coter/base/any.h"
-#include "coter/base/platform.h"
+#include "coter/core/platform.h"
+#include "coter/types/any.h"
 
 #ifdef __cplusplus
 extern "C" {

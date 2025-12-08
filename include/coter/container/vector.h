@@ -5,8 +5,8 @@
 #ifndef COTER_VECTOR_H
 #define COTER_VECTOR_H
 
-#include "coter/base/any.h"
-#include "coter/base/platform.h"
+#include "coter/core/platform.h"
+#include "coter/types/any.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,40 +31,40 @@ typedef struct ct_vector {
  * @param byte 单个元素的字节大小。
  * @param capacity 初始容量 (以元素数量计)。
  */
-void ct_vector_init(ct_vector_t* self, size_t byte, size_t capacity) ;
+void ct_vector_init(ct_vector_t* self, size_t byte, size_t capacity);
 
 /**
  * @brief 销毁动态数组，并释放其占用的内存。
  * @param self 动态数组指针。
  */
-void ct_vector_destroy(ct_vector_t* self) ;
+void ct_vector_destroy(ct_vector_t* self);
 
 /**
  * @brief 清空动态数组中的所有元素，但不释放内存。
  * @param self 动态数组指针。
  */
-void ct_vector_clear(ct_vector_t* self) ;
+void ct_vector_clear(ct_vector_t* self);
 
 /**
  * @brief 获取动态数组的当前容量。
  * @param self 动态数组指针。
  * @return 当前容量 (以元素数量计)。
  */
-size_t ct_vector_capacity(const ct_vector_t* self) ;
+size_t ct_vector_capacity(const ct_vector_t* self);
 
 /**
  * @brief 获取动态数组中元素的数量。
  * @param self 动态数组指针。
  * @return 元素数量。
  */
-size_t ct_vector_size(const ct_vector_t* self) ;
+size_t ct_vector_size(const ct_vector_t* self);
 
 /**
  * @brief 检查动态数组是否为空。
  * @param self 动态数组指针。
  * @return `true` 表示为空，`false` 表示非空。
  */
-bool ct_vector_empty(const ct_vector_t* self) ;
+bool ct_vector_empty(const ct_vector_t* self);
 
 /**
  * @brief 调整动态数组的大小。
@@ -73,7 +73,7 @@ bool ct_vector_empty(const ct_vector_t* self) ;
  * @param new_size 新的大小。
  * @return `true` 表示成功，`false` 表示失败。
  */
-bool ct_vector_resize(ct_vector_t* self, size_t new_size) ;
+bool ct_vector_resize(ct_vector_t* self, size_t new_size);
 
 /**
  * @brief 请求动态数组的容量至少能容纳指定数量的元素。
@@ -82,7 +82,7 @@ bool ct_vector_resize(ct_vector_t* self, size_t new_size) ;
  * @param capacity 期望的最小容量。
  * @return `true` 表示成功，`false` 表示失败。
  */
-bool ct_vector_reserve(ct_vector_t* self, size_t capacity) ;
+bool ct_vector_reserve(ct_vector_t* self, size_t capacity);
 
 /**
  * @brief 收缩动态数组的容量以匹配其大小。
@@ -90,7 +90,7 @@ bool ct_vector_reserve(ct_vector_t* self, size_t capacity) ;
  * @param self 动态数组指针。
  * @return `true` 表示成功，`false` 表示失败。
  */
-bool ct_vector_shrink(ct_vector_t* self) ;
+bool ct_vector_shrink(ct_vector_t* self);
 
 /**
  * @brief 在指定索引处插入一个新元素。
@@ -99,7 +99,7 @@ bool ct_vector_shrink(ct_vector_t* self) ;
  * @param data 指向要插入元素数据的指针。
  * @return `true` 表示成功，`false` 表示失败。
  */
-bool ct_vector_insert(ct_vector_t* self, size_t idx, const void* data) ;
+bool ct_vector_insert(ct_vector_t* self, size_t idx, const void* data);
 
 /**
  * @brief 在动态数组的末尾添加一个新元素。
@@ -107,7 +107,7 @@ bool ct_vector_insert(ct_vector_t* self, size_t idx, const void* data) ;
  * @param data 指向要添加元素数据的指针。
  * @return `true` 表示成功，`false` 表示失败。
  */
-bool ct_vector_push(ct_vector_t* self, const void* data) ;
+bool ct_vector_push(ct_vector_t* self, const void* data);
 
 /**
  * @brief 移除动态数组中指定索引处的元素。
@@ -115,14 +115,14 @@ bool ct_vector_push(ct_vector_t* self, const void* data) ;
  * @param idx 要移除的元素的索引。
  * @return `true` 表示成功，`false` 表示失败。
  */
-bool ct_vector_erase(ct_vector_t* self, size_t idx) ;
+bool ct_vector_erase(ct_vector_t* self, size_t idx);
 
 /**
  * @brief 移除动态数组的最后一个元素。
  * @param self 动态数组指针。
  * @return `true` 表示成功，`false` 表示失败。
  */
-bool ct_vector_pop(ct_vector_t* self) ;
+bool ct_vector_pop(ct_vector_t* self);
 
 /**
  * @brief 获取指向指定索引处元素的可变指针。
@@ -130,7 +130,7 @@ bool ct_vector_pop(ct_vector_t* self) ;
  * @param idx 元素索引。
  * @return 指向元素的指针；如果索引越界，则返回 `NULL`。
  */
-void* ct_vector_at(ct_vector_t* self, size_t idx) ;
+void* ct_vector_at(ct_vector_t* self, size_t idx);
 
 /**
  * @brief 获取指向指定索引处元素的常量指针。
@@ -138,21 +138,21 @@ void* ct_vector_at(ct_vector_t* self, size_t idx) ;
  * @param idx 元素索引。
  * @return 指向元素的常量指针；如果索引越界，则返回 `NULL`。
  */
-const void* ct_vector_value(const ct_vector_t* self, size_t idx) ;
+const void* ct_vector_value(const ct_vector_t* self, size_t idx);
 
 /**
  * @brief 获取指向动态数组第一个元素的可变指针。
  * @param self 动态数组指针。
  * @return 指向第一个元素的指针；如果数组为空，则返回 `NULL`。
  */
-void* ct_vector_front(ct_vector_t* self) ;
+void* ct_vector_front(ct_vector_t* self);
 
 /**
  * @brief 获取指向动态数组最后一个元素的可变指针。
  * @param self 动态数组指针。
  * @return 指向最后一个元素的指针；如果数组为空，则返回 `NULL`。
  */
-void* ct_vector_back(ct_vector_t* self) ;
+void* ct_vector_back(ct_vector_t* self);
 
 #ifdef __cplusplus
 }

@@ -1,5 +1,5 @@
 /**
- * @file ct_heap.h
+ * @file heap.h
  * @brief 堆实现
  * @note
  * 	定义了堆的数据结构和相关操作函数，包含堆的初始化、插入、删除、查询等操作。
@@ -9,8 +9,8 @@
 #ifndef COTER_HEAP_H
 #define COTER_HEAP_H
 
-#include "coter/base/any.h"
-#include "coter/base/platform.h"
+#include "coter/core/platform.h"
+#include "coter/types/any.h"
 
 #ifdef __cplusplus
 extern "C" {

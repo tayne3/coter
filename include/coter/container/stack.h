@@ -1,5 +1,5 @@
 /**
- * @file ct_stack.h
+ * @file stack.h
  * @brief 栈实现
  * @note
  *  定义了栈的数据结构和相关操作函数，包含栈的初始化、入栈、出栈、查询等操作。
@@ -9,8 +9,8 @@
 #ifndef COTER_STACK_H
 #define COTER_STACK_H
 
-#include "coter/base/any.h"
-#include "coter/base/platform.h"
+#include "coter/core/platform.h"
+#include "coter/types/any.h"
 
 #ifdef __cplusplus
 extern "C" {

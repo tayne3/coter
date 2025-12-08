@@ -2,13 +2,14 @@
  * @file excep.h
  * @brief 异常信息
  */
-#ifndef _EXCEP_H
-#define _EXCEP_H
+#ifndef EXAMPLE_EXCEP_H
+#define EXAMPLE_EXCEP_H
+
+#include "coter/core/platform.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "coter/base/platform.h"
 
 // 异常信息
 typedef struct excep {
@@ -23,4 +24,4 @@ typedef struct excep {
 #ifdef __cplusplus
 }
 #endif
-#endif  // _EXCEP_H
+#endif  // EXAMPLE_EXCEP_H

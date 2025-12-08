@@ -1,5 +1,5 @@
 /**
- * @file ct_hash.c
+ * @file hash.c
  * @brief 哈希表实现
  * @note
  * 哈希表是一种根据关键字直接访问数据元素的数据结构, 适用于要求高效检索的场景。
@@ -17,8 +17,8 @@
  */
 #include "coter/container/hash.h"
 
-#include "coter/algo/hashalgo.h"
-#include "coter/base/platform.h"
+#include "coter/core/platform.h"
+#include "coter/hash/hash.h"
 
 // -------------------------[STATIC DECLARATION]-------------------------
 

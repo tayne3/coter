@@ -18,3 +18,4 @@
 /.[Dd]iscard/
 
 /*.env
+.DS_Store

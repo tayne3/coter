@@ -7,9 +7,13 @@
 #include <setjmp.h>
 #include <signal.h>
 
-#include "coter/base.h"
-#include "coter/container.h"
-#include "coter/mech.h"
+#include "coter/container/list.h"
+#include "coter/event/msgqueue.h"
+#include "coter/runtime/thpool.h"
+#include "coter/sync/waitgroup.h"
+#include "coter/time/cron.h"
+#include "coter/time/time.h"
+#include "coter/time/timer.h"
 #include "excep.h"
 
 #ifdef CT_OS_DARWIN

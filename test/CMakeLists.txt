@@ -1,8 +1,9 @@
 CPMAddPackage(
   NAME cunit
-  GIT_REPOSITORY "http://192.168.1.47:3000/tayne3/cunit.git"
-  VERSION 0.2.3
-  GIT_SHALLOW TRUE
+  # GIT_REPOSITORY "http://192.168.1.47:3000/tayne3/cunit.git"
+  # VERSION 0.2.3
+  # GIT_SHALLOW TRUE
+  URL "https://codeload.github.com/tayne3/cunit/tar.gz/refs/tags/v0.2.3"
 )
 
 file(GLOB_RECURSE test_source_files CONFIGURE_DEPENDS *.c)

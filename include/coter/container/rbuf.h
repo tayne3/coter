@@ -1,5 +1,5 @@
 /**
- * @file ct_rbuf.h
+ * @file rbuf.h
  * @brief 环形缓冲区实现
  * @note
  *  定义了环形缓冲区结构体和相关操作宏，用于实现环形缓冲区的功能。
@@ -8,7 +8,7 @@
 #ifndef COTER_RBUF_H
 #define COTER_RBUF_H
 
-#include "coter/base/platform.h"
+#include "coter/core/platform.h"
 
 #ifdef __cplusplus
 extern "C" {

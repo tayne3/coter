@@ -3,6 +3,7 @@
  * @brief 报文缓冲盒子测试
  */
 #include "coter/container/packet.h"
+
 #include "cunit.h"
 
 #define MAX_BUFFER_SIZE 100
@@ -162,14 +163,14 @@ static void test_packet_u16(void) {
 
 	// put: big endian
 	{
-		ct_packet_put_u16(packet, 0xAABB, CTEndian_Big);
+		ct_packet_put_u16(packet, 0xAABB, CT_ENDIAN_BIG);
 		assert_uint16_eq(2, ct_packet_size(packet));
 		assert_uint16_eq(2, ct_packet_total_size(packet));
 		assert_uint16_eq(0, ct_packet_past(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE - 2, ct_packet_available(packet));
 
-		assert_uint16_eq(0xAABB, ct_packet_get_u16(packet, 0, CTEndian_Big));
+		assert_uint16_eq(0xAABB, ct_packet_get_u16(packet, 0, CT_ENDIAN_BIG));
 
 		expected[0] = 0xAA;
 		expected[1] = 0xBB;
@@ -178,15 +179,15 @@ static void test_packet_u16(void) {
 
 	// put: little endian
 	{
-		ct_packet_put_u16(packet, 0xCCDD, CTEndian_Little);
+		ct_packet_put_u16(packet, 0xCCDD, CT_ENDIAN_LITTLE);
 		assert_uint16_eq(4, ct_packet_size(packet));
 		assert_uint16_eq(4, ct_packet_total_size(packet));
 		assert_uint16_eq(0, ct_packet_past(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE - 4, ct_packet_available(packet));
 
-		assert_uint16_eq(0xAABB, ct_packet_get_u16(packet, 0, CTEndian_Big));
-		assert_uint16_eq(0xCCDD, ct_packet_get_u16(packet, 2, CTEndian_Little));
+		assert_uint16_eq(0xAABB, ct_packet_get_u16(packet, 0, CT_ENDIAN_BIG));
+		assert_uint16_eq(0xCCDD, ct_packet_get_u16(packet, 2, CT_ENDIAN_LITTLE));
 		assert_uint16_eq(4, ct_packet_size(packet));
 		assert_uint16_eq(4, ct_packet_total_size(packet));
 		assert_uint16_eq(0, ct_packet_past(packet));
@@ -200,7 +201,7 @@ static void test_packet_u16(void) {
 
 	// take all
 	{
-		assert_uint16_eq(0xAABB, ct_packet_take_u16(packet, CTEndian_Big));
+		assert_uint16_eq(0xAABB, ct_packet_take_u16(packet, CT_ENDIAN_BIG));
 		assert_uint16_eq(2, ct_packet_size(packet));
 		assert_uint16_eq(4, ct_packet_total_size(packet));
 		assert_uint16_eq(2, ct_packet_past(packet));
@@ -209,7 +210,7 @@ static void test_packet_u16(void) {
 
 		assert_str_hex(expected + 2, ct_packet_buffer(packet), 2);
 
-		assert_uint16_eq(0xCCDD, ct_packet_take_u16(packet, CTEndian_Little));
+		assert_uint16_eq(0xCCDD, ct_packet_take_u16(packet, CT_ENDIAN_LITTLE));
 		assert_uint16_eq(0, ct_packet_size(packet));
 		assert_uint16_eq(4, ct_packet_total_size(packet));
 		assert_uint16_eq(4, ct_packet_past(packet));
@@ -225,7 +226,7 @@ static void test_packet_u16(void) {
 		expected[1] = 0xBB;
 		assert_str_hex(expected, ct_packet_buffer(packet), 2);
 
-		ct_packet_set_u16(packet, 0, 0xEEFF, CTEndian_Big);
+		ct_packet_set_u16(packet, 0, 0xEEFF, CT_ENDIAN_BIG);
 		assert_uint16_eq(2, ct_packet_size(packet));
 		assert_uint16_eq(6, ct_packet_total_size(packet));
 		assert_uint16_eq(4, ct_packet_past(packet));
@@ -236,7 +237,7 @@ static void test_packet_u16(void) {
 		expected[1] = 0xFF;
 		assert_str_hex(expected, ct_packet_buffer(packet), 2);
 
-		assert_uint16_eq(0xEEFF, ct_packet_take_u16(packet, CTEndian_Big));
+		assert_uint16_eq(0xEEFF, ct_packet_take_u16(packet, CT_ENDIAN_BIG));
 		assert_uint16_eq(0, ct_packet_size(packet));
 		assert_uint16_eq(6, ct_packet_total_size(packet));
 		assert_uint16_eq(6, ct_packet_past(packet));
@@ -248,14 +249,14 @@ static void test_packet_u16(void) {
 
 	// put: little endian
 	{
-		ct_packet_put_u16(packet, 0xCCDD, CTEndian_Little);
+		ct_packet_put_u16(packet, 0xCCDD, CT_ENDIAN_LITTLE);
 		assert_uint16_eq(2, ct_packet_size(packet));
 		assert_uint16_eq(2, ct_packet_total_size(packet));
 		assert_uint16_eq(0, ct_packet_past(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE - 2, ct_packet_available(packet));
 
-		assert_uint16_eq(0xCCDD, ct_packet_get_u16(packet, 0, CTEndian_Little));
+		assert_uint16_eq(0xCCDD, ct_packet_get_u16(packet, 0, CT_ENDIAN_LITTLE));
 
 		expected[0] = 0xDD;
 		expected[1] = 0xCC;
@@ -264,15 +265,15 @@ static void test_packet_u16(void) {
 
 	// put: big endian
 	{
-		ct_packet_put_u16(packet, 0xAABB, CTEndian_Big);
+		ct_packet_put_u16(packet, 0xAABB, CT_ENDIAN_BIG);
 		assert_uint16_eq(4, ct_packet_size(packet));
 		assert_uint16_eq(4, ct_packet_total_size(packet));
 		assert_uint16_eq(0, ct_packet_past(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE - 4, ct_packet_available(packet));
 
-		assert_uint16_eq(0xCCDD, ct_packet_get_u16(packet, 0, CTEndian_Little));
-		assert_uint16_eq(0xAABB, ct_packet_get_u16(packet, 2, CTEndian_Big));
+		assert_uint16_eq(0xCCDD, ct_packet_get_u16(packet, 0, CT_ENDIAN_LITTLE));
+		assert_uint16_eq(0xAABB, ct_packet_get_u16(packet, 2, CT_ENDIAN_BIG));
 		assert_uint16_eq(4, ct_packet_size(packet));
 		assert_uint16_eq(4, ct_packet_total_size(packet));
 		assert_uint16_eq(0, ct_packet_past(packet));
@@ -286,7 +287,7 @@ static void test_packet_u16(void) {
 
 	// take all
 	{
-		assert_uint16_eq(0xCCDD, ct_packet_take_u16(packet, CTEndian_Little));
+		assert_uint16_eq(0xCCDD, ct_packet_take_u16(packet, CT_ENDIAN_LITTLE));
 		assert_uint16_eq(2, ct_packet_size(packet));
 		assert_uint16_eq(4, ct_packet_total_size(packet));
 		assert_uint16_eq(2, ct_packet_past(packet));
@@ -295,7 +296,7 @@ static void test_packet_u16(void) {
 
 		assert_str_hex(expected + 2, ct_packet_buffer(packet), 2);
 
-		assert_uint16_eq(0xAABB, ct_packet_take_u16(packet, CTEndian_Big));
+		assert_uint16_eq(0xAABB, ct_packet_take_u16(packet, CT_ENDIAN_BIG));
 		assert_uint16_eq(0, ct_packet_size(packet));
 		assert_uint16_eq(4, ct_packet_total_size(packet));
 		assert_uint16_eq(4, ct_packet_past(packet));
@@ -311,7 +312,7 @@ static void test_packet_u16(void) {
 		expected[1] = 0xBB;
 		assert_str_hex(expected, ct_packet_buffer(packet), 2);
 
-		ct_packet_set_u16(packet, 0, 0xEEFF, CTEndian_Little);
+		ct_packet_set_u16(packet, 0, 0xEEFF, CT_ENDIAN_LITTLE);
 		assert_uint16_eq(2, ct_packet_size(packet));
 		assert_uint16_eq(6, ct_packet_total_size(packet));
 		assert_uint16_eq(4, ct_packet_past(packet));
@@ -322,7 +323,7 @@ static void test_packet_u16(void) {
 		expected[1] = 0xEE;
 		assert_str_hex(expected, ct_packet_buffer(packet), 2);
 
-		assert_uint16_eq(0xEEFF, ct_packet_take_u16(packet, CTEndian_Little));
+		assert_uint16_eq(0xEEFF, ct_packet_take_u16(packet, CT_ENDIAN_LITTLE));
 		assert_uint16_eq(0, ct_packet_size(packet));
 		assert_uint16_eq(6, ct_packet_total_size(packet));
 		assert_uint16_eq(6, ct_packet_past(packet));
@@ -339,14 +340,14 @@ static void test_packet_u32(void) {
 
 	// put: big endian
 	{
-		ct_packet_put_u32(packet, 0xAABBCCDD, CTEndian_Big);
+		ct_packet_put_u32(packet, 0xAABBCCDD, CT_ENDIAN_BIG);
 		assert_uint16_eq(4, ct_packet_size(packet));
 		assert_uint16_eq(4, ct_packet_total_size(packet));
 		assert_uint16_eq(0, ct_packet_past(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE - 4, ct_packet_available(packet));
 
-		assert_uint32_eq(0xAABBCCDD, ct_packet_get_u32(packet, 0, CTEndian_Big));
+		assert_uint32_eq(0xAABBCCDD, ct_packet_get_u32(packet, 0, CT_ENDIAN_BIG));
 
 		expected[0] = 0xAA;
 		expected[1] = 0xBB;
@@ -357,15 +358,15 @@ static void test_packet_u32(void) {
 
 	// put: little endian
 	{
-		ct_packet_put_u32(packet, 0xAABBCCDD, CTEndian_Little);
+		ct_packet_put_u32(packet, 0xAABBCCDD, CT_ENDIAN_LITTLE);
 		assert_uint16_eq(8, ct_packet_size(packet));
 		assert_uint16_eq(8, ct_packet_total_size(packet));
 		assert_uint16_eq(0, ct_packet_past(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
 
-		assert_uint32_eq(0xAABBCCDD, ct_packet_get_u32(packet, 0, CTEndian_Big));
-		assert_uint32_eq(0xAABBCCDD, ct_packet_get_u32(packet, 4, CTEndian_Little));
+		assert_uint32_eq(0xAABBCCDD, ct_packet_get_u32(packet, 0, CT_ENDIAN_BIG));
+		assert_uint32_eq(0xAABBCCDD, ct_packet_get_u32(packet, 4, CT_ENDIAN_LITTLE));
 		assert_uint16_eq(8, ct_packet_size(packet));
 		assert_uint16_eq(8, ct_packet_total_size(packet));
 		assert_uint16_eq(0, ct_packet_past(packet));
@@ -381,7 +382,7 @@ static void test_packet_u32(void) {
 
 	// take all
 	{
-		assert_uint32_eq(0xAABBCCDD, ct_packet_take_u32(packet, CTEndian_Big));
+		assert_uint32_eq(0xAABBCCDD, ct_packet_take_u32(packet, CT_ENDIAN_BIG));
 		assert_uint16_eq(4, ct_packet_size(packet));
 		assert_uint16_eq(8, ct_packet_total_size(packet));
 		assert_uint16_eq(4, ct_packet_past(packet));
@@ -390,7 +391,7 @@ static void test_packet_u32(void) {
 
 		assert_str_hex(expected + 4, ct_packet_buffer(packet), 4);
 
-		assert_uint32_eq(0xAABBCCDD, ct_packet_take_u32(packet, CTEndian_Little));
+		assert_uint32_eq(0xAABBCCDD, ct_packet_take_u32(packet, CT_ENDIAN_LITTLE));
 		assert_uint16_eq(0, ct_packet_size(packet));
 		assert_uint16_eq(8, ct_packet_total_size(packet));
 		assert_uint16_eq(8, ct_packet_past(packet));
@@ -410,7 +411,7 @@ static void test_packet_u32(void) {
 		expected[3] = 0xDD;
 		assert_str_hex(expected, ct_packet_buffer(packet), 4);
 
-		ct_packet_set_u32(packet, 0, 0x11223344, CTEndian_Big);
+		ct_packet_set_u32(packet, 0, 0x11223344, CT_ENDIAN_BIG);
 		assert_uint16_eq(4, ct_packet_size(packet));
 		assert_uint16_eq(12, ct_packet_total_size(packet));
 		assert_uint16_eq(8, ct_packet_past(packet));
@@ -423,7 +424,7 @@ static void test_packet_u32(void) {
 		expected[3] = 0x44;
 		assert_str_hex(expected, ct_packet_buffer(packet), 4);
 
-		assert_uint32_eq(0x11223344, ct_packet_take_u32(packet, CTEndian_Big));
+		assert_uint32_eq(0x11223344, ct_packet_take_u32(packet, CT_ENDIAN_BIG));
 		assert_uint16_eq(0, ct_packet_size(packet));
 		assert_uint16_eq(12, ct_packet_total_size(packet));
 		assert_uint16_eq(12, ct_packet_past(packet));
@@ -435,13 +436,13 @@ static void test_packet_u32(void) {
 
 	// put: little endian
 	{
-		ct_packet_put_u32(packet, 0xAABBCCDD, CTEndian_Little);
+		ct_packet_put_u32(packet, 0xAABBCCDD, CT_ENDIAN_LITTLE);
 		assert_uint16_eq(4, ct_packet_total_size(packet));
 		assert_uint16_eq(0, ct_packet_past(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE - 4, ct_packet_available(packet));
 
-		assert_uint32_eq(0xAABBCCDD, ct_packet_get_u32(packet, 0, CTEndian_Little));
+		assert_uint32_eq(0xAABBCCDD, ct_packet_get_u32(packet, 0, CT_ENDIAN_LITTLE));
 
 		expected[0] = 0xDD;
 		expected[1] = 0xCC;
@@ -452,14 +453,14 @@ static void test_packet_u32(void) {
 
 	// put: big endian
 	{
-		ct_packet_put_u32(packet, 0xAABBCCDD, CTEndian_Big);
+		ct_packet_put_u32(packet, 0xAABBCCDD, CT_ENDIAN_BIG);
 		assert_uint16_eq(8, ct_packet_total_size(packet));
 		assert_uint16_eq(0, ct_packet_past(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
 
-		assert_uint32_eq(0xAABBCCDD, ct_packet_get_u32(packet, 0, CTEndian_Little));
-		assert_uint32_eq(0xAABBCCDD, ct_packet_get_u32(packet, 4, CTEndian_Big));
+		assert_uint32_eq(0xAABBCCDD, ct_packet_get_u32(packet, 0, CT_ENDIAN_LITTLE));
+		assert_uint32_eq(0xAABBCCDD, ct_packet_get_u32(packet, 4, CT_ENDIAN_BIG));
 		assert_uint16_eq(8, ct_packet_size(packet));
 		assert_uint16_eq(8, ct_packet_total_size(packet));
 		assert_uint16_eq(0, ct_packet_past(packet));
@@ -475,7 +476,7 @@ static void test_packet_u32(void) {
 
 	// take all
 	{
-		assert_uint32_eq(0xAABBCCDD, ct_packet_take_u32(packet, CTEndian_Little));
+		assert_uint32_eq(0xAABBCCDD, ct_packet_take_u32(packet, CT_ENDIAN_LITTLE));
 		assert_uint16_eq(4, ct_packet_size(packet));
 		assert_uint16_eq(8, ct_packet_total_size(packet));
 		assert_uint16_eq(4, ct_packet_past(packet));
@@ -484,7 +485,7 @@ static void test_packet_u32(void) {
 
 		assert_str_hex(expected + 4, ct_packet_buffer(packet), 4);
 
-		assert_uint32_eq(0xAABBCCDD, ct_packet_take_u32(packet, CTEndian_Big));
+		assert_uint32_eq(0xAABBCCDD, ct_packet_take_u32(packet, CT_ENDIAN_BIG));
 		assert_uint16_eq(0, ct_packet_size(packet));
 		assert_uint16_eq(8, ct_packet_total_size(packet));
 		assert_uint16_eq(8, ct_packet_past(packet));
@@ -504,7 +505,7 @@ static void test_packet_u32(void) {
 		expected[3] = 0xDD;
 		assert_str_hex(expected, ct_packet_buffer(packet), 4);
 
-		ct_packet_set_u32(packet, 0, 0x11223344, CTEndian_Little);
+		ct_packet_set_u32(packet, 0, 0x11223344, CT_ENDIAN_LITTLE);
 		assert_uint16_eq(4, ct_packet_size(packet));
 		assert_uint16_eq(12, ct_packet_total_size(packet));
 		assert_uint16_eq(8, ct_packet_past(packet));
@@ -517,7 +518,7 @@ static void test_packet_u32(void) {
 		expected[3] = 0x11;
 		assert_str_hex(expected, ct_packet_buffer(packet), 4);
 
-		assert_uint32_eq(0x11223344, ct_packet_take_u32(packet, CTEndian_Little));
+		assert_uint32_eq(0x11223344, ct_packet_take_u32(packet, CT_ENDIAN_LITTLE));
 		assert_uint16_eq(0, ct_packet_size(packet));
 		assert_uint16_eq(12, ct_packet_total_size(packet));
 		assert_uint16_eq(12, ct_packet_past(packet));
@@ -534,14 +535,14 @@ static void test_packet_u64(void) {
 
 	// put: big endian
 	{
-		ct_packet_put_u64(packet, 0x1122334455667788, CTEndian_Big);
+		ct_packet_put_u64(packet, 0x1122334455667788, CT_ENDIAN_BIG);
 		assert_uint16_eq(8, ct_packet_size(packet));
 		assert_uint16_eq(8, ct_packet_total_size(packet));
 		assert_uint16_eq(0, ct_packet_past(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
 
-		assert_uint64_eq(0x1122334455667788, ct_packet_get_u64(packet, 0, CTEndian_Big));
+		assert_uint64_eq(0x1122334455667788, ct_packet_get_u64(packet, 0, CT_ENDIAN_BIG));
 
 		expected[0] = 0x11;
 		expected[1] = 0x22;
@@ -556,15 +557,15 @@ static void test_packet_u64(void) {
 
 	// put: little endian
 	{
-		ct_packet_put_u64(packet, 0x1122334455667788, CTEndian_Little);
+		ct_packet_put_u64(packet, 0x1122334455667788, CT_ENDIAN_LITTLE);
 		assert_uint16_eq(16, ct_packet_size(packet));
 		assert_uint16_eq(16, ct_packet_total_size(packet));
 		assert_uint16_eq(0, ct_packet_past(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE - 16, ct_packet_available(packet));
 
-		assert_uint64_eq(0x1122334455667788, ct_packet_get_u64(packet, 0, CTEndian_Big));
-		assert_uint64_eq(0x1122334455667788, ct_packet_get_u64(packet, 8, CTEndian_Little));
+		assert_uint64_eq(0x1122334455667788, ct_packet_get_u64(packet, 0, CT_ENDIAN_BIG));
+		assert_uint64_eq(0x1122334455667788, ct_packet_get_u64(packet, 8, CT_ENDIAN_LITTLE));
 		assert_uint16_eq(16, ct_packet_size(packet));
 		assert_uint16_eq(16, ct_packet_total_size(packet));
 		assert_uint16_eq(0, ct_packet_past(packet));
@@ -584,7 +585,7 @@ static void test_packet_u64(void) {
 
 	// take all
 	{
-		assert_uint64_eq(0x1122334455667788, ct_packet_take_u64(packet, CTEndian_Big));
+		assert_uint64_eq(0x1122334455667788, ct_packet_take_u64(packet, CT_ENDIAN_BIG));
 		assert_uint16_eq(8, ct_packet_size(packet));
 		assert_uint16_eq(16, ct_packet_total_size(packet));
 		assert_uint16_eq(8, ct_packet_past(packet));
@@ -593,7 +594,7 @@ static void test_packet_u64(void) {
 
 		assert_str_hex(expected + 8, ct_packet_buffer(packet), 8);
 
-		assert_uint64_eq(0x1122334455667788, ct_packet_take_u64(packet, CTEndian_Little));
+		assert_uint64_eq(0x1122334455667788, ct_packet_take_u64(packet, CT_ENDIAN_LITTLE));
 		assert_uint16_eq(0, ct_packet_size(packet));
 		assert_uint16_eq(16, ct_packet_total_size(packet));
 		assert_uint16_eq(16, ct_packet_past(packet));
@@ -621,7 +622,7 @@ static void test_packet_u64(void) {
 		expected[7] = 0x80;
 		assert_str_hex(expected, ct_packet_buffer(packet), 8);
 
-		ct_packet_set_u64(packet, 0, 0x1122334455667788, CTEndian_Big);
+		ct_packet_set_u64(packet, 0, 0x1122334455667788, CT_ENDIAN_BIG);
 		assert_uint16_eq(8, ct_packet_size(packet));
 		assert_uint16_eq(24, ct_packet_total_size(packet));
 		assert_uint16_eq(16, ct_packet_past(packet));
@@ -638,7 +639,7 @@ static void test_packet_u64(void) {
 		expected[7] = 0x88;
 		assert_str_hex(expected, ct_packet_buffer(packet), 8);
 
-		assert_uint64_eq(0x1122334455667788, ct_packet_take_u64(packet, CTEndian_Big));
+		assert_uint64_eq(0x1122334455667788, ct_packet_take_u64(packet, CT_ENDIAN_BIG));
 		assert_uint16_eq(0, ct_packet_size(packet));
 		assert_uint16_eq(24, ct_packet_total_size(packet));
 		assert_uint16_eq(24, ct_packet_past(packet));
@@ -650,14 +651,14 @@ static void test_packet_u64(void) {
 
 	// put: little endian
 	{
-		ct_packet_put_u64(packet, 0x1122334455667788, CTEndian_Little);
+		ct_packet_put_u64(packet, 0x1122334455667788, CT_ENDIAN_LITTLE);
 		assert_uint16_eq(8, ct_packet_size(packet));
 		assert_uint16_eq(8, ct_packet_total_size(packet));
 		assert_uint16_eq(0, ct_packet_past(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
 
-		assert_uint64_eq(0x1122334455667788, ct_packet_get_u64(packet, 0, CTEndian_Little));
+		assert_uint64_eq(0x1122334455667788, ct_packet_get_u64(packet, 0, CT_ENDIAN_LITTLE));
 
 		expected[0] = 0x88;
 		expected[1] = 0x77;
@@ -672,15 +673,15 @@ static void test_packet_u64(void) {
 
 	// put: big endian
 	{
-		ct_packet_put_u64(packet, 0x1122334455667788, CTEndian_Big);
+		ct_packet_put_u64(packet, 0x1122334455667788, CT_ENDIAN_BIG);
 		assert_uint16_eq(16, ct_packet_size(packet));
 		assert_uint16_eq(16, ct_packet_total_size(packet));
 		assert_uint16_eq(0, ct_packet_past(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE - 16, ct_packet_available(packet));
 
-		assert_uint64_eq(0x1122334455667788, ct_packet_get_u64(packet, 0, CTEndian_Little));
-		assert_uint64_eq(0x1122334455667788, ct_packet_get_u64(packet, 8, CTEndian_Big));
+		assert_uint64_eq(0x1122334455667788, ct_packet_get_u64(packet, 0, CT_ENDIAN_LITTLE));
+		assert_uint64_eq(0x1122334455667788, ct_packet_get_u64(packet, 8, CT_ENDIAN_BIG));
 		assert_uint16_eq(16, ct_packet_size(packet));
 		assert_uint16_eq(16, ct_packet_total_size(packet));
 		assert_uint16_eq(0, ct_packet_past(packet));
@@ -700,7 +701,7 @@ static void test_packet_u64(void) {
 
 	// take all
 	{
-		assert_uint64_eq(0x1122334455667788, ct_packet_take_u64(packet, CTEndian_Little));
+		assert_uint64_eq(0x1122334455667788, ct_packet_take_u64(packet, CT_ENDIAN_LITTLE));
 		assert_uint16_eq(8, ct_packet_size(packet));
 		assert_uint16_eq(16, ct_packet_total_size(packet));
 		assert_uint16_eq(8, ct_packet_past(packet));
@@ -709,7 +710,7 @@ static void test_packet_u64(void) {
 
 		assert_str_hex(expected + 8, ct_packet_buffer(packet), 8);
 
-		assert_uint64_eq(0x1122334455667788, ct_packet_take_u64(packet, CTEndian_Big));
+		assert_uint64_eq(0x1122334455667788, ct_packet_take_u64(packet, CT_ENDIAN_BIG));
 		assert_uint16_eq(0, ct_packet_size(packet));
 		assert_uint16_eq(16, ct_packet_total_size(packet));
 		assert_uint16_eq(16, ct_packet_past(packet));
@@ -737,7 +738,7 @@ static void test_packet_u64(void) {
 		expected[7] = 0x80;
 		assert_str_hex(expected, ct_packet_buffer(packet), 8);
 
-		ct_packet_set_u64(packet, 0, 0x1122334455667788, CTEndian_Little);
+		ct_packet_set_u64(packet, 0, 0x1122334455667788, CT_ENDIAN_LITTLE);
 		assert_uint16_eq(8, ct_packet_size(packet));
 		assert_uint16_eq(24, ct_packet_total_size(packet));
 		assert_uint16_eq(16, ct_packet_past(packet));
@@ -754,7 +755,7 @@ static void test_packet_u64(void) {
 		expected[7] = 0x11;
 		assert_str_hex(expected, ct_packet_buffer(packet), 8);
 
-		assert_uint64_eq(0x1122334455667788, ct_packet_take_u64(packet, CTEndian_Little));
+		assert_uint64_eq(0x1122334455667788, ct_packet_take_u64(packet, CT_ENDIAN_LITTLE));
 		assert_uint16_eq(0, ct_packet_size(packet));
 		assert_uint16_eq(24, ct_packet_total_size(packet));
 		assert_uint16_eq(24, ct_packet_past(packet));
@@ -771,31 +772,31 @@ static void test_packet_float(void) {
 
 	// put: big endian
 	{
-		ct_packet_put_float(packet, test_value, CTEndian_Big);
+		ct_packet_put_float(packet, test_value, CT_ENDIAN_BIG);
 		assert_uint16_eq(4, ct_packet_size(packet));
 		assert_uint16_eq(4, ct_packet_total_size(packet));
 		assert_uint16_eq(0, ct_packet_past(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE - 4, ct_packet_available(packet));
 
-		assert_int_eq(0, isnan(ct_packet_get_float(packet, 0, CTEndian_Big)));
-		assert_float_eq(test_value, ct_packet_get_float(packet, 0, CTEndian_Big));
-		assert_float_ne(test_value, ct_packet_get_float(packet, 0, CTEndian_Little));
+		assert_int_eq(0, isnan(ct_packet_get_float(packet, 0, CT_ENDIAN_BIG)));
+		assert_float_eq(test_value, ct_packet_get_float(packet, 0, CT_ENDIAN_BIG));
+		assert_float_ne(test_value, ct_packet_get_float(packet, 0, CT_ENDIAN_LITTLE));
 	}
 
 	// put: little endian
 	{
-		ct_packet_put_float(packet, test_value, CTEndian_Little);
+		ct_packet_put_float(packet, test_value, CT_ENDIAN_LITTLE);
 		assert_uint16_eq(8, ct_packet_size(packet));
 		assert_uint16_eq(8, ct_packet_total_size(packet));
 		assert_uint16_eq(0, ct_packet_past(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
 
-		assert_int_eq(0, isnan(ct_packet_get_float(packet, 0, CTEndian_Big)));
-		assert_int_eq(0, isnan(ct_packet_get_float(packet, 4, CTEndian_Little)));
-		assert_float_eq(test_value, ct_packet_get_float(packet, 0, CTEndian_Big));
-		assert_float_eq(test_value, ct_packet_get_float(packet, 4, CTEndian_Little));
+		assert_int_eq(0, isnan(ct_packet_get_float(packet, 0, CT_ENDIAN_BIG)));
+		assert_int_eq(0, isnan(ct_packet_get_float(packet, 4, CT_ENDIAN_LITTLE)));
+		assert_float_eq(test_value, ct_packet_get_float(packet, 0, CT_ENDIAN_BIG));
+		assert_float_eq(test_value, ct_packet_get_float(packet, 4, CT_ENDIAN_LITTLE));
 		assert_uint16_eq(8, ct_packet_size(packet));
 		assert_uint16_eq(8, ct_packet_total_size(packet));
 		assert_uint16_eq(0, ct_packet_past(packet));
@@ -805,14 +806,14 @@ static void test_packet_float(void) {
 
 	// take all
 	{
-		assert_float_eq(test_value, ct_packet_take_float(packet, CTEndian_Big));
+		assert_float_eq(test_value, ct_packet_take_float(packet, CT_ENDIAN_BIG));
 		assert_uint16_eq(4, ct_packet_size(packet));
 		assert_uint16_eq(8, ct_packet_total_size(packet));
 		assert_uint16_eq(4, ct_packet_past(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
 
-		assert_float_eq(test_value, ct_packet_take_float(packet, CTEndian_Little));
+		assert_float_eq(test_value, ct_packet_take_float(packet, CT_ENDIAN_LITTLE));
 		assert_uint16_eq(0, ct_packet_size(packet));
 		assert_uint16_eq(8, ct_packet_total_size(packet));
 		assert_uint16_eq(8, ct_packet_past(packet));
@@ -822,17 +823,17 @@ static void test_packet_float(void) {
 
 	// set: big endian
 	{
-		ct_packet_put_u32(packet, 0xAABBCCDD, CTEndian_Big);
-		assert_uint32_eq(0xAABBCCDD, ct_packet_get_u32(packet, 0, CTEndian_Big));
+		ct_packet_put_u32(packet, 0xAABBCCDD, CT_ENDIAN_BIG);
+		assert_uint32_eq(0xAABBCCDD, ct_packet_get_u32(packet, 0, CT_ENDIAN_BIG));
 
-		ct_packet_set_float(packet, 0, test_value, CTEndian_Big);
+		ct_packet_set_float(packet, 0, test_value, CT_ENDIAN_BIG);
 		assert_uint16_eq(4, ct_packet_size(packet));
 		assert_uint16_eq(12, ct_packet_total_size(packet));
 		assert_uint16_eq(8, ct_packet_past(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE - 12, ct_packet_available(packet));
 
-		assert_float_eq(test_value, ct_packet_take_float(packet, CTEndian_Big));
+		assert_float_eq(test_value, ct_packet_take_float(packet, CT_ENDIAN_BIG));
 		assert_uint16_eq(0, ct_packet_size(packet));
 		assert_uint16_eq(12, ct_packet_total_size(packet));
 		assert_uint16_eq(12, ct_packet_past(packet));
@@ -844,31 +845,31 @@ static void test_packet_float(void) {
 
 	// put: little endian
 	{
-		ct_packet_put_float(packet, test_value, CTEndian_Little);
+		ct_packet_put_float(packet, test_value, CT_ENDIAN_LITTLE);
 		assert_uint16_eq(4, ct_packet_size(packet));
 		assert_uint16_eq(4, ct_packet_total_size(packet));
 		assert_uint16_eq(0, ct_packet_past(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE - 4, ct_packet_available(packet));
 
-		assert_int_eq(0, isnan(ct_packet_get_float(packet, 0, CTEndian_Little)));
-		assert_float_eq(test_value, ct_packet_get_float(packet, 0, CTEndian_Little));
-		assert_float_ne(test_value, ct_packet_get_float(packet, 0, CTEndian_Big));
+		assert_int_eq(0, isnan(ct_packet_get_float(packet, 0, CT_ENDIAN_LITTLE)));
+		assert_float_eq(test_value, ct_packet_get_float(packet, 0, CT_ENDIAN_LITTLE));
+		assert_float_ne(test_value, ct_packet_get_float(packet, 0, CT_ENDIAN_BIG));
 	}
 
 	// put: big endian
 	{
-		ct_packet_put_float(packet, test_value, CTEndian_Big);
+		ct_packet_put_float(packet, test_value, CT_ENDIAN_BIG);
 		assert_uint16_eq(8, ct_packet_size(packet));
 		assert_uint16_eq(8, ct_packet_total_size(packet));
 		assert_uint16_eq(0, ct_packet_past(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
 
-		assert_int_eq(0, isnan(ct_packet_get_float(packet, 0, CTEndian_Little)));
-		assert_int_eq(0, isnan(ct_packet_get_float(packet, 4, CTEndian_Big)));
-		assert_float_eq(test_value, ct_packet_get_float(packet, 0, CTEndian_Little));
-		assert_float_eq(test_value, ct_packet_get_float(packet, 4, CTEndian_Big));
+		assert_int_eq(0, isnan(ct_packet_get_float(packet, 0, CT_ENDIAN_LITTLE)));
+		assert_int_eq(0, isnan(ct_packet_get_float(packet, 4, CT_ENDIAN_BIG)));
+		assert_float_eq(test_value, ct_packet_get_float(packet, 0, CT_ENDIAN_LITTLE));
+		assert_float_eq(test_value, ct_packet_get_float(packet, 4, CT_ENDIAN_BIG));
 		assert_uint16_eq(8, ct_packet_size(packet));
 		assert_uint16_eq(8, ct_packet_total_size(packet));
 		assert_uint16_eq(0, ct_packet_past(packet));
@@ -878,14 +879,14 @@ static void test_packet_float(void) {
 
 	// take all
 	{
-		assert_float_eq(test_value, ct_packet_take_float(packet, CTEndian_Little));
+		assert_float_eq(test_value, ct_packet_take_float(packet, CT_ENDIAN_LITTLE));
 		assert_uint16_eq(4, ct_packet_size(packet));
 		assert_uint16_eq(8, ct_packet_total_size(packet));
 		assert_uint16_eq(4, ct_packet_past(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
 
-		assert_float_eq(test_value, ct_packet_take_float(packet, CTEndian_Big));
+		assert_float_eq(test_value, ct_packet_take_float(packet, CT_ENDIAN_BIG));
 		assert_uint16_eq(0, ct_packet_size(packet));
 		assert_uint16_eq(8, ct_packet_total_size(packet));
 		assert_uint16_eq(8, ct_packet_past(packet));
@@ -895,17 +896,17 @@ static void test_packet_float(void) {
 
 	// set: little endian
 	{
-		ct_packet_put_u32(packet, 0xAABBCCDD, CTEndian_Big);
-		assert_uint32_eq(0xAABBCCDD, ct_packet_get_u32(packet, 0, CTEndian_Big));
+		ct_packet_put_u32(packet, 0xAABBCCDD, CT_ENDIAN_BIG);
+		assert_uint32_eq(0xAABBCCDD, ct_packet_get_u32(packet, 0, CT_ENDIAN_BIG));
 
-		ct_packet_set_float(packet, 0, test_value, CTEndian_Little);
+		ct_packet_set_float(packet, 0, test_value, CT_ENDIAN_LITTLE);
 		assert_uint16_eq(4, ct_packet_size(packet));
 		assert_uint16_eq(12, ct_packet_total_size(packet));
 		assert_uint16_eq(8, ct_packet_past(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE - 12, ct_packet_available(packet));
 
-		assert_float_eq(test_value, ct_packet_take_float(packet, CTEndian_Little));
+		assert_float_eq(test_value, ct_packet_take_float(packet, CT_ENDIAN_LITTLE));
 		assert_uint16_eq(0, ct_packet_size(packet));
 		assert_uint16_eq(12, ct_packet_total_size(packet));
 		assert_uint16_eq(12, ct_packet_past(packet));
@@ -922,31 +923,31 @@ static void test_packet_double(void) {
 
 	// put: big endian
 	{
-		ct_packet_put_double(packet, test_value, CTEndian_Big);
+		ct_packet_put_double(packet, test_value, CT_ENDIAN_BIG);
 		assert_uint16_eq(8, ct_packet_size(packet));
 		assert_uint16_eq(8, ct_packet_total_size(packet));
 		assert_uint16_eq(0, ct_packet_past(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
 
-		assert_int_eq(0, isnan(ct_packet_get_double(packet, 0, CTEndian_Big)));
-		assert_double_eq(test_value, ct_packet_get_double(packet, 0, CTEndian_Big));
-		assert_double_ne(test_value, ct_packet_get_double(packet, 0, CTEndian_Little));
+		assert_int_eq(0, isnan(ct_packet_get_double(packet, 0, CT_ENDIAN_BIG)));
+		assert_double_eq(test_value, ct_packet_get_double(packet, 0, CT_ENDIAN_BIG));
+		assert_double_ne(test_value, ct_packet_get_double(packet, 0, CT_ENDIAN_LITTLE));
 	}
 
 	// put: little endian
 	{
-		ct_packet_put_double(packet, test_value, CTEndian_Little);
+		ct_packet_put_double(packet, test_value, CT_ENDIAN_LITTLE);
 		assert_uint16_eq(16, ct_packet_size(packet));
 		assert_uint16_eq(16, ct_packet_total_size(packet));
 		assert_uint16_eq(0, ct_packet_past(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE - 16, ct_packet_available(packet));
 
-		assert_int_eq(0, isnan(ct_packet_get_double(packet, 0, CTEndian_Big)));
-		assert_int_eq(0, isnan(ct_packet_get_double(packet, 8, CTEndian_Little)));
-		assert_double_eq(test_value, ct_packet_get_double(packet, 0, CTEndian_Big));
-		assert_double_eq(test_value, ct_packet_get_double(packet, 8, CTEndian_Little));
+		assert_int_eq(0, isnan(ct_packet_get_double(packet, 0, CT_ENDIAN_BIG)));
+		assert_int_eq(0, isnan(ct_packet_get_double(packet, 8, CT_ENDIAN_LITTLE)));
+		assert_double_eq(test_value, ct_packet_get_double(packet, 0, CT_ENDIAN_BIG));
+		assert_double_eq(test_value, ct_packet_get_double(packet, 8, CT_ENDIAN_LITTLE));
 		assert_uint16_eq(16, ct_packet_size(packet));
 		assert_uint16_eq(16, ct_packet_total_size(packet));
 		assert_uint16_eq(0, ct_packet_past(packet));
@@ -956,14 +957,14 @@ static void test_packet_double(void) {
 
 	// take all
 	{
-		assert_double_eq(test_value, ct_packet_take_double(packet, CTEndian_Big));
+		assert_double_eq(test_value, ct_packet_take_double(packet, CT_ENDIAN_BIG));
 		assert_uint16_eq(8, ct_packet_size(packet));
 		assert_uint16_eq(16, ct_packet_total_size(packet));
 		assert_uint16_eq(8, ct_packet_past(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE - 16, ct_packet_available(packet));
 
-		assert_double_eq(test_value, ct_packet_take_double(packet, CTEndian_Little));
+		assert_double_eq(test_value, ct_packet_take_double(packet, CT_ENDIAN_LITTLE));
 		assert_uint16_eq(0, ct_packet_size(packet));
 		assert_uint16_eq(16, ct_packet_total_size(packet));
 		assert_uint16_eq(16, ct_packet_past(packet));
@@ -973,17 +974,17 @@ static void test_packet_double(void) {
 
 	// set: big endian
 	{
-		ct_packet_put_u64(packet, 0x1122334455667788, CTEndian_Big);
-		assert_uint64_eq(0x1122334455667788, ct_packet_get_u64(packet, 0, CTEndian_Big));
+		ct_packet_put_u64(packet, 0x1122334455667788, CT_ENDIAN_BIG);
+		assert_uint64_eq(0x1122334455667788, ct_packet_get_u64(packet, 0, CT_ENDIAN_BIG));
 
-		ct_packet_set_double(packet, 0, test_value, CTEndian_Big);
+		ct_packet_set_double(packet, 0, test_value, CT_ENDIAN_BIG);
 		assert_uint16_eq(8, ct_packet_size(packet));
 		assert_uint16_eq(24, ct_packet_total_size(packet));
 		assert_uint16_eq(16, ct_packet_past(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE - 24, ct_packet_available(packet));
 
-		assert_double_eq(test_value, ct_packet_take_double(packet, CTEndian_Big));
+		assert_double_eq(test_value, ct_packet_take_double(packet, CT_ENDIAN_BIG));
 		assert_uint16_eq(0, ct_packet_size(packet));
 		assert_uint16_eq(24, ct_packet_total_size(packet));
 		assert_uint16_eq(24, ct_packet_past(packet));
@@ -995,31 +996,31 @@ static void test_packet_double(void) {
 
 	// put: little endian
 	{
-		ct_packet_put_double(packet, test_value, CTEndian_Little);
+		ct_packet_put_double(packet, test_value, CT_ENDIAN_LITTLE);
 		assert_uint16_eq(8, ct_packet_size(packet));
 		assert_uint16_eq(8, ct_packet_total_size(packet));
 		assert_uint16_eq(0, ct_packet_past(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE - 8, ct_packet_available(packet));
 
-		assert_int_eq(0, isnan(ct_packet_get_double(packet, 0, CTEndian_Little)));
-		assert_double_eq(test_value, ct_packet_get_double(packet, 0, CTEndian_Little));
-		assert_double_ne(test_value, ct_packet_get_double(packet, 0, CTEndian_Big));
+		assert_int_eq(0, isnan(ct_packet_get_double(packet, 0, CT_ENDIAN_LITTLE)));
+		assert_double_eq(test_value, ct_packet_get_double(packet, 0, CT_ENDIAN_LITTLE));
+		assert_double_ne(test_value, ct_packet_get_double(packet, 0, CT_ENDIAN_BIG));
 	}
 
 	// put: big endian
 	{
-		ct_packet_put_double(packet, test_value, CTEndian_Big);
+		ct_packet_put_double(packet, test_value, CT_ENDIAN_BIG);
 		assert_uint16_eq(16, ct_packet_size(packet));
 		assert_uint16_eq(16, ct_packet_total_size(packet));
 		assert_uint16_eq(0, ct_packet_past(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE - 16, ct_packet_available(packet));
 
-		assert_int_eq(0, isnan(ct_packet_get_double(packet, 0, CTEndian_Little)));
-		assert_int_eq(0, isnan(ct_packet_get_double(packet, 8, CTEndian_Big)));
-		assert_double_eq(test_value, ct_packet_get_double(packet, 0, CTEndian_Little));
-		assert_double_eq(test_value, ct_packet_get_double(packet, 8, CTEndian_Big));
+		assert_int_eq(0, isnan(ct_packet_get_double(packet, 0, CT_ENDIAN_LITTLE)));
+		assert_int_eq(0, isnan(ct_packet_get_double(packet, 8, CT_ENDIAN_BIG)));
+		assert_double_eq(test_value, ct_packet_get_double(packet, 0, CT_ENDIAN_LITTLE));
+		assert_double_eq(test_value, ct_packet_get_double(packet, 8, CT_ENDIAN_BIG));
 		assert_uint16_eq(16, ct_packet_size(packet));
 		assert_uint16_eq(16, ct_packet_total_size(packet));
 		assert_uint16_eq(0, ct_packet_past(packet));
@@ -1029,14 +1030,14 @@ static void test_packet_double(void) {
 
 	// take all
 	{
-		assert_double_eq(test_value, ct_packet_take_double(packet, CTEndian_Little));
+		assert_double_eq(test_value, ct_packet_take_double(packet, CT_ENDIAN_LITTLE));
 		assert_uint16_eq(8, ct_packet_size(packet));
 		assert_uint16_eq(16, ct_packet_total_size(packet));
 		assert_uint16_eq(8, ct_packet_past(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE - 16, ct_packet_available(packet));
 
-		assert_double_eq(test_value, ct_packet_take_double(packet, CTEndian_Big));
+		assert_double_eq(test_value, ct_packet_take_double(packet, CT_ENDIAN_BIG));
 		assert_uint16_eq(0, ct_packet_size(packet));
 		assert_uint16_eq(16, ct_packet_total_size(packet));
 		assert_uint16_eq(16, ct_packet_past(packet));
@@ -1046,17 +1047,17 @@ static void test_packet_double(void) {
 
 	// set: little endian
 	{
-		ct_packet_put_u64(packet, 0x1122334455667788, CTEndian_Big);
-		assert_uint64_eq(0x1122334455667788, ct_packet_get_u64(packet, 0, CTEndian_Big));
+		ct_packet_put_u64(packet, 0x1122334455667788, CT_ENDIAN_BIG);
+		assert_uint64_eq(0x1122334455667788, ct_packet_get_u64(packet, 0, CT_ENDIAN_BIG));
 
-		ct_packet_set_double(packet, 0, test_value, CTEndian_Little);
+		ct_packet_set_double(packet, 0, test_value, CT_ENDIAN_LITTLE);
 		assert_uint16_eq(8, ct_packet_size(packet));
 		assert_uint16_eq(24, ct_packet_total_size(packet));
 		assert_uint16_eq(16, ct_packet_past(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE, ct_packet_max(packet));
 		assert_uint16_eq(MAX_BUFFER_SIZE - 24, ct_packet_available(packet));
 
-		assert_double_eq(test_value, ct_packet_take_double(packet, CTEndian_Little));
+		assert_double_eq(test_value, ct_packet_take_double(packet, CT_ENDIAN_LITTLE));
 		assert_uint16_eq(0, ct_packet_size(packet));
 		assert_uint16_eq(24, ct_packet_total_size(packet));
 		assert_uint16_eq(24, ct_packet_past(packet));
@@ -1167,7 +1168,7 @@ static void test_packet_u16s(void) {
 
 	// put: big endian
 	{
-		const uint16_t write_result = ct_packet_put_u16s(packet, test_array, 5, CTEndian_Big);
+		const uint16_t write_result = ct_packet_put_u16s(packet, test_array, 5, CT_ENDIAN_BIG);
 		assert_uint16_eq(5, write_result);
 		assert_uint16_eq(10, ct_packet_size(packet));
 		assert_uint16_eq(10, ct_packet_total_size(packet));
@@ -1177,7 +1178,7 @@ static void test_packet_u16s(void) {
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read_result = ct_packet_get_u16s(packet, 0, read_array, 10, CTEndian_Big);
+		const uint16_t read_result = ct_packet_get_u16s(packet, 0, read_array, 10, CT_ENDIAN_BIG);
 		assert_uint16_eq(5, read_result);
 		assert_uint16_eq(10, ct_packet_size(packet));
 		assert_uint16_eq(10, ct_packet_total_size(packet));
@@ -1192,7 +1193,7 @@ static void test_packet_u16s(void) {
 
 	// put: little endian
 	{
-		const uint16_t write_result = ct_packet_put_u16s(packet, test_array, 5, CTEndian_Little);
+		const uint16_t write_result = ct_packet_put_u16s(packet, test_array, 5, CT_ENDIAN_LITTLE);
 		assert_uint16_eq(5, write_result);
 		assert_uint16_eq(20, ct_packet_size(packet));
 		assert_uint16_eq(20, ct_packet_total_size(packet));
@@ -1202,7 +1203,7 @@ static void test_packet_u16s(void) {
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read_result = ct_packet_get_u16s(packet, 0, read_array, 5, CTEndian_Big);
+		const uint16_t read_result = ct_packet_get_u16s(packet, 0, read_array, 5, CT_ENDIAN_BIG);
 		assert_uint16_eq(5, read_result);
 		assert_uint16_eq(20, ct_packet_size(packet));
 		assert_uint16_eq(20, ct_packet_total_size(packet));
@@ -1216,7 +1217,7 @@ static void test_packet_u16s(void) {
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read_result = ct_packet_get_u16s(packet, 0, read_array, 10, CTEndian_Little);
+		const uint16_t read_result = ct_packet_get_u16s(packet, 0, read_array, 10, CT_ENDIAN_LITTLE);
 		assert_uint16_eq(10, read_result);
 		assert_uint16_eq(20, ct_packet_size(packet));
 		assert_uint16_eq(20, ct_packet_total_size(packet));
@@ -1235,7 +1236,7 @@ static void test_packet_u16s(void) {
 				memset(read_array, 0, sizeof(read_array));
 				const uint16_t read_length = end - start;
 				const uint16_t read_result =
-					ct_packet_get_u16s(packet, start << 1, read_array, read_length, CTEndian_Big);
+					ct_packet_get_u16s(packet, start << 1, read_array, read_length, CT_ENDIAN_BIG);
 				assert_uint16_eq(read_length, read_result);
 				assert_uint16_eq(20, ct_packet_size(packet));
 				assert_uint16_eq(20, ct_packet_total_size(packet));
@@ -1245,15 +1246,14 @@ static void test_packet_u16s(void) {
 
 				for (uint16_t i = 0; i < read_length && start + i < 5; i++) {
 					assert_uint16_eq(test_array[start + i], read_array[i],
-											   "start = %u, end = %u, read_length = %u, i = %u\n", start, end,
-											   read_length, i);
+									 "start = %u, end = %u, read_length = %u, i = %u\n", start, end, read_length, i);
 				}
 			}
 			if (end >= 5) {
 				memset(read_array, 0, sizeof(read_array));
 				const uint16_t read_length = end - start;
 				const uint16_t read_result =
-					ct_packet_get_u16s(packet, start << 1, read_array, read_length, CTEndian_Little);
+					ct_packet_get_u16s(packet, start << 1, read_array, read_length, CT_ENDIAN_LITTLE);
 				assert_uint16_eq(read_length, read_result);
 				assert_uint16_eq(20, ct_packet_size(packet));
 				assert_uint16_eq(20, ct_packet_total_size(packet));
@@ -1266,8 +1266,7 @@ static void test_packet_u16s(void) {
 						continue;
 					}
 					assert_uint16_eq(test_array[(start + i) - 5], read_array[i],
-											   "start = %u, end = %u, read_length = %u, i = %u\n", start, end,
-											   read_length, i);
+									 "start = %u, end = %u, read_length = %u, i = %u\n", start, end, read_length, i);
 				}
 			}
 		}
@@ -1276,7 +1275,7 @@ static void test_packet_u16s(void) {
 	// take: big endian
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read_result = ct_packet_take_u16s(packet, read_array, 5, CTEndian_Big);
+		const uint16_t read_result = ct_packet_take_u16s(packet, read_array, 5, CT_ENDIAN_BIG);
 		assert_uint16_eq(5, read_result);
 		assert_uint16_eq(10, ct_packet_size(packet));
 		assert_uint16_eq(20, ct_packet_total_size(packet));
@@ -1292,7 +1291,7 @@ static void test_packet_u16s(void) {
 	// take: little endian
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read_result = ct_packet_take_u16s(packet, read_array, 5, CTEndian_Little);
+		const uint16_t read_result = ct_packet_take_u16s(packet, read_array, 5, CT_ENDIAN_LITTLE);
 		assert_uint16_eq(5, read_result);
 		assert_uint16_eq(0, ct_packet_size(packet));
 		assert_uint16_eq(20, ct_packet_total_size(packet));
@@ -1315,7 +1314,7 @@ static void test_packet_u32s(void) {
 
 	// put: big endian
 	{
-		const uint16_t write_result = ct_packet_put_u32s(packet, test_array, 5, CTEndian_Big);
+		const uint16_t write_result = ct_packet_put_u32s(packet, test_array, 5, CT_ENDIAN_BIG);
 		assert_uint16_eq(5, write_result);
 		assert_uint16_eq(20, ct_packet_size(packet));
 		assert_uint16_eq(20, ct_packet_total_size(packet));
@@ -1325,7 +1324,7 @@ static void test_packet_u32s(void) {
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read_result = ct_packet_get_u32s(packet, 0, read_array, 10, CTEndian_Big);
+		const uint16_t read_result = ct_packet_get_u32s(packet, 0, read_array, 10, CT_ENDIAN_BIG);
 		assert_uint16_eq(5, read_result);
 		assert_uint16_eq(20, ct_packet_size(packet));
 		assert_uint16_eq(20, ct_packet_total_size(packet));
@@ -1340,7 +1339,7 @@ static void test_packet_u32s(void) {
 
 	// put: little endian
 	{
-		const uint16_t write_result = ct_packet_put_u32s(packet, test_array, 5, CTEndian_Little);
+		const uint16_t write_result = ct_packet_put_u32s(packet, test_array, 5, CT_ENDIAN_LITTLE);
 		assert_uint16_eq(5, write_result);
 		assert_uint16_eq(40, ct_packet_size(packet));
 		assert_uint16_eq(40, ct_packet_total_size(packet));
@@ -1350,7 +1349,7 @@ static void test_packet_u32s(void) {
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read_result = ct_packet_get_u32s(packet, 0, read_array, 10, CTEndian_Big);
+		const uint16_t read_result = ct_packet_get_u32s(packet, 0, read_array, 10, CT_ENDIAN_BIG);
 		assert_uint16_eq(10, read_result);
 		assert_uint16_eq(40, ct_packet_size(packet));
 		assert_uint16_eq(40, ct_packet_total_size(packet));
@@ -1364,7 +1363,7 @@ static void test_packet_u32s(void) {
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read_result = ct_packet_get_u32s(packet, 0, read_array, 10, CTEndian_Little);
+		const uint16_t read_result = ct_packet_get_u32s(packet, 0, read_array, 10, CT_ENDIAN_LITTLE);
 		assert_uint16_eq(10, read_result);
 		assert_uint16_eq(40, ct_packet_size(packet));
 		assert_uint16_eq(40, ct_packet_total_size(packet));
@@ -1383,7 +1382,7 @@ static void test_packet_u32s(void) {
 				memset(read_array, 0, sizeof(read_array));
 				const uint16_t read_length = end - start;
 				const uint16_t read_result =
-					ct_packet_get_u32s(packet, start << 2, read_array, read_length, CTEndian_Big);
+					ct_packet_get_u32s(packet, start << 2, read_array, read_length, CT_ENDIAN_BIG);
 				assert_uint16_eq(read_length, read_result);
 				assert_uint16_eq(40, ct_packet_size(packet));
 				assert_uint16_eq(40, ct_packet_total_size(packet));
@@ -1393,15 +1392,14 @@ static void test_packet_u32s(void) {
 
 				for (uint16_t i = 0; i < read_length && start + i < 5; i++) {
 					assert_uint32_eq(test_array[start + i], read_array[i],
-											   "start = %u, end = %u, read_length = %u, i = %u\n", start, end,
-											   read_length, i);
+									 "start = %u, end = %u, read_length = %u, i = %u\n", start, end, read_length, i);
 				}
 			}
 			if (end >= 5) {
 				memset(read_array, 0, sizeof(read_array));
 				const uint16_t read_length = end - start;
 				const uint16_t read_result =
-					ct_packet_get_u32s(packet, start << 2, read_array, read_length, CTEndian_Little);
+					ct_packet_get_u32s(packet, start << 2, read_array, read_length, CT_ENDIAN_LITTLE);
 				assert_uint16_eq(read_length, read_result);
 				assert_uint16_eq(40, ct_packet_size(packet));
 				assert_uint16_eq(40, ct_packet_total_size(packet));
@@ -1414,8 +1412,7 @@ static void test_packet_u32s(void) {
 						continue;
 					}
 					assert_uint32_eq(test_array[(start + i) - 5], read_array[i],
-											   "start = %u, end = %u, read_length = %u, i = %u\n", start, end,
-											   read_length, i);
+									 "start = %u, end = %u, read_length = %u, i = %u\n", start, end, read_length, i);
 				}
 			}
 		}
@@ -1424,7 +1421,7 @@ static void test_packet_u32s(void) {
 	// take: big endian
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read_result = ct_packet_take_u32s(packet, read_array, 5, CTEndian_Big);
+		const uint16_t read_result = ct_packet_take_u32s(packet, read_array, 5, CT_ENDIAN_BIG);
 		assert_uint16_eq(5, read_result);
 		assert_uint16_eq(20, ct_packet_size(packet));
 		assert_uint16_eq(40, ct_packet_total_size(packet));
@@ -1440,7 +1437,7 @@ static void test_packet_u32s(void) {
 	// take: little endian
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read_result = ct_packet_take_u32s(packet, read_array, 5, CTEndian_Little);
+		const uint16_t read_result = ct_packet_take_u32s(packet, read_array, 5, CT_ENDIAN_LITTLE);
 		assert_uint16_eq(5, read_result);
 		assert_uint16_eq(0, ct_packet_size(packet));
 		assert_uint16_eq(40, ct_packet_total_size(packet));
@@ -1463,7 +1460,7 @@ static void test_packet_u64s(void) {
 
 	// put: big endian
 	{
-		const uint16_t write_result = ct_packet_put_u64s(packet, test_array, 5, CTEndian_Big);
+		const uint16_t write_result = ct_packet_put_u64s(packet, test_array, 5, CT_ENDIAN_BIG);
 		assert_uint16_eq(5, write_result);
 		assert_uint16_eq(40, ct_packet_size(packet));
 		assert_uint16_eq(40, ct_packet_total_size(packet));
@@ -1473,7 +1470,7 @@ static void test_packet_u64s(void) {
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read_result = ct_packet_get_u64s(packet, 0, read_array, 10, CTEndian_Big);
+		const uint16_t read_result = ct_packet_get_u64s(packet, 0, read_array, 10, CT_ENDIAN_BIG);
 		assert_uint16_eq(5, read_result);
 		assert_uint16_eq(40, ct_packet_size(packet));
 		assert_uint16_eq(40, ct_packet_total_size(packet));
@@ -1488,7 +1485,7 @@ static void test_packet_u64s(void) {
 
 	// put: little endian
 	{
-		const uint16_t write_result = ct_packet_put_u64s(packet, test_array, 5, CTEndian_Little);
+		const uint16_t write_result = ct_packet_put_u64s(packet, test_array, 5, CT_ENDIAN_LITTLE);
 		assert_uint16_eq(5, write_result);
 		assert_uint16_eq(80, ct_packet_size(packet));
 		assert_uint16_eq(80, ct_packet_total_size(packet));
@@ -1498,7 +1495,7 @@ static void test_packet_u64s(void) {
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read_result = ct_packet_get_u64s(packet, 0, read_array, 10, CTEndian_Big);
+		const uint16_t read_result = ct_packet_get_u64s(packet, 0, read_array, 10, CT_ENDIAN_BIG);
 		assert_uint16_eq(10, read_result);
 		assert_uint16_eq(80, ct_packet_size(packet));
 		assert_uint16_eq(80, ct_packet_total_size(packet));
@@ -1512,7 +1509,7 @@ static void test_packet_u64s(void) {
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read_result = ct_packet_get_u64s(packet, 40, read_array, 10, CTEndian_Little);
+		const uint16_t read_result = ct_packet_get_u64s(packet, 40, read_array, 10, CT_ENDIAN_LITTLE);
 		assert_uint16_eq(5, read_result);
 		assert_uint16_eq(80, ct_packet_size(packet));
 		assert_uint16_eq(80, ct_packet_total_size(packet));
@@ -1531,7 +1528,7 @@ static void test_packet_u64s(void) {
 				memset(read_array, 0, sizeof(read_array));
 				const uint16_t read_length = end - start;
 				const uint16_t read_result =
-					ct_packet_get_u64s(packet, start << 3, read_array, read_length, CTEndian_Big);
+					ct_packet_get_u64s(packet, start << 3, read_array, read_length, CT_ENDIAN_BIG);
 				assert_uint16_eq(read_length, read_result);
 				assert_uint16_eq(80, ct_packet_size(packet));
 				assert_uint16_eq(80, ct_packet_total_size(packet));
@@ -1541,15 +1538,14 @@ static void test_packet_u64s(void) {
 
 				for (uint16_t i = 0; i < read_length && start + i < 5; i++) {
 					assert_uint64_eq(test_array[start + i], read_array[i],
-											   "start = %u, end = %u, read_length = %u, i = %u\n", start, end,
-											   read_length, i);
+									 "start = %u, end = %u, read_length = %u, i = %u\n", start, end, read_length, i);
 				}
 			}
 			if (end >= 5) {
 				memset(read_array, 0, sizeof(read_array));
 				const uint16_t read_length = end - start;
 				const uint16_t read_result =
-					ct_packet_get_u64s(packet, start << 3, read_array, read_length, CTEndian_Little);
+					ct_packet_get_u64s(packet, start << 3, read_array, read_length, CT_ENDIAN_LITTLE);
 				assert_uint16_eq(read_length, read_result);
 				assert_uint16_eq(80, ct_packet_size(packet));
 				assert_uint16_eq(80, ct_packet_total_size(packet));
@@ -1562,8 +1558,7 @@ static void test_packet_u64s(void) {
 						continue;
 					}
 					assert_uint64_eq(test_array[(start + i) - 5], read_array[i],
-											   "start = %u, end = %u, read_length = %u, i = %u\n", start, end,
-											   read_length, i);
+									 "start = %u, end = %u, read_length = %u, i = %u\n", start, end, read_length, i);
 				}
 			}
 		}
@@ -1572,7 +1567,7 @@ static void test_packet_u64s(void) {
 	// take: big endian
 	{
 		uint64_t       taken_array[5] = {0};
-		const uint16_t taken          = ct_packet_take_u64s(packet, taken_array, 5, CTEndian_Big);
+		const uint16_t taken          = ct_packet_take_u64s(packet, taken_array, 5, CT_ENDIAN_BIG);
 		assert_uint16_eq(5, taken);
 		assert_uint16_eq(40, ct_packet_size(packet));
 		assert_uint16_eq(80, ct_packet_total_size(packet));
@@ -1588,7 +1583,7 @@ static void test_packet_u64s(void) {
 	// take: little endian
 	{
 		uint64_t       taken_array[5] = {0};
-		const uint16_t taken          = ct_packet_take_u64s(packet, taken_array, 5, CTEndian_Little);
+		const uint16_t taken          = ct_packet_take_u64s(packet, taken_array, 5, CT_ENDIAN_LITTLE);
 		assert_uint16_eq(5, taken);
 		assert_uint16_eq(0, ct_packet_size(packet));
 		assert_uint16_eq(80, ct_packet_total_size(packet));
@@ -1611,7 +1606,7 @@ static void test_packet_floats(void) {
 
 	// put: big endian
 	{
-		const uint16_t write_result = ct_packet_put_floats(packet, test_array, 5, CTEndian_Big);
+		const uint16_t write_result = ct_packet_put_floats(packet, test_array, 5, CT_ENDIAN_BIG);
 		assert_uint16_eq(5, write_result);
 		assert_uint16_eq(20, ct_packet_size(packet));
 		assert_uint16_eq(20, ct_packet_total_size(packet));
@@ -1621,7 +1616,7 @@ static void test_packet_floats(void) {
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read_result = ct_packet_get_floats(packet, 0, read_array, 10, CTEndian_Big);
+		const uint16_t read_result = ct_packet_get_floats(packet, 0, read_array, 10, CT_ENDIAN_BIG);
 		assert_uint16_eq(5, read_result);
 		assert_uint16_eq(20, ct_packet_size(packet));
 		assert_uint16_eq(20, ct_packet_total_size(packet));
@@ -1636,7 +1631,7 @@ static void test_packet_floats(void) {
 
 	// put: little endian
 	{
-		const uint16_t write_result = ct_packet_put_floats(packet, test_array, 5, CTEndian_Little);
+		const uint16_t write_result = ct_packet_put_floats(packet, test_array, 5, CT_ENDIAN_LITTLE);
 		assert_uint16_eq(5, write_result);
 		assert_uint16_eq(40, ct_packet_size(packet));
 		assert_uint16_eq(40, ct_packet_total_size(packet));
@@ -1646,7 +1641,7 @@ static void test_packet_floats(void) {
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read_result = ct_packet_get_floats(packet, 0, read_array, 10, CTEndian_Big);
+		const uint16_t read_result = ct_packet_get_floats(packet, 0, read_array, 10, CT_ENDIAN_BIG);
 		assert_uint16_eq(10, read_result);
 		assert_uint16_eq(40, ct_packet_size(packet));
 		assert_uint16_eq(40, ct_packet_total_size(packet));
@@ -1660,7 +1655,7 @@ static void test_packet_floats(void) {
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read_result = ct_packet_get_floats(packet, 0, read_array, 10, CTEndian_Little);
+		const uint16_t read_result = ct_packet_get_floats(packet, 0, read_array, 10, CT_ENDIAN_LITTLE);
 		assert_uint16_eq(10, read_result);
 		assert_uint16_eq(40, ct_packet_size(packet));
 		assert_uint16_eq(40, ct_packet_total_size(packet));
@@ -1679,7 +1674,7 @@ static void test_packet_floats(void) {
 				memset(read_array, 0, sizeof(read_array));
 				const uint16_t read_length = end - start;
 				const uint16_t read_result =
-					ct_packet_get_floats(packet, start << 2, read_array, read_length, CTEndian_Big);
+					ct_packet_get_floats(packet, start << 2, read_array, read_length, CT_ENDIAN_BIG);
 				assert_uint16_eq(read_length, read_result);
 				assert_uint16_eq(40, ct_packet_size(packet));
 				assert_uint16_eq(40, ct_packet_total_size(packet));
@@ -1689,15 +1684,14 @@ static void test_packet_floats(void) {
 
 				for (uint16_t i = 0; i < read_length && start + i < 5; i++) {
 					assert_float_eq(test_array[start + i], read_array[i],
-											  "start = %u, end = %u, read_length = %u, i = %u\n", start, end,
-											  read_length, i);
+									"start = %u, end = %u, read_length = %u, i = %u\n", start, end, read_length, i);
 				}
 			}
 			if (end >= 5) {
 				memset(read_array, 0, sizeof(read_array));
 				const uint16_t read_length = end - start;
 				const uint16_t read_result =
-					ct_packet_get_floats(packet, start << 2, read_array, read_length, CTEndian_Little);
+					ct_packet_get_floats(packet, start << 2, read_array, read_length, CT_ENDIAN_LITTLE);
 				assert_uint16_eq(read_length, read_result);
 				assert_uint16_eq(40, ct_packet_size(packet));
 				assert_uint16_eq(40, ct_packet_total_size(packet));
@@ -1710,8 +1704,7 @@ static void test_packet_floats(void) {
 						continue;
 					}
 					assert_float_eq(test_array[(start + i) - 5], read_array[i],
-											  "start = %u, end = %u, read_length = %u, i = %u\n", start, end,
-											  read_length, i);
+									"start = %u, end = %u, read_length = %u, i = %u\n", start, end, read_length, i);
 				}
 			}
 		}
@@ -1720,7 +1713,7 @@ static void test_packet_floats(void) {
 	// take: big endian
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read_result = ct_packet_take_floats(packet, read_array, 5, CTEndian_Big);
+		const uint16_t read_result = ct_packet_take_floats(packet, read_array, 5, CT_ENDIAN_BIG);
 		assert_uint16_eq(5, read_result);
 		assert_uint16_eq(20, ct_packet_size(packet));
 		assert_uint16_eq(40, ct_packet_total_size(packet));
@@ -1736,7 +1729,7 @@ static void test_packet_floats(void) {
 	// take: little endian
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read_result = ct_packet_take_floats(packet, read_array, 5, CTEndian_Little);
+		const uint16_t read_result = ct_packet_take_floats(packet, read_array, 5, CT_ENDIAN_LITTLE);
 		assert_uint16_eq(5, read_result);
 		assert_uint16_eq(0, ct_packet_size(packet));
 		assert_uint16_eq(40, ct_packet_total_size(packet));
@@ -1759,7 +1752,7 @@ static void test_packet_doubles(void) {
 
 	// put: big endian
 	{
-		const uint16_t write_result = ct_packet_put_doubles(packet, test_array, 5, CTEndian_Big);
+		const uint16_t write_result = ct_packet_put_doubles(packet, test_array, 5, CT_ENDIAN_BIG);
 		assert_uint16_eq(5, write_result);
 		assert_uint16_eq(40, ct_packet_size(packet));
 		assert_uint16_eq(40, ct_packet_total_size(packet));
@@ -1769,7 +1762,7 @@ static void test_packet_doubles(void) {
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read_result = ct_packet_get_doubles(packet, 0, read_array, 10, CTEndian_Big);
+		const uint16_t read_result = ct_packet_get_doubles(packet, 0, read_array, 10, CT_ENDIAN_BIG);
 		assert_uint16_eq(5, read_result);
 		assert_uint16_eq(40, ct_packet_size(packet));
 		assert_uint16_eq(40, ct_packet_total_size(packet));
@@ -1784,7 +1777,7 @@ static void test_packet_doubles(void) {
 
 	// put: little endian
 	{
-		const uint16_t write_result = ct_packet_put_doubles(packet, test_array, 5, CTEndian_Little);
+		const uint16_t write_result = ct_packet_put_doubles(packet, test_array, 5, CT_ENDIAN_LITTLE);
 		assert_uint16_eq(5, write_result);
 		assert_uint16_eq(80, ct_packet_size(packet));
 		assert_uint16_eq(80, ct_packet_total_size(packet));
@@ -1794,7 +1787,7 @@ static void test_packet_doubles(void) {
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read_result = ct_packet_get_doubles(packet, 0, read_array, 10, CTEndian_Big);
+		const uint16_t read_result = ct_packet_get_doubles(packet, 0, read_array, 10, CT_ENDIAN_BIG);
 		assert_uint16_eq(10, read_result);
 		assert_uint16_eq(80, ct_packet_size(packet));
 		assert_uint16_eq(80, ct_packet_total_size(packet));
@@ -1808,7 +1801,7 @@ static void test_packet_doubles(void) {
 	}
 	{
 		memset(read_array, 0, sizeof(read_array));
-		const uint16_t read_result = ct_packet_get_doubles(packet, 40, read_array, 10, CTEndian_Little);
+		const uint16_t read_result = ct_packet_get_doubles(packet, 40, read_array, 10, CT_ENDIAN_LITTLE);
 		assert_uint16_eq(5, read_result);
 		assert_uint16_eq(80, ct_packet_size(packet));
 		assert_uint16_eq(80, ct_packet_total_size(packet));
@@ -1827,7 +1820,7 @@ static void test_packet_doubles(void) {
 				memset(read_array, 0, sizeof(read_array));
 				const uint16_t read_length = end - start;
 				const uint16_t read_result =
-					ct_packet_get_doubles(packet, start << 3, read_array, read_length, CTEndian_Big);
+					ct_packet_get_doubles(packet, start << 3, read_array, read_length, CT_ENDIAN_BIG);
 				assert_uint16_eq(read_length, read_result);
 				assert_uint16_eq(80, ct_packet_size(packet));
 				assert_uint16_eq(80, ct_packet_total_size(packet));
@@ -1837,15 +1830,14 @@ static void test_packet_doubles(void) {
 
 				for (uint16_t i = 0; i < read_length && start + i < 5; i++) {
 					assert_double_eq(test_array[start + i], read_array[i],
-											   "start = %u, end = %u, read_length = %u, i = %u\n", start, end,
-											   read_length, i);
+									 "start = %u, end = %u, read_length = %u, i = %u\n", start, end, read_length, i);
 				}
 			}
 			if (end >= 5) {
 				memset(read_array, 0, sizeof(read_array));
 				const uint16_t read_length = end - start;
 				const uint16_t read_result =
-					ct_packet_get_doubles(packet, start << 3, read_array, read_length, CTEndian_Little);
+					ct_packet_get_doubles(packet, start << 3, read_array, read_length, CT_ENDIAN_LITTLE);
 				assert_uint16_eq(read_length, read_result);
 				assert_uint16_eq(80, ct_packet_size(packet));
 				assert_uint16_eq(80, ct_packet_total_size(packet));
@@ -1858,8 +1850,7 @@ static void test_packet_doubles(void) {
 						continue;
 					}
 					assert_double_eq(test_array[(start + i) - 5], read_array[i],
-											   "start = %u, end = %u, read_length = %u, i = %u\n", start, end,
-											   read_length, i);
+									 "start = %u, end = %u, read_length = %u, i = %u\n", start, end, read_length, i);
 				}
 			}
 		}
@@ -1868,7 +1859,7 @@ static void test_packet_doubles(void) {
 	// take: big endian
 	{
 		double         taken_array[5] = {0};
-		const uint16_t taken          = ct_packet_take_doubles(packet, taken_array, 5, CTEndian_Big);
+		const uint16_t taken          = ct_packet_take_doubles(packet, taken_array, 5, CT_ENDIAN_BIG);
 		assert_uint16_eq(5, taken);
 		assert_uint16_eq(40, ct_packet_size(packet));
 		assert_uint16_eq(80, ct_packet_total_size(packet));
@@ -1884,7 +1875,7 @@ static void test_packet_doubles(void) {
 	// take: little endian
 	{
 		double         taken_array[5] = {0};
-		const uint16_t taken          = ct_packet_take_doubles(packet, taken_array, 5, CTEndian_Little);
+		const uint16_t taken          = ct_packet_take_doubles(packet, taken_array, 5, CT_ENDIAN_LITTLE);
 		assert_uint16_eq(5, taken);
 		assert_uint16_eq(0, ct_packet_size(packet));
 		assert_uint16_eq(80, ct_packet_total_size(packet));

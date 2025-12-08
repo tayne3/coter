@@ -4,9 +4,9 @@
  */
 #include "coter/container/hash.h"
 
-#include "coter/base/any.h"
-#include "coter/base/platform.h"
-#include "coter/base/str.h"
+#include "coter/core/platform.h"
+#include "coter/types/any.h"
+#include "coter/strings/strings.h"
 #include "cunit.h"
 #include "sched.h"
 

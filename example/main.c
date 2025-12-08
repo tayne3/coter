@@ -3,7 +3,7 @@
  * @brief 程序入口
  */
 #include "app.h"
-#include "coter/mech/timer.h"
+#include "coter/time/timer.h"
 
 // -------------------------[STATIC DECLARATION]-------------------------
 

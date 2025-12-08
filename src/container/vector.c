@@ -1,5 +1,5 @@
 /**
- * @file ct_vector.c
+ * @file vector.c
  * @brief 动态数组实现
  */
 #include "coter/container/vector.h"

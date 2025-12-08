@@ -5,16 +5,14 @@
 确保您的系统已安装以下工具：
 
 - **C 编译器**（支持 C99 标准）
-  - 推荐版本：
-    - **GCC** 4.5 或更高版本
-    - **Clang** 10.0 或更高版本
-    - **MSVC** Visual Studio 2019 或更高版本
-- **CMake** 版本 3.05 及以上
-  - 下载链接：[CMake 官方网站](https://cmake.org/download/)
-- **Ninja**（可选，用于高效构建）
-  - 下载链接：[Ninja Releases](https://github.com/ninja-build/ninja/releases)
-- **MinGW-w64**（仅适用于 Windows，若使用 MinGW 编译）
-  - 下载链接：[MinGW-w64](http://mingw-w64.org/doku.php/download)
+  - 推荐:
+    - **GCC** 4.5+
+    - **Clang** 10.0+
+    - **MSVC** Visual Studio 2019+
+    - **[Zig](https://ziglang.org/download/)** 0.15.0+
+    - **[MinGW-w64](http://mingw-w64.org/doku.php/download)**（仅适用于 Windows）
+- **[CMake](https://cmake.org/download/)** 版本 3.14+
+- **[Ninja](https://github.com/ninja-build/ninja/releases)**（可选，用于高效构建）
 
 ## 📚 构建步骤
 
@@ -102,14 +100,13 @@ make
 
 - `-DCMAKE_TOOLCHAIN_FILE`：指定交叉编译工具链文件
 
-#### 使用 CMake 3.12+ 更加简洁的语法:
+#### 使用 CMake 3.14+ 更加简洁的语法:
 
 ```sh
-cmake -S . -B build
+cmake -B build
 cmake --build build --parallel 16 --
 ```
 
-- `-S .`：指定源代码目录
 - `-B build`：指定构建目录
 - `--parallel 16`：启用16线程并行构建
 
@@ -123,49 +120,3 @@ ctest
 ```
 
 - `ctest`：运行CMake测试套件
-
-## ⚙️ 编译选项
-
-- `COTER_BUILD_EXAMPLE`
-    build example program (default OFF)
-- `COTER_BUILD_TEST`
-    build test program (default OFF)
-- `COTER_BUILD_SHARED`
-    build shared library (default ON)
-- `COTER_BUILD_STATIC`
-    build static library (default OFF)
-
-## 🎯 编译目标
-
-- **`coter::obj`**：对象库
-  - 仅执行源代码的编译操作，不进行链接，**不会**生成任何可执行文件或库文件。
-  - 从 CMake 3.12 版本开始，可以像使用普通库一样使用对象库。
-
-- **`coter::shared`**：共享(动态)库
-  - 构建为动态链接库，适用于需要在运行时加载或共享使用的场景。
-  - 生成的库文件具有 `.dll`（Windows）、`.so`（Linux）或 `.dylib`（macOS）扩展名。
-
-- **`coter::static`**：静态库
-  - 构建为静态链接库，适用于需要将库静态链接到最终可执行文件中的场景。
-  - 生成的库文件具有 `.lib`（Windows）或 `.a`（Linux/macOS）扩展名。
-
-- **`coter::coter`**：通用库目标
-  - 根据构建配置自动别名化为共享库、静态库或对象库：
-    - 启用 `COTER_BUILD_SHARED`：
-        - `coter::coter` 将指向 `coter::shared`。
-    - 启用 `COTER_BUILD_STATIC`：
-        - `coter::coter` 将指向 `coter::static`。
-    - 同时启用 `COTER_BUILD_SHARED` 和 `COTER_BUILD_STATIC`：
-        - `coter::coter` 优先指向 `coter::shared`。
-    - 未启用 `COTER_BUILD_SHARED` 和 `COTER_BUILD_STATIC`：
-        - `coter::coter` 将指向 `coter::obj`。
-
-## 🔗 项目集成
-
-### 子模块集成
-
-    - 将 coter 项目作为 CMake 子模块直接添加到您的项目中。这样，您的项目可以直接使用 coter 的源码，并且能够方便地跟踪和更新 coter 的版本。
-
-### 输出库集成
-
-    - 您也可以将 coter 构建为静态库或动态库，然后在您的项目中链接这些库。这种方式使得 coter 的更新和维护更加独立，便于管理。

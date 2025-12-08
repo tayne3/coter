@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.14)
 
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/PreventInSourceBuilds.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/GitVersion.cmake)
-git_version_info(VERSION PROJECT_VERSION DEFAULT_VERSION 0.7.0)
-project(coter VERSION ${PROJECT_VERSION})
+git_version_info(VERSION COTER_VERSION DEFAULT_VERSION 0.8.0)
+project(coter VERSION ${COTER_VERSION})
 
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/ProjectIsTopLevel.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/OptionVariables.cmake)
@@ -12,22 +12,23 @@ include(${CMAKE_CURRENT_LIST_DIR}/cmake/CPM.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/ProjectFunctions.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/SetupPthreads.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/SetupLibrarys.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/SetupBinary.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/SetupAtomic.cmake)
 
 if(COTER_BUILD_SHARED)
   add_library(coter_shared SHARED)
   set(COTER coter_shared)
-  message(STATUS "coter v${PROJECT_VERSION} shared library")
+  message(STATUS "coter v${COTER_VERSION} shared library")
 else()
   add_library(coter_static STATIC)
   set(COTER coter_static)
-  message(STATUS "coter v${PROJECT_VERSION} static library")
+  message(STATUS "coter v${COTER_VERSION} static library")
 endif()
 add_library(coter::coter ALIAS ${COTER})
 
 configure_file(
-  "src/base/config.h.in"
-  "include/coter/base/config.h"
+  "include/coter/core/config.h.in"
+  "include/coter/core/config.h"
   @ONLY
 )
 

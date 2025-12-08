@@ -1,0 +1,63 @@
+/**
+ * @file log_printer.h
+ * @brief 日志打印器
+ */
+#ifndef COTER_LOG_LOG_PRINTER_H
+#define COTER_LOG_LOG_PRINTER_H
+
+#include "coter/core/platform.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+struct ct_bytepool;
+struct ct_log_config;
+
+/**
+ * @struct ct_log_printer
+ * @brief 日志打印器
+ */
+typedef struct ct_log_printer ct_log_printer_t;
+
+/**
+ * @brief 获取日志打印器
+ *
+ * @param bytepool 字节池
+ * @return 日志打印器
+ */
+ct_log_printer_t *ct_log_printer_create(struct ct_bytepool *bytepool);
+
+/**
+ * @brief 销毁日志打印器
+ * @param self 日志打印器
+ */
+void ct_log_printer_destroy(ct_log_printer_t *self);
+
+/**
+ * @brief 添加日志数据
+ *
+ * @param self 日志打印器
+ * @param buf 日志数据
+ * @param size 日志数据大小
+ */
+void ct_log_printer_handle(ct_log_printer_t *self, const char *buf, size_t size);
+
+/**
+ * @brief 刷新日志打印器
+ *
+ * @param self 日志打印器
+ */
+void ct_log_printer_flush(ct_log_printer_t *self);
+
+/**
+ * @brief 日志打印器调度
+ *
+ * @param self 日志打印器
+ */
+void ct_log_printer_schedule(ct_log_printer_t *self);
+
+#ifdef __cplusplus
+}
+#endif
+#endif  // COTER_LOG_LOG_PRINTER_H

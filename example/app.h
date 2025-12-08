@@ -2,13 +2,14 @@
  * @file app.h
  * @brief Application 实例
  */
-#ifndef _APP_H
-#define _APP_H
+#ifndef EXAMPLE_APP_H
+#define EXAMPLE_APP_H
+
+#include "log.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "log.h"
 
 /**
  * @brief 应用实例
@@ -54,4 +55,4 @@ int global_async(void (*routine)(void*), void* arg);
 #ifdef __cplusplus
 }
 #endif
-#endif  // _APP_H
+#endif  // EXAMPLE_APP_H

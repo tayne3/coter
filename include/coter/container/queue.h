@@ -1,5 +1,5 @@
 /**
- * @file ct_queue.h
+ * @file queue.h
  * @brief 队列实现
  * @note
  * 	定义了队列的数据结构和相关操作函数,包含队列的初始化、插入、删除、查询等操作。
@@ -8,7 +8,7 @@
 #ifndef COTER_QUEUE_H
 #define COTER_QUEUE_H
 
-#include "coter/base/platform.h"
+#include "coter/core/platform.h"
 
 #ifdef __cplusplus
 extern "C" {

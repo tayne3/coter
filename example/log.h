@@ -2,14 +2,15 @@
  * @file log.h
  * @brief 日志宏
  */
-#ifndef _LOG_H
-#define _LOG_H
+#ifndef EXAMPLE_LOG_H
+#define EXAMPLE_LOG_H
+
+#include "coter/core/platform.h"
+#include "coter/log/log.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "coter/base/platform.h"
-#include "coter/mech/log.h"
 
 #define LogType_Default 0
 
@@ -43,4 +44,4 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#endif  // _LOG_H
+#endif  // EXAMPLE_LOG_H

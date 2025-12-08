@@ -1,10 +1,10 @@
 /**
- * @file ct_packet.c
+ * @file packet.c
  * @brief 报文缓冲盒子
  */
 #include "coter/container/packet.h"
 
-#include "coter/base/utils.h"
+#include "coter/mem/alloc.h"
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
@@ -60,7 +60,7 @@ uint16_t ct_packet_get_u16(const ct_packet_buf_t self, uint16_t offset, ct_endia
 
 	uint16_t       u16;
 	const uint8_t *source = self->_buffer + self->_past + offset;
-	if (endian == CTEndian_System) {
+	if (endian == CT_ENDIAN_SYSTEM) {
 		memcpy(&u16, source, sizeof(uint16_t));
 	} else {
 		ct_reverse_memcpy(&u16, source, sizeof(uint16_t));
@@ -80,7 +80,7 @@ uint32_t ct_packet_get_u32(const ct_packet_buf_t self, uint16_t offset, ct_endia
 
 	uint32_t       u32;
 	const uint8_t *source = self->_buffer + self->_past + offset;
-	if (endian == CTEndian_System) {
+	if (endian == CT_ENDIAN_SYSTEM) {
 		memcpy(&u32, source, sizeof(uint32_t));
 	} else {
 		ct_reverse_memcpy(&u32, source, sizeof(uint32_t));
@@ -100,7 +100,7 @@ uint64_t ct_packet_get_u64(const ct_packet_buf_t self, uint16_t offset, ct_endia
 
 	uint64_t       u64;
 	const uint8_t *source = self->_buffer + self->_past + offset;
-	if (endian == CTEndian_System) {
+	if (endian == CT_ENDIAN_SYSTEM) {
 		memcpy(&u64, source, sizeof(uint64_t));
 	} else {
 		ct_reverse_memcpy(&u64, source, sizeof(uint64_t));
@@ -120,7 +120,7 @@ float ct_packet_get_float(const ct_packet_buf_t self, uint16_t offset, ct_endian
 
 	float          f32;
 	const uint8_t *source = self->_buffer + self->_past + offset;
-	if (endian == CTEndian_System) {
+	if (endian == CT_ENDIAN_SYSTEM) {
 		memcpy(&f32, source, sizeof(float));
 	} else {
 		ct_reverse_memcpy(&f32, source, sizeof(float));
@@ -140,7 +140,7 @@ double ct_packet_get_double(const ct_packet_buf_t self, uint16_t offset, ct_endi
 
 	double         f64;
 	const uint8_t *source = self->_buffer + self->_past + offset;
-	if (endian == CTEndian_System) {
+	if (endian == CT_ENDIAN_SYSTEM) {
 		memcpy(&f64, source, sizeof(double));
 	} else {
 		ct_reverse_memcpy(&f64, source, sizeof(double));
@@ -175,7 +175,7 @@ uint16_t ct_packet_take_u16(ct_packet_buf_t self, ct_endian_t endian) {
 	uint16_t       u16;
 	const uint8_t *source = self->_buffer + self->_past;
 
-	if (endian == CTEndian_System) {
+	if (endian == CT_ENDIAN_SYSTEM) {
 		memcpy(&u16, source, sizeof(uint16_t));
 	} else {
 		ct_reverse_memcpy(&u16, source, sizeof(uint16_t));
@@ -196,7 +196,7 @@ uint32_t ct_packet_take_u32(ct_packet_buf_t self, ct_endian_t endian) {
 
 	uint32_t       u32;
 	const uint8_t *source = self->_buffer + self->_past;
-	if (endian == CTEndian_System) {
+	if (endian == CT_ENDIAN_SYSTEM) {
 		memcpy(&u32, source, sizeof(uint32_t));
 	} else {
 		ct_reverse_memcpy(&u32, source, sizeof(uint32_t));
@@ -218,7 +218,7 @@ uint64_t ct_packet_take_u64(ct_packet_buf_t self, ct_endian_t endian) {
 	uint64_t       u64;
 	const uint8_t *source = self->_buffer + self->_past;
 
-	if (endian == CTEndian_System) {
+	if (endian == CT_ENDIAN_SYSTEM) {
 		memcpy(&u64, source, sizeof(uint64_t));
 	} else {
 		ct_reverse_memcpy(&u64, source, sizeof(uint64_t));
@@ -239,7 +239,7 @@ float ct_packet_take_float(ct_packet_buf_t self, ct_endian_t endian) {
 
 	float          f32;
 	const uint8_t *source = self->_buffer + self->_past;
-	if (endian == CTEndian_System) {
+	if (endian == CT_ENDIAN_SYSTEM) {
 		memcpy(&f32, source, sizeof(float));
 	} else {
 		ct_reverse_memcpy(&f32, source, sizeof(float));
@@ -260,7 +260,7 @@ double ct_packet_take_double(ct_packet_buf_t self, ct_endian_t endian) {
 
 	double         f64;
 	const uint8_t *source = self->_buffer + self->_past;
-	if (endian == CTEndian_System) {
+	if (endian == CT_ENDIAN_SYSTEM) {
 		memcpy(&f64, source, sizeof(double));
 	} else {
 		ct_reverse_memcpy(&f64, source, sizeof(double));
@@ -307,7 +307,7 @@ void ct_packet_set_u16(ct_packet_buf_t self, uint16_t offset, uint16_t value, ct
 	const uint8_t *source = (const uint8_t *)&value;
 	uint8_t       *target = self->_buffer + self->_past + offset;
 
-	if (endian == CTEndian_System) {
+	if (endian == CT_ENDIAN_SYSTEM) {
 		memcpy(target, source, sizeof(uint16_t));
 	} else {
 		ct_reverse_memcpy(target, source, sizeof(uint16_t));
@@ -326,7 +326,7 @@ void ct_packet_set_u32(ct_packet_buf_t self, uint16_t offset, uint32_t value, ct
 	const uint8_t *source = (const uint8_t *)&value;
 	uint8_t       *target = self->_buffer + self->_past + offset;
 
-	if (endian == CTEndian_System) {
+	if (endian == CT_ENDIAN_SYSTEM) {
 		memcpy(target, source, sizeof(uint32_t));
 	} else {
 		ct_reverse_memcpy(target, source, sizeof(uint32_t));
@@ -345,7 +345,7 @@ void ct_packet_set_u64(ct_packet_buf_t self, uint16_t offset, uint64_t value, ct
 	const uint8_t *source = (const uint8_t *)&value;
 	uint8_t       *target = self->_buffer + self->_past + offset;
 
-	if (endian == CTEndian_System) {
+	if (endian == CT_ENDIAN_SYSTEM) {
 		memcpy(target, source, sizeof(uint64_t));
 	} else {
 		ct_reverse_memcpy(target, source, sizeof(uint64_t));
@@ -364,7 +364,7 @@ void ct_packet_set_float(ct_packet_buf_t self, uint16_t offset, float value, ct_
 	const uint8_t *source = (const uint8_t *)&value;
 	uint8_t       *target = self->_buffer + self->_past + offset;
 
-	if (endian == CTEndian_System) {
+	if (endian == CT_ENDIAN_SYSTEM) {
 		memcpy(target, source, sizeof(float));
 	} else {
 		ct_reverse_memcpy(target, source, sizeof(float));
@@ -382,7 +382,7 @@ void ct_packet_set_double(ct_packet_buf_t self, uint16_t offset, double value, c
 
 	const uint8_t *source = (const uint8_t *)&value;
 	uint8_t       *target = self->_buffer + self->_past + offset;
-	if (endian == CTEndian_System) {
+	if (endian == CT_ENDIAN_SYSTEM) {
 		memcpy(target, source, sizeof(double));
 	} else {
 		ct_reverse_memcpy(target, source, sizeof(double));
@@ -415,7 +415,7 @@ void ct_packet_put_u16(ct_packet_buf_t self, uint16_t value, ct_endian_t endian)
 
 	const uint8_t *source = (const uint8_t *)&value;
 	uint8_t       *target = self->_buffer + self->_total;
-	if (endian == CTEndian_System) {
+	if (endian == CT_ENDIAN_SYSTEM) {
 		memcpy(target, source, sizeof(uint16_t));
 	} else {
 		ct_reverse_memcpy(target, source, sizeof(uint16_t));
@@ -435,7 +435,7 @@ void ct_packet_put_u32(ct_packet_buf_t self, uint32_t value, ct_endian_t endian)
 
 	const uint8_t *source = (const uint8_t *)&value;
 	uint8_t       *target = self->_buffer + self->_total;
-	if (endian == CTEndian_System) {
+	if (endian == CT_ENDIAN_SYSTEM) {
 		memcpy(target, source, sizeof(uint32_t));
 	} else {
 		ct_reverse_memcpy(target, source, sizeof(uint32_t));
@@ -455,7 +455,7 @@ void ct_packet_put_u64(ct_packet_buf_t self, uint64_t value, ct_endian_t endian)
 
 	const uint8_t *source = (const uint8_t *)&value;
 	uint8_t       *target = self->_buffer + self->_total;
-	if (endian == CTEndian_System) {
+	if (endian == CT_ENDIAN_SYSTEM) {
 		memcpy(target, source, sizeof(uint64_t));
 	} else {
 		ct_reverse_memcpy(target, source, sizeof(uint64_t));
@@ -475,7 +475,7 @@ void ct_packet_put_float(ct_packet_buf_t self, float value, ct_endian_t endian) 
 
 	const uint8_t *source = (const uint8_t *)&value;
 	uint8_t       *target = self->_buffer + self->_total;
-	if (endian == CTEndian_System) {
+	if (endian == CT_ENDIAN_SYSTEM) {
 		memcpy(target, source, sizeof(float));
 	} else {
 		ct_reverse_memcpy(target, source, sizeof(float));
@@ -495,7 +495,7 @@ void ct_packet_put_double(ct_packet_buf_t self, double value, ct_endian_t endian
 
 	const uint8_t *source = (const uint8_t *)&value;
 	uint8_t       *target = self->_buffer + self->_total;
-	if (endian == CTEndian_System) {
+	if (endian == CT_ENDIAN_SYSTEM) {
 		memcpy(target, source, sizeof(double));
 	} else {
 		ct_reverse_memcpy(target, source, sizeof(double));
@@ -543,7 +543,7 @@ uint16_t ct_packet_get_u16s(const ct_packet_buf_t self, uint16_t offset, uint16_
 	}
 
 	const uint16_t *source = (const uint16_t *)(self->_buffer + self->_past + offset);
-	if (endian == CTEndian_System) {
+	if (endian == CT_ENDIAN_SYSTEM) {
 		for (uint16_t i = 0; i < max; i++) {
 			memcpy(buffer++, source++, sizeof(uint16_t));
 		}
@@ -571,7 +571,7 @@ uint16_t ct_packet_get_u32s(const ct_packet_buf_t self, uint16_t offset, uint32_
 	}
 
 	const uint32_t *source = (const uint32_t *)(self->_buffer + self->_past + offset);
-	if (endian == CTEndian_System) {
+	if (endian == CT_ENDIAN_SYSTEM) {
 		for (uint16_t i = 0; i < max; i++) {
 			memcpy(buffer++, source++, sizeof(uint32_t));
 		}
@@ -599,7 +599,7 @@ uint16_t ct_packet_get_u64s(const ct_packet_buf_t self, uint16_t offset, uint64_
 	}
 
 	const uint64_t *source = (const uint64_t *)(self->_buffer + self->_past + offset);
-	if (endian == CTEndian_System) {
+	if (endian == CT_ENDIAN_SYSTEM) {
 		for (uint16_t i = 0; i < max; i++) {
 			memcpy(buffer++, source++, sizeof(uint64_t));
 		}
@@ -655,7 +655,7 @@ uint16_t ct_packet_take_u16s(ct_packet_buf_t self, uint16_t *buffer, uint16_t ma
 	}
 
 	const uint16_t *source = (const uint16_t *)(self->_buffer + self->_past);
-	if (endian == CTEndian_System) {
+	if (endian == CT_ENDIAN_SYSTEM) {
 		for (uint16_t i = 0; i < max; i++) {
 			memcpy(buffer++, source++, sizeof(uint16_t));
 		}
@@ -683,7 +683,7 @@ uint16_t ct_packet_take_u32s(ct_packet_buf_t self, uint32_t *buffer, uint16_t ma
 	}
 
 	const uint32_t *source = (const uint32_t *)(self->_buffer + self->_past);
-	if (endian == CTEndian_System) {
+	if (endian == CT_ENDIAN_SYSTEM) {
 		for (uint16_t i = 0; i < max; i++) {
 			memcpy(buffer++, source++, sizeof(uint32_t));
 		}
@@ -711,7 +711,7 @@ uint16_t ct_packet_take_u64s(ct_packet_buf_t self, uint64_t *buffer, uint16_t ma
 	}
 
 	const uint64_t *source = (const uint64_t *)(self->_buffer + self->_past);
-	if (endian == CTEndian_System) {
+	if (endian == CT_ENDIAN_SYSTEM) {
 		for (uint16_t i = 0; i < max; i++) {
 			memcpy(buffer++, source++, sizeof(uint64_t));
 		}
@@ -765,7 +765,7 @@ uint16_t ct_packet_put_u16s(ct_packet_buf_t self, const uint16_t *buffer, uint16
 	}
 
 	uint16_t *target = (uint16_t *)(self->_buffer + self->_total);
-	if (endian == CTEndian_System) {
+	if (endian == CT_ENDIAN_SYSTEM) {
 		for (uint16_t i = 0; i < length; i++) {
 			memcpy(target++, buffer++, sizeof(uint16_t));
 		}
@@ -793,7 +793,7 @@ uint16_t ct_packet_put_u32s(ct_packet_buf_t self, const uint32_t *buffer, uint16
 	}
 
 	uint32_t *target = (uint32_t *)(self->_buffer + self->_total);
-	if (endian == CTEndian_System) {
+	if (endian == CT_ENDIAN_SYSTEM) {
 		for (uint16_t i = 0; i < length; i++) {
 			memcpy(target++, buffer++, sizeof(uint32_t));
 		}
@@ -821,7 +821,7 @@ uint16_t ct_packet_put_u64s(ct_packet_buf_t self, const uint64_t *buffer, uint16
 	}
 
 	uint64_t *target = (uint64_t *)(self->_buffer + self->_total);
-	if (endian == CTEndian_System) {
+	if (endian == CT_ENDIAN_SYSTEM) {
 		for (uint16_t i = 0; i < length; i++) {
 			memcpy(target++, buffer++, sizeof(uint64_t));
 		}

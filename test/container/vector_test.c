@@ -4,7 +4,7 @@
  */
 #include "coter/container/vector.h"
 
-#include "coter/base/random.h"
+#include "coter/math/rand.h"
 #include "cunit.h"
 
 #define TEST_VECTOR_SIZE 100

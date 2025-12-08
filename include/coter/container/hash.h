@@ -1,5 +1,5 @@
 /**
- * @file ct_hash.h
+ * @file hash.h
  * @brief 哈希表实现
  * @note
  * 哈希表是一种根据关键字直接访问数据元素的数据结构, 适用于要求高效检索的场景。
@@ -18,8 +18,8 @@
 #ifndef COTER_HASH_H
 #define COTER_HASH_H
 
-#include "coter/base/any.h"
-#include "coter/base/platform.h"
+#include "coter/core/platform.h"
+#include "coter/types/any.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -62,7 +62,7 @@ typedef struct ct_hash {
  * @brief 初始化哈希表
  * @param self 哈希表指针
  */
-void ct_hash_init(ct_hash_buf_t self) ;
+void ct_hash_init(ct_hash_buf_t self);
 
 /**
  * @brief 初始化哈希表
@@ -71,34 +71,34 @@ void ct_hash_init(ct_hash_buf_t self) ;
  * @param allow_resize 是否能够扩容
  * @param methods Any函数组
  */
-void ct_hash_init_s(ct_hash_buf_t self, size_t max, bool allow_resize, ct_any_methods_t methods) ;
+void ct_hash_init_s(ct_hash_buf_t self, size_t max, bool allow_resize, ct_any_methods_t methods);
 
 /**
  * @brief 销毁哈希表
  * @param self 哈希表指针
  */
-void ct_hash_destroy(ct_hash_buf_t self) ;
+void ct_hash_destroy(ct_hash_buf_t self);
 
 /**
  * @brief 扩容哈希表
  * @param self 哈希表指针
  * @param max 最大容量
  */
-void ct_hash_reserve(ct_hash_buf_t self, size_t max) ;
+void ct_hash_reserve(ct_hash_buf_t self, size_t max);
 
 /**
  * @brief 获取元素数量
  * @param self 哈希表指针
  * @return 元素数量
  */
-size_t ct_hash_size(const ct_hash_buf_t self) ;
+size_t ct_hash_size(const ct_hash_buf_t self);
 
 /**
  * @brief 检查哈希表是否为空
  * @param self 哈希表指针
  * @return 是否为空
  */
-bool ct_hash_isempty(const ct_hash_buf_t self) ;
+bool ct_hash_isempty(const ct_hash_buf_t self);
 
 /**
  * @brief 检查 key 是否已经存在
@@ -106,7 +106,7 @@ bool ct_hash_isempty(const ct_hash_buf_t self) ;
  * @param key 键
  * @return 是否存在
  */
-bool ct_hash_contains(const ct_hash_buf_t self, const char *key) ;
+bool ct_hash_contains(const ct_hash_buf_t self, const char *key);
 
 /**
  * @brief 插入元素
@@ -115,7 +115,7 @@ bool ct_hash_contains(const ct_hash_buf_t self, const char *key) ;
  * @param value 值
  * @return 是否成功插入
  */
-bool ct_hash_insert(ct_hash_buf_t self, const char *key, ct_any_t value) ;
+bool ct_hash_insert(ct_hash_buf_t self, const char *key, ct_any_t value);
 
 /**
  * @brief 删除元素
@@ -123,13 +123,13 @@ bool ct_hash_insert(ct_hash_buf_t self, const char *key, ct_any_t value) ;
  * @param key 键
  * @return 是否成功删除
  */
-bool ct_hash_remove(ct_hash_buf_t self, const char *key) ;
+bool ct_hash_remove(ct_hash_buf_t self, const char *key);
 
 /**
  * @brief 清空哈希表
  * @param self 哈希表指针
  */
-void ct_hash_clear(ct_hash_buf_t self) ;
+void ct_hash_clear(ct_hash_buf_t self);
 
 /**
  * @brief 获取 key 对应的值
@@ -137,7 +137,7 @@ void ct_hash_clear(ct_hash_buf_t self) ;
  * @param key 键
  * @return 对应的值
  */
-ct_any_t ct_hash_value(ct_hash_buf_t self, const char *key) ;
+ct_any_t ct_hash_value(ct_hash_buf_t self, const char *key);
 
 /**
  * @brief 获取 key 对应的值
@@ -146,7 +146,7 @@ ct_any_t ct_hash_value(ct_hash_buf_t self, const char *key) ;
  * @param value 值的指针
  * @return 是否成功获取值
  */
-bool ct_hash_value_r(ct_hash_buf_t self, const char *key, ct_any_t *value) ;
+bool ct_hash_value_r(ct_hash_buf_t self, const char *key, ct_any_t *value);
 
 /**
  * @brief 获取 key 对应的值 (带默认值)
@@ -155,7 +155,7 @@ bool ct_hash_value_r(ct_hash_buf_t self, const char *key, ct_any_t *value) ;
  * @param default_value 默认值
  * @return 对应的值
  */
-ct_any_t ct_hash_value_s(ct_hash_buf_t self, const char *key, ct_any_t default_value) ;
+ct_any_t ct_hash_value_s(ct_hash_buf_t self, const char *key, ct_any_t default_value);
 
 #ifdef __cplusplus
 }
