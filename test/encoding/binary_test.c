@@ -125,7 +125,6 @@ static void test_unaligned_access(void) {
 	assert_uint64_eq(ct_big_endian.get_uint64(buf), 0x0123456789ABCDEFULL);
 }
 
-#if CT_BINARY_USE_SIMD
 static void test_bswap16_batch(void) {
 	uint16_t data[16] = {
 		0x0001, 0x0102, 0x0203, 0x0304, 0x0405, 0x0506, 0x0607, 0x0708,
@@ -166,13 +165,28 @@ static void test_bswap64_batch(void) {
 
 static void test_batch_odd_count(void) {
 	uint32_t data[7] = {1, 2, 3, 4, 5, 6, 7};
-	ct_binary_bswap32_batch(data, 7);
 
-	for (int i = 0; i < 7; i++) {
+	ct_binary_bswap32_batch(data, 7);
+	for (int i = 0; i < 7; ++i) {
+		assert_uint32_ne(data[i], i + 1);
+	}
+
+	ct_binary_bswap32_batch(data, 7);
+	for (int i = 0; i < 7; ++i) {
 		assert_uint32_eq(data[i], i + 1);
 	}
 }
-#endif
+
+static void test_swap16in32(void) {
+	assert_uint32_eq(ct_binary_swap16in32(0x11223344), 0x22114433);
+	assert_uint32_eq(ct_binary_swap16in32(0x00000000), 0x00000000);
+	assert_uint32_eq(ct_binary_swap16in32(0xFFFFFFFF), 0xFFFFFFFF);
+}
+
+static void test_swap16in64(void) {
+	assert_uint64_eq(ct_binary_swap16in64(0x1122334455667788ULL), 0x2211443366558877ULL);
+	assert_uint64_eq(ct_binary_swap16in64(0x0000000000000000ULL), 0x0000000000000000ULL);
+}
 
 static void test_interface_endian(void) {
 	assert_int_eq(ct_little_endian.endian, CT_ENDIAN_LITTLE);
@@ -182,7 +196,7 @@ static void test_interface_endian(void) {
 static void test_roundtrip(void) {
 	uint8_t buf[8] = {0};
 
-	for (uint16_t i = 0; i < 1000; i++) {
+	for (uint16_t i = 0; i < 1000; ++i) {
 		ct_little_endian.put_uint16(buf, i);
 		assert_uint8_eq(ct_little_endian.get_uint16(buf), i);
 
@@ -212,14 +226,17 @@ int main(void) {
 	CUNIT_TEST("Unaligned access", test_unaligned_access)
 	CUNIT_SUITE_END()
 
-#if CT_BINARY_USE_SIMD
-	CUNIT_SUITE_BEGIN("Batch (SIMD)", NULL, NULL)
+	CUNIT_SUITE_BEGIN("Batch", NULL, NULL)
 	CUNIT_TEST("Batch bswap16", test_bswap16_batch)
 	CUNIT_TEST("Batch bswap32", test_bswap32_batch)
 	CUNIT_TEST("Batch bswap64", test_bswap64_batch)
 	CUNIT_TEST("Batch odd count", test_batch_odd_count)
 	CUNIT_SUITE_END()
-#endif
+
+	CUNIT_SUITE_BEGIN("Swap 16", NULL, NULL)
+	CUNIT_TEST("Swap 16 in 32", test_swap16in32)
+	CUNIT_TEST("Swap 16 in 64", test_swap16in64)
+	CUNIT_SUITE_END()
 
 	CUNIT_SUITE_BEGIN("Interface", NULL, NULL)
 	CUNIT_TEST("Interface endian", test_interface_endian)

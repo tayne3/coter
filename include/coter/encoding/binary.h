@@ -83,6 +83,32 @@ static inline uint64_t ct_binary_bswap64(uint64_t val) {
 }
 #endif
 
+/**
+ * @brief Swap high-low bytes within each 16-bit unit of a 32-bit value
+ *
+ * Swaps bytes within each 16-bit segment independently.
+ * Example: 0x11223344 → 0x22114433
+ *
+ * @param val Input 32-bit value
+ * @return Value with bytes swapped within each 16-bit unit
+ */
+static inline uint32_t ct_binary_swap16in32(uint32_t val) {
+	return ((val & 0xFF00FF00U) >> 8) | ((val & 0x00FF00FFU) << 8);
+}
+
+/**
+ * @brief Swap high-low bytes within each 16-bit unit of a 64-bit value
+ *
+ * Swaps bytes within each 16-bit segment independently.
+ * Example: 0x1122334455667788 → 0x2211443366558877
+ *
+ * @param val Input 64-bit value
+ * @return Value with bytes swapped within each 16-bit unit
+ */
+static inline uint64_t ct_binary_swap16in64(uint64_t val) {
+	return ((val & 0xFF00FF00FF00FF00ULL) >> 8) | ((val & 0x00FF00FF00FF00FFULL) << 8);
+}
+
 static inline uint16_t ct_little_get_uint16(const uint8_t *buf) {
 	uint16_t val;
 	memcpy(&val, buf, sizeof(val));
