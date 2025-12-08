@@ -31,30 +31,26 @@ extern "C" {
  * @brief Byte order interface
  */
 typedef struct ct_binary_order {
-	const ct_endian_t endian;
+	const ct_endian_t endian; /**< Target byte order */
 
-	uint16_t (*get_uint16)(const uint8_t *buf);
-	uint32_t (*get_uint32)(const uint8_t *buf);
-	uint64_t (*get_uint64)(const uint8_t *buf);
+	uint16_t (*get_uint16)(const uint8_t *buf); /**< Read uint16 */
+	uint32_t (*get_uint32)(const uint8_t *buf); /**< Read uint32 */
+	uint64_t (*get_uint64)(const uint8_t *buf); /**< Read uint64 */
 
-	void (*put_uint16)(uint8_t *buf, uint16_t val);
-	void (*put_uint32)(uint8_t *buf, uint32_t val);
-	void (*put_uint64)(uint8_t *buf, uint64_t val);
+	void (*put_uint16)(uint8_t *buf, uint16_t val); /**< Write uint16 */
+	void (*put_uint32)(uint8_t *buf, uint32_t val); /**< Write uint32 */
+	void (*put_uint64)(uint8_t *buf, uint64_t val); /**< Write uint64 */
 } ct_binary_order_t;
 
 /**
- * @brief Little-endian byte order
- *
- * Least significant byte first (LSB at lowest address).
- * Example: 0x12345678 → {0x78, 0x56, 0x34, 0x12}
+ * @brief Little-endian byte order instance.
+ * @example 0x12345678 → {0x78, 0x56, 0x34, 0x12}
  */
 extern const ct_binary_order_t ct_little_endian;
 
 /**
- * @brief Big-endian byte order (network byte order)
- *
- * Most significant byte first (MSB at lowest address).
- * Example: 0x12345678 → {0x12, 0x34, 0x56, 0x78}
+ * @brief Big-endian byte order instance.
+ * @example 0x12345678 → {0x12, 0x34, 0x56, 0x78}
  */
 extern const ct_binary_order_t ct_big_endian;
 
@@ -84,31 +80,39 @@ static inline uint64_t ct_binary_bswap64(uint64_t val) {
 #endif
 
 /**
- * @brief Swap high-low bytes within each 16-bit unit of a 32-bit value
- *
- * Swaps bytes within each 16-bit segment independently.
- * Example: 0x11223344 → 0x22114433
- *
- * @param val Input 32-bit value
- * @return Value with bytes swapped within each 16-bit unit
+ * @brief Swaps bytes within each 16-bit word of a 32-bit value.
+ * @example 0x11223344 → 0x22114433
  */
-static inline uint32_t ct_binary_swap16in32(uint32_t val) {
+static inline uint32_t ct_binary_bswap16_x2(uint32_t val) {
 	return ((val & 0xFF00FF00U) >> 8) | ((val & 0x00FF00FFU) << 8);
 }
 
 /**
- * @brief Swap high-low bytes within each 16-bit unit of a 64-bit value
- *
- * Swaps bytes within each 16-bit segment independently.
- * Example: 0x1122334455667788 → 0x2211443366558877
- *
- * @param val Input 64-bit value
- * @return Value with bytes swapped within each 16-bit unit
+ * @brief Swaps bytes within each 16-bit word of a 64-bit value.
+ * @example 0x1122334455667788 → 0x2211443366558877
  */
-static inline uint64_t ct_binary_swap16in64(uint64_t val) {
+static inline uint64_t ct_binary_bswap16_x4(uint64_t val) {
 	return ((val & 0xFF00FF00FF00FF00ULL) >> 8) | ((val & 0x00FF00FF00FF00FFULL) << 8);
 }
 
+/**
+ * @brief Reverses the order of 16-bit words in a 32-bit value.
+ * @example 0x11223344 → 0x33441122
+ */
+static inline uint32_t ct_binary_reverse_words32(uint32_t val) {
+	return (val >> 16) | (val << 16);
+}
+/**
+ * @brief Reverses the order of 16-bit words in a 64-bit value.
+ * @example 0x1122334455667788 → 0x7788556633441122
+ */
+static inline uint64_t ct_binary_reverse_words64(uint64_t val) {
+	return ct_binary_bswap16_x4(ct_binary_bswap64(val));
+}
+
+/**
+ * @brief Reads a uint16 from buf in little-endian order.
+ */
 static inline uint16_t ct_little_get_uint16(const uint8_t *buf) {
 	uint16_t val;
 	memcpy(&val, buf, sizeof(val));
@@ -119,6 +123,9 @@ static inline uint16_t ct_little_get_uint16(const uint8_t *buf) {
 #endif
 }
 
+/**
+ * @brief Reads a uint32 from buf in little-endian order.
+ */
 static inline uint32_t ct_little_get_uint32(const uint8_t *buf) {
 	uint32_t val;
 	memcpy(&val, buf, sizeof(val));
@@ -129,6 +136,9 @@ static inline uint32_t ct_little_get_uint32(const uint8_t *buf) {
 #endif
 }
 
+/**
+ * @brief Reads a uint64 from buf in little-endian order.
+ */
 static inline uint64_t ct_little_get_uint64(const uint8_t *buf) {
 	uint64_t val;
 	memcpy(&val, buf, sizeof(val));
@@ -139,6 +149,9 @@ static inline uint64_t ct_little_get_uint64(const uint8_t *buf) {
 #endif
 }
 
+/**
+ * @brief Writes a uint16 to buf in little-endian order.
+ */
 static inline void ct_little_put_uint16(uint8_t *buf, uint16_t val) {
 #if CT_ENDIAN_IS_BIG
 	val = ct_binary_bswap16(val);
@@ -146,6 +159,9 @@ static inline void ct_little_put_uint16(uint8_t *buf, uint16_t val) {
 	memcpy(buf, &val, sizeof(val));
 }
 
+/**
+ * @brief Writes a uint32 to buf in little-endian order.
+ */
 static inline void ct_little_put_uint32(uint8_t *buf, uint32_t val) {
 #if CT_ENDIAN_IS_BIG
 	val = ct_binary_bswap32(val);
@@ -153,6 +169,9 @@ static inline void ct_little_put_uint32(uint8_t *buf, uint32_t val) {
 	memcpy(buf, &val, sizeof(val));
 }
 
+/**
+ * @brief Writes a uint64 to buf in little-endian order.
+ */
 static inline void ct_little_put_uint64(uint8_t *buf, uint64_t val) {
 #if CT_ENDIAN_IS_BIG
 	val = ct_binary_bswap64(val);
@@ -160,6 +179,9 @@ static inline void ct_little_put_uint64(uint8_t *buf, uint64_t val) {
 	memcpy(buf, &val, sizeof(val));
 }
 
+/**
+ * @brief Reads a uint16 from buf in big-endian order.
+ */
 static inline uint16_t ct_big_get_uint16(const uint8_t *buf) {
 	uint16_t val;
 	memcpy(&val, buf, sizeof(val));
@@ -170,6 +192,9 @@ static inline uint16_t ct_big_get_uint16(const uint8_t *buf) {
 #endif
 }
 
+/**
+ * @brief Reads a uint32 from buf in big-endian order.
+ */
 static inline uint32_t ct_big_get_uint32(const uint8_t *buf) {
 	uint32_t val;
 	memcpy(&val, buf, sizeof(val));
@@ -180,6 +205,9 @@ static inline uint32_t ct_big_get_uint32(const uint8_t *buf) {
 #endif
 }
 
+/**
+ * @brief Reads a uint64 from buf in big-endian order.
+ */
 static inline uint64_t ct_big_get_uint64(const uint8_t *buf) {
 	uint64_t val;
 	memcpy(&val, buf, sizeof(val));
@@ -190,6 +218,9 @@ static inline uint64_t ct_big_get_uint64(const uint8_t *buf) {
 #endif
 }
 
+/**
+ * @brief Writes a uint16 to buf in big-endian order.
+ */
 static inline void ct_big_put_uint16(uint8_t *buf, uint16_t val) {
 #if CT_ENDIAN_IS_LITTLE
 	val = ct_binary_bswap16(val);
@@ -197,6 +228,9 @@ static inline void ct_big_put_uint16(uint8_t *buf, uint16_t val) {
 	memcpy(buf, &val, sizeof(val));
 }
 
+/**
+ * @brief Writes a uint32 to buf in big-endian order.
+ */
 static inline void ct_big_put_uint32(uint8_t *buf, uint32_t val) {
 #if CT_ENDIAN_IS_LITTLE
 	val = ct_binary_bswap32(val);
@@ -204,6 +238,9 @@ static inline void ct_big_put_uint32(uint8_t *buf, uint32_t val) {
 	memcpy(buf, &val, sizeof(val));
 }
 
+/**
+ * @brief Writes a uint64 to buf in big-endian order.
+ */
 static inline void ct_big_put_uint64(uint8_t *buf, uint64_t val) {
 #if CT_ENDIAN_IS_LITTLE
 	val = ct_binary_bswap64(val);
@@ -212,25 +249,39 @@ static inline void ct_big_put_uint64(uint8_t *buf, uint64_t val) {
 }
 
 /**
- * @brief Batch byte-swap uint16 array in-place
- * @param data Pointer to uint16 array
- * @param count Number of elements
+ * @brief Reverses byte order of elements in a uint16 array in place.
  */
 void ct_binary_bswap16_batch(uint16_t *data, size_t count);
 
 /**
- * @brief Batch byte-swap uint32 array in-place
- * @param data Pointer to uint32 array
- * @param count Number of elements
+ * @brief Reverses byte order of elements in a uint32 array in place.
  */
 void ct_binary_bswap32_batch(uint32_t *data, size_t count);
 
 /**
- * @brief Batch byte-swap uint64 array in-place
- * @param data Pointer to uint64 array
- * @param count Number of elements
+ * @brief Reverses byte order of elements in a uint64 array in place.
  */
 void ct_binary_bswap64_batch(uint64_t *data, size_t count);
+
+/**
+ * @brief Swaps 16-bit pairs within each element of a uint32 array in place.
+ */
+void ct_binary_bswap16_x2_batch(uint32_t *data, size_t count);
+
+/**
+ * @brief Swaps 16-bit pairs within each element of a uint64 array in place.
+ */
+void ct_binary_bswap16_x4_batch(uint64_t *data, size_t count);
+
+/**
+ * @brief Reverses bytes in each 16-bit word of a uint32 array in place.
+ */
+void ct_binary_reverse_words32_batch(uint32_t *data, size_t count);
+
+/**
+ * @brief Reverses bytes in each 16-bit word of a uint64 array in place.
+ */
+void ct_binary_reverse_words64_batch(uint64_t *data, size_t count);
 
 #ifdef __cplusplus
 }

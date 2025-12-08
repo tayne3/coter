@@ -177,15 +177,138 @@ static void test_batch_odd_count(void) {
 	}
 }
 
-static void test_swap16in32(void) {
-	assert_uint32_eq(ct_binary_swap16in32(0x11223344), 0x22114433);
-	assert_uint32_eq(ct_binary_swap16in32(0x00000000), 0x00000000);
-	assert_uint32_eq(ct_binary_swap16in32(0xFFFFFFFF), 0xFFFFFFFF);
+static void test_bswap16_x2(void) {
+	assert_uint32_eq(ct_binary_bswap16_x2(0x11223344), 0x22114433);
+	assert_uint32_eq(ct_binary_bswap16_x2(0x00000000), 0x00000000);
+	assert_uint32_eq(ct_binary_bswap16_x2(0xFFFFFFFF), 0xFFFFFFFF);
 }
 
-static void test_swap16in64(void) {
-	assert_uint64_eq(ct_binary_swap16in64(0x1122334455667788ULL), 0x2211443366558877ULL);
-	assert_uint64_eq(ct_binary_swap16in64(0x0000000000000000ULL), 0x0000000000000000ULL);
+static void test_bswap16_x4(void) {
+	assert_uint64_eq(ct_binary_bswap16_x4(0x1122334455667788ULL), 0x2211443366558877ULL);
+	assert_uint64_eq(ct_binary_bswap16_x4(0x0000000000000000ULL), 0x0000000000000000ULL);
+}
+
+static void test_bswap16_x2_batch(void) {
+	uint32_t data[8] = {
+		0x11223344, 0x55667788, 0x99AABBCC, 0xDDEEFF00, 0x01020304, 0x05060708, 0x090A0B0C, 0x0D0E0F10,
+	};
+
+	ct_binary_bswap16_x2_batch(data, 8);
+
+	assert_uint32_eq(data[0], 0x22114433);
+	assert_uint32_eq(data[1], 0x66558877);
+	assert_uint32_eq(data[2], 0xAA99CCBB);
+	assert_uint32_eq(data[3], 0xEEDD00FF);
+	assert_uint32_eq(data[4], 0x02010403);
+	assert_uint32_eq(data[7], 0x0E0D100F);
+}
+
+static void test_bswap16_x4_batch(void) {
+	uint64_t data[4] = {
+		0x1122334455667788ULL,
+		0x99AABBCCDDEEFF00ULL,
+		0x0102030405060708ULL,
+		0x090A0B0C0D0E0F10ULL,
+	};
+
+	ct_binary_bswap16_x4_batch(data, 4);
+
+	assert_uint64_eq(data[0], 0x2211443366558877ULL);
+	assert_uint64_eq(data[1], 0xAA99CCBBEEDD00FFULL);
+	assert_uint64_eq(data[2], 0x0201040306050807ULL);
+	assert_uint64_eq(data[3], 0x0A090C0B0E0D100FULL);
+}
+
+static void test_swap16in_batch_odd_count(void) {
+	uint32_t data32[7] = {
+		0x11223344, 0x55667788, 0x99AABBCC, 0xDDEEFF00, 0x01020304, 0x05060708, 0x090A0B0C,
+	};
+
+	ct_binary_bswap16_x2_batch(data32, 7);
+	assert_uint32_eq(data32[0], 0x22114433);
+	assert_uint32_eq(data32[1], 0x66558877);
+	assert_uint32_eq(data32[2], 0xAA99CCBB);
+	assert_uint32_eq(data32[3], 0xEEDD00FF);
+	assert_uint32_eq(data32[4], 0x02010403);
+	assert_uint32_eq(data32[5], 0x06050807);
+	assert_uint32_eq(data32[6], 0x0A090C0B);
+
+	ct_binary_bswap16_x2_batch(data32, 7);
+	assert_uint32_eq(data32[0], 0x11223344);
+	assert_uint32_eq(data32[1], 0x55667788);
+	assert_uint32_eq(data32[2], 0x99AABBCC);
+	assert_uint32_eq(data32[3], 0xDDEEFF00);
+	assert_uint32_eq(data32[4], 0x01020304);
+	assert_uint32_eq(data32[5], 0x05060708);
+	assert_uint32_eq(data32[6], 0x090A0B0C);
+}
+
+static void test_revbytes32(void) {
+	assert_uint32_eq(ct_binary_reverse_words32(0x11223344), 0x33441122);
+	assert_uint32_eq(ct_binary_reverse_words32(0x00000000), 0x00000000);
+	assert_uint32_eq(ct_binary_reverse_words32(0xFFFFFFFF), 0xFFFFFFFF);
+	assert_uint32_eq(ct_binary_reverse_words32(0x01020304), 0x03040102);
+}
+
+static void test_revbytes64(void) {
+	assert_uint64_eq(ct_binary_reverse_words64(0x1122334455667788ULL), 0x7788556633441122ULL);
+	assert_uint64_eq(ct_binary_reverse_words64(0x0000000000000000ULL), 0x0000000000000000ULL);
+	assert_uint64_eq(ct_binary_reverse_words64(0xFFFFFFFFFFFFFFFFULL), 0xFFFFFFFFFFFFFFFFULL);
+}
+
+static void test_revbytes32_batch(void) {
+	uint32_t data[8] = {
+		0x11223344, 0x55667788, 0x99AABBCC, 0xDDEEFF00, 0x01020304, 0x05060708, 0x090A0B0C, 0x0D0E0F10,
+	};
+
+	ct_binary_reverse_words32_batch(data, 8);
+
+	assert_uint32_eq(data[0], 0x33441122);
+	assert_uint32_eq(data[1], 0x77885566);
+	assert_uint32_eq(data[2], 0xBBCC99AA);
+	assert_uint32_eq(data[3], 0xFF00DDEE);
+	assert_uint32_eq(data[4], 0x03040102);
+	assert_uint32_eq(data[7], 0x0F100D0E);
+}
+
+static void test_revbytes64_batch(void) {
+	uint64_t data[4] = {
+		0x1122334455667788ULL,
+		0x99AABBCCDDEEFF00ULL,
+		0x0102030405060708ULL,
+		0x090A0B0C0D0E0F10ULL,
+	};
+
+	ct_binary_reverse_words64_batch(data, 4);
+
+	assert_uint64_eq(data[0], 0x7788556633441122ULL);
+	assert_uint64_eq(data[1], 0xFF00DDEEBBCC99AAULL);
+	assert_uint64_eq(data[2], 0X0708050603040102ULL);
+	assert_uint64_eq(data[3], 0X0F100D0E0B0C090AULL);
+}
+
+static void test_revbytes_batch_odd_count(void) {
+	uint32_t data32[7] = {
+		0x11223344, 0x55667788, 0x99AABBCC, 0xDDEEFF00, 0x01020304, 0x05060708, 0x090A0B0C,
+	};
+
+	ct_binary_reverse_words32_batch(data32, 7);
+	assert_uint32_eq(data32[0], 0x33441122);
+	assert_uint32_eq(data32[1], 0x77885566);
+	assert_uint32_eq(data32[2], 0xBBCC99AA);
+	assert_uint32_eq(data32[3], 0xFF00DDEE);
+	assert_uint32_eq(data32[4], 0x03040102);
+	assert_uint32_eq(data32[5], 0x07080506);
+	assert_uint32_eq(data32[6], 0x0B0C090A);
+
+	ct_binary_reverse_words32_batch(data32, 7);
+	assert_uint32_eq(data32[0], 0x11223344);
+	assert_uint32_eq(data32[1], 0x55667788);
+	assert_uint32_eq(data32[2], 0x99AABBCC);
+	assert_uint32_eq(data32[3], 0xDDEEFF00);
+	assert_uint32_eq(data32[4], 0x01020304);
+	assert_uint32_eq(data32[5], 0x05060708);
+	assert_uint32_eq(data32[6], 0x090A0B0C);
 }
 
 static void test_interface_endian(void) {
@@ -234,8 +357,19 @@ int main(void) {
 	CUNIT_SUITE_END()
 
 	CUNIT_SUITE_BEGIN("Swap 16", NULL, NULL)
-	CUNIT_TEST("Swap 16 in 32", test_swap16in32)
-	CUNIT_TEST("Swap 16 in 64", test_swap16in64)
+	CUNIT_TEST("Swap 16 in 32", test_bswap16_x2)
+	CUNIT_TEST("Swap 16 in 64", test_bswap16_x4)
+	CUNIT_TEST("Batch swap 16 in 32", test_bswap16_x2_batch)
+	CUNIT_TEST("Batch swap 16 in 64", test_bswap16_x4_batch)
+	CUNIT_TEST("Batch swap 16 odd count", test_swap16in_batch_odd_count)
+	CUNIT_SUITE_END()
+
+	CUNIT_SUITE_BEGIN("Reverse Bytes", NULL, NULL)
+	CUNIT_TEST("Reverse bytes 32", test_revbytes32)
+	CUNIT_TEST("Reverse bytes 64", test_revbytes64)
+	CUNIT_TEST("Batch reverse bytes 32", test_revbytes32_batch)
+	CUNIT_TEST("Batch reverse bytes 64", test_revbytes64_batch)
+	CUNIT_TEST("Batch reverse bytes odd count", test_revbytes_batch_odd_count)
 	CUNIT_SUITE_END()
 
 	CUNIT_SUITE_BEGIN("Interface", NULL, NULL)
