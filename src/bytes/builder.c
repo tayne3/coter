@@ -1,0 +1,172 @@
+#include "coter/bytes/builder.h"
+
+/**
+ * @brief Ensure the stream has at least the required capacity
+ * @param self Stream object
+ * @param required Required capacity in bytes
+ * @return 0 on success, -1 on failure
+ */
+static int ensure_capacity(ct_builder_t *self, size_t required) {
+	if (required <= self->span.cap) {
+		return 0;
+	}
+
+	size_t new_cap;
+	if (self->span.cap == 0) {
+		new_cap = required < 64 ? 64 : required;
+	} else {
+		new_cap = self->span.cap * 2;
+		if (new_cap < required) {
+			new_cap = required;
+		}
+	}
+
+	uint8_t *new_buffer = (uint8_t *)realloc(self->span.bytes, new_cap);
+	if (!new_buffer) {
+		return -1;
+	}
+	self->span.bytes = new_buffer;
+	self->span.cap   = (uint32_t)new_cap;
+	return 0;
+}
+
+ct_builder_t *ct_builder_create(size_t initial_capacity) {
+	ct_builder_t *self = (ct_builder_t *)malloc(sizeof(ct_builder_t));
+	if (!self) {
+		return NULL;
+	}
+
+	if (initial_capacity == 0) {
+		initial_capacity = 64;
+	}
+	uint8_t *buffer = (uint8_t *)malloc(initial_capacity);
+	if (!buffer) {
+		free(self);
+		return NULL;
+	}
+
+	ct_span_init(&self->span, buffer, initial_capacity);
+	return self;
+}
+
+void ct_builder_destroy(ct_builder_t *self) {
+	if (self) {
+		if (self->span.bytes) {
+			free(self->span.bytes);
+		}
+		free(self);
+	}
+}
+
+int ct_builder_grow(ct_builder_t *self, size_t n) {
+	const size_t required = self->span.len + n;
+	return ensure_capacity(self, required);
+}
+
+int ct_builder_reserve(ct_builder_t *self, size_t capacity) {
+	return ensure_capacity(self, capacity);
+}
+
+int ct_builder_write(ct_builder_t *self, const uint8_t *p, size_t length) {
+	if (!p || length == 0) {
+		return 0;
+	}
+
+	const size_t required = self->span.pos + length;
+	if (ensure_capacity(self, required) != 0) {
+		return -1;  // Failed to grow
+	}
+	return ct_span_write(&self->span, p, length);
+}
+
+int ct_builder_fill(ct_builder_t *self, uint8_t bt, size_t length) {
+	if (length == 0) {
+		return 0;
+	}
+
+	const size_t required = self->span.pos + length;
+	if (ensure_capacity(self, required) != 0) {
+		return -1;  // Failed to grow
+	}
+	return ct_span_fill(&self->span, bt, length);
+}
+
+void ct_builder_put_u8(ct_builder_t *self, uint8_t v) {
+	const size_t required = self->span.pos + 1;
+	if (ensure_capacity(self, required) != 0) {
+		return;  // Failed to grow, silent failure
+	}
+	ct_span_put_u8(&self->span, v);
+}
+
+void ct_builder_put_u16(ct_builder_t *self, uint16_t v) {
+	const size_t required = self->span.pos + 2;
+	if (ensure_capacity(self, required) != 0) {
+		return;
+	}
+	ct_span_put_u16(&self->span, v);
+}
+
+void ct_builder_put_u32(ct_builder_t *self, uint32_t v) {
+	const size_t required = self->span.pos + 4;
+	if (ensure_capacity(self, required) != 0) {
+		return;
+	}
+	ct_span_put_u32(&self->span, v);
+}
+
+void ct_builder_put_u64(ct_builder_t *self, uint64_t v) {
+	const size_t required = self->span.pos + 8;
+	if (ensure_capacity(self, required) != 0) {
+		return;
+	}
+	ct_span_put_u64(&self->span, v);
+}
+
+void ct_builder_put_arr8(ct_builder_t *self, const uint8_t *v, size_t count) {
+	if (!v || count == 0) {
+		return;
+	}
+
+	const size_t required = self->span.pos + count;
+	if (ensure_capacity(self, required) != 0) {
+		return;
+	}
+	ct_span_put_arr8(&self->span, v, count);
+}
+
+void ct_builder_put_arr16(ct_builder_t *self, const uint16_t *v, size_t count) {
+	if (!v || count == 0) {
+		return;
+	}
+
+	const size_t required = self->span.pos + (count << 1);
+	if (ensure_capacity(self, required) != 0) {
+		return;
+	}
+	ct_span_put_arr16(&self->span, v, count);
+}
+
+void ct_builder_put_arr32(ct_builder_t *self, const uint32_t *v, size_t count) {
+	if (!v || count == 0) {
+		return;
+	}
+
+	const size_t required = self->span.pos + (count << 2);
+	if (ensure_capacity(self, required) != 0) {
+		return;
+	}
+	ct_span_put_arr32(&self->span, v, count);
+}
+
+void ct_builder_put_arr64(ct_builder_t *self, const uint64_t *v, size_t count) {
+	if (!v || count == 0) {
+		return;
+	}
+
+	const size_t required = self->span.pos + (count * 8);
+	if (ensure_capacity(self, required) != 0) {
+		return;
+	}
+	ct_span_put_arr64(&self->span, v, count);
+}

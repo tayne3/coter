@@ -2,12 +2,12 @@
  * @file bytes.h
  * @brief 字节数组
  */
-#ifndef COTER_BYTES_H
-#define COTER_BYTES_H
+#ifndef COTER_BYTES_BYTES_H
+#define COTER_BYTES_BYTES_H
 
+#include "coter/bytes/span.h"
 #include "coter/container/list.h"
 #include "coter/core/platform.h"
-#include "coter/sync/atomic.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -40,6 +40,19 @@ typedef struct ct_bytes {
 		}                                                                                \
 	} while (0)
 
+static inline int ct_bytes_span(ct_bytes_t *self, ct_span_t *span, size_t start, size_t end) {
+	if (end < start || end > (size_t)self->cap) {
+		return -1;
+	}
+	span->bytes  = (uint8_t *)self->buffer + start;
+	span->cap    = self->cap - (uint32_t)start;
+	span->len    = (uint32_t)(end - start);
+	span->pos    = 0U;
+	span->endian = CT_ENDIAN_BIG;
+	span->hlswap = 0U;
+	return 0;
+}
+
 /**
  * @brief 字节数组-创建
  * @param capacity 容量 (为0时使用默认值1024)
@@ -65,4 +78,4 @@ size_t ct_bytes_write(ct_bytes_t *self, const void *data, size_t length);
 #ifdef __cplusplus
 }
 #endif
-#endif  // COTER_BYTES_H
+#endif  // COTER_BYTES_BYTES_H
