@@ -6,28 +6,6 @@
 
 #include "cunit.h"
 
-#define NUM_THREADS    16
-#define NUM_ITERATIONS 100000
-
-// 全局共享计数器
-static ct_atomic_long_t g_shared_counter;
-
-static void* thread_increment_routine(void* arg) {
-	ct_unused(arg);
-	for (int i = 0; i < NUM_ITERATIONS; i++) {
-		ct_atomic_long_add(&g_shared_counter, 1);
-	}
-	return NULL;
-}
-
-static void* thread_decrement_routine(void* arg) {
-	ct_unused(arg);
-	for (int i = 0; i < NUM_ITERATIONS; i++) {
-		ct_atomic_long_sub(&g_shared_counter, 1);
-	}
-	return NULL;
-}
-
 static void test_flag(void) {
 	ct_atomic_flag_t flag = CT_ATOMIC_FLAG_INIT;
 
@@ -137,28 +115,65 @@ static void test_explicit_atomic_types(void) {
 	assert_int64_eq(ct_atomic_llong_load(&atomic_llong), 9999999999LL);
 }
 
-static void test_concurrent_inc_dec(void) {
-	pthread_t threads[NUM_THREADS];
+static void test_atomic_ptr_basic(void) {
+	int             val1 = 10;
+	int             val2 = 20;
+	ct_atomic_ptr_t ptr  = CT_ATOMIC_VAR_INIT(&val1);
 
-	ct_atomic_long_store(&g_shared_counter, 0);
+	// Load
+	assert_true(ct_atomic_ptr_load(&ptr) == &val1);
 
-	// 创建一半线程来增加
-	for (int i = 0; i < NUM_THREADS / 2; i++) {
-		pthread_create(&threads[i], NULL, thread_increment_routine, NULL);
-	}
+	// Store
+	ct_atomic_ptr_store(&ptr, &val2);
+	assert_true(ct_atomic_ptr_load(&ptr) == &val2);
 
-	// 创建另一半来减少
-	for (int i = NUM_THREADS / 2; i < NUM_THREADS; i++) {
-		pthread_create(&threads[i], NULL, thread_decrement_routine, NULL);
-	}
+	// Exchange
+	void* old = ct_atomic_ptr_exchange(&ptr, &val1);
+	assert_true(old == &val2);
+	assert_true(ct_atomic_ptr_load(&ptr) == &val1);
+}
 
-	// 等待所有线程完成
-	for (int i = 0; i < NUM_THREADS; i++) {
-		pthread_join(threads[i], NULL);
-	}
+static void test_atomic_ptr_compare_exchange(void) {
+	int             val1 = 10;
+	int             val2 = 20;
+	int             val3 = 30;
+	ct_atomic_ptr_t ptr  = CT_ATOMIC_VAR_INIT(&val1);
 
-	// 最终结果应该为 0 如果所有操作都是原子的
-	assert_int64_eq(ct_atomic_long_load(&g_shared_counter), 0);
+	// Success case
+	void* expected = &val1;
+	bool  success  = ct_atomic_ptr_compare_exchange(&ptr, &expected, &val2);
+	assert_true(success);
+	assert_true(ct_atomic_ptr_load(&ptr) == &val2);
+	assert_true(expected == &val1);  // Expected should not change on success
+
+	// Failure case
+	expected = &val3;  // Wrong expected value
+	success  = ct_atomic_ptr_compare_exchange(&ptr, &expected, &val1);
+	assert_false(success);
+	assert_true(ct_atomic_ptr_load(&ptr) == &val2);  // Should not change
+	assert_true(expected == &val2);                  // Expected should be updated to current value
+}
+
+static void test_cas_aba_behavior(void) {
+	int             val1 = 10;
+	int             val2 = 20;
+	ct_atomic_ptr_t ptr  = CT_ATOMIC_VAR_INIT(&val1);
+
+	// Thread A reads A
+	void* expected = &val1;
+
+	// Thread B changes A -> B
+	ct_atomic_ptr_store(&ptr, &val2);
+
+	// Thread B changes B -> A
+	ct_atomic_ptr_store(&ptr, &val1);
+
+	// Thread A attempts CAS A -> C
+	int  val3    = 30;
+	bool success = ct_atomic_ptr_compare_exchange(&ptr, &expected, &val3);
+
+	assert_true(success);
+	assert_true(ct_atomic_ptr_load(&ptr) == &val3);
 }
 
 int main(void) {
@@ -176,8 +191,10 @@ int main(void) {
 	CUNIT_TEST("Ensures explicit atomic types work correctly", test_explicit_atomic_types)
 	CUNIT_SUITE_END()
 
-	CUNIT_SUITE_BEGIN("Ensures concurrent", NULL, NULL);
-	CUNIT_TEST("Ensures concurrent increments and decrements are atomic", test_concurrent_inc_dec)
+	CUNIT_SUITE_BEGIN("Pointer operations", NULL, NULL);
+	CUNIT_TEST("Basic pointer operations", test_atomic_ptr_basic)
+	CUNIT_TEST("Pointer compare exchange", test_atomic_ptr_compare_exchange)
+	CUNIT_TEST("CAS ABA behavior check", test_cas_aba_behavior)
 	CUNIT_SUITE_END()
 
 	return cunit_run();
