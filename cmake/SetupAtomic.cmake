@@ -78,6 +78,8 @@ endif()
 # Windows Interlocked API
 # ===========================================
 if(NOT CT_ATOMIC_IMPL_SELECTED AND WIN32)
+  set(CMAKE_REQUIRED_FLAGS "${_SAVED_CMAKE_REQUIRED_FLAGS}")
+  set(CMAKE_REQUIRED_LIBRARIES "${_SAVED_CMAKE_REQUIRED_LIBRARIES}")
   check_c_source_compiles("
     #include <windows.h>
     int main(void) {
@@ -92,7 +94,7 @@ if(NOT CT_ATOMIC_IMPL_SELECTED AND WIN32)
       return (int)(x + y);
     }
   " CT_HAVE_WIN_INTERLOCKED)
-  
+
   if(CT_HAVE_WIN_INTERLOCKED)
     set(CT_ATOMIC_USE_WIN 1)
     set(CT_ATOMIC_IMPL_SELECTED TRUE)
