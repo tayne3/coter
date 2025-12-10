@@ -20,6 +20,7 @@
 #define COTER_EVENT_HUB_H
 
 #include "coter/container/vector.h"
+#include "coter/sync/rwlock.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -29,8 +30,8 @@ extern "C" {
  * @brief 事件中枢结构体
  */
 typedef struct ct_evhub {
-	pthread_rwlock_t rwlock;    // 读写锁
-	ct_vector_t      sub_list;  // 订阅者列表
+	ct_rwlock_t rwlock;    // 读写锁
+	ct_vector_t sub_list;  // 订阅者列表
 } ct_evhub_t;
 
 /**
