@@ -1,3 +1,6 @@
+include(CheckCCompilerFlag)
+include(CheckCXXCompilerFlag)
+
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS ON)
@@ -39,15 +42,25 @@ if(NOT (CMAKE_C_COMPILER_ID STREQUAL "MSVC" OR ("${CMAKE_C_COMPILER_ID}" STREQUA
   target_compile_options(${PROJECT_NAME}_compile_dependency INTERFACE
     "$<$<COMPILE_LANGUAGE:C>:-Wall>"
     "$<$<COMPILE_LANGUAGE:C>:-Wextra>"
-    "$<$<COMPILE_LANGUAGE:C>:-Werror=return-type>"
   )
+  check_c_compiler_flag("-Werror=return-type" HAVE_C_WERROR_RETURN_TYPE)
+  if(HAVE_C_WERROR_RETURN_TYPE)
+    target_compile_options(${PROJECT_NAME}_compile_dependency INTERFACE
+      "$<$<COMPILE_LANGUAGE:C>:-Werror=return-type>"
+    )
+  endif()
 endif()
 if(NOT (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" OR ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" AND "${CMAKE_CXX_COMPILER_FRONTEND_VARIANT}" STREQUAL "MSVC")))
   target_compile_options(${PROJECT_NAME}_compile_dependency INTERFACE
     "$<$<COMPILE_LANGUAGE:CXX>:-Wall>"
     "$<$<COMPILE_LANGUAGE:CXX>:-Wextra>"
-    "$<$<COMPILE_LANGUAGE:CXX>:-Werror=return-type>"
   )
+  check_cxx_compiler_flag("-Werror=return-type" HAVE_CXX_WERROR_RETURN_TYPE)
+  if(HAVE_CXX_WERROR_RETURN_TYPE)
+    target_compile_options(${PROJECT_NAME}_compile_dependency INTERFACE
+      "$<$<COMPILE_LANGUAGE:CXX>:-Werror=return-type>"
+    )
+  endif()
 endif()
 
 # Handle -Wno-missing-field-initializers for older GCC
