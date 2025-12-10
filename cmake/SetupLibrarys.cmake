@@ -30,6 +30,7 @@ project_check_function("eventfd" "sys/eventfd.h")
 project_check_function("setproctitle" "unistd.h")
 project_check_function("pthread_spin_lock" "pthread.h")
 project_check_function("pthread_mutex_timedlock" "pthread.h")
+project_check_function("pthread_rwlock_init" "pthread.h")
 
 project_check_struct("struct timespec" "tv_sec" "time.h")
 project_check_struct("struct timezone" "tz_minuteswest" "sys/time.h")

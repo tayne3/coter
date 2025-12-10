@@ -1,0 +1,39 @@
+/**
+ * @file rwlock.h
+ * @brief 读写锁
+ */
+#ifndef COTER_SYNC_RWLOCK_H
+#define COTER_SYNC_RWLOCK_H
+
+#include "coter/core/config.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#ifdef HAVE_PTHREAD_RWLOCK
+typedef pthread_rwlock_t ct_rwlock_t;
+#define CT_RWLOCK_INITIALIZER  PTHREAD_RWLOCK_INITIALIZER
+#define ct_rwlock_init(l, a)   pthread_rwlock_init(l, a)
+#define ct_rwlock_rdlock(l)    pthread_rwlock_rdlock(l)
+#define ct_rwlock_wrlock(l)    pthread_rwlock_wrlock(l)
+#define ct_rwlock_tryrdlock(l) pthread_rwlock_tryrdlock(l)
+#define ct_rwlock_trywrlock(l) pthread_rwlock_trywrlock(l)
+#define ct_rwlock_unlock(l)    pthread_rwlock_unlock(l)
+#define ct_rwlock_destroy(l)   pthread_rwlock_destroy(l)
+#else
+typedef pthread_mutex_t ct_rwlock_t;
+#define CT_RWLOCK_INITIALIZER  PTHREAD_MUTEX_INITIALIZER
+#define ct_rwlock_init(l, a)   pthread_mutex_init(l, a)
+#define ct_rwlock_rdlock(l)    pthread_mutex_lock(l)
+#define ct_rwlock_wrlock(l)    pthread_mutex_lock(l)
+#define ct_rwlock_tryrdlock(l) pthread_mutex_trylock(l)
+#define ct_rwlock_trywrlock(l) pthread_mutex_trylock(l)
+#define ct_rwlock_unlock(l)    pthread_mutex_unlock(l)
+#define ct_rwlock_destroy(l)   pthread_mutex_destroy(l)
+#endif
+
+#ifdef __cplusplus
+}
+#endif
+#endif  // COTER_SYNC_RWLOCK_H
