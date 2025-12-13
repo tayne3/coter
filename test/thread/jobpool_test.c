@@ -2,7 +2,7 @@
  * @file jobpool_test.c
  * @brief 任务池测试
  */
-#include "coter/runtime/jobpool.h"
+#include "coter/thread/jobpool.h"
 
 #include "coter/core/platform.h"
 #include "coter/time/time.h"

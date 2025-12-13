@@ -2,8 +2,8 @@
  * @file jobpool.h
  * @brief 任务池实现
  */
-#ifndef COTER_RUNTIME_JOBPOOL_H
-#define COTER_RUNTIME_JOBPOOL_H
+#ifndef COTER_THREAD_JOBPOOL_H
+#define COTER_THREAD_JOBPOOL_H
 
 #include "coter/core/platform.h"
 
@@ -45,4 +45,4 @@ int ct_jobpool_submit(ct_jobpool_t* self, ct_jobpool_routine_t routine, void* ar
 #ifdef __cplusplus
 }
 #endif
-#endif  // COTER_RUNTIME_JOBPOOL_H
+#endif  // COTER_THREAD_JOBPOOL_H

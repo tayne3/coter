@@ -2,7 +2,7 @@
  * @file thpool.c
  * @brief 线程池实现
  */
-#include "coter/runtime/thpool.h"
+#include "coter/thread/thpool.h"
 
 #include "coter/container/list.h"
 #include "coter/event/msgqueue.h"

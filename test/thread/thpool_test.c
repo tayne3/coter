@@ -2,10 +2,10 @@
  * @file thpool_test.c
  * @brief 线程池测试
  */
-#include "coter/runtime/thpool.h"
+#include "coter/thread/thpool.h"
 
 #include "coter/core/platform.h"
-#include "coter/runtime/jobpool.h"
+#include "coter/thread/jobpool.h"
 #include "coter/time/time.h"
 #include "cunit.h"
 

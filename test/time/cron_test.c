@@ -4,7 +4,7 @@
  */
 #include "coter/time/cron.h"
 
-#include "coter/runtime/thpool.h"
+#include "coter/thread/thpool.h"
 #include "cunit.h"
 
 static ct_time_t mock_current_time = 0;

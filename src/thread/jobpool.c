@@ -2,7 +2,7 @@
  * @file jobpool.c
  * @brief 任务池实现
  */
-#include "coter/runtime/jobpool.h"
+#include "coter/thread/jobpool.h"
 
 #include "coter/container/list.h"
 #include "coter/core/platform.h"

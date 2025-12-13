@@ -2,8 +2,8 @@
  * @file thpool.h
  * @brief 线程池实现
  */
-#ifndef COTER_RUNTIME_THPOOL_H
-#define COTER_RUNTIME_THPOOL_H
+#ifndef COTER_THREAD_THPOOL_H
+#define COTER_THREAD_THPOOL_H
 
 #include "coter/core/platform.h"
 
@@ -85,4 +85,4 @@ void ct_thpool_default_config(ct_thpool_config_t* config);
 #ifdef __cplusplus
 }
 #endif
-#endif  // COTER_RUNTIME_THPOOL_H
+#endif  // COTER_THREAD_THPOOL_H

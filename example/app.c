@@ -9,8 +9,8 @@
 
 #include "coter/container/list.h"
 #include "coter/event/msgqueue.h"
-#include "coter/runtime/thpool.h"
 #include "coter/sync/waitgroup.h"
+#include "coter/thread/thpool.h"
 #include "coter/time/cron.h"
 #include "coter/time/time.h"
 #include "coter/time/timer.h"

@@ -2,8 +2,8 @@
  * @file threadcache.h
  * @brief 线程缓存
  */
-#ifndef COTER_RUNTIME_CACHE_H
-#define COTER_RUNTIME_CACHE_H
+#ifndef COTER_THREAD_CACHE_H
+#define COTER_THREAD_CACHE_H
 
 #include "coter/core/platform.h"
 
@@ -77,4 +77,4 @@ int __ct_threadcache_detail(ct_threadcache_t *self, const char *file, int line, 
 #ifdef __cplusplus
 }
 #endif
-#endif  // COTER_RUNTIME_CACHE_H
+#endif  // COTER_THREAD_CACHE_H

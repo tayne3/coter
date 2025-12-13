@@ -2,7 +2,7 @@
  * @file threadcache.c
  * @brief 线程缓存
  */
-#include "coter/runtime/cache.h"
+#include "coter/thread/cache.h"
 
 #include "coter/strings/strings.h"
 #include "coter/time/time.h"

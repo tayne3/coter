@@ -7,7 +7,7 @@
 #include "coter/container/heap.h"
 #include "coter/container/list.h"
 #include "coter/log/log.h"
-#include "coter/runtime/thpool.h"
+#include "coter/thread/thpool.h"
 
 // -------------------------[STATIC DECLARATION]-------------------------
 

@@ -7,7 +7,7 @@
 
 #include "coter/log/log_contant.h"
 #include "coter/log/logger.h"
-#include "coter/runtime/cache.h"
+#include "coter/thread/cache.h"
 
 #ifdef __cplusplus
 extern "C" {
