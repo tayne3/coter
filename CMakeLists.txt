@@ -31,7 +31,59 @@ configure_file(
   @ONLY
 )
 
-file(GLOB_RECURSE project_source_files CONFIGURE_DEPENDS src/*.c)
+set(project_source_files
+  src/bytes/builder.c
+  src/bytes/bytes.c
+  src/bytes/span.c
+  src/bytes/pool.c
+
+  src/container/list.c
+  src/container/heap.c
+  src/container/stack.c
+  src/container/packet.c
+  src/container/vector.c
+  src/container/rbuf.c
+  src/container/queue.c
+  src/container/hash.c
+
+  src/crypto/sha1.c
+  src/crypto/md5.c
+
+  src/encoding/hex.c
+  src/encoding/binary.c
+  src/encoding/pack.c
+  src/encoding/base64.c
+
+  src/event/hub.c
+  src/event/msgqueue.c
+
+  src/hash/hash.c
+
+  src/log/logger.c
+  src/log/log_storage.c
+  src/log/log_config.c
+  src/log/log_printer.c
+  src/log/log_callback.c
+
+  src/math/rand.c
+
+  src/strings/strings.c
+
+  src/sync/shared_ptr.c
+  src/sync/waitgroup.c
+  src/sync/atomic/atomic_mutex.c
+
+  src/thread/jobpool.c
+  src/thread/cache.c
+  src/thread/thpool.c
+
+  src/time/timer.c
+  src/time/time.c
+  src/time/cron.c
+  src/time/datetime.c
+
+  src/types/any.c
+)
 target_sources(${COTER} PRIVATE ${project_source_files})
 target_link_libraries(${COTER} PUBLIC coter_compile_dependency)
 target_include_directories(${COTER} PUBLIC 
@@ -40,6 +92,10 @@ target_include_directories(${COTER} PUBLIC
 )
 
 if(COTER_BUILD_TEST)
+  CPMAddPackage(
+    NAME cunit
+    URL "https://codeload.github.com/tayne3/cunit/tar.gz/refs/tags/v0.2.3"
+  )
   enable_testing()
   add_subdirectory(test)
 endif()
