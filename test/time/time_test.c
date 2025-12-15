@@ -60,22 +60,14 @@ static inline void test_millisecond_precision(void) {
 	ct_time64_t start_tick, end_tick;
 
 	start_tick = ct_getuptime_ms();
-#ifdef _WIN32
-	Sleep(100);  // Sleep for 100 milliseconds
-#else
-	usleep(100000);  // Sleep for 100 milliseconds
-#endif
+	ct_msleep(100);  // Sleep for 100 milliseconds
 	end_tick = ct_getuptime_ms();
 	// Allow some error
 	assert_uint64_ge(end_tick - start_tick, 80);
 	assert_uint64_lt(end_tick - start_tick, 120);
 
 	start_tick = ct_getuptime_ms();
-#ifdef _WIN32
-	Sleep(200);  // Sleep for 200 milliseconds
-#else
-	usleep(200000);  // Sleep for 200 milliseconds
-#endif
+	ct_msleep(200);  // Sleep for 200 milliseconds
 	end_tick = ct_getuptime_ms();
 	// Allow some error
 	assert_uint64_ge(end_tick - start_tick, 160);
