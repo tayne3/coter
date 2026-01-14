@@ -79,7 +79,7 @@ set(project_source_files
 # target_sources(coter PRIVATE ${project_source_files})
 add_library(coter ${COTER_LIB_TYPE} ${project_source_files})
 add_library(coter::coter ALIAS coter)
-target_link_libraries(coter PRIVATE coter_private_dependency)
+target_link_libraries(coter PRIVATE coter_compile_dependency)
 target_link_libraries(coter PUBLIC coter_public_dependency)
 target_include_directories(coter PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

@@ -64,7 +64,7 @@ if(NOT CT_ATOMIC_IMPL_SELECTED)
     
     if(CT_HAVE_GCC_SYNC_WITH_LIBATOMIC)
       set(CT_HAVE_GCC_SYNC TRUE)
-      target_link_libraries(coter_private_dependency INTERFACE atomic)
+      target_link_libraries(coter_compile_dependency INTERFACE atomic)
     endif()
   endif()
   

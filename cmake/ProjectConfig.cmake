@@ -64,44 +64,44 @@ if(PROJECT_IS_TOP_LEVEL)
   endif()
 endif()
 
-add_library(coter_private_dependency INTERFACE)
-target_compile_features(coter_private_dependency INTERFACE c_std_99)
+add_library(coter_compile_dependency INTERFACE)
+target_compile_features(coter_compile_dependency INTERFACE c_std_99)
 add_library(coter_public_dependency INTERFACE)
 target_compile_features(coter_public_dependency INTERFACE c_std_99)
 
 # set source charset to utf-8 for MSVC
 if(CMAKE_C_COMPILER_ID STREQUAL "MSVC")
-  target_compile_options(coter_private_dependency INTERFACE 
+  target_compile_options(coter_compile_dependency INTERFACE 
 		"$<$<COMPILE_LANGUAGE:C>:/utf-8>"
 	)
 endif()
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-  target_compile_options(coter_private_dependency INTERFACE 
+  target_compile_options(coter_compile_dependency INTERFACE 
 		"$<$<COMPILE_LANGUAGE:CXX>:/utf-8>"
 	)
 endif()
 
 # compiler warnings, skipped for MSVC & ClangCL (MSVC frontend)
 if(NOT (CMAKE_C_COMPILER_ID STREQUAL "MSVC" OR ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang" AND "${CMAKE_C_COMPILER_FRONTEND_VARIANT}" STREQUAL "MSVC")))
-  target_compile_options(coter_private_dependency INTERFACE
+  target_compile_options(coter_compile_dependency INTERFACE
     "$<$<COMPILE_LANGUAGE:C>:-Wall>"
     "$<$<COMPILE_LANGUAGE:C>:-Wextra>"
   )
   check_c_compiler_flag("-Werror=return-type" HAVE_C_WERROR_RETURN_TYPE)
   if(HAVE_C_WERROR_RETURN_TYPE)
-    target_compile_options(coter_private_dependency INTERFACE
+    target_compile_options(coter_compile_dependency INTERFACE
       "$<$<COMPILE_LANGUAGE:C>:-Werror=return-type>"
     )
   endif()
 endif()
 if(NOT (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" OR ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" AND "${CMAKE_CXX_COMPILER_FRONTEND_VARIANT}" STREQUAL "MSVC")))
-  target_compile_options(coter_private_dependency INTERFACE
+  target_compile_options(coter_compile_dependency INTERFACE
     "$<$<COMPILE_LANGUAGE:CXX>:-Wall>"
     "$<$<COMPILE_LANGUAGE:CXX>:-Wextra>"
   )
   check_cxx_compiler_flag("-Werror=return-type" HAVE_CXX_WERROR_RETURN_TYPE)
   if(HAVE_CXX_WERROR_RETURN_TYPE)
-    target_compile_options(coter_private_dependency INTERFACE
+    target_compile_options(coter_compile_dependency INTERFACE
       "$<$<COMPILE_LANGUAGE:CXX>:-Werror=return-type>"
     )
   endif()
@@ -109,12 +109,12 @@ endif()
 
 # Handle -Wno-missing-field-initializers for older GCC
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU" AND CMAKE_C_COMPILER_VERSION VERSION_LESS 6.0)
-  target_compile_options(coter_private_dependency INTERFACE 
+  target_compile_options(coter_compile_dependency INTERFACE 
 		"$<$<COMPILE_LANGUAGE:C>:-Wno-missing-field-initializers>"
 	)
 endif()
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 6.0)
-  target_compile_options(coter_private_dependency INTERFACE 
+  target_compile_options(coter_compile_dependency INTERFACE 
 		"$<$<COMPILE_LANGUAGE:CXX>:-Wno-missing-field-initializers>"
 	)
 endif()
