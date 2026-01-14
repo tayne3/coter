@@ -30,7 +30,7 @@ typedef struct ct_random {
  * ct_random_init(&rng);
  * @endcode
  */
-void ct_random_init(ct_random_t *self) __ct_throw;
+COTER_API void ct_random_init(ct_random_t *self) __ct_throw;
 
 /**
  * @brief 生成随机布尔值
@@ -45,7 +45,7 @@ void ct_random_init(ct_random_t *self) __ct_throw;
  * printf("Random boolean: %s\n", random_bool ? "true" : "false");
  * @endcode
  */
-bool ct_random_bool(ct_random_t *self) __ct_throw;
+COTER_API bool ct_random_bool(ct_random_t *self) __ct_throw;
 
 /**
  * @brief 生成指定范围内的随机8位无符号整数
@@ -62,7 +62,7 @@ bool ct_random_bool(ct_random_t *self) __ct_throw;
  * printf("Random uint8: %u\n", random_uint8);
  * @endcode
  */
-uint8_t ct_random_uint8(ct_random_t *self, uint8_t min, uint8_t max) __ct_throw;
+COTER_API uint8_t ct_random_uint8(ct_random_t *self, uint8_t min, uint8_t max) __ct_throw;
 
 /**
  * @brief 生成指定范围内的随机8位有符号整数
@@ -79,7 +79,7 @@ uint8_t ct_random_uint8(ct_random_t *self, uint8_t min, uint8_t max) __ct_throw;
  * printf("Random int8: %d\n", random_int8);
  * @endcode
  */
-int8_t ct_random_int8(ct_random_t *self, int8_t min, int8_t max) __ct_throw;
+COTER_API int8_t ct_random_int8(ct_random_t *self, int8_t min, int8_t max) __ct_throw;
 
 /**
  * @brief 生成指定范围内的随机16位无符号整数
@@ -96,7 +96,7 @@ int8_t ct_random_int8(ct_random_t *self, int8_t min, int8_t max) __ct_throw;
  * printf("Random uint16: %u\n", random_uint16);
  * @endcode
  */
-uint16_t ct_random_uint16(ct_random_t *self, uint16_t min, uint16_t max) __ct_throw;
+COTER_API uint16_t ct_random_uint16(ct_random_t *self, uint16_t min, uint16_t max) __ct_throw;
 
 /**
  * @brief 生成指定范围内的随机16位有符号整数
@@ -113,7 +113,7 @@ uint16_t ct_random_uint16(ct_random_t *self, uint16_t min, uint16_t max) __ct_th
  * printf("Random int16: %d\n", random_int16);
  * @endcode
  */
-int16_t ct_random_int16(ct_random_t *self, int16_t min, int16_t max) __ct_throw;
+COTER_API int16_t ct_random_int16(ct_random_t *self, int16_t min, int16_t max) __ct_throw;
 
 /**
  * @brief 生成指定范围内的随机32位无符号整数
@@ -130,7 +130,7 @@ int16_t ct_random_int16(ct_random_t *self, int16_t min, int16_t max) __ct_throw;
  * printf("Random uint32: %u\n", random_uint32);
  * @endcode
  */
-uint32_t ct_random_uint32(ct_random_t *self, uint32_t min, uint32_t max) __ct_throw;
+COTER_API uint32_t ct_random_uint32(ct_random_t *self, uint32_t min, uint32_t max) __ct_throw;
 
 /**
  * @brief 生成指定范围内的随机32位有符号整数
@@ -147,7 +147,7 @@ uint32_t ct_random_uint32(ct_random_t *self, uint32_t min, uint32_t max) __ct_th
  * printf("Random int32: %d\n", random_int32);
  * @endcode
  */
-int32_t ct_random_int32(ct_random_t *self, int32_t min, int32_t max) __ct_throw;
+COTER_API int32_t ct_random_int32(ct_random_t *self, int32_t min, int32_t max) __ct_throw;
 
 /**
  * @brief 生成指定范围内的随机64位无符号整数
@@ -164,7 +164,7 @@ int32_t ct_random_int32(ct_random_t *self, int32_t min, int32_t max) __ct_throw;
  * printf("Random uint64: %llu\n", random_uint64);
  * @endcode
  */
-uint64_t ct_random_uint64(ct_random_t *self, uint64_t min, uint64_t max) __ct_throw;
+COTER_API uint64_t ct_random_uint64(ct_random_t *self, uint64_t min, uint64_t max) __ct_throw;
 
 /**
  * @brief 生成指定范围内的随机64位有符号整数
@@ -181,7 +181,7 @@ uint64_t ct_random_uint64(ct_random_t *self, uint64_t min, uint64_t max) __ct_th
  * printf("Random int64: %lld\n", random_int64);
  * @endcode
  */
-int64_t ct_random_int64(ct_random_t *self, int64_t min, int64_t max) __ct_throw;
+COTER_API int64_t ct_random_int64(ct_random_t *self, int64_t min, int64_t max) __ct_throw;
 
 /**
  * @brief 生成指定范围内的随机单精度浮点数
@@ -198,7 +198,7 @@ int64_t ct_random_int64(ct_random_t *self, int64_t min, int64_t max) __ct_throw;
  * printf("Random float: %f\n", random_float);
  * @endcode
  */
-float ct_random_float(ct_random_t *self, float min, float max) __ct_throw;
+COTER_API float ct_random_float(ct_random_t *self, float min, float max) __ct_throw;
 
 /**
  * @brief 生成指定范围内的随机双精度浮点数
@@ -215,7 +215,7 @@ float ct_random_float(ct_random_t *self, float min, float max) __ct_throw;
  * printf("Random double: %f\n", random_double);
  * @endcode
  */
-double ct_random_double(ct_random_t *self, double min, double max) __ct_throw;
+COTER_API double ct_random_double(ct_random_t *self, double min, double max) __ct_throw;
 
 /**
  * @brief 生成指定长度的随机字符串
@@ -234,7 +234,7 @@ double ct_random_double(ct_random_t *self, double min, double max) __ct_throw;
  * printf("Random session ID: %s\n", session_id);
  * @endcode
  */
-void ct_random_string(ct_random_t *self, char *str, size_t length) __ct_throw;
+COTER_API void ct_random_string(ct_random_t *self, char *str, size_t length) __ct_throw;
 
 #ifdef __cplusplus
 }

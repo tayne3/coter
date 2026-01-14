@@ -31,7 +31,7 @@ typedef struct {
  * @param state 当前SHA1状态变量数组
  * @param buffer 输入的512位（64字节）数据块
  */
-void ct_sha1_transform(uint32_t state[5], const unsigned char buffer[64]);
+COTER_API void ct_sha1_transform(uint32_t state[5], const unsigned char buffer[64]);
 
 /**
  * @brief 初始化SHA1上下文
@@ -40,7 +40,7 @@ void ct_sha1_transform(uint32_t state[5], const unsigned char buffer[64]);
  *
  * @param context 指向SHA1上下文结构的指针
  */
-void ct_sha1_init(ct_sha1_ctx_t* context);
+COTER_API void ct_sha1_init(ct_sha1_ctx_t* context);
 
 /**
  * @brief 更新SHA1上下文处理数据
@@ -51,7 +51,7 @@ void ct_sha1_init(ct_sha1_ctx_t* context);
  * @param data 输入的数据字节数组
  * @param len 输入数据的长度（字节数）
  */
-void ct_sha1_update(ct_sha1_ctx_t* context, const unsigned char* data, uint32_t len);
+COTER_API void ct_sha1_update(ct_sha1_ctx_t* context, const unsigned char* data, uint32_t len);
 
 /**
  * @brief 完成SHA1运算并获取摘要
@@ -61,7 +61,7 @@ void ct_sha1_update(ct_sha1_ctx_t* context, const unsigned char* data, uint32_t 
  * @param digest 输出的20字节消息摘要
  * @param context 指向SHA1上下文结构的指针
  */
-void ct_sha1_final(unsigned char digest[20], ct_sha1_ctx_t* context);
+COTER_API void ct_sha1_final(unsigned char digest[20], ct_sha1_ctx_t* context);
 
 /**
  * @brief 将字符串转换为SHA1摘要
@@ -72,7 +72,7 @@ void ct_sha1_final(unsigned char digest[20], ct_sha1_ctx_t* context);
  * @param str 输入的字符串
  * @param len 输入字符串的长度（字节数）
  */
-void ct_sha1_string(char* hash_out, const char* str, uint32_t len);
+COTER_API void ct_sha1_string(char* hash_out, const char* str, uint32_t len);
 
 /**
  * @brief 将字节数组转换为SHA1摘要
@@ -83,7 +83,7 @@ void ct_sha1_string(char* hash_out, const char* str, uint32_t len);
  * @param inputlen 输入字节数组的长度（字节数）
  * @param digest 输出的20字节消息摘要
  */
-void ct_sha1_bytes(unsigned char* input, uint32_t inputlen, unsigned char digest[20]);
+COTER_API void ct_sha1_bytes(unsigned char* input, uint32_t inputlen, unsigned char digest[20]);
 
 /**
  * @brief 将输入数据转换为十六进制格式的SHA1摘要
@@ -96,7 +96,7 @@ void ct_sha1_bytes(unsigned char* input, uint32_t inputlen, unsigned char digest
  * @param output 输出的十六进制摘要字符串
  * @param outputlen 输出缓冲区的长度（字节数）
  */
-void ct_sha1_hex(unsigned char* input, uint32_t inputlen, char* output, uint32_t outputlen);
+COTER_API void ct_sha1_hex(unsigned char* input, uint32_t inputlen, char* output, uint32_t outputlen);
 
 #ifdef __cplusplus
 }

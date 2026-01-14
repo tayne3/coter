@@ -34,28 +34,28 @@ ct_log_callback_t *ct_log_callback_create(struct ct_bytepool *bytepool, const st
  * @brief 销毁日志回调器
  * @param self 日志回调器
  */
-void ct_log_callback_destroy(ct_log_callback_t *self);
+COTER_API void ct_log_callback_destroy(ct_log_callback_t *self);
 
 /**
  * @brief 日志数据推送
  * @param self 日志回调器
  * @param bytes 字节数组
  */
-void ct_log_callback_handle(ct_log_callback_t *self, const char *buf, size_t size);
+COTER_API void ct_log_callback_handle(ct_log_callback_t *self, const char *buf, size_t size);
 
 /**
  * @brief 日志回调器刷新
  *
  * @param self 日志回调器
  */
-void ct_log_callback_flush(ct_log_callback_t *self);
+COTER_API void ct_log_callback_flush(ct_log_callback_t *self);
 
 /**
  * @brief 日志回调器调度
  *
  * @param self 日志回调器
  */
-void ct_log_callback_schedule(ct_log_callback_t *self);
+COTER_API void ct_log_callback_schedule(ct_log_callback_t *self);
 
 #ifdef __cplusplus
 }

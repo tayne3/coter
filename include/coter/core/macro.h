@@ -26,6 +26,23 @@
 
 // clang-format off
 
+# ifndef COTER_API
+#   if defined(_WIN32) || defined(__CYGWIN__)
+#       if defined(COTER_LIB_EXPORT)
+#           define COTER_API __declspec(dllexport)
+#       elif defined(COTER_SHARED)
+#           define COTER_API __declspec(dllimport)
+#       endif
+#   elif defined(__GNUC__) || defined(__clang__)
+#       if defined(COTER_LIB_EXPORT) || defined(COTER_SHARED)
+#           define COTER_API __attribute__((visibility("default")))
+#       endif
+#   endif
+# endif
+# ifndef COTER_API
+#   define COTER_API
+# endif
+
 # ifndef __cplusplus
 #	if HAVE_STDBOOL_H
 #		include <stdbool.h>

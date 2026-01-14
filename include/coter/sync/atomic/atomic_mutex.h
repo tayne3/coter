@@ -24,8 +24,8 @@ typedef struct ct_atomic_flag {
  */
 #define CT_ATOMIC_FLAG_INIT {0}
 
-void __ct_atomic_lock(void);
-void __ct_atomic_unlock(void);
+COTER_API void __ct_atomic_lock(void);
+COTER_API void __ct_atomic_unlock(void);
 
 /**
  * @brief Atomically sets flag and returns previous value

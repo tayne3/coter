@@ -50,7 +50,7 @@ typedef struct ct_rbuf {
  * @param buffer 缓冲区地址
  * @param max 缓冲区大小
  */
-void ct_rbuf_init(ct_rbuf_buf_t self, void *buffer, size_t byte, size_t max);
+COTER_API void ct_rbuf_init(ct_rbuf_buf_t self, void *buffer, size_t byte, size_t max);
 
 /**
  * @brief 向环形缓冲区添加单个元素
@@ -58,7 +58,7 @@ void ct_rbuf_init(ct_rbuf_buf_t self, void *buffer, size_t byte, size_t max);
  * @param item 要添加的元素
  * @return 成功返回 true，失败返回 false
  */
-bool ct_rbuf_put(ct_rbuf_buf_t self, const void *item);
+COTER_API bool ct_rbuf_put(ct_rbuf_buf_t self, const void *item);
 
 /**
  * @brief 从环形缓冲区取出单个元素
@@ -66,7 +66,7 @@ bool ct_rbuf_put(ct_rbuf_buf_t self, const void *item);
  * @param item 用于存储元素的指针
  * @return 成功返回 true，失败返回 false
  */
-bool ct_rbuf_take(ct_rbuf_buf_t self, void *item);
+COTER_API bool ct_rbuf_take(ct_rbuf_buf_t self, void *item);
 
 /**
  * @brief 向环形缓冲区添加多个元素
@@ -78,7 +78,7 @@ bool ct_rbuf_take(ct_rbuf_buf_t self, void *item);
  * 该函数用于从环形缓冲区中取出多个元素，如果要取出的元素数量超过了环形缓冲区的大小，将只取出环形缓冲区中的所有元素。
  * 该函数相当于从环形缓冲区中获取到元素之后将其删除。
  */
-size_t ct_rbuf_puts(ct_rbuf_buf_t self, const void *items, size_t size);
+COTER_API size_t ct_rbuf_puts(ct_rbuf_buf_t self, const void *items, size_t size);
 
 /**
  * @brief 从环形缓冲区取出多个元素
@@ -87,7 +87,7 @@ size_t ct_rbuf_puts(ct_rbuf_buf_t self, const void *items, size_t size);
  * @param size 要获取的元素数量
  * @return 成功获取的元素数量
  */
-size_t ct_rbuf_takes(ct_rbuf_buf_t self, void *items, size_t size);
+COTER_API size_t ct_rbuf_takes(ct_rbuf_buf_t self, void *items, size_t size);
 
 /**
  * @brief 从环形缓冲区获取多个元素
@@ -98,7 +98,7 @@ size_t ct_rbuf_takes(ct_rbuf_buf_t self, void *items, size_t size);
  * @note
  * 该函数用于从环形缓冲区中获取多个元素，如果要获取的元素数量超过了环形缓冲区的大小，将只获取环形缓冲区中的所有元素。
  */
-size_t ct_rbuf_gets(ct_rbuf_buf_t self, void *items, size_t size);
+COTER_API size_t ct_rbuf_gets(ct_rbuf_buf_t self, void *items, size_t size);
 
 /**
  * @brief 从环形缓冲区中移除指定数量的元素
@@ -108,7 +108,7 @@ size_t ct_rbuf_gets(ct_rbuf_buf_t self, void *items, size_t size);
  * @note
  * 该函数用于从环形缓冲区中移除指定数量的元素，如果要移除的元素数量超过了环形缓冲区的大小，将移除环形缓冲区中的所有元素。
  */
-size_t ct_rbuf_remove(ct_rbuf_buf_t self, size_t size);
+COTER_API size_t ct_rbuf_remove(ct_rbuf_buf_t self, size_t size);
 
 /**
  * @brief 获取环形缓冲区指定位置的元素区块指针
@@ -120,7 +120,7 @@ size_t ct_rbuf_remove(ct_rbuf_buf_t self, size_t size);
  * 该函数不改变环形缓冲区中的数据, 仅用于获取元素区块指针
  * 由于环形缓冲区是循环队列, 所以需要分段获取元素区块, 无法一次性获取全部元素, 一般情况下不需要使用该函数
  */
-void *ct_rbuf_items(const ct_rbuf_buf_t self, size_t offset, size_t size[1]);
+COTER_API void *ct_rbuf_items(const ct_rbuf_buf_t self, size_t offset, size_t size[1]);
 
 #ifdef __cplusplus
 }

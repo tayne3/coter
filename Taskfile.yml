@@ -24,7 +24,7 @@ tasks:
           -DCMAKE_BUILD_TYPE={{.BUILD_TYPE}} \
           {{if .COTER_BUILD_EXAMPLE}}-DCOTER_BUILD_EXAMPLE={{.COTER_BUILD_EXAMPLE}}{{end}} \
           {{if .COTER_BUILD_TEST}}-DCOTER_BUILD_TEST={{.COTER_BUILD_TEST}}{{end}} \
-          {{if .COTER_BUILD_SHARED}}-DCOTER_BUILD_SHARED={{.COTER_BUILD_SHARED}}{{end}} \
+          {{if .BUILD_SHARED_LIBS}}-DBUILD_SHARED_LIBS={{.BUILD_SHARED_LIBS}}{{end}} \
           {{if .BUILD_ARGS}}{{.BUILD_ARGS}}{{end}}
 
   build:
@@ -34,9 +34,14 @@ tasks:
       BUILD_TYPE: '{{.BUILD_TYPE | default "Release"}}'
       BUILD_DIR: "cmake-build-{{.BUILD_TYPE | lower}}"
       PARALLEL_JOBS:
-        sh: nproc 2>/dev/null || echo 1
+        sh: |
+          {{if eq OS "windows"}}
+          echo ${NUMBER_OF_PROCESSORS}
+          {{else}}
+          nproc 2>/dev/null || echo 1
+          {{end}}
     cmds:
-      - cmake --build {{.BUILD_DIR}} --parallel {{.PARALLEL_JOBS}}
+      - cmake --build {{.BUILD_DIR}} --config {{.BUILD_TYPE}} --parallel {{.PARALLEL_JOBS}}
 
   test:
     desc: Run tests
@@ -47,7 +52,9 @@ tasks:
     deps:
       - task: build
     cmds:
-      - ctest --test-dir {{.BUILD_DIR}} -C {{.BUILD_TYPE}} --output-on-failure
+      - |
+        cd {{.BUILD_DIR}}
+        ctest -C {{.BUILD_TYPE}} --output-on-failure
 
   clean:
     desc: Clean the build directory

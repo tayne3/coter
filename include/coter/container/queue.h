@@ -39,7 +39,7 @@ typedef struct ct_queue {
  * @param byte 单个元素字节大小
  * @param max 缓冲区大小
  */
-void ct_queue_init(ct_queue_buf_t self, void* buffer, size_t byte, size_t max);
+COTER_API void ct_queue_init(ct_queue_buf_t self, void* buffer, size_t byte, size_t max);
 
 /**
  * @brief 将元素添加到队列的末尾。
@@ -47,7 +47,7 @@ void ct_queue_init(ct_queue_buf_t self, void* buffer, size_t byte, size_t max);
  * @param item 要添加的元素
  * @return 队列状态
  */
-bool ct_queue_enqueue(ct_queue_buf_t self, const void* item);
+COTER_API bool ct_queue_enqueue(ct_queue_buf_t self, const void* item);
 
 /**
  * @brief 移除并返回队列的第一个元素
@@ -55,7 +55,7 @@ bool ct_queue_enqueue(ct_queue_buf_t self, const void* item);
  * @param item 用于存储元素的指针
  * @return 成功返回 true，失败返回 false
  */
-bool ct_queue_dequeue(ct_queue_buf_t self, void* item);
+COTER_API bool ct_queue_dequeue(ct_queue_buf_t self, void* item);
 
 /**
  * @brief 返回队列的首元素,但不会移除它
@@ -63,7 +63,7 @@ bool ct_queue_dequeue(ct_queue_buf_t self, void* item);
  * @param item 用于存储元素的指针
  * @return 成功返回 true，失败返回 false
  */
-bool ct_queue_head(ct_queue_buf_t self, void* item);
+COTER_API bool ct_queue_head(ct_queue_buf_t self, void* item);
 
 /**
  * @brief 遍历队列中的每个元素并执行回调函数
@@ -73,7 +73,7 @@ bool ct_queue_head(ct_queue_buf_t self, void* item);
  * @param arg 回调函数的参数
  * @return 遍历执行结果
  */
-int ct_queue_traverse(ct_queue_buf_t self, int (*callback)(void* item, void* arg), void* item, void* arg);
+COTER_API int ct_queue_traverse(ct_queue_buf_t self, int (*callback)(void* item, void* arg), void* item, void* arg);
 
 #ifdef __cplusplus
 }

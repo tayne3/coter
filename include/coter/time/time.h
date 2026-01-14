@@ -48,7 +48,7 @@ typedef time_t ct_time_t;
 typedef int64_t ct_time64_t;
 
 // get milliseconds since system startup. (if available)
-ct_time64_t ct_getuptime_ms(void);
+COTER_API ct_time64_t ct_getuptime_ms(void);
 // get time in milliseconds.
 static inline ct_time64_t ct_gettimeofday_ms(void) {
 	struct timeval tv;
@@ -62,7 +62,7 @@ static inline ct_time64_t ct_gettimeofday_us(void) {
 	return (ct_time64_t)tv.tv_sec * 1000000LL + (ct_time64_t)tv.tv_usec;
 }
 // get high-resolution time in microseconds.
-ct_time64_t ct_gethrtime_us(void);
+COTER_API ct_time64_t ct_gethrtime_us(void);
 
 // 获取当前秒级时间戳 (自纪元时间)
 #define ct_current_second() time(NULL)
@@ -118,7 +118,7 @@ static inline void ct_localtime_now(struct tm* tm) {
  * printf("duration: %s\n", buf); // 输出：duration: 01:01:01
  * @endcode
  */
-char* ct_tm_duration_fmt(int sec, char* buf);
+COTER_API char* ct_tm_duration_fmt(int sec, char* buf);
 #define CT_TM_DURATION_MAX 12
 
 /**
@@ -137,7 +137,7 @@ char* ct_tm_duration_fmt(int sec, char* buf);
  * printf("当前日期时间：%s\n", buf);
  * @endcode
  */
-char* ct_tm_fmt(const struct tm* tm, char* buf);
+COTER_API char* ct_tm_fmt(const struct tm* tm, char* buf);
 #define CT_TM_FMT_MAX 20
 
 #ifdef __cplusplus

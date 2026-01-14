@@ -46,13 +46,13 @@ typedef struct ct_binary_order {
  * @brief Little-endian byte order instance.
  * @example 0x12345678 → {0x78, 0x56, 0x34, 0x12}
  */
-extern const ct_binary_order_t ct_little_endian;
+COTER_API extern const ct_binary_order_t ct_little_endian;
 
 /**
  * @brief Big-endian byte order instance.
  * @example 0x12345678 → {0x12, 0x34, 0x56, 0x78}
  */
-extern const ct_binary_order_t ct_big_endian;
+COTER_API extern const ct_binary_order_t ct_big_endian;
 
 #if defined(_MSC_VER)
 #define ct_binary_bswap16(x) _byteswap_ushort(x)
@@ -251,37 +251,37 @@ static inline void ct_big_put_uint64(uint8_t *buf, uint64_t val) {
 /**
  * @brief Reverses byte order of elements in a uint16 array in place.
  */
-void ct_binary_bswap16_batch(uint16_t *data, size_t count);
+COTER_API void ct_binary_bswap16_batch(uint16_t *data, size_t count);
 
 /**
  * @brief Reverses byte order of elements in a uint32 array in place.
  */
-void ct_binary_bswap32_batch(uint32_t *data, size_t count);
+COTER_API void ct_binary_bswap32_batch(uint32_t *data, size_t count);
 
 /**
  * @brief Reverses byte order of elements in a uint64 array in place.
  */
-void ct_binary_bswap64_batch(uint64_t *data, size_t count);
+COTER_API void ct_binary_bswap64_batch(uint64_t *data, size_t count);
 
 /**
  * @brief Swaps 16-bit pairs within each element of a uint32 array in place.
  */
-void ct_binary_bswap16_x2_batch(uint32_t *data, size_t count);
+COTER_API void ct_binary_bswap16_x2_batch(uint32_t *data, size_t count);
 
 /**
  * @brief Swaps 16-bit pairs within each element of a uint64 array in place.
  */
-void ct_binary_bswap16_x4_batch(uint64_t *data, size_t count);
+COTER_API void ct_binary_bswap16_x4_batch(uint64_t *data, size_t count);
 
 /**
  * @brief Reverses bytes in each 16-bit word of a uint32 array in place.
  */
-void ct_binary_reverse_words32_batch(uint32_t *data, size_t count);
+COTER_API void ct_binary_reverse_words32_batch(uint32_t *data, size_t count);
 
 /**
  * @brief Reverses bytes in each 16-bit word of a uint64 array in place.
  */
-void ct_binary_reverse_words64_batch(uint64_t *data, size_t count);
+COTER_API void ct_binary_reverse_words64_batch(uint64_t *data, size_t count);
 
 #ifdef __cplusplus
 }

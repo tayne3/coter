@@ -42,18 +42,18 @@ endif()
 project_check_library_function("rt" "clock_gettime" "")
 
 if(WIN32)
-  target_link_libraries(coter_compile_dependency INTERFACE 
+  target_link_libraries(coter_private_dependency INTERFACE 
     secur32 crypt32 winmm iphlpapi ws2_32 dbghelp
   )
 elseif(UNIX)
   check_library_exists(m pow "" HAVE_LIBM)
   if(HAVE_LIBM)
-    target_link_libraries(coter_compile_dependency INTERFACE m)
+    target_link_libraries(coter_private_dependency INTERFACE m)
   endif()
   if(CMAKE_DL_LIBS)
-    target_link_libraries(coter_compile_dependency INTERFACE ${CMAKE_DL_LIBS})
+    target_link_libraries(coter_private_dependency INTERFACE ${CMAKE_DL_LIBS})
   endif()
   if(HAVE_CLOCK_GETTIME_IN_RT)
-    target_link_libraries(coter_compile_dependency INTERFACE rt)
+    target_link_libraries(coter_private_dependency INTERFACE rt)
   endif()
 endif()

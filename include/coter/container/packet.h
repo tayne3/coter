@@ -70,21 +70,21 @@ typedef struct ct_packet {
  * @param buffer 缓冲区指针
  * @param max 缓冲区最大长度
  */
-void ct_packet_init(ct_packet_buf_t self, uint8_t *buffer, uint16_t max);
+COTER_API void ct_packet_init(ct_packet_buf_t self, uint8_t *buffer, uint16_t max);
 
 /**
  * @brief 重置缓冲区
  *
  * @param self 报文缓冲盒子 对象指针
  */
-void ct_packet_reset(ct_packet_buf_t self);
+COTER_API void ct_packet_reset(ct_packet_buf_t self);
 
 /**
  * @brief 清空缓冲区 (清除数据)
  *
  * @param self 报文缓冲盒子 对象指针
  */
-void ct_packet_clean(ct_packet_buf_t self);
+COTER_API void ct_packet_clean(ct_packet_buf_t self);
 
 /**
  * @brief 获取数据 (数据不变)
@@ -93,7 +93,7 @@ void ct_packet_clean(ct_packet_buf_t self);
  * @param offset 偏移字节数
  * @return uint8_t 读取的数据
  */
-uint8_t ct_packet_get_u8(const ct_packet_buf_t self, uint16_t offset);
+COTER_API uint8_t ct_packet_get_u8(const ct_packet_buf_t self, uint16_t offset);
 
 /**
  * @brief 获取数据 (数据不变)
@@ -103,7 +103,7 @@ uint8_t ct_packet_get_u8(const ct_packet_buf_t self, uint16_t offset);
  * @param endian 字节序
  * @return uint16_t 读取的数据
  */
-uint16_t ct_packet_get_u16(const ct_packet_buf_t self, uint16_t offset, ct_endian_t endian);
+COTER_API uint16_t ct_packet_get_u16(const ct_packet_buf_t self, uint16_t offset, ct_endian_t endian);
 
 /**
  * @brief 获取数据 (数据不变)
@@ -113,7 +113,7 @@ uint16_t ct_packet_get_u16(const ct_packet_buf_t self, uint16_t offset, ct_endia
  * @param endian 字节序
  * @return uint32_t 读取的数据
  */
-uint32_t ct_packet_get_u32(const ct_packet_buf_t self, uint16_t offset, ct_endian_t endian);
+COTER_API uint32_t ct_packet_get_u32(const ct_packet_buf_t self, uint16_t offset, ct_endian_t endian);
 
 /**
  * @brief 获取数据 (数据不变)
@@ -123,7 +123,7 @@ uint32_t ct_packet_get_u32(const ct_packet_buf_t self, uint16_t offset, ct_endia
  * @param endian 字节序
  * @return uint64_t 读取的数据
  */
-uint64_t ct_packet_get_u64(const ct_packet_buf_t self, uint16_t offset, ct_endian_t endian);
+COTER_API uint64_t ct_packet_get_u64(const ct_packet_buf_t self, uint16_t offset, ct_endian_t endian);
 
 /**
  * @brief 获取数据 (数据不变)
@@ -133,7 +133,7 @@ uint64_t ct_packet_get_u64(const ct_packet_buf_t self, uint16_t offset, ct_endia
  * @param endian 字节序
  * @return float 读取的数据
  */
-float ct_packet_get_float(const ct_packet_buf_t self, uint16_t offset, ct_endian_t endian);
+COTER_API float ct_packet_get_float(const ct_packet_buf_t self, uint16_t offset, ct_endian_t endian);
 
 /**
  * @brief 获取数据 (数据不变)
@@ -143,7 +143,7 @@ float ct_packet_get_float(const ct_packet_buf_t self, uint16_t offset, ct_endian
  * @param endian 字节序
  * @return double 读取的数据
  */
-double ct_packet_get_double(const ct_packet_buf_t self, uint16_t offset, ct_endian_t endian);
+COTER_API double ct_packet_get_double(const ct_packet_buf_t self, uint16_t offset, ct_endian_t endian);
 
 /**
  * @brief 填充数据
@@ -152,7 +152,7 @@ double ct_packet_get_double(const ct_packet_buf_t self, uint16_t offset, ct_endi
  * @param offset 偏移字节数
  * @param value uint8_t 数据
  */
-void ct_packet_set_u8(ct_packet_buf_t self, uint16_t offset, uint8_t value);
+COTER_API void ct_packet_set_u8(ct_packet_buf_t self, uint16_t offset, uint8_t value);
 
 /**
  * @brief 填充数据
@@ -162,7 +162,7 @@ void ct_packet_set_u8(ct_packet_buf_t self, uint16_t offset, uint8_t value);
  * @param value uint16_t 数据
  * @param endian 字节序
  */
-void ct_packet_set_u16(ct_packet_buf_t self, uint16_t offset, uint16_t value, ct_endian_t endian);
+COTER_API void ct_packet_set_u16(ct_packet_buf_t self, uint16_t offset, uint16_t value, ct_endian_t endian);
 
 /**
  * @brief 填充数据
@@ -172,7 +172,7 @@ void ct_packet_set_u16(ct_packet_buf_t self, uint16_t offset, uint16_t value, ct
  * @param value uint32_t 数据
  * @param endian 字节序
  */
-void ct_packet_set_u32(ct_packet_buf_t self, uint16_t offset, uint32_t value, ct_endian_t endian);
+COTER_API void ct_packet_set_u32(ct_packet_buf_t self, uint16_t offset, uint32_t value, ct_endian_t endian);
 
 /**
  * @brief 填充数据
@@ -182,7 +182,7 @@ void ct_packet_set_u32(ct_packet_buf_t self, uint16_t offset, uint32_t value, ct
  * @param value uint64_t 数据
  * @param endian 字节序
  */
-void ct_packet_set_u64(ct_packet_buf_t self, uint16_t offset, uint64_t value, ct_endian_t endian);
+COTER_API void ct_packet_set_u64(ct_packet_buf_t self, uint16_t offset, uint64_t value, ct_endian_t endian);
 
 /**
  * @brief 填充数据
@@ -192,7 +192,7 @@ void ct_packet_set_u64(ct_packet_buf_t self, uint16_t offset, uint64_t value, ct
  * @param value float 数据
  * @param endian 字节序
  */
-void ct_packet_set_float(ct_packet_buf_t self, uint16_t offset, float value, ct_endian_t endian);
+COTER_API void ct_packet_set_float(ct_packet_buf_t self, uint16_t offset, float value, ct_endian_t endian);
 
 /**
  * @brief 填充数据
@@ -202,7 +202,7 @@ void ct_packet_set_float(ct_packet_buf_t self, uint16_t offset, float value, ct_
  * @param value double 数据
  * @param endian 字节序
  */
-void ct_packet_set_double(ct_packet_buf_t self, uint16_t offset, double value, ct_endian_t endian);
+COTER_API void ct_packet_set_double(ct_packet_buf_t self, uint16_t offset, double value, ct_endian_t endian);
 
 /**
  * @brief 放入数据 (尾插数据)
@@ -210,7 +210,7 @@ void ct_packet_set_double(ct_packet_buf_t self, uint16_t offset, double value, c
  * @param self 报文缓冲盒子 对象指针
  * @param value uint8_t 数据
  */
-void ct_packet_put_u8(ct_packet_buf_t self, uint8_t value);
+COTER_API void ct_packet_put_u8(ct_packet_buf_t self, uint8_t value);
 
 /**
  * @brief 放入数据 (尾插数据)
@@ -219,7 +219,7 @@ void ct_packet_put_u8(ct_packet_buf_t self, uint8_t value);
  * @param value uint16_t 数据
  * @param endian 字节序
  */
-void ct_packet_put_u16(ct_packet_buf_t self, uint16_t value, ct_endian_t endian);
+COTER_API void ct_packet_put_u16(ct_packet_buf_t self, uint16_t value, ct_endian_t endian);
 
 /**
  * @brief 放入数据 (尾插数据)
@@ -228,7 +228,7 @@ void ct_packet_put_u16(ct_packet_buf_t self, uint16_t value, ct_endian_t endian)
  * @param value uint32_t 数据
  * @param endian 字节序
  */
-void ct_packet_put_u32(ct_packet_buf_t self, uint32_t value, ct_endian_t endian);
+COTER_API void ct_packet_put_u32(ct_packet_buf_t self, uint32_t value, ct_endian_t endian);
 
 /**
  * @brief 放入数据 (尾插数据)
@@ -237,7 +237,7 @@ void ct_packet_put_u32(ct_packet_buf_t self, uint32_t value, ct_endian_t endian)
  * @param value uint64_t 数据
  * @param endian 字节序
  */
-void ct_packet_put_u64(ct_packet_buf_t self, uint64_t value, ct_endian_t endian);
+COTER_API void ct_packet_put_u64(ct_packet_buf_t self, uint64_t value, ct_endian_t endian);
 
 /**
  * @brief 放入数据 (尾插数据)
@@ -246,7 +246,7 @@ void ct_packet_put_u64(ct_packet_buf_t self, uint64_t value, ct_endian_t endian)
  * @param value float 数据
  * @param endian 字节序
  */
-void ct_packet_put_float(ct_packet_buf_t self, float value, ct_endian_t endian);
+COTER_API void ct_packet_put_float(ct_packet_buf_t self, float value, ct_endian_t endian);
 
 /**
  * @brief 放入数据 (尾插数据)
@@ -255,14 +255,14 @@ void ct_packet_put_float(ct_packet_buf_t self, float value, ct_endian_t endian);
  * @param value double 数据
  * @param endian 字节序
  */
-void ct_packet_put_double(ct_packet_buf_t self, double value, ct_endian_t endian);
+COTER_API void ct_packet_put_double(ct_packet_buf_t self, double value, ct_endian_t endian);
 
 /**
  * @brief 结束操作, 将已用空间置为总长度
  *
  * @param self 报文缓冲盒子 对象指针
  */
-void ct_packet_over(ct_packet_buf_t self);
+COTER_API void ct_packet_over(ct_packet_buf_t self);
 
 /**
  * @brief 取出数据 (数据移动)
@@ -270,7 +270,7 @@ void ct_packet_over(ct_packet_buf_t self);
  * @param self 报文缓冲盒子 对象指针
  * @return uint8_t 数据
  */
-uint8_t ct_packet_take_u8(ct_packet_buf_t self);
+COTER_API uint8_t ct_packet_take_u8(ct_packet_buf_t self);
 
 /**
  * @brief 取出数据 (数据移动)
@@ -279,7 +279,7 @@ uint8_t ct_packet_take_u8(ct_packet_buf_t self);
  * @param endian 字节序
  * @return uint16_t 数据
  */
-uint16_t ct_packet_take_u16(ct_packet_buf_t self, ct_endian_t endian);
+COTER_API uint16_t ct_packet_take_u16(ct_packet_buf_t self, ct_endian_t endian);
 
 /**
  * @brief 取出数据 (数据移动)
@@ -288,7 +288,7 @@ uint16_t ct_packet_take_u16(ct_packet_buf_t self, ct_endian_t endian);
  * @param endian 字节序
  * @return uint32_t 数据
  */
-uint32_t ct_packet_take_u32(ct_packet_buf_t self, ct_endian_t endian);
+COTER_API uint32_t ct_packet_take_u32(ct_packet_buf_t self, ct_endian_t endian);
 
 /**
  * @brief 取出数据 (数据移动)
@@ -297,7 +297,7 @@ uint32_t ct_packet_take_u32(ct_packet_buf_t self, ct_endian_t endian);
  * @param endian 字节序
  * @return uint64_t 数据
  */
-uint64_t ct_packet_take_u64(ct_packet_buf_t self, ct_endian_t endian);
+COTER_API uint64_t ct_packet_take_u64(ct_packet_buf_t self, ct_endian_t endian);
 
 /**
  * @brief 取出数据 (数据移动)
@@ -306,7 +306,7 @@ uint64_t ct_packet_take_u64(ct_packet_buf_t self, ct_endian_t endian);
  * @param endian 字节序
  * @return float 数据
  */
-float ct_packet_take_float(ct_packet_buf_t self, ct_endian_t endian);
+COTER_API float ct_packet_take_float(ct_packet_buf_t self, ct_endian_t endian);
 
 /**
  * @brief 取出数据 (数据移动)
@@ -315,7 +315,7 @@ float ct_packet_take_float(ct_packet_buf_t self, ct_endian_t endian);
  * @param endian 字节序
  * @return double 数据
  */
-double ct_packet_take_double(ct_packet_buf_t self, ct_endian_t endian);
+COTER_API double ct_packet_take_double(ct_packet_buf_t self, ct_endian_t endian);
 
 /**
  * @brief 跳过指定长度的数据
@@ -323,7 +323,7 @@ double ct_packet_take_double(ct_packet_buf_t self, ct_endian_t endian);
  * @param self 报文缓冲盒子 对象指针
  * @param length 跳过的字节数
  */
-void ct_packet_skip(ct_packet_buf_t self, uint16_t length);
+COTER_API void ct_packet_skip(ct_packet_buf_t self, uint16_t length);
 
 /**
  * @brief 获取数据 (数据不变)
@@ -334,7 +334,7 @@ void ct_packet_skip(ct_packet_buf_t self, uint16_t length);
  * @param max uint8_t 缓冲区长度
  * @return uint16_t 读取的元素数量
  */
-uint16_t ct_packet_get_u8s(const ct_packet_buf_t self, uint16_t offset, uint8_t *buffer, uint16_t max);
+COTER_API uint16_t ct_packet_get_u8s(const ct_packet_buf_t self, uint16_t offset, uint8_t *buffer, uint16_t max);
 
 /**
  * @brief 获取数据 (数据不变)
@@ -346,8 +346,8 @@ uint16_t ct_packet_get_u8s(const ct_packet_buf_t self, uint16_t offset, uint8_t 
  * @param endian 字节序
  * @return uint16_t 读取的元素数量
  */
-uint16_t ct_packet_get_u16s(const ct_packet_buf_t self, uint16_t offset, uint16_t *buffer, uint16_t max,
-							ct_endian_t endian);
+COTER_API uint16_t ct_packet_get_u16s(const ct_packet_buf_t self, uint16_t offset, uint16_t *buffer, uint16_t max,
+									  ct_endian_t endian);
 
 /**
  * @brief 获取数据 (数据不变)
@@ -359,8 +359,8 @@ uint16_t ct_packet_get_u16s(const ct_packet_buf_t self, uint16_t offset, uint16_
  * @param endian 字节序
  * @return uint16_t 读取的元素数量
  */
-uint16_t ct_packet_get_u32s(const ct_packet_buf_t self, uint16_t offset, uint32_t *buffer, uint16_t max,
-							ct_endian_t endian);
+COTER_API uint16_t ct_packet_get_u32s(const ct_packet_buf_t self, uint16_t offset, uint32_t *buffer, uint16_t max,
+									  ct_endian_t endian);
 
 /**
  * @brief 获取数据 (数据不变)
@@ -372,8 +372,8 @@ uint16_t ct_packet_get_u32s(const ct_packet_buf_t self, uint16_t offset, uint32_
  * @param endian 字节序
  * @return uint16_t 读取的元素数量
  */
-uint16_t ct_packet_get_u64s(const ct_packet_buf_t self, uint16_t offset, uint64_t *buffer, uint16_t max,
-							ct_endian_t endian);
+COTER_API uint16_t ct_packet_get_u64s(const ct_packet_buf_t self, uint16_t offset, uint64_t *buffer, uint16_t max,
+									  ct_endian_t endian);
 
 /**
  * @brief 获取数据 (数据不变)
@@ -385,8 +385,8 @@ uint16_t ct_packet_get_u64s(const ct_packet_buf_t self, uint16_t offset, uint64_
  * @param endian 字节序
  * @return uint16_t 读取的元素数量
  */
-uint16_t ct_packet_get_floats(const ct_packet_buf_t self, uint16_t offset, float *buffer, uint16_t max,
-							  ct_endian_t endian);
+COTER_API uint16_t ct_packet_get_floats(const ct_packet_buf_t self, uint16_t offset, float *buffer, uint16_t max,
+										ct_endian_t endian);
 
 /**
  * @brief 获取数据 (数据不变)
@@ -398,8 +398,8 @@ uint16_t ct_packet_get_floats(const ct_packet_buf_t self, uint16_t offset, float
  * @param endian 字节序
  * @return uint16_t 读取的元素数量
  */
-uint16_t ct_packet_get_doubles(const ct_packet_buf_t self, uint16_t offset, double *buffer, uint16_t max,
-							   ct_endian_t endian);
+COTER_API uint16_t ct_packet_get_doubles(const ct_packet_buf_t self, uint16_t offset, double *buffer, uint16_t max,
+										 ct_endian_t endian);
 
 /**
  * @brief 取出数据 (数据移动)
@@ -409,7 +409,7 @@ uint16_t ct_packet_get_doubles(const ct_packet_buf_t self, uint16_t offset, doub
  * @param max uint8_t 缓冲区长度
  * @return uint16_t 取出的元素数量
  */
-uint16_t ct_packet_take_u8s(ct_packet_buf_t self, uint8_t *buffer, uint16_t max);
+COTER_API uint16_t ct_packet_take_u8s(ct_packet_buf_t self, uint8_t *buffer, uint16_t max);
 
 /**
  * @brief 取出数据 (数据移动)
@@ -420,7 +420,7 @@ uint16_t ct_packet_take_u8s(ct_packet_buf_t self, uint8_t *buffer, uint16_t max)
  * @param endian 字节序
  * @return uint16_t 取出的元素数量
  */
-uint16_t ct_packet_take_u16s(ct_packet_buf_t self, uint16_t *buffer, uint16_t max, ct_endian_t endian);
+COTER_API uint16_t ct_packet_take_u16s(ct_packet_buf_t self, uint16_t *buffer, uint16_t max, ct_endian_t endian);
 
 /**
  * @brief 取出数据 (数据移动)
@@ -431,7 +431,7 @@ uint16_t ct_packet_take_u16s(ct_packet_buf_t self, uint16_t *buffer, uint16_t ma
  * @param endian 字节序
  * @return uint16_t 取出的元素数量
  */
-uint16_t ct_packet_take_u32s(ct_packet_buf_t self, uint32_t *buffer, uint16_t max, ct_endian_t endian);
+COTER_API uint16_t ct_packet_take_u32s(ct_packet_buf_t self, uint32_t *buffer, uint16_t max, ct_endian_t endian);
 
 /**
  * @brief 取出数据 (数据移动)
@@ -442,7 +442,7 @@ uint16_t ct_packet_take_u32s(ct_packet_buf_t self, uint32_t *buffer, uint16_t ma
  * @param endian 字节序
  * @return uint16_t 取出的元素数量
  */
-uint16_t ct_packet_take_u64s(ct_packet_buf_t self, uint64_t *buffer, uint16_t max, ct_endian_t endian);
+COTER_API uint16_t ct_packet_take_u64s(ct_packet_buf_t self, uint64_t *buffer, uint16_t max, ct_endian_t endian);
 
 /**
  * @brief 取出数据 (数据移动)
@@ -453,7 +453,7 @@ uint16_t ct_packet_take_u64s(ct_packet_buf_t self, uint64_t *buffer, uint16_t ma
  * @param endian 字节序
  * @return uint16_t 取出的元素数量
  */
-uint16_t ct_packet_take_floats(ct_packet_buf_t self, float *buffer, uint16_t max, ct_endian_t endian);
+COTER_API uint16_t ct_packet_take_floats(ct_packet_buf_t self, float *buffer, uint16_t max, ct_endian_t endian);
 
 /**
  * @brief 取出数据 (数据移动)
@@ -464,7 +464,7 @@ uint16_t ct_packet_take_floats(ct_packet_buf_t self, float *buffer, uint16_t max
  * @param endian 字节序
  * @return uint16_t 取出的元素数量
  */
-uint16_t ct_packet_take_doubles(ct_packet_buf_t self, double *buffer, uint16_t max, ct_endian_t endian);
+COTER_API uint16_t ct_packet_take_doubles(ct_packet_buf_t self, double *buffer, uint16_t max, ct_endian_t endian);
 
 /**
  * @brief 放入数据 (尾插数据)
@@ -474,7 +474,7 @@ uint16_t ct_packet_take_doubles(ct_packet_buf_t self, double *buffer, uint16_t m
  * @param length uint8_t 缓冲区长度
  * @return uint16_t 写入的元素数量
  */
-uint16_t ct_packet_put_u8s(ct_packet_buf_t self, const uint8_t *buffer, uint16_t length);
+COTER_API uint16_t ct_packet_put_u8s(ct_packet_buf_t self, const uint8_t *buffer, uint16_t length);
 
 /**
  * @brief 放入数据 (尾插数据)
@@ -485,7 +485,8 @@ uint16_t ct_packet_put_u8s(ct_packet_buf_t self, const uint8_t *buffer, uint16_t
  * @param endian 字节序
  * @return uint16_t 写入的元素数量
  */
-uint16_t ct_packet_put_u16s(ct_packet_buf_t self, const uint16_t *buffer, uint16_t length, ct_endian_t endian);
+COTER_API uint16_t ct_packet_put_u16s(ct_packet_buf_t self, const uint16_t *buffer, uint16_t length,
+									  ct_endian_t endian);
 
 /**
  * @brief 放入数据 (尾插数据)
@@ -496,7 +497,8 @@ uint16_t ct_packet_put_u16s(ct_packet_buf_t self, const uint16_t *buffer, uint16
  * @param endian 字节序
  * @return uint16_t 写入的元素数量
  */
-uint16_t ct_packet_put_u32s(ct_packet_buf_t self, const uint32_t *buffer, uint16_t length, ct_endian_t endian);
+COTER_API uint16_t ct_packet_put_u32s(ct_packet_buf_t self, const uint32_t *buffer, uint16_t length,
+									  ct_endian_t endian);
 
 /**
  * @brief 放入数据 (尾插数据)
@@ -507,7 +509,8 @@ uint16_t ct_packet_put_u32s(ct_packet_buf_t self, const uint32_t *buffer, uint16
  * @param endian 字节序
  * @return uint16_t 写入的元素数量
  */
-uint16_t ct_packet_put_u64s(ct_packet_buf_t self, const uint64_t *buffer, uint16_t length, ct_endian_t endian);
+COTER_API uint16_t ct_packet_put_u64s(ct_packet_buf_t self, const uint64_t *buffer, uint16_t length,
+									  ct_endian_t endian);
 
 /**
  * @brief 放入数据 (尾插数据)
@@ -518,7 +521,7 @@ uint16_t ct_packet_put_u64s(ct_packet_buf_t self, const uint64_t *buffer, uint16
  * @param endian 字节序
  * @return uint16_t 写入的元素数量
  */
-uint16_t ct_packet_put_floats(ct_packet_buf_t self, const float *buffer, uint16_t length, ct_endian_t endian);
+COTER_API uint16_t ct_packet_put_floats(ct_packet_buf_t self, const float *buffer, uint16_t length, ct_endian_t endian);
 
 /**
  * @brief 放入数据 (尾插数据)
@@ -529,7 +532,8 @@ uint16_t ct_packet_put_floats(ct_packet_buf_t self, const float *buffer, uint16_
  * @param endian 字节序
  * @return uint16_t 写入的元素数量
  */
-uint16_t ct_packet_put_doubles(ct_packet_buf_t self, const double *buffer, uint16_t length, ct_endian_t endian);
+COTER_API uint16_t ct_packet_put_doubles(ct_packet_buf_t self, const double *buffer, uint16_t length,
+										 ct_endian_t endian);
 
 #ifdef __cplusplus
 }

@@ -32,7 +32,7 @@ ct_log_printer_t *ct_log_printer_create(struct ct_bytepool *bytepool);
  * @brief 销毁日志打印器
  * @param self 日志打印器
  */
-void ct_log_printer_destroy(ct_log_printer_t *self);
+COTER_API void ct_log_printer_destroy(ct_log_printer_t *self);
 
 /**
  * @brief 添加日志数据
@@ -41,21 +41,21 @@ void ct_log_printer_destroy(ct_log_printer_t *self);
  * @param buf 日志数据
  * @param size 日志数据大小
  */
-void ct_log_printer_handle(ct_log_printer_t *self, const char *buf, size_t size);
+COTER_API void ct_log_printer_handle(ct_log_printer_t *self, const char *buf, size_t size);
 
 /**
  * @brief 刷新日志打印器
  *
  * @param self 日志打印器
  */
-void ct_log_printer_flush(ct_log_printer_t *self);
+COTER_API void ct_log_printer_flush(ct_log_printer_t *self);
 
 /**
  * @brief 日志打印器调度
  *
  * @param self 日志打印器
  */
-void ct_log_printer_schedule(ct_log_printer_t *self);
+COTER_API void ct_log_printer_schedule(ct_log_printer_t *self);
 
 #ifdef __cplusplus
 }

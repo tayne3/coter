@@ -61,7 +61,7 @@ typedef struct {
  * @note
  * 在进行MD5计算之前，需要先对MD5上下文进行初始化。
  */
-void ct_md5_init(ct_md5_ctx_t *self);
+COTER_API void ct_md5_init(ct_md5_ctx_t *self);
 
 /**
  * @brief 更新 MD5算法上下文
@@ -75,7 +75,7 @@ void ct_md5_init(ct_md5_ctx_t *self);
  * 该函数的作用是将新的数据块添加到 MD5上下文中，以便在后续的计算中使用。
  * 它会将输入数据块与之前已经处理过的数据块进行合并，更新MD5上下文的状态。
  */
-void ct_md5_update(ct_md5_ctx_t *self, const void *data, size_t len);
+COTER_API void ct_md5_update(ct_md5_ctx_t *self, const void *data, size_t len);
 
 /**
  * @brief 结束 MD5算法计算，获取最终结果
@@ -84,7 +84,7 @@ void ct_md5_update(ct_md5_ctx_t *self, const void *data, size_t len);
  * @note
  * 该函数用于结束 MD5算法的计算，并获取最终的MD5摘要。
  */
-void ct_md5_final(ct_md5_ctx_t *self, uint8_t digest[16]);
+COTER_API void ct_md5_final(ct_md5_ctx_t *self, uint8_t digest[16]);
 
 #ifdef __cplusplus
 }

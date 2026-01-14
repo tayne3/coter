@@ -148,7 +148,7 @@ static inline void *ct_memrchr(const void *__s, int __c, size_t __n) {
  * @return Pointer to dest
  * @note Copies src[0..n-1] to dest[n-1..0]; undefined behavior if buffers overlap
  */
-void *ct_reverse_memcpy(void *dest, const void *src, size_t n);
+COTER_API void *ct_reverse_memcpy(void *dest, const void *src, size_t n);
 
 /**
  * @brief Copy memory in reverse byte order (overlap-safe)
@@ -158,7 +158,7 @@ void *ct_reverse_memcpy(void *dest, const void *src, size_t n);
  * @return Pointer to dest
  * @note Copies src[0..n-1] to dest[n-1..0]; safe for overlapping buffers
  */
-void *ct_reverse_memmove(void *dest, const void *src, size_t n);
+COTER_API void *ct_reverse_memmove(void *dest, const void *src, size_t n);
 
 /**
  * @brief Extract filename from file path

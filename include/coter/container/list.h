@@ -91,27 +91,27 @@ typedef struct ct_list {
 		 __pos && __pos->__member != (__head); __pos = ___n, ___n = ct_list_next_entry(___n, __type, __member))
 
 // 初始化/重置链表
-void ct_list_init(ct_list_buf_t self);
+COTER_API void ct_list_init(ct_list_buf_t self);
 // 获取链表的大小
-size_t ct_list_size(const ct_list_buf_t self);
+COTER_API size_t ct_list_size(const ct_list_buf_t self);
 
 // 在链表头部添加新节点
-void ct_list_append(ct_list_buf_t self, ct_list_buf_t node);
+COTER_API void ct_list_append(ct_list_buf_t self, ct_list_buf_t node);
 // 在链表尾部添加新节点
-void ct_list_prepend(ct_list_buf_t self, ct_list_buf_t node);
+COTER_API void ct_list_prepend(ct_list_buf_t self, ct_list_buf_t node);
 
 // 在链表指定节点之前添加新节点
-void ct_list_before(ct_list_buf_t target, ct_list_buf_t node);
+COTER_API void ct_list_before(ct_list_buf_t target, ct_list_buf_t node);
 // 在链表指定节点之后添加新节点
-void ct_list_after(ct_list_buf_t target, ct_list_buf_t node);
+COTER_API void ct_list_after(ct_list_buf_t target, ct_list_buf_t node);
 
 // 删除链表指定节点
-void ct_list_remove(ct_list_buf_t node);
+COTER_API void ct_list_remove(ct_list_buf_t node);
 
 // 链表拼接, 将另一个链表的前驱节点作为链表的前驱节点
-void ct_list_splice_prev(ct_list_buf_t self, ct_list_buf_t list);
+COTER_API void ct_list_splice_prev(ct_list_buf_t self, ct_list_buf_t list);
 // 链表拼接, 将另一个链表的后继节点作为链表的后继节点
-void ct_list_splice_next(ct_list_buf_t self, ct_list_buf_t list);
+COTER_API void ct_list_splice_next(ct_list_buf_t self, ct_list_buf_t list);
 
 #ifdef __cplusplus
 }

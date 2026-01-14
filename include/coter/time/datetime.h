@@ -36,7 +36,7 @@ typedef struct ct_datetime {
  *        now.year, now.month, now.day, now.hour, now.min, now.sec, now.ms);
  * @endcode
  */
-ct_datetime_t ct_datetime_now(void);
+COTER_API ct_datetime_t ct_datetime_now(void);
 
 /**
  * @brief 将时间戳转换为本地日期时间
@@ -52,7 +52,7 @@ ct_datetime_t ct_datetime_now(void);
  *        local_time.hour, local_time.min, local_time.sec);
  * @endcode
  */
-ct_datetime_t ct_datetime_localtime(time_t seconds);
+COTER_API ct_datetime_t ct_datetime_localtime(time_t seconds);
 
 /**
  * @brief 将日期时间结构体转换为时间戳
@@ -66,7 +66,7 @@ ct_datetime_t ct_datetime_localtime(time_t seconds);
  * printf("timestamp: %ld\n", timestamp);
  * @endcode
  */
-time_t ct_datetime_mktime(const ct_datetime_t* dt);
+COTER_API time_t ct_datetime_mktime(const ct_datetime_t* dt);
 
 /**
  * @brief 计算过去的日期
@@ -81,7 +81,7 @@ time_t ct_datetime_mktime(const ct_datetime_t* dt);
  * printf("一周前：%04d-%02d-%02d\n", dt.year, dt.month, dt.day);
  * @endcode
  */
-ct_datetime_t* ct_datetime_past(ct_datetime_t* dt, int days);
+COTER_API ct_datetime_t* ct_datetime_past(ct_datetime_t* dt, int days);
 
 /**
  * @brief 计算未来的日期
@@ -96,7 +96,7 @@ ct_datetime_t* ct_datetime_past(ct_datetime_t* dt, int days);
  * printf("30天后：%04d-%02d-%02d\n", dt.year, dt.month, dt.day);
  * @endcode
  */
-ct_datetime_t* ct_datetime_future(ct_datetime_t* dt, int days);
+COTER_API ct_datetime_t* ct_datetime_future(ct_datetime_t* dt, int days);
 
 #define CT_TIME_FMT        "%02d:%02d:%02d"
 #define CT_TIME_FMT_BUFLEN 12
@@ -116,7 +116,7 @@ ct_datetime_t* ct_datetime_future(ct_datetime_t* dt, int days);
  * printf("duration: %s\n", buf); // 输出：duration: 01:01:01
  * @endcode
  */
-char* ct_datetime_duration_fmt(int sec, char* buf);
+COTER_API char* ct_datetime_duration_fmt(int sec, char* buf);
 
 #define CT_DATETIME_FMT        "%04d-%02d-%02d %02d:%02d:%02d"
 #define CT_DATETIME_FMT_ISO    "%04d-%02d-%02dT%02d:%02d:%02d.%03dZ"
@@ -137,7 +137,7 @@ char* ct_datetime_duration_fmt(int sec, char* buf);
  * printf("当前日期时间：%s\n", buf);
  * @endcode
  */
-char* ct_datetime_fmt(const ct_datetime_t* dt, char* buf);
+COTER_API char* ct_datetime_fmt(const ct_datetime_t* dt, char* buf);
 
 /**
  * @brief 格式化ISO日期时间
@@ -155,7 +155,7 @@ char* ct_datetime_fmt(const ct_datetime_t* dt, char* buf);
  * printf("ISO 格式日期时间：%s\n", buf);
  * @endcode
  */
-char* ct_datetime_fmt_iso(const ct_datetime_t* dt, char* buf);
+COTER_API char* ct_datetime_fmt_iso(const ct_datetime_t* dt, char* buf);
 
 #define CT_GMTIME_FMT        "%.3s, %02d %.3s %04d %02d:%02d:%02d GMT"
 #define CT_GMTIME_FMT_BUFLEN 30
@@ -175,7 +175,7 @@ char* ct_datetime_fmt_iso(const ct_datetime_t* dt, char* buf);
  * printf("GMT time: %s\n", buf);
  * @endcode
  */
-char* ct_datetime_gmtime_fmt(time_t t, char* buf);
+COTER_API char* ct_datetime_gmtime_fmt(time_t t, char* buf);
 
 /**
  * @brief 计算指定月份的天数
@@ -191,7 +191,7 @@ char* ct_datetime_gmtime_fmt(time_t t, char* buf);
  * printf("2024年2月有 %d 天\n", days); // 输出：2024年2月有 29 天
  * @endcode
  */
-int ct_datetime_days_of_month(int month, int year);
+COTER_API int ct_datetime_days_of_month(int month, int year);
 
 /**
  * @brief 将月份名称转换为数字
@@ -206,7 +206,7 @@ int ct_datetime_days_of_month(int month, int year);
  * printf("Feb 对应的月份数字：%d\n", month_num); // 输出：Feb 对应的月份数字：2
  * @endcode
  */
-int ct_datetime_month_atoi(const char* month);
+COTER_API int ct_datetime_month_atoi(const char* month);
 
 /**
  * @brief 将月份数字转换为名称
@@ -221,7 +221,7 @@ int ct_datetime_month_atoi(const char* month);
  * printf("2 对应的月份名称：%s\n", month_name); // 输出：2 对应的月份名称：February
  * @endcode
  */
-const char* ct_datetime_month_itoa(int month);
+COTER_API const char* ct_datetime_month_itoa(int month);
 
 /**
  * @brief 将星期名称转换为数字
@@ -236,7 +236,7 @@ const char* ct_datetime_month_itoa(int month);
  * printf("Mon 对应的星期数字：%d\n", weekday_num); // 输出：Mon 对应的星期数字：1
  * @endcode
  */
-int ct_datetime_weekday_atoi(const char* weekday);
+COTER_API int ct_datetime_weekday_atoi(const char* weekday);
 
 /**
  * @brief 将星期数字转换为名称
@@ -251,7 +251,7 @@ int ct_datetime_weekday_atoi(const char* weekday);
  * printf("3 对应的星期名称：%s\n", weekday_name); // 输出：3 对应的星期名称：Wednesday
  * @endcode
  */
-const char* ct_datetime_weekday_itoa(int weekday);
+COTER_API const char* ct_datetime_weekday_itoa(int weekday);
 
 /**
  * @brief 获取库的编译时间
@@ -267,7 +267,7 @@ const char* ct_datetime_weekday_itoa(int weekday);
  * printf("compile time: %s\n", buf);
  * @endcode
  */
-ct_datetime_t __ct_datetime_compile(const char* _date, const char* _time);
+COTER_API ct_datetime_t __ct_datetime_compile(const char* _date, const char* _time);
 #define ct_datetime_compile() __ct_datetime_compile(__DATE__, __TIME__)
 
 #ifdef __cplusplus

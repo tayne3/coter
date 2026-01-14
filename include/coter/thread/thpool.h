@@ -46,21 +46,21 @@ typedef struct ct_thpool_config {
  * @param config 线程池配置 (NULL 则使用默认配置)
  * @return 成功返回线程池指针, 失败返回NULL
  */
-ct_thpool_t* ct_thpool_create(size_t size, ct_thpool_config_t* config) __ct_throw;
+COTER_API ct_thpool_t* ct_thpool_create(size_t size, ct_thpool_config_t* config) __ct_throw;
 
 /**
  * @brief 关闭线程池
  *
  * @param self 线程池指针
  */
-void ct_thpool_close(ct_thpool_t* self);
+COTER_API void ct_thpool_close(ct_thpool_t* self);
 
 /**
  * @brief 销毁线程池
  *
  * @param self 线程池指针
  */
-void ct_thpool_destroy(ct_thpool_t* self);
+COTER_API void ct_thpool_destroy(ct_thpool_t* self);
 
 /**
  * @brief 提交任务
@@ -70,17 +70,17 @@ void ct_thpool_destroy(ct_thpool_t* self);
  * @param arg 执行参数
  * @return 0=成功; 非0=失败
  */
-int ct_thpool_submit(ct_thpool_t* self, ct_thpool_routine_t routine, void* arg);
+COTER_API int ct_thpool_submit(ct_thpool_t* self, ct_thpool_routine_t routine, void* arg);
 
 /**
  * @brief 获取错误描述
  */
-const char* ct_thpool_strerror(int error_code);
+COTER_API const char* ct_thpool_strerror(int error_code);
 
 /**
  * @brief 获取默认配置
  */
-void ct_thpool_default_config(ct_thpool_config_t* config);
+COTER_API void ct_thpool_default_config(ct_thpool_config_t* config);
 
 #ifdef __cplusplus
 }

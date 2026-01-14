@@ -124,99 +124,99 @@ static inline int ct_span_since(ct_span_t *self, ct_span_t *since, size_t start,
 #define ct_span_writable_since(self, since) ct_span_since((self), (since), (self)->pos, (self)->cap);
 
 // Remove read data by moving unread portion to start.
-void ct_span_compact(ct_span_t *self);
+COTER_API void ct_span_compact(ct_span_t *self);
 
 /**
  * @brief Peek reads data from the current position into p without advancing the position.
  * @return The actual number of bytes read.
  */
-int ct_span_peek(ct_span_t *self, uint8_t *p, size_t length);
+COTER_API int ct_span_peek(ct_span_t *self, uint8_t *p, size_t length);
 
 /**
  * @brief Fill fills the buffer with byte bt for the specified length.
  * @return The actual number of bytes filled.
  */
-int ct_span_fill(ct_span_t *self, uint8_t bt, size_t length);
+COTER_API int ct_span_fill(ct_span_t *self, uint8_t bt, size_t length);
 
 /**
  * @brief Read reads data from the buffer into p (advances pos).
  * @return The actual number of bytes read (0 if empty).
  */
-int ct_span_read(ct_span_t *self, uint8_t *p, size_t length);
+COTER_API int ct_span_read(ct_span_t *self, uint8_t *p, size_t length);
 
 /**
  * @brief Write writes data from p into the buffer (advances pos).
  * @return The actual number of bytes written (0 if full).
  */
-int ct_span_write(ct_span_t *self, const uint8_t *p, size_t length);
+COTER_API int ct_span_write(ct_span_t *self, const uint8_t *p, size_t length);
 
 // Write uint8_t with endianness conversion.
-void ct_span_put_u8(ct_span_t *self, uint8_t v);
+COTER_API void ct_span_put_u8(ct_span_t *self, uint8_t v);
 // Write uint16_t with endianness conversion.
-void ct_span_put_u16(ct_span_t *self, uint16_t v);
+COTER_API void ct_span_put_u16(ct_span_t *self, uint16_t v);
 // Write uint32_t with endianness conversion.
-void ct_span_put_u32(ct_span_t *self, uint32_t v);
+COTER_API void ct_span_put_u32(ct_span_t *self, uint32_t v);
 // Write uint64_t with endianness conversion.
-void ct_span_put_u64(ct_span_t *self, uint64_t v);
+COTER_API void ct_span_put_u64(ct_span_t *self, uint64_t v);
 // Write uint8_t array with endianness conversion.
-void ct_span_put_arr8(ct_span_t *self, const uint8_t *v, size_t count);
+COTER_API void ct_span_put_arr8(ct_span_t *self, const uint8_t *v, size_t count);
 // Write uint16_t array with endianness conversion.
-void ct_span_put_arr16(ct_span_t *self, const uint16_t *v, size_t count);
+COTER_API void ct_span_put_arr16(ct_span_t *self, const uint16_t *v, size_t count);
 // Write uint32_t array with endianness conversion.
-void ct_span_put_arr32(ct_span_t *self, const uint32_t *v, size_t count);
+COTER_API void ct_span_put_arr32(ct_span_t *self, const uint32_t *v, size_t count);
 // Write uint64_t array with endianness conversion.
-void ct_span_put_arr64(ct_span_t *self, const uint64_t *v, size_t count);
+COTER_API void ct_span_put_arr64(ct_span_t *self, const uint64_t *v, size_t count);
 
 // Read uint8_t with endianness conversion. Advances pos.
-uint8_t ct_span_take_u8(ct_span_t *self);
+COTER_API uint8_t ct_span_take_u8(ct_span_t *self);
 // Read uint16_t with endianness conversion. Advances pos.
-uint16_t ct_span_take_u16(ct_span_t *self);
+COTER_API uint16_t ct_span_take_u16(ct_span_t *self);
 // Read uint32_t with endianness conversion. Advances pos.
-uint32_t ct_span_take_u32(ct_span_t *self);
+COTER_API uint32_t ct_span_take_u32(ct_span_t *self);
 // Read uint64_t with endianness conversion. Advances pos.
-uint64_t ct_span_take_u64(ct_span_t *self);
+COTER_API uint64_t ct_span_take_u64(ct_span_t *self);
 // Read uint8_t array with endianness conversion. Advances pos. Returns 0 on success, -1 on insufficient data.
-int ct_span_take_arr8(ct_span_t *self, uint8_t *out, size_t count);
+COTER_API int ct_span_take_arr8(ct_span_t *self, uint8_t *out, size_t count);
 // Read uint16_t array with endianness conversion. Advances pos. Returns 0 on success, -1 on insufficient data.
-int ct_span_take_arr16(ct_span_t *self, uint16_t *out, size_t count);
+COTER_API int ct_span_take_arr16(ct_span_t *self, uint16_t *out, size_t count);
 // Read uint32_t array with endianness conversion. Advances pos. Returns 0 on success, -1 on insufficient data.
-int ct_span_take_arr32(ct_span_t *self, uint32_t *out, size_t count);
+COTER_API int ct_span_take_arr32(ct_span_t *self, uint32_t *out, size_t count);
 // Read uint64_t array with endianness conversion. Advances pos. Returns 0 on success, -1 on insufficient data.
-int ct_span_take_arr64(ct_span_t *self, uint64_t *out, size_t count);
+COTER_API int ct_span_take_arr64(ct_span_t *self, uint64_t *out, size_t count);
 
 // Peek uint8_t at pos+offset without advancing pos.
-uint8_t ct_span_peek_u8(ct_span_t *self, int offset);
+COTER_API uint8_t ct_span_peek_u8(ct_span_t *self, int offset);
 // Peek uint16_t at pos+offset without advancing pos.
-uint16_t ct_span_peek_u16(ct_span_t *self, int offset);
+COTER_API uint16_t ct_span_peek_u16(ct_span_t *self, int offset);
 // Peek uint32_t at pos+offset without advancing pos.
-uint32_t ct_span_peek_u32(ct_span_t *self, int offset);
+COTER_API uint32_t ct_span_peek_u32(ct_span_t *self, int offset);
 // Peek uint64_t at pos+offset without advancing pos.
-uint64_t ct_span_peek_u64(ct_span_t *self, int offset);
+COTER_API uint64_t ct_span_peek_u64(ct_span_t *self, int offset);
 // Peek uint8_t array at pos+offset without advancing pos. Returns 0 on success, -1 on out of bounds.
-int ct_span_peek_arr8(ct_span_t *self, int offset, uint8_t *out, size_t count);
+COTER_API int ct_span_peek_arr8(ct_span_t *self, int offset, uint8_t *out, size_t count);
 // Peek uint16_t array at pos+offset without advancing pos. Returns 0 on success, -1 on out of bounds.
-int ct_span_peek_arr16(ct_span_t *self, int offset, uint16_t *out, size_t count);
+COTER_API int ct_span_peek_arr16(ct_span_t *self, int offset, uint16_t *out, size_t count);
 // Peek uint32_t array at pos+offset without advancing pos. Returns 0 on success, -1 on out of bounds.
-int ct_span_peek_arr32(ct_span_t *self, int offset, uint32_t *out, size_t count);
+COTER_API int ct_span_peek_arr32(ct_span_t *self, int offset, uint32_t *out, size_t count);
 // Peek uint64_t array at pos+offset without advancing pos. Returns 0 on success, -1 on out of bounds.
-int ct_span_peek_arr64(ct_span_t *self, int offset, uint64_t *out, size_t count);
+COTER_API int ct_span_peek_arr64(ct_span_t *self, int offset, uint64_t *out, size_t count);
 
 // Overwrite uint8_t at absolute offset. Does not change pos or len. Returns 0 on success, -1 on out of bounds.
-int ct_span_overwrite_u8(ct_span_t *self, size_t offset, uint8_t v);
+COTER_API int ct_span_overwrite_u8(ct_span_t *self, size_t offset, uint8_t v);
 // Overwrite uint16_t at absolute offset. Does not change pos or len. Returns 0 on success, -1 on out of bounds.
-int ct_span_overwrite_u16(ct_span_t *self, size_t offset, uint16_t v);
+COTER_API int ct_span_overwrite_u16(ct_span_t *self, size_t offset, uint16_t v);
 // Overwrite uint32_t at absolute offset. Does not change pos or len. Returns 0 on success, -1 on out of bounds.
-int ct_span_overwrite_u32(ct_span_t *self, size_t offset, uint32_t v);
+COTER_API int ct_span_overwrite_u32(ct_span_t *self, size_t offset, uint32_t v);
 // Overwrite uint64_t at absolute offset. Does not change pos or len. Returns 0 on success, -1 on out of bounds.
-int ct_span_overwrite_u64(ct_span_t *self, size_t offset, uint64_t v);
+COTER_API int ct_span_overwrite_u64(ct_span_t *self, size_t offset, uint64_t v);
 // Overwrite uint8_t array at absolute offset. Does not change pos or len. Returns 0 on success, -1 on out of bounds.
-int ct_span_overwrite_arr8(ct_span_t *self, size_t offset, const uint8_t *v, size_t count);
+COTER_API int ct_span_overwrite_arr8(ct_span_t *self, size_t offset, const uint8_t *v, size_t count);
 // Overwrite uint16_t array at absolute offset. Does not change pos or len. Returns 0 on success, -1 on out of bounds.
-int ct_span_overwrite_arr16(ct_span_t *self, size_t offset, const uint16_t *v, size_t count);
+COTER_API int ct_span_overwrite_arr16(ct_span_t *self, size_t offset, const uint16_t *v, size_t count);
 // Overwrite uint32_t array at absolute offset. Does not change pos or len. Returns 0 on success, -1 on out of bounds.
-int ct_span_overwrite_arr32(ct_span_t *self, size_t offset, const uint32_t *v, size_t count);
+COTER_API int ct_span_overwrite_arr32(ct_span_t *self, size_t offset, const uint32_t *v, size_t count);
 // Overwrite uint64_t array at absolute offset. Does not change pos or len. Returns 0 on success, -1 on out of bounds.
-int ct_span_overwrite_arr64(ct_span_t *self, size_t offset, const uint64_t *v, size_t count);
+COTER_API int ct_span_overwrite_arr64(ct_span_t *self, size_t offset, const uint64_t *v, size_t count);
 
 #ifdef __cplusplus
 }

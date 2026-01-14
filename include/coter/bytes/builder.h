@@ -25,13 +25,13 @@ typedef struct ct_builder {
  * The builder owns its internal buffer and will grow automatically as needed.
  * Must be freed with ct_builder_destroy() to avoid memory leaks.
  */
-ct_builder_t *ct_builder_create(size_t initial_capacity);
+COTER_API ct_builder_t *ct_builder_create(size_t initial_capacity);
 
 /**
  * @brief Destroy builder and free all resources.
  * @param self Builder to destroy (can be NULL)
  */
-void ct_builder_destroy(ct_builder_t *self);
+COTER_API void ct_builder_destroy(ct_builder_t *self);
 
 /**
  * @brief Grow buffer to ensure n more bytes can be written.
@@ -39,7 +39,7 @@ void ct_builder_destroy(ct_builder_t *self);
  * @param n Additional bytes needed beyond current length
  * @return 0 on success, -1 on allocation failure
  */
-int ct_builder_grow(ct_builder_t *self, size_t n);
+COTER_API int ct_builder_grow(ct_builder_t *self, size_t n);
 
 /**
  * @brief Reserve total capacity.
@@ -49,19 +49,19 @@ int ct_builder_grow(ct_builder_t *self, size_t n);
  * @note
  * If current capacity >= requested capacity, this is a no-op.
  */
-int ct_builder_reserve(ct_builder_t *self, size_t capacity);
+COTER_API int ct_builder_reserve(ct_builder_t *self, size_t capacity);
 
 /**
  * @brief Write bytes to builder (auto-grows if needed).
  * @return Number of bytes written, or -1 on error
  */
-int ct_builder_write(ct_builder_t *self, const uint8_t *p, size_t length);
+COTER_API int ct_builder_write(ct_builder_t *self, const uint8_t *p, size_t length);
 
 /**
  * @brief Fill builder with byte value (auto-grows if needed).
  * @return Number of bytes filled, or -1 on error
  */
-int ct_builder_fill(ct_builder_t *self, uint8_t bt, size_t length);
+COTER_API int ct_builder_fill(ct_builder_t *self, uint8_t bt, size_t length);
 
 #define ct_builder_capacity(self)   ((size_t)(self)->span.cap)
 #define ct_builder_count(self)      ((size_t)(self)->span.len)
@@ -123,22 +123,22 @@ static inline int ct_builder_span(ct_builder_t *self, ct_span_t *span, size_t st
 #define ct_builder_overwrite_arr64(self, off, v, c) ct_span_overwrite_arr64(&(self)->span, off, v, c)
 
 // Write uint8_t to builder. Auto-grows if needed.
-void ct_builder_put_u8(ct_builder_t *self, uint8_t v);
+COTER_API void ct_builder_put_u8(ct_builder_t *self, uint8_t v);
 // Write uint16_t to builder. Auto-grows if needed.
-void ct_builder_put_u16(ct_builder_t *self, uint16_t v);
+COTER_API void ct_builder_put_u16(ct_builder_t *self, uint16_t v);
 // Write uint32_t to builder. Auto-grows if needed.
-void ct_builder_put_u32(ct_builder_t *self, uint32_t v);
+COTER_API void ct_builder_put_u32(ct_builder_t *self, uint32_t v);
 // Write uint64_t to builder. Auto-grows if needed.
-void ct_builder_put_u64(ct_builder_t *self, uint64_t v);
+COTER_API void ct_builder_put_u64(ct_builder_t *self, uint64_t v);
 
 // Write uint8_t array to builder. Auto-grows if needed.
-void ct_builder_put_arr8(ct_builder_t *self, const uint8_t *v, size_t count);
+COTER_API void ct_builder_put_arr8(ct_builder_t *self, const uint8_t *v, size_t count);
 // Write uint16_t array to builder. Auto-grows if needed.
-void ct_builder_put_arr16(ct_builder_t *self, const uint16_t *v, size_t count);
+COTER_API void ct_builder_put_arr16(ct_builder_t *self, const uint16_t *v, size_t count);
 // Write uint32_t array to builder. Auto-grows if needed.
-void ct_builder_put_arr32(ct_builder_t *self, const uint32_t *v, size_t count);
+COTER_API void ct_builder_put_arr32(ct_builder_t *self, const uint32_t *v, size_t count);
 // Write uint64_t array to builder. Auto-grows if needed.
-void ct_builder_put_arr64(ct_builder_t *self, const uint64_t *v, size_t count);
+COTER_API void ct_builder_put_arr64(ct_builder_t *self, const uint64_t *v, size_t count);
 
 #ifdef __cplusplus
 }

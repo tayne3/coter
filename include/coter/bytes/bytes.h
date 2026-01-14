@@ -58,13 +58,13 @@ static inline int ct_bytes_span(ct_bytes_t *self, ct_span_t *span, size_t start,
  * @param capacity 容量 (为0时使用默认值1024)
  * @return 字节数组
  */
-ct_bytes_t *ct_bytes_create(size_t capacity);
+COTER_API ct_bytes_t *ct_bytes_create(size_t capacity);
 
 /**
  * @brief 字节数组-销毁
  * @param self 字节数组
  */
-void ct_bytes_destroy(ct_bytes_t *self);
+COTER_API void ct_bytes_destroy(ct_bytes_t *self);
 
 /**
  * @brief 字节数组-写入数据
@@ -73,7 +73,7 @@ void ct_bytes_destroy(ct_bytes_t *self);
  * @param length 写入数据长度
  * @return 实际写入的数据长度
  */
-size_t ct_bytes_write(ct_bytes_t *self, const void *data, size_t length);
+COTER_API size_t ct_bytes_write(ct_bytes_t *self, const void *data, size_t length);
 
 #ifdef __cplusplus
 }

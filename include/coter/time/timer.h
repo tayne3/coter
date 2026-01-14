@@ -28,14 +28,14 @@ typedef void (*ct_timer_callback_t)(void *);
  * @param thpool 任务池
  * @return int 成功返回0，失败返回非0值
  */
-int ct_timer_mgr_init(ct_time64_t tick, struct ct_thpool *thpool);
+COTER_API int ct_timer_mgr_init(ct_time64_t tick, struct ct_thpool *thpool);
 
 /**
  * @brief 定时器调度
  * @param tick 运行时间 (ms)
  * @return bool 是否有定时器被触发
  */
-bool ct_timer_mgr_schedule(ct_time64_t tick);
+COTER_API bool ct_timer_mgr_schedule(ct_time64_t tick);
 
 /**
  * @brief 启动定时器
@@ -46,13 +46,14 @@ bool ct_timer_mgr_schedule(ct_time64_t tick);
  * @param arg 回调参数
  * @return ct_timer_id_t 定时器id
  */
-ct_timer_id_t ct_timer_start(ct_time64_t interval, bool is_loop, bool is_now, ct_timer_callback_t callback, void *arg);
+COTER_API ct_timer_id_t ct_timer_start(ct_time64_t interval, bool is_loop, bool is_now, ct_timer_callback_t callback,
+									   void *arg);
 
 /**
  * @brief 停止定时器
  * @param id 定时器id
  */
-void ct_timer_stop(ct_timer_id_t id);
+COTER_API void ct_timer_stop(ct_timer_id_t id);
 
 #ifdef __cplusplus
 }

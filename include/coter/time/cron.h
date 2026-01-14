@@ -28,14 +28,14 @@ typedef void (*ct_cron_callback_t)(void*);
  * @param thpool 任务池
  * @return int 成功返回0，失败返回非0值
  */
-int ct_cron_mgr_init(ct_time_t now, struct ct_thpool* thpool);
+COTER_API int ct_cron_mgr_init(ct_time_t now, struct ct_thpool* thpool);
 
 /**
  * @brief cron任务调度
  * @param now 当前时间 (s)
  * @return bool 是否有cron任务被触发
  */
-bool ct_cron_mgr_schedule(ct_time_t now);
+COTER_API bool ct_cron_mgr_schedule(ct_time_t now);
 
 /**
  * @brief 启动cron任务
@@ -48,13 +48,14 @@ bool ct_cron_mgr_schedule(ct_time_t now);
  * @param arg 传递给回调函数的参数
  * @return ct_cron_id_t 返回cron任务的唯一标识符，如果创建失败则返回 CT_CRON_ID_INVALID
  */
-ct_cron_id_t ct_cron_start(int minute, int hour, int day, int week, int month, ct_cron_callback_t callback, void* arg);
+COTER_API ct_cron_id_t ct_cron_start(int minute, int hour, int day, int week, int month, ct_cron_callback_t callback,
+									 void* arg);
 
 /**
  * @brief 停止cron任务
  * @param id cron任务id
  */
-void ct_cron_stop(ct_cron_id_t id);
+COTER_API void ct_cron_stop(ct_cron_id_t id);
 
 /**
  * @brief 计算下一个 cron 任务执行时间
@@ -89,7 +90,7 @@ void ct_cron_stop(ct_cron_id_t id);
  *  30      1       -1       0      -1          cron.weekly
  *  30      1        1      -1      10          cron.yearly
  */
-ct_time_t ct_cron_next_timeout(ct_time_t now, int minute, int hour, int day, int week, int month);
+COTER_API ct_time_t ct_cron_next_timeout(ct_time_t now, int minute, int hour, int day, int week, int month);
 
 #ifdef __cplusplus
 }

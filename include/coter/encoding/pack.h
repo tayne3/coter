@@ -59,7 +59,7 @@ extern "C" {
  'L' unsigned long, 8 bytes, only correctly handled in 64-bit firmware
  ]]
  */
-int ct_pack(void *buf, size_t bufsize, const char *fmt, ...);
+COTER_API int ct_pack(void *buf, size_t bufsize, const char *fmt, ...);
 
 /**
  * @brief Unpack data from a buffer
@@ -88,7 +88,7 @@ int ct_pack(void *buf, size_t bufsize, const char *fmt, ...);
  'L' unsigned long, 8 bytes, only correctly handled in 64-bit firmware
  ]]
  */
-int ct_unpack(void *buf, size_t bufsize, const char *fmt, ...);
+COTER_API int ct_unpack(void *buf, size_t bufsize, const char *fmt, ...);
 
 #ifdef __cplusplus
 }

@@ -30,32 +30,32 @@ typedef struct ct_waitgroup {
  * @param wg 等待组指针
  * @return int 成功返回0，失败返回非0值
  */
-int ct_waitgroup_init(ct_waitgroup_t* wg);
+COTER_API int ct_waitgroup_init(ct_waitgroup_t* wg);
 
 /**
  * @brief 销毁等待组
  * @param wg 等待组指针
  */
-void ct_waitgroup_destroy(ct_waitgroup_t* wg);
+COTER_API void ct_waitgroup_destroy(ct_waitgroup_t* wg);
 
 /**
  * @brief 增加等待计数
  * @param wg 等待组指针
  * @param delta 增加的计数值
  */
-void ct_waitgroup_add(ct_waitgroup_t* wg, int delta);
+COTER_API void ct_waitgroup_add(ct_waitgroup_t* wg, int delta);
 
 /**
  * @brief 完成一个任务（计数减1）
  * @param wg 等待组指针
  */
-void ct_waitgroup_done(ct_waitgroup_t* wg);
+COTER_API void ct_waitgroup_done(ct_waitgroup_t* wg);
 
 /**
  * @brief 等待所有任务完成
  * @param wg 等待组指针
  */
-void ct_waitgroup_wait(ct_waitgroup_t* wg);
+COTER_API void ct_waitgroup_wait(ct_waitgroup_t* wg);
 
 #ifdef __cplusplus
 }
