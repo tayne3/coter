@@ -7,9 +7,7 @@
 
 #include "coter/core/platform.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#ifndef __cplusplus
 
 /**
  * @brief Convert a 32-bit float to its bit representation
@@ -63,11 +61,8 @@ static inline double ct_float64_from_bits(uint64_t u) {
 	return c.f;
 }
 
-#ifdef __cplusplus
-}
-#endif
+#elif __cplusplus >= 201103L
 
-#if defined(__cplusplus) && __cplusplus >= 201103L
 #include <cstdint>
 #include <cstring>
 #include <type_traits>
