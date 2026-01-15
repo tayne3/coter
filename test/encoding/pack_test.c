@@ -23,12 +23,6 @@
  */
 #include "coter/encoding/pack.h"
 
-// #include <float.h>  // For FLT_MAX, DBL_MAX etc.
-// #include <limits.h>
-// #include <math.h>  // For NAN, INFINITY
-// #include <stdio.h>
-// #include <string.h>
-
 #include "cunit.h"
 
 #define TEST_BUFFER_SIZE 1024
