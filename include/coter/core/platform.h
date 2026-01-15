@@ -67,8 +67,10 @@
 	#ifndef _WINSOCK_DEPRECATED_NO_WARNINGS
 	#define _WINSOCK_DEPRECATED_NO_WARNINGS
 	#endif
+    #ifndef __cplusplus
     #ifndef inline
     #define inline __inline
+    #endif
     #endif
     #include <winsock2.h>
     #include <windows.h>
@@ -80,9 +82,6 @@
     #define ct_msleep(ms)   Sleep(ms)
     #define ct_usleep(us)   Sleep((us) / 1000)
     #define ct_mkdir(dir)   mkdir(dir)
-    #define bzero(ptr, n)   memset(ptr, 0, n)
-    #define srandom(seed)   srand(seed)
-    #define random()        rand()
     #define ct_getpid()     (long)GetCurrentProcessId()
 
     // access

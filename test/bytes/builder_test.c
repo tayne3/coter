@@ -187,53 +187,53 @@ static void test_op_overwrite(void) {
 	assert_uint32_eq(ct_builder_take_u32(builder), 0x22222222);
 }
 
-static void test_op_span(void) {
+static void test_op_seg(void) {
 	// 写入一些初始数据
 	ct_builder_put_u32(builder, 0x11223344);
 	ct_builder_put_u32(builder, 0x55667788);
 	// 当前 pos = 8, len = 8
 
-	ct_span_t span;
+	ct_seg_t seg;
 
-	// 1. 测试 Readable Span (从 pos 开始到 len)
+	// 1. 测试 Readable Seg (从 pos 开始到 len)
 	// 先 rewind 到 0
 	ct_builder_rewind(builder);
 	// pos = 0, len = 8
-	ct_builder_readable_span(builder, &span);
+	ct_builder_readable_seg(builder, &seg);
 
-	assert_uint32_eq(ct_span_count(&span), 8);
-	assert_uint32_eq(ct_span_pos(&span), 0);
-	assert_uint32_eq(ct_span_take_u32(&span), 0x11223344);
+	assert_uint32_eq(ct_seg_count(&seg), 8);
+	assert_uint32_eq(ct_seg_pos(&seg), 0);
+	assert_uint32_eq(ct_seg_take_u32(&seg), 0x11223344);
 
-	// 2. 测试 Writable Span (从 pos 开始到 cap)
+	// 2. 测试 Writable Seg (从 pos 开始到 cap)
 	// 移动 pos 到 4
 	ct_builder_seek(builder, 4);
 	// pos = 4, len = 8
-	ct_builder_writable_span(builder, &span);
+	ct_builder_writable_seg(builder, &seg);
 
-	// span 应该指向 builder[4] 开始的内存
-	// 写入数据到 span
-	ct_span_put_u32(&span, 0xAABBCCDD);
+	// seg 应该指向 builder[4] 开始的内存
+	// 写入数据到 seg
+	ct_seg_put_u32(&seg, 0xAABBCCDD);
 
 	// 验证 builder 中的数据被修改
 	ct_builder_rewind(builder);
 	assert_uint32_eq(ct_builder_take_u32(builder), 0x11223344);
 	assert_uint32_eq(ct_builder_take_u32(builder), 0xAABBCCDD);
 
-	// 3. 测试手动创建 Span
+	// 3. 测试手动创建 Seg
 	ct_builder_rewind(builder);
-	// 创建 [2, 6) 的 span -> 33 44 AA BB
-	assert_int_eq(ct_builder_span(builder, &span, 2, 6), 0);
-	assert_uint32_eq(ct_span_count(&span), 4);
+	// 创建 [2, 6) 的 seg -> 33 44 AA BB
+	assert_int_eq(ct_builder_seg(builder, &seg, 2, 6), 0);
+	assert_uint32_eq(ct_seg_count(&seg), 4);
 
 	uint8_t buf[4];
-	ct_span_read(&span, buf, 4);
+	ct_seg_read(&seg, buf, 4);
 	uint8_t expected[] = {0x33, 0x44, 0xAA, 0xBB};
 	assert_true(memcmp(buf, expected, 4) == 0);
 
-	// 4. 验证 Span 操作不影响 Builder 的 pos
+	// 4. 验证 Seg 操作不影响 Builder 的 pos
 	size_t builder_pos = ct_builder_pos(builder);
-	ct_span_put_u8(&span, 0xFF);                             // 修改 span 的 pos
+	ct_seg_put_u8(&seg, 0xFF);                               // 修改 seg 的 pos
 	assert_uint64_eq(ct_builder_pos(builder), builder_pos);  // Builder pos 不变
 }
 
@@ -292,7 +292,7 @@ int main(void) {
 	CUNIT_TEST("Array Types", test_op_put_arrays)
 	CUNIT_TEST("Read & Peek", test_op_read_peek)
 	CUNIT_TEST("Overwrite", test_op_overwrite)
-	CUNIT_TEST("Span Views", test_op_span)
+	CUNIT_TEST("Seg Views", test_op_seg)
 	CUNIT_SUITE_END()
 
 	CUNIT_SUITE_BEGIN("Builder Configuration", setup, teardown)

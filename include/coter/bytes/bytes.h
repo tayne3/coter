@@ -5,7 +5,7 @@
 #ifndef COTER_BYTES_BYTES_H
 #define COTER_BYTES_BYTES_H
 
-#include "coter/bytes/span.h"
+#include "coter/bytes/seg.h"
 #include "coter/container/list.h"
 #include "coter/core/platform.h"
 
@@ -40,16 +40,16 @@ typedef struct ct_bytes {
 		}                                                                                \
 	} while (0)
 
-static inline int ct_bytes_span(ct_bytes_t *self, ct_span_t *span, size_t start, size_t end) {
+static inline int ct_bytes_seg(ct_bytes_t *self, ct_seg_t *seg, size_t start, size_t end) {
 	if (end < start || end > (size_t)self->cap) {
 		return -1;
 	}
-	span->bytes  = (uint8_t *)self->buffer + start;
-	span->cap    = self->cap - (uint32_t)start;
-	span->len    = (uint32_t)(end - start);
-	span->pos    = 0U;
-	span->endian = CT_ENDIAN_BIG;
-	span->hlswap = 0U;
+	seg->bytes  = (uint8_t *)self->buffer + start;
+	seg->cap    = self->cap - (uint32_t)start;
+	seg->len    = (uint32_t)(end - start);
+	seg->pos    = 0U;
+	seg->endian = CT_ENDIAN_BIG;
+	seg->hlswap = 0U;
 	return 0;
 }
 

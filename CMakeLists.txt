@@ -27,7 +27,7 @@ configure_file(
 set(project_source_files
   src/bytes/builder.c
   src/bytes/bytes.c
-  src/bytes/span.c
+  src/bytes/seg.c
   src/bytes/pool.c
 
   src/container/list.c

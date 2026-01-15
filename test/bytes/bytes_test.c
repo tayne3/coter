@@ -220,46 +220,46 @@ static inline void test_special_cases(void) {
 	assert_str_n(byte_buffer, "AAAAAAAAAAAAAAAA", TEST_SMALL_SIZE);
 }
 
-// 测试 Span 操作
-static inline void test_bytes_span(void) {
+// 测试 Seg 操作
+static inline void test_bytes_seg(void) {
 	assert_not_null(small_bytes);
 	ct_bytes_clear(small_bytes);
 
 	// 准备数据
 	ct_bytes_write(small_bytes, "0123456789", 10);
 
-	ct_span_t span;
+	ct_seg_t seg;
 
-	// 1. 测试有效 Span 创建 [2, 8) -> "234567"
-	assert_int_eq(ct_bytes_span(small_bytes, &span, 2, 8), 0);
-	assert_uint32_eq(ct_span_capacity(&span), TEST_SMALL_SIZE - 2);  // cap 应该是原 cap - start
-	assert_uint32_eq(ct_span_count(&span), 6);
-	assert_uint32_eq(ct_span_pos(&span), 0);
+	// 1. 测试有效 Seg 创建 [2, 8) -> "234567"
+	assert_int_eq(ct_bytes_seg(small_bytes, &seg, 2, 8), 0);
+	assert_uint32_eq(ct_seg_capacity(&seg), TEST_SMALL_SIZE - 2);  // cap 应该是原 cap - start
+	assert_uint32_eq(ct_seg_count(&seg), 6);
+	assert_uint32_eq(ct_seg_pos(&seg), 0);
 
 	// 验证内容
 	uint8_t buf[10];
-	ct_span_read(&span, buf, 6);
+	ct_seg_read(&seg, buf, 6);
 	assert_str_n((char*)buf, "234567", 6);
 
-	// 2. 测试通过 Span 修改原数据
-	ct_span_rewind(&span);
-	ct_span_overwrite_u8(&span, 0, 'A');  // 修改 '2' -> 'A'
+	// 2. 测试通过 Seg 修改原数据
+	ct_seg_rewind(&seg);
+	ct_seg_overwrite_u8(&seg, 0, 'A');  // 修改 '2' -> 'A'
 
 	char* raw_buffer = ct_bytes_buffer(small_bytes);
 	assert_char(raw_buffer[2], 'A');
 
 	// 3. 测试边界情况
 	// 全覆盖
-	assert_int_eq(ct_bytes_span(small_bytes, &span, 0, TEST_SMALL_SIZE), 0);
-	assert_uint32_eq(ct_span_capacity(&span), TEST_SMALL_SIZE);
+	assert_int_eq(ct_bytes_seg(small_bytes, &seg, 0, TEST_SMALL_SIZE), 0);
+	assert_uint32_eq(ct_seg_capacity(&seg), TEST_SMALL_SIZE);
 
-	// 空 Span
-	assert_int_eq(ct_bytes_span(small_bytes, &span, 5, 5), 0);
-	assert_uint32_eq(ct_span_count(&span), 0);
+	// 空 Seg
+	assert_int_eq(ct_bytes_seg(small_bytes, &seg, 5, 5), 0);
+	assert_uint32_eq(ct_seg_count(&seg), 0);
 
 	// 4. 测试无效范围
-	assert_int_eq(ct_bytes_span(small_bytes, &span, 5, 4), -1);                    // start > end
-	assert_int_eq(ct_bytes_span(small_bytes, &span, 0, TEST_SMALL_SIZE + 1), -1);  // end > cap
+	assert_int_eq(ct_bytes_seg(small_bytes, &seg, 5, 4), -1);                    // start > end
+	assert_int_eq(ct_bytes_seg(small_bytes, &seg, 0, TEST_SMALL_SIZE + 1), -1);  // end > cap
 }
 
 int main(void) {
@@ -275,7 +275,7 @@ int main(void) {
 	CUNIT_TEST("Boundary Conditions", test_edge_cases)
 	CUNIT_TEST("Sequential Operations", test_multiple_operations)
 	CUNIT_TEST("Buffer Overflow Handling", test_special_cases)
-	CUNIT_TEST("Span View Operations", test_bytes_span)
+	CUNIT_TEST("Seg View Operations", test_bytes_seg)
 	CUNIT_SUITE_END()
 
 	return cunit_run();

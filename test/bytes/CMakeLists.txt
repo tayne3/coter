@@ -15,6 +15,10 @@ add_executable(pool_test pool_test.c)
 add_test(NAME pool_test COMMAND pool_test)
 target_link_libraries(pool_test PRIVATE coter::coter coter_compile_dependency cunit::cunit)
 
-add_executable(span_test span_test.c)
-add_test(NAME span_test COMMAND span_test)
-target_link_libraries(span_test PRIVATE coter::coter coter_compile_dependency cunit::cunit)
+add_executable(seg_test seg_test.c)
+add_test(NAME seg_test COMMAND seg_test)
+target_link_libraries(seg_test PRIVATE coter::coter coter_compile_dependency cunit::cunit)
+
+add_executable(seg_cpp_test seg_test.cpp)
+target_link_libraries(seg_cpp_test PRIVATE Catch2Main coter::coter coter_compile_dependency)
+add_test(NAME seg_cpp_test COMMAND seg_cpp_test)

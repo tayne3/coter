@@ -65,9 +65,9 @@ if(PROJECT_IS_TOP_LEVEL)
 endif()
 
 add_library(coter_compile_dependency INTERFACE)
-target_compile_features(coter_compile_dependency INTERFACE c_std_99)
+target_compile_features(coter_compile_dependency INTERFACE c_std_99 cxx_std_11)
 add_library(coter_public_dependency INTERFACE)
-target_compile_features(coter_public_dependency INTERFACE c_std_99)
+target_compile_features(coter_public_dependency INTERFACE c_std_99 cxx_std_11)
 
 # set source charset to utf-8 for MSVC
 if(CMAKE_C_COMPILER_ID STREQUAL "MSVC")
@@ -78,6 +78,7 @@ endif()
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
   target_compile_options(coter_compile_dependency INTERFACE 
 		"$<$<COMPILE_LANGUAGE:CXX>:/utf-8>"
+		"$<$<COMPILE_LANGUAGE:CXX>:/Zc:__cplusplus>"
 	)
 endif()
 
