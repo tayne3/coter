@@ -1,10 +1,11 @@
+#include "coter/math/bit_cast.h"
+
 #include <cmath>
 #include <cstdint>
 #include <limits>
 #include <vector>
 
 #include "catch.hpp"
-#include "coter/math/bit_cash.h"
 
 using namespace coter;
 

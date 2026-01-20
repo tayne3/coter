@@ -1,4 +1,5 @@
-#include "coter/math/bit_cash.h"
+#include "coter/math/bit_cast.h"
+
 #include "cunit.h"
 
 static void test_float32_conversion(void) {

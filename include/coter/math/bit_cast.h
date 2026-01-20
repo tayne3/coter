@@ -1,9 +1,9 @@
 /**
- * @file bit_cash.h
+ * @file bit_cast.h
  * @brief 位操作类型
  */
-#ifndef COTER_MATH_BIT_CASH_H
-#define COTER_MATH_BIT_CASH_H
+#ifndef COTER_MATH_BIT_CAST_H
+#define COTER_MATH_BIT_CAST_H
 
 #include "coter/core/platform.h"
 
@@ -140,4 +140,4 @@ static inline typename std::enable_if<std::is_integral<T>::value, double>::type 
 
 #endif
 
-#endif  // COTER_MATH_BIT_CASH_H
+#endif  // COTER_MATH_BIT_CAST_H
