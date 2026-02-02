@@ -7,7 +7,7 @@
 namespace coter {
 
 class seg {
-   public:
+public:
 	explicit seg(uint8_t *bytes, size_t cap) noexcept { ct_seg_init(&d, bytes, cap); }
 	seg(seg &&other) noexcept : d(other.d) { ct_seg_init(&other.d, nullptr, 0); }
 	seg &operator=(seg &&other) noexcept {
@@ -17,8 +17,11 @@ class seg {
 		}
 		return *this;
 	}
-	seg(const seg &)            = delete;
-	seg &operator=(const seg &) = delete;
+	seg(const seg &other) noexcept : d(other.d) {}
+	seg &operator=(const seg &other) noexcept {
+		if (this != &other) { d = other.d; }
+		return *this;
+	}
 
 	ct_seg_t       *handle() noexcept { return &d; }
 	const ct_seg_t *handle() const noexcept { return &d; }
@@ -56,65 +59,85 @@ class seg {
 	int  read(uint8_t *p, size_t length) noexcept { return ct_seg_read(&d, p, length); }
 	int  write(const uint8_t *p, size_t length) noexcept { return ct_seg_write(&d, p, length); }
 
-	template <typename T> typename std::enable_if<std::is_same<T, uint8_t>::value, void>::type put(T v) noexcept {
+	template <typename T>
+	typename std::enable_if<std::is_same<T, uint8_t>::value, void>::type put(T v) noexcept {
 		ct_seg_put_u8(&d, v);
 	}
-	template <typename T> typename std::enable_if<std::is_same<T, int8_t>::value, void>::type put(T v) noexcept {
+	template <typename T>
+	typename std::enable_if<std::is_same<T, int8_t>::value, void>::type put(T v) noexcept {
 		ct_seg_put_u8(&d, static_cast<uint8_t>(v));
 	}
-	template <typename T> typename std::enable_if<std::is_same<T, uint16_t>::value, void>::type put(T v) noexcept {
+	template <typename T>
+	typename std::enable_if<std::is_same<T, uint16_t>::value, void>::type put(T v) noexcept {
 		ct_seg_put_u16(&d, v);
 	}
-	template <typename T> typename std::enable_if<std::is_same<T, int16_t>::value, void>::type put(T v) noexcept {
+	template <typename T>
+	typename std::enable_if<std::is_same<T, int16_t>::value, void>::type put(T v) noexcept {
 		ct_seg_put_u16(&d, static_cast<uint16_t>(v));
 	}
-	template <typename T> typename std::enable_if<std::is_same<T, uint32_t>::value, void>::type put(T v) noexcept {
+	template <typename T>
+	typename std::enable_if<std::is_same<T, uint32_t>::value, void>::type put(T v) noexcept {
 		ct_seg_put_u32(&d, v);
 	}
-	template <typename T> typename std::enable_if<std::is_same<T, int32_t>::value, void>::type put(T v) noexcept {
+	template <typename T>
+	typename std::enable_if<std::is_same<T, int32_t>::value, void>::type put(T v) noexcept {
 		ct_seg_put_u32(&d, static_cast<uint32_t>(v));
 	}
-	template <typename T> typename std::enable_if<std::is_same<T, float>::value, void>::type put(T v) noexcept {
+	template <typename T>
+	typename std::enable_if<std::is_same<T, float>::value, void>::type put(T v) noexcept {
 		ct_seg_put_u32(&d, cxx20::bit_cast<uint32_t>(v));
 	}
-	template <typename T> typename std::enable_if<std::is_same<T, uint64_t>::value, void>::type put(T v) noexcept {
+	template <typename T>
+	typename std::enable_if<std::is_same<T, uint64_t>::value, void>::type put(T v) noexcept {
 		ct_seg_put_u64(&d, v);
 	}
-	template <typename T> typename std::enable_if<std::is_same<T, int64_t>::value, void>::type put(T v) noexcept {
+	template <typename T>
+	typename std::enable_if<std::is_same<T, int64_t>::value, void>::type put(T v) noexcept {
 		ct_seg_put_u64(&d, static_cast<uint64_t>(v));
 	}
-	template <typename T> typename std::enable_if<std::is_same<T, double>::value, void>::type put(T v) noexcept {
+	template <typename T>
+	typename std::enable_if<std::is_same<T, double>::value, void>::type put(T v) noexcept {
 		ct_seg_put_u64(&d, cxx20::bit_cast<uint64_t>(v));
 	}
 
-	template <typename T> typename std::enable_if<std::is_same<T, uint8_t>::value, T>::type take() noexcept {
+	template <typename T>
+	typename std::enable_if<std::is_same<T, uint8_t>::value, T>::type take() noexcept {
 		return ct_seg_take_u8(&d);
 	}
-	template <typename T> typename std::enable_if<std::is_same<T, int8_t>::value, T>::type take() noexcept {
+	template <typename T>
+	typename std::enable_if<std::is_same<T, int8_t>::value, T>::type take() noexcept {
 		return static_cast<int8_t>(ct_seg_take_u8(&d));
 	}
-	template <typename T> typename std::enable_if<std::is_same<T, uint16_t>::value, T>::type take() noexcept {
+	template <typename T>
+	typename std::enable_if<std::is_same<T, uint16_t>::value, T>::type take() noexcept {
 		return ct_seg_take_u16(&d);
 	}
-	template <typename T> typename std::enable_if<std::is_same<T, int16_t>::value, T>::type take() noexcept {
+	template <typename T>
+	typename std::enable_if<std::is_same<T, int16_t>::value, T>::type take() noexcept {
 		return static_cast<int16_t>(ct_seg_take_u16(&d));
 	}
-	template <typename T> typename std::enable_if<std::is_same<T, uint32_t>::value, T>::type take() noexcept {
+	template <typename T>
+	typename std::enable_if<std::is_same<T, uint32_t>::value, T>::type take() noexcept {
 		return ct_seg_take_u32(&d);
 	}
-	template <typename T> typename std::enable_if<std::is_same<T, int32_t>::value, T>::type take() noexcept {
+	template <typename T>
+	typename std::enable_if<std::is_same<T, int32_t>::value, T>::type take() noexcept {
 		return static_cast<int32_t>(ct_seg_take_u32(&d));
 	}
-	template <typename T> typename std::enable_if<std::is_same<T, float>::value, T>::type take() noexcept {
+	template <typename T>
+	typename std::enable_if<std::is_same<T, float>::value, T>::type take() noexcept {
 		return cxx20::bit_cast<float>(ct_seg_take_u32(&d));
 	}
-	template <typename T> typename std::enable_if<std::is_same<T, uint64_t>::value, T>::type take() noexcept {
+	template <typename T>
+	typename std::enable_if<std::is_same<T, uint64_t>::value, T>::type take() noexcept {
 		return ct_seg_take_u64(&d);
 	}
-	template <typename T> typename std::enable_if<std::is_same<T, int64_t>::value, T>::type take() noexcept {
+	template <typename T>
+	typename std::enable_if<std::is_same<T, int64_t>::value, T>::type take() noexcept {
 		return static_cast<int64_t>(ct_seg_take_u64(&d));
 	}
-	template <typename T> typename std::enable_if<std::is_same<T, double>::value, T>::type take() noexcept {
+	template <typename T>
+	typename std::enable_if<std::is_same<T, double>::value, T>::type take() noexcept {
 		return cxx20::bit_cast<double>(ct_seg_take_u64(&d));
 	}
 
@@ -200,7 +223,7 @@ class seg {
 		return ct_seg_overwrite_u64(&d, offset, cxx20::bit_cast<uint64_t>(v));
 	}
 
-   private:
+protected:
 	ct_seg_t d;
 };
 

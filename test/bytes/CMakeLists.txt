@@ -22,3 +22,7 @@ target_link_libraries(seg_test PRIVATE Catch2 coter::coter)
 add_executable(seg_hpp_test seg_test.cpp ${MAIN_CPP})
 add_test(NAME seg_hpp_test COMMAND seg_hpp_test)
 target_link_libraries(seg_hpp_test PRIVATE Catch2 coter::coter)
+
+add_executable(segment_test segment_test.cpp ${MAIN_CPP})
+add_test(NAME segment_test COMMAND segment_test)
+target_link_libraries(segment_test PRIVATE Catch2 coter::coter)
