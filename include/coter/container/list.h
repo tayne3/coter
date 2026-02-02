@@ -48,10 +48,8 @@ typedef struct ct_list {
 #define ct_list_first_entry(__head, __type, __member) ct_list_entry((__head)->next, __type, __member)
 #define ct_list_last_entry(__head, __type, __member)  ct_list_entry((__head)->prev, __type, __member)
 
-#define ct_list_next_entry(__pos, __type, __member) \
-	!(__pos) ? NULL : ct_list_entry((__pos)->__member->next, __type, __member)
-#define ct_list_prev_entry(__pos, __type, __member) \
-	!(__pos) ? NULL : ct_list_entry((__pos)->__member->prev, __type, __member)
+#define ct_list_next_entry(__pos, __type, __member) !(__pos) ? NULL : ct_list_entry((__pos)->__member->next, __type, __member)
+#define ct_list_prev_entry(__pos, __type, __member) !(__pos) ? NULL : ct_list_entry((__pos)->__member->prev, __type, __member)
 
 // 遍历链表节点
 // 	- __pos 用于遍历的节点
@@ -65,9 +63,8 @@ typedef struct ct_list {
 // 	- __type 包含链表节点的条目的类型
 // 	- __member 在结构体@type中表示链表头的成员变量的名称
 // 在遍历链表时，节点和链表头必须保持不变。对链表进行任何修改将导致未定义行为。
-#define ct_list_foreach_entry(__pos, __head, __type, __member)                                         \
-	for (__type* __pos = ct_list_first_entry((__head), __type, __member); __pos->__member != (__head); \
-		 __pos         = ct_list_next_entry(__pos, __type, __member))
+#define ct_list_foreach_entry(__pos, __head, __type, __member) \
+	for (__type* __pos = ct_list_first_entry((__head), __type, __member); __pos->__member != (__head); __pos = ct_list_next_entry(__pos, __type, __member))
 
 // 遍历链表节点 (从指定位置开始遍历)
 // 	- __pos 用于遍历的起始节点
@@ -85,9 +82,8 @@ typedef struct ct_list {
 // 	- __member 在结构体@type中表示链表头的成员变量的名称
 // 在遍历链表时，节点和链表头必须保持不变。对链表进行任何修改将导致未定义行为。
 // 此宏允许在遍历链表时安全地删除当前节点。
-#define ct_list_foreach_entry_safe(__pos, __head, __type, __member)                                   \
-	for (__type* __pos                               = ct_list_first_entry(__head, __type, __member), \
-				 *___n                               = ct_list_next_entry(__pos, __type, __member);   \
+#define ct_list_foreach_entry_safe(__pos, __head, __type, __member)                                                          \
+	for (__type* __pos = ct_list_first_entry(__head, __type, __member), *___n = ct_list_next_entry(__pos, __type, __member); \
 		 __pos && __pos->__member != (__head); __pos = ___n, ___n = ct_list_next_entry(___n, __type, __member))
 
 // 初始化/重置链表

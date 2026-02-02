@@ -54,9 +54,7 @@ typedef struct ct_hash {
 
 // 调整是否能够扩容
 #define ct_hash_set_allow_resize(self, allow) \
-	do {                                      \
-		((self)->allow_resize = (allow));     \
-	} while (0)
+	do { ((self)->allow_resize = (allow)); } while (0)
 
 /**
  * @brief 初始化哈希表

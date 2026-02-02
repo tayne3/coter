@@ -32,15 +32,15 @@ public:
 	size_t         readable() const noexcept { return ct_seg_readable(&d); }
 	size_t         writable() const noexcept { return ct_seg_writable(&d); }
 	size_t         appendable() const noexcept { return ct_seg_appendable(&d); }
-	bool           isEmpty() const noexcept { return ct_seg_is_empty(&d); }
-	bool           isFull() const noexcept { return ct_seg_is_full(&d); }
+	bool           is_empty() const noexcept { return ct_seg_is_empty(&d); }
+	bool           is_full() const noexcept { return ct_seg_is_full(&d); }
 	uint8_t       *data() noexcept { return ct_seg_data(&d); }
 	const uint8_t *data() const noexcept { return ct_seg_data(&d); }
 
-	ct_endian_t getEndian() const noexcept { return ct_seg_get_endian(&d); }
-	void        setEndian(ct_endian_t e) noexcept { ct_seg_set_endian(&d, e); }
-	uint32_t    getHlswap() const noexcept { return ct_seg_get_hlswap(&d); }
-	void        setHlswap(uint32_t h) noexcept { ct_seg_set_hlswap(&d, h); }
+	ct_endian_t get_endian() const noexcept { return ct_seg_get_endian(&d); }
+	void        set_endian(ct_endian_t e) noexcept { ct_seg_set_endian(&d, e); }
+	uint32_t    get_hlswap() const noexcept { return ct_seg_get_hlswap(&d); }
+	void        set_hlswap(uint32_t h) noexcept { ct_seg_set_hlswap(&d, h); }
 
 	void rewind() noexcept { ct_seg_rewind(&d); }
 	void clear() noexcept { ct_seg_clear(&d); }
@@ -50,8 +50,8 @@ public:
 	int  commit(size_t length) noexcept { return ct_seg_commit(&d, length); }
 
 	int since(seg &since, size_t start, size_t end) noexcept { return ct_seg_since(&d, &since.d, start, end); }
-	int readableSince(seg &since) noexcept { return ct_seg_readable_since(&d, &since.d); }
-	int writableSince(seg &since) noexcept { return ct_seg_writable_since(&d, &since.d); }
+	int readable_since(seg &since) noexcept { return ct_seg_readable_since(&d, &since.d); }
+	int writable_since(seg &since) noexcept { return ct_seg_writable_since(&d, &since.d); }
 
 	void compact() noexcept { ct_seg_compact(&d); }
 	int  peek(uint8_t *p, size_t length) const noexcept { return ct_seg_peek(&d, p, length); }

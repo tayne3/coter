@@ -10,15 +10,11 @@ extern "C" {
 static inline uint8_t ct_bcd_from_u8(uint8_t decimal) {
 	uint8_t bcd = 0;
 
-	if (!decimal) {
-		return bcd;
-	}
+	if (!decimal) { return bcd; }
 	bcd |= decimal % 10U;
 	decimal /= 10U;
 
-	if (!decimal) {
-		return bcd;
-	}
+	if (!decimal) { return bcd; }
 	bcd |= (decimal % 10U) << 4U;
 
 	return bcd;
@@ -27,15 +23,11 @@ static inline uint8_t ct_bcd_from_u8(uint8_t decimal) {
 static inline uint8_t ct_bcd_to_u8(uint8_t bcd) {
 	uint8_t decimal = 0;
 
-	if (!bcd) {
-		return decimal;
-	}
+	if (!bcd) { return decimal; }
 	decimal += bcd & 0x0F;
 	bcd >>= 4U;
 
-	if (!bcd) {
-		return decimal;
-	}
+	if (!bcd) { return decimal; }
 	decimal += (bcd & 0x0F) * 10U;
 
 	return decimal;
@@ -44,24 +36,16 @@ static inline uint8_t ct_bcd_to_u8(uint8_t bcd) {
 static inline uint16_t ct_bcd_from_u16(uint16_t decimal) {
 	uint16_t bcd = 0;
 
-	if (!decimal) {
-		return bcd;
-	}
+	if (!decimal) { return bcd; }
 	bcd |= decimal % 10U;
 	decimal /= 10U;
-	if (!decimal) {
-		return bcd;
-	}
+	if (!decimal) { return bcd; }
 	bcd |= (decimal % 10U) << 4U;
 	decimal /= 10U;
-	if (!decimal) {
-		return bcd;
-	}
+	if (!decimal) { return bcd; }
 	bcd |= (decimal % 10U) << 8U;
 	decimal /= 10U;
-	if (!decimal) {
-		return bcd;
-	}
+	if (!decimal) { return bcd; }
 	bcd |= (decimal % 10U) << 12U;
 
 	return bcd;
@@ -70,24 +54,16 @@ static inline uint16_t ct_bcd_from_u16(uint16_t decimal) {
 static inline uint16_t ct_bcd_to_u16(uint16_t bcd) {
 	uint16_t decimal = 0;
 
-	if (!bcd) {
-		return decimal;
-	}
+	if (!bcd) { return decimal; }
 	decimal += bcd & 0x0F;
 	bcd >>= 4U;
-	if (!bcd) {
-		return decimal;
-	}
+	if (!bcd) { return decimal; }
 	decimal += (bcd & 0x0F) * 10U;
 	bcd >>= 4U;
-	if (!bcd) {
-		return decimal;
-	}
+	if (!bcd) { return decimal; }
 	decimal += (bcd & 0x0F) * 100U;
 	bcd >>= 4U;
-	if (!bcd) {
-		return decimal;
-	}
+	if (!bcd) { return decimal; }
 	decimal += (bcd & 0x0F) * 1000U;
 
 	return decimal;

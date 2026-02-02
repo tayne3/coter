@@ -41,9 +41,7 @@ typedef struct ct_bytes {
 	} while (0)
 
 static inline int ct_bytes_seg(ct_bytes_t *self, ct_seg_t *seg, size_t start, size_t end) {
-	if (end < start || end > (size_t)self->cap) {
-		return -1;
-	}
+	if (end < start || end > (size_t)self->cap) { return -1; }
 	seg->bytes  = (uint8_t *)self->buffer + start;
 	seg->cap    = self->cap - (uint32_t)start;
 	seg->len    = (uint32_t)(end - start);

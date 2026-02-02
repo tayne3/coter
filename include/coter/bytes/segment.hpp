@@ -24,8 +24,8 @@ public:
 		d.bytes  = buffer_.get();
 		d.cap    = static_cast<uint32_t>(len);
 		d.len    = static_cast<uint32_t>(len);
-		d.endian = view.getEndian();
-		d.hlswap = view.getHlswap();
+		d.endian = view.get_endian();
+		d.hlswap = view.get_hlswap();
 	}
 
 	segment(segment&& other) noexcept : seg(std::move(other)), buffer_(std::move(other.buffer_)) {

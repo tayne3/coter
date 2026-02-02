@@ -52,9 +52,8 @@ typedef struct ct_heap {
  * @param type 元素类型
  * @param self 最小堆/最大堆-变量指针
  */
-#define ct_heap_foreach(it, idx, type, self)                                             \
-	for (idx = 0, it = (type)(uint64_t)(&(self)->_all[idx].d); idx < ct_heap_size(self); \
-		 idx++, it   = (type)(uint64_t)(&(self)->_all[idx].d))
+#define ct_heap_foreach(it, idx, type, self) \
+	for (idx = 0, it = (type)(uint64_t)(&(self)->_all[idx].d); idx < ct_heap_size(self); idx++, it = (type)(uint64_t)(&(self)->_all[idx].d))
 
 /**
  * @brief 最小堆/最大堆-遍历
@@ -63,9 +62,8 @@ typedef struct ct_heap {
  * @param type 元素类型
  * @param self 最小堆/最大堆-变量指针
  */
-#define ct_heap_foreach_p(it, idx, type, self)                                   \
-	for (idx = 0, it = (type*)(self)->_all[idx].d.ptr; idx < ct_heap_size(self); \
-		 idx++, it   = (type*)(self)->_all[idx].d.ptr)
+#define ct_heap_foreach_p(it, idx, type, self) \
+	for (idx = 0, it = (type*)(self)->_all[idx].d.ptr; idx < ct_heap_size(self); idx++, it = (type*)(self)->_all[idx].d.ptr)
 
 // 初始化堆
 COTER_API void ct_heap_init(ct_heap_buf_t self, ct_any_t* all, size_t max, ct_heap_sort_t sort);

@@ -9,7 +9,7 @@ TEST_CASE("segment construction", "[segment]") {
 		segment s(256);
 		REQUIRE(s.capacity() == 256);
 		REQUIRE(s.count() == 0);
-		REQUIRE(s.isEmpty());
+		REQUIRE(s.is_empty());
 	}
 
 	SECTION("from seg") {
@@ -86,7 +86,7 @@ TEST_CASE("segment shrink_to_fit", "[segment]") {
 
 TEST_CASE("segment endianness", "[segment]") {
 	segment s(256);
-	s.setEndian(CT_ENDIAN_BIG);
+	s.set_endian(CT_ENDIAN_BIG);
 
 	s.put<uint16_t>(0x1234);
 

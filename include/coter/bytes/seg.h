@@ -66,18 +66,14 @@ static inline void ct_seg_init(ct_seg_t *self, uint8_t *bytes, size_t cap) {
 
 // Set position to absolute offset from start. Returns -1 if out of bounds.
 static inline int ct_seg_seek(ct_seg_t *self, size_t offset) {
-	if (self->len < (uint32_t)offset) {
-		return -1;
-	}
+	if (self->len < (uint32_t)offset) { return -1; }
 	self->pos = (uint32_t)offset;
 	return 0;
 }
 
 // Set position to offset from end (pos = len - offset). Returns -1 if out of bounds.
 static inline int ct_seg_reseek(ct_seg_t *self, size_t offset) {
-	if (self->len < (uint32_t)offset) {
-		return -1;
-	}
+	if (self->len < (uint32_t)offset) { return -1; }
 	self->pos = self->len - (uint32_t)offset;
 	return 0;
 }
@@ -85,9 +81,7 @@ static inline int ct_seg_reseek(ct_seg_t *self, size_t offset) {
 // Advance position forward. Returns actual bytes skipped.
 static inline int ct_seg_skip(ct_seg_t *self, size_t length) {
 	const size_t readable = ct_seg_readable(self);
-	if (length > readable) {
-		length = readable;
-	}
+	if (length > readable) { length = readable; }
 	self->pos += (uint32_t)length;
 	return (int)length;
 }
@@ -95,21 +89,15 @@ static inline int ct_seg_skip(ct_seg_t *self, size_t length) {
 // Advance position and extend len if needed. Used after writing directly to bytes. Returns actual bytes committed.
 static inline int ct_seg_commit(ct_seg_t *self, size_t length) {
 	const size_t writable = ct_seg_writable(self);
-	if (length > writable) {
-		length = writable;
-	}
+	if (length > writable) { length = writable; }
 	self->pos += (uint32_t)length;
-	if (self->pos > self->len) {
-		self->len = self->pos;
-	}
+	if (self->pos > self->len) { self->len = self->pos; }
 	return (int)length;
 }
 
 // Create a view buffer pointing to a range [start, end] of the original buffer.
 static inline int ct_seg_since(ct_seg_t *self, ct_seg_t *since, size_t start, size_t end) {
-	if (end < start || end > (size_t)self->cap) {
-		return -1;
-	}
+	if (end < start || end > (size_t)self->cap) { return -1; }
 	since->bytes  = self->bytes + start;
 	since->cap    = self->cap - (uint32_t)start;
 	since->len    = (uint32_t)(end - start);
@@ -226,7 +214,7 @@ COTER_API int ct_seg_overwrite_arr64(ct_seg_t *self, size_t offset, const uint64
 
 namespace coter {
 class Seg {
-   public:
+public:
 	explicit Seg(uint8_t *bytes, size_t cap) noexcept { ct_seg_init(&d, bytes, cap); }
 	Seg(Seg &&other) noexcept : d(other.d) { ct_seg_init(&other.d, nullptr, 0); }
 	Seg &operator=(Seg &&other) noexcept {
@@ -248,15 +236,15 @@ class Seg {
 	size_t         readable() const noexcept { return ct_seg_readable(&d); }
 	size_t         writable() const noexcept { return ct_seg_writable(&d); }
 	size_t         appendable() const noexcept { return ct_seg_appendable(&d); }
-	bool           isEmpty() const noexcept { return ct_seg_is_empty(&d); }
-	bool           isFull() const noexcept { return ct_seg_is_full(&d); }
+	bool           is_empty() const noexcept { return ct_seg_is_empty(&d); }
+	bool           is_full() const noexcept { return ct_seg_is_full(&d); }
 	uint8_t       *data() noexcept { return ct_seg_data(&d); }
 	const uint8_t *data() const noexcept { return ct_seg_data(&d); }
 
-	ct_endian_t getEndian() const noexcept { return ct_seg_get_endian(&d); }
-	void        setEndian(ct_endian_t e) noexcept { ct_seg_set_endian(&d, e); }
-	uint32_t    getHlswap() const noexcept { return ct_seg_get_hlswap(&d); }
-	void        setHlswap(uint32_t h) noexcept { ct_seg_set_hlswap(&d, h); }
+	ct_endian_t get_endian() const noexcept { return ct_seg_get_endian(&d); }
+	void        set_endian(ct_endian_t e) noexcept { ct_seg_set_endian(&d, e); }
+	uint32_t    get_hlswap() const noexcept { return ct_seg_get_hlswap(&d); }
+	void        set_hlswap(uint32_t h) noexcept { ct_seg_set_hlswap(&d, h); }
 
 	void rewind() noexcept { ct_seg_rewind(&d); }
 	void clear() noexcept { ct_seg_clear(&d); }
@@ -266,8 +254,8 @@ class Seg {
 	int  commit(size_t length) noexcept { return ct_seg_commit(&d, length); }
 
 	int since(Seg &since, size_t start, size_t end) noexcept { return ct_seg_since(&d, &since.d, start, end); }
-	int readableSince(Seg &since) noexcept { return ct_seg_readable_since(&d, &since.d); }
-	int writableSince(Seg &since) noexcept { return ct_seg_writable_since(&d, &since.d); }
+	int readable_since(Seg &since) noexcept { return ct_seg_readable_since(&d, &since.d); }
+	int writable_since(Seg &since) noexcept { return ct_seg_writable_since(&d, &since.d); }
 
 	void compact() noexcept { ct_seg_compact(&d); }
 	int  peek(uint8_t *p, size_t length) const noexcept { return ct_seg_peek(&d, p, length); }
@@ -297,37 +285,21 @@ class Seg {
 	uint16_t peekU16(int offset) const noexcept { return ct_seg_peek_u16(&d, offset); }
 	uint32_t peekU32(int offset) const noexcept { return ct_seg_peek_u32(&d, offset); }
 	uint64_t peekU64(int offset) const noexcept { return ct_seg_peek_u64(&d, offset); }
-	int      peekArr8(int offset, uint8_t *out, size_t count) const noexcept {
-        return ct_seg_peek_arr8(&d, offset, out, count);
-	}
-	int peekArr16(int offset, uint16_t *out, size_t count) const noexcept {
-		return ct_seg_peek_arr16(&d, offset, out, count);
-	}
-	int peekArr32(int offset, uint32_t *out, size_t count) const noexcept {
-		return ct_seg_peek_arr32(&d, offset, out, count);
-	}
-	int peekArr64(int offset, uint64_t *out, size_t count) const noexcept {
-		return ct_seg_peek_arr64(&d, offset, out, count);
-	}
+	int      peekArr8(int offset, uint8_t *out, size_t count) const noexcept { return ct_seg_peek_arr8(&d, offset, out, count); }
+	int      peekArr16(int offset, uint16_t *out, size_t count) const noexcept { return ct_seg_peek_arr16(&d, offset, out, count); }
+	int      peekArr32(int offset, uint32_t *out, size_t count) const noexcept { return ct_seg_peek_arr32(&d, offset, out, count); }
+	int      peekArr64(int offset, uint64_t *out, size_t count) const noexcept { return ct_seg_peek_arr64(&d, offset, out, count); }
 
 	int overwriteU8(size_t offset, uint8_t v) noexcept { return ct_seg_overwrite_u8(&d, offset, v); }
 	int overwriteU16(size_t offset, uint16_t v) noexcept { return ct_seg_overwrite_u16(&d, offset, v); }
 	int overwriteU32(size_t offset, uint32_t v) noexcept { return ct_seg_overwrite_u32(&d, offset, v); }
 	int overwriteU64(size_t offset, uint64_t v) noexcept { return ct_seg_overwrite_u64(&d, offset, v); }
-	int overwriteArr8(size_t offset, const uint8_t *v, size_t count) noexcept {
-		return ct_seg_overwrite_arr8(&d, offset, v, count);
-	}
-	int overwriteArr16(size_t offset, const uint16_t *v, size_t count) noexcept {
-		return ct_seg_overwrite_arr16(&d, offset, v, count);
-	}
-	int overwriteArr32(size_t offset, const uint32_t *v, size_t count) noexcept {
-		return ct_seg_overwrite_arr32(&d, offset, v, count);
-	}
-	int overwriteArr64(size_t offset, const uint64_t *v, size_t count) noexcept {
-		return ct_seg_overwrite_arr64(&d, offset, v, count);
-	}
+	int overwriteArr8(size_t offset, const uint8_t *v, size_t count) noexcept { return ct_seg_overwrite_arr8(&d, offset, v, count); }
+	int overwriteArr16(size_t offset, const uint16_t *v, size_t count) noexcept { return ct_seg_overwrite_arr16(&d, offset, v, count); }
+	int overwriteArr32(size_t offset, const uint32_t *v, size_t count) noexcept { return ct_seg_overwrite_arr32(&d, offset, v, count); }
+	int overwriteArr64(size_t offset, const uint64_t *v, size_t count) noexcept { return ct_seg_overwrite_arr64(&d, offset, v, count); }
 
-   private:
+private:
 	ct_seg_t d;
 };
 }  // namespace coter

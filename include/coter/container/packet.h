@@ -346,8 +346,7 @@ COTER_API uint16_t ct_packet_get_u8s(const ct_packet_buf_t self, uint16_t offset
  * @param endian 字节序
  * @return uint16_t 读取的元素数量
  */
-COTER_API uint16_t ct_packet_get_u16s(const ct_packet_buf_t self, uint16_t offset, uint16_t *buffer, uint16_t max,
-									  ct_endian_t endian);
+COTER_API uint16_t ct_packet_get_u16s(const ct_packet_buf_t self, uint16_t offset, uint16_t *buffer, uint16_t max, ct_endian_t endian);
 
 /**
  * @brief 获取数据 (数据不变)
@@ -359,8 +358,7 @@ COTER_API uint16_t ct_packet_get_u16s(const ct_packet_buf_t self, uint16_t offse
  * @param endian 字节序
  * @return uint16_t 读取的元素数量
  */
-COTER_API uint16_t ct_packet_get_u32s(const ct_packet_buf_t self, uint16_t offset, uint32_t *buffer, uint16_t max,
-									  ct_endian_t endian);
+COTER_API uint16_t ct_packet_get_u32s(const ct_packet_buf_t self, uint16_t offset, uint32_t *buffer, uint16_t max, ct_endian_t endian);
 
 /**
  * @brief 获取数据 (数据不变)
@@ -372,8 +370,7 @@ COTER_API uint16_t ct_packet_get_u32s(const ct_packet_buf_t self, uint16_t offse
  * @param endian 字节序
  * @return uint16_t 读取的元素数量
  */
-COTER_API uint16_t ct_packet_get_u64s(const ct_packet_buf_t self, uint16_t offset, uint64_t *buffer, uint16_t max,
-									  ct_endian_t endian);
+COTER_API uint16_t ct_packet_get_u64s(const ct_packet_buf_t self, uint16_t offset, uint64_t *buffer, uint16_t max, ct_endian_t endian);
 
 /**
  * @brief 获取数据 (数据不变)
@@ -385,8 +382,7 @@ COTER_API uint16_t ct_packet_get_u64s(const ct_packet_buf_t self, uint16_t offse
  * @param endian 字节序
  * @return uint16_t 读取的元素数量
  */
-COTER_API uint16_t ct_packet_get_floats(const ct_packet_buf_t self, uint16_t offset, float *buffer, uint16_t max,
-										ct_endian_t endian);
+COTER_API uint16_t ct_packet_get_floats(const ct_packet_buf_t self, uint16_t offset, float *buffer, uint16_t max, ct_endian_t endian);
 
 /**
  * @brief 获取数据 (数据不变)
@@ -398,8 +394,7 @@ COTER_API uint16_t ct_packet_get_floats(const ct_packet_buf_t self, uint16_t off
  * @param endian 字节序
  * @return uint16_t 读取的元素数量
  */
-COTER_API uint16_t ct_packet_get_doubles(const ct_packet_buf_t self, uint16_t offset, double *buffer, uint16_t max,
-										 ct_endian_t endian);
+COTER_API uint16_t ct_packet_get_doubles(const ct_packet_buf_t self, uint16_t offset, double *buffer, uint16_t max, ct_endian_t endian);
 
 /**
  * @brief 取出数据 (数据移动)
@@ -485,8 +480,7 @@ COTER_API uint16_t ct_packet_put_u8s(ct_packet_buf_t self, const uint8_t *buffer
  * @param endian 字节序
  * @return uint16_t 写入的元素数量
  */
-COTER_API uint16_t ct_packet_put_u16s(ct_packet_buf_t self, const uint16_t *buffer, uint16_t length,
-									  ct_endian_t endian);
+COTER_API uint16_t ct_packet_put_u16s(ct_packet_buf_t self, const uint16_t *buffer, uint16_t length, ct_endian_t endian);
 
 /**
  * @brief 放入数据 (尾插数据)
@@ -497,8 +491,7 @@ COTER_API uint16_t ct_packet_put_u16s(ct_packet_buf_t self, const uint16_t *buff
  * @param endian 字节序
  * @return uint16_t 写入的元素数量
  */
-COTER_API uint16_t ct_packet_put_u32s(ct_packet_buf_t self, const uint32_t *buffer, uint16_t length,
-									  ct_endian_t endian);
+COTER_API uint16_t ct_packet_put_u32s(ct_packet_buf_t self, const uint32_t *buffer, uint16_t length, ct_endian_t endian);
 
 /**
  * @brief 放入数据 (尾插数据)
@@ -509,8 +502,7 @@ COTER_API uint16_t ct_packet_put_u32s(ct_packet_buf_t self, const uint32_t *buff
  * @param endian 字节序
  * @return uint16_t 写入的元素数量
  */
-COTER_API uint16_t ct_packet_put_u64s(ct_packet_buf_t self, const uint64_t *buffer, uint16_t length,
-									  ct_endian_t endian);
+COTER_API uint16_t ct_packet_put_u64s(ct_packet_buf_t self, const uint64_t *buffer, uint16_t length, ct_endian_t endian);
 
 /**
  * @brief 放入数据 (尾插数据)
@@ -532,8 +524,7 @@ COTER_API uint16_t ct_packet_put_floats(ct_packet_buf_t self, const float *buffe
  * @param endian 字节序
  * @return uint16_t 写入的元素数量
  */
-COTER_API uint16_t ct_packet_put_doubles(ct_packet_buf_t self, const double *buffer, uint16_t length,
-										 ct_endian_t endian);
+COTER_API uint16_t ct_packet_put_doubles(ct_packet_buf_t self, const double *buffer, uint16_t length, ct_endian_t endian);
 
 #ifdef __cplusplus
 }
