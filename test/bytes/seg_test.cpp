@@ -1,219 +1,260 @@
-#include <array>
-#include <cstdint>
-#include <cstring>
-
-#include "catch.hpp"
 #include "coter/bytes/seg.h"
 
-TEST_CASE("Read/Write Primitives", "[seg][basic]") {
-	std::array<uint8_t, 4096> buffer{};
-	coter::Seg                seg(buffer.data(), buffer.size());
+#include <catch.hpp>
 
-	seg.putU8(0x12);
-	seg.putU16(0x3456);
-	seg.putU32(0x789ABCDE);
-	seg.putU64(0xFEDCBA9876543210ULL);
+TEST_CASE("seg Basic Operations", "[seg][basic]") {
+	uint8_t  buffer[4096];
+	ct_seg_t seg;
 
-	REQUIRE(seg.pos() == 1 + 2 + 4 + 8);
+	memset(buffer, 0, sizeof(buffer));
+	ct_seg_init(&seg, buffer, sizeof(buffer));
 
-	seg.rewind();
-	REQUIRE(seg.takeU8() == 0x12);
-	REQUIRE(seg.takeU16() == 0x3456);
-	REQUIRE(seg.takeU32() == 0x789ABCDE);
-	REQUIRE(seg.takeU64() == 0xFEDCBA9876543210ULL);
+	SECTION("Read/Write Primitives") {
+		ct_seg_put_u8(&seg, 0x12);
+		ct_seg_put_u16(&seg, 0x3456);
+		ct_seg_put_u32(&seg, 0x789ABCDE);
+		ct_seg_put_u64(&seg, 0xFEDCBA9876543210ULL);
+
+		REQUIRE(ct_seg_pos(&seg) == 1 + 2 + 4 + 8);
+
+		ct_seg_rewind(&seg);
+
+		REQUIRE(ct_seg_take_u8(&seg) == 0x12);
+		REQUIRE(ct_seg_take_u16(&seg) == 0x3456);
+		REQUIRE(ct_seg_take_u32(&seg) == 0x789ABCDE);
+		REQUIRE(ct_seg_take_u64(&seg) == 0xFEDCBA9876543210ULL);
+	}
+
+	SECTION("Read/Write Arrays") {
+		uint32_t data[] = {0x11223344, 0x55667788};
+		ct_seg_put_arr32(&seg, data, 2);
+
+		ct_seg_rewind(&seg);
+
+		uint32_t out[2];
+		ct_seg_take_arr32(&seg, out, 2);
+
+		REQUIRE(out[0] == 0x11223344);
+		REQUIRE(out[1] == 0x55667788);
+	}
 }
 
-TEST_CASE("Read/Write Arrays", "[seg][basic]") {
-	std::array<uint8_t, 4096> buffer{};
-	coter::Seg                seg(buffer.data(), buffer.size());
+TEST_CASE("seg Configuration", "[seg][config]") {
+	uint8_t  buffer[4096];
+	ct_seg_t seg;
 
-	uint32_t data[] = {0x11223344, 0x55667788};
-	seg.putArr32(data, 2);
+	memset(buffer, 0, sizeof(buffer));
+	ct_seg_init(&seg, buffer, sizeof(buffer));
 
-	seg.rewind();
-	uint32_t out[2]{};
-	REQUIRE(seg.takeArr32(out, 2) == 0);
-	REQUIRE(out[0] == 0x11223344);
-	REQUIRE(out[1] == 0x55667788);
+	SECTION("Endianness") {
+		// Test Little Endian
+		ct_seg_set_endian(&seg, CT_ENDIAN_LITTLE);
+		ct_seg_put_u32(&seg, 0x12345678);
+
+		uint8_t expected_le[] = {0x78, 0x56, 0x34, 0x12};
+		REQUIRE(memcmp(buffer, expected_le, 4) == 0);
+
+		// Test Big Endian
+		ct_seg_rewind(&seg);
+		ct_seg_set_endian(&seg, CT_ENDIAN_BIG);
+		ct_seg_put_u32(&seg, 0x12345678);
+
+		uint8_t expected_be[] = {0x12, 0x34, 0x56, 0x78};
+		REQUIRE(memcmp(buffer, expected_be, 4) == 0);
+	}
+
+	SECTION("High-Low Swap") {
+		ct_seg_set_endian(&seg, CT_ENDIAN_BIG);  // Use Big Endian for clearer byte order check
+		ct_seg_set_hlswap(&seg, 1);
+
+		// u32: 0x11223344 -> 0x22114433
+		ct_seg_put_u32(&seg, 0x11223344);
+		uint8_t expected_32[] = {0x22, 0x11, 0x44, 0x33};
+		REQUIRE(memcmp(buffer, expected_32, 4) == 0);
+
+		ct_seg_rewind(&seg);
+
+		// u64: 0x1122334455667788 -> 0x2211443366558877
+		ct_seg_put_u64(&seg, 0x1122334455667788ULL);
+		uint8_t expected_64[] = {0x22, 0x11, 0x44, 0x33, 0x66, 0x55, 0x88, 0x77};
+		REQUIRE(memcmp(buffer, expected_64, 8) == 0);
+	}
+
+	SECTION("Array Swap") {
+		ct_seg_set_endian(&seg, CT_ENDIAN_LITTLE);
+		ct_seg_set_hlswap(&seg, 1);
+
+		uint32_t data[] = {0x11223344};
+		// Little Endian + HL Swap
+		// 0x11223344
+		// HL Swap -> 0x22114433
+		// Little Endian Write -> 33 44 11 22
+		ct_seg_put_arr32(&seg, data, 1);
+
+		uint8_t expected[] = {0x33, 0x44, 0x11, 0x22};
+		REQUIRE(memcmp(buffer, expected, 4) == 0);
+
+		ct_seg_rewind(&seg);
+		uint32_t out[1];
+		ct_seg_take_arr32(&seg, out, 1);
+		REQUIRE(out[0] == 0x11223344);
+	}
 }
 
-TEST_CASE("Endianness", "[seg][config]") {
-	std::array<uint8_t, 4096> buffer{};
-	coter::Seg                seg(buffer.data(), buffer.size());
+TEST_CASE("seg Peek Operations", "[seg][peek]") {
+	uint8_t  buffer[4096];
+	ct_seg_t seg;
 
-	seg.setEndian(CT_ENDIAN_LITTLE);
-	seg.putU32(0x12345678);
-	uint8_t expected_le[] = {0x78, 0x56, 0x34, 0x12};
-	REQUIRE(std::memcmp(buffer.data(), expected_le, 4) == 0);
+	memset(buffer, 0, sizeof(buffer));
+	ct_seg_init(&seg, buffer, sizeof(buffer));
 
-	seg.clear();
-	seg.setEndian(CT_ENDIAN_BIG);
-	seg.putU32(0x12345678);
-	uint8_t expected_be[] = {0x12, 0x34, 0x56, 0x78};
-	REQUIRE(std::memcmp(buffer.data(), expected_be, 4) == 0);
+	SECTION("Peek Primitives") {
+		// Write some data
+		ct_seg_put_u8(&seg, 0x12);
+		ct_seg_put_u16(&seg, 0x3456);
+		ct_seg_put_u32(&seg, 0x789ABCDE);
+		ct_seg_put_u64(&seg, 0xFEDCBA9876543210ULL);
+
+		// Peek from start (pos=0, offset=0)
+		ct_seg_rewind(&seg);
+		REQUIRE(ct_seg_peek_u8(&seg, 0) == 0x12);
+		REQUIRE(ct_seg_peek_u16(&seg, 1) == 0x3456);
+		REQUIRE(ct_seg_peek_u32(&seg, 3) == 0x789ABCDE);
+		REQUIRE(ct_seg_peek_u64(&seg, 7) == 0xFEDCBA9876543210ULL);
+
+		// Position should not change
+		REQUIRE(ct_seg_pos(&seg) == 0);
+
+		// Peek with negative offset
+		ct_seg_seek(&seg, 5);
+		REQUIRE(ct_seg_peek_u8(&seg, -5) == 0x12);
+		REQUIRE(ct_seg_peek_u16(&seg, -4) == 0x3456);
+	}
+
+	SECTION("Peek Arrays") {
+		uint32_t data[] = {0x11223344, 0x55667788, 0x99AABBCC};
+		ct_seg_put_arr32(&seg, data, 3);
+
+		ct_seg_rewind(&seg);
+
+		// Peek array at offset 0
+		uint32_t out[2];
+		REQUIRE(ct_seg_peek_arr32(&seg, 0, out, 2) == 0);
+		REQUIRE(out[0] == 0x11223344);
+		REQUIRE(out[1] == 0x55667788);
+
+		// Position should not change
+		REQUIRE(ct_seg_pos(&seg) == 0);
+
+		// Peek array at offset 4 (skip first element)
+		REQUIRE(ct_seg_peek_arr32(&seg, 4, out, 2) == 0);
+		REQUIRE(out[0] == 0x55667788);
+		REQUIRE(out[1] == 0x99AABBCC);
+	}
+
+	SECTION("Peek Bounds") {
+		// Re-init with small buffer for bounds testing
+		ct_seg_init(&seg, buffer, 10);
+
+		ct_seg_put_u32(&seg, 0x12345678);
+
+		ct_seg_rewind(&seg);
+
+		// Valid peek
+		REQUIRE(ct_seg_peek_u32(&seg, 0) == 0x12345678);
+
+		// Out of bounds peek (should return 0)
+		REQUIRE(ct_seg_peek_u32(&seg, 10) == 0);
+		REQUIRE(ct_seg_peek_u64(&seg, 0) == 0);  // Not enough data
+
+		// Negative offset out of bounds
+		REQUIRE(ct_seg_peek_u32(&seg, -1) == 0);
+
+		// Array peek out of bounds
+		uint32_t out[2];
+		REQUIRE(ct_seg_peek_arr32(&seg, 0, out, 2) == -1);  // Only 1 u32 available
+	}
 }
 
-TEST_CASE("High-Low Swap", "[seg][config]") {
-	std::array<uint8_t, 4096> buffer{};
-	coter::Seg                seg(buffer.data(), buffer.size());
+TEST_CASE("seg Overwrite Operations", "[seg][overwrite]") {
+	uint8_t  buffer[4096];
+	ct_seg_t seg;
 
-	seg.setEndian(CT_ENDIAN_BIG);
-	seg.setHlswap(1);
-	seg.putU32(0x11223344);
-	uint8_t expected_32[] = {0x22, 0x11, 0x44, 0x33};
-	REQUIRE(std::memcmp(buffer.data(), expected_32, 4) == 0);
+	memset(buffer, 0, sizeof(buffer));
+	ct_seg_init(&seg, buffer, sizeof(buffer));
 
-	seg.clear();
-	seg.setEndian(CT_ENDIAN_BIG);
-	seg.setHlswap(1);
-	seg.putU64(0x1122334455667788ULL);
-	uint8_t expected_64[] = {0x22, 0x11, 0x44, 0x33, 0x66, 0x55, 0x88, 0x77};
-	REQUIRE(std::memcmp(buffer.data(), expected_64, 8) == 0);
-}
+	SECTION("Overwrite Primitives") {
+		// Write initial data
+		ct_seg_put_u32(&seg, 0x11111111);
+		ct_seg_put_u32(&seg, 0x22222222);
+		ct_seg_put_u32(&seg, 0x33333333);
 
-TEST_CASE("Array Swap", "[seg][config]") {
-	std::array<uint8_t, 4096> buffer{};
-	coter::Seg                seg(buffer.data(), buffer.size());
+		size_t pos_before = ct_seg_pos(&seg);
 
-	seg.setEndian(CT_ENDIAN_LITTLE);
-	seg.setHlswap(1);
-	uint32_t data[] = {0x11223344};
-	seg.putArr32(data, 1);
-	uint8_t expected[] = {0x33, 0x44, 0x11, 0x22};
-	REQUIRE(std::memcmp(buffer.data(), expected, 4) == 0);
+		// Overwrite first u32
+		REQUIRE(ct_seg_overwrite_u32(&seg, 0, 0xAABBCCDD) == 0);
 
-	seg.rewind();
-	uint32_t out[1]{};
-	REQUIRE(seg.takeArr32(out, 1) == 0);
-	REQUIRE(out[0] == 0x11223344);
-}
+		// Position should not change
+		REQUIRE(ct_seg_pos(&seg) == pos_before);
 
-TEST_CASE("Peek Primitives", "[seg][peek]") {
-	std::array<uint8_t, 4096> buffer{};
-	coter::Seg                seg(buffer.data(), buffer.size());
+		// Verify overwrite
+		ct_seg_rewind(&seg);
+		REQUIRE(ct_seg_take_u32(&seg) == 0xAABBCCDD);
+		REQUIRE(ct_seg_take_u32(&seg) == 0x22222222);
+		REQUIRE(ct_seg_take_u32(&seg) == 0x33333333);
+	}
 
-	seg.putU8(0x12);
-	seg.putU16(0x3456);
-	seg.putU32(0x789ABCDE);
-	seg.putU64(0xFEDCBA9876543210ULL);
+	SECTION("Overwrite Arrays") {
+		// Write initial data
+		uint32_t data[] = {0x11111111, 0x22222222, 0x33333333};
+		ct_seg_put_arr32(&seg, data, 3);
 
-	seg.rewind();
-	REQUIRE(seg.peekU8(0) == 0x12);
-	REQUIRE(seg.peekU16(1) == 0x3456);
-	REQUIRE(seg.peekU32(3) == 0x789ABCDE);
-	REQUIRE(seg.peekU64(7) == 0xFEDCBA9876543210ULL);
-	REQUIRE(seg.pos() == 0);
+		// Overwrite middle element
+		uint32_t new_data[] = {0xAAAAAAAA, 0xBBBBBBBB};
+		REQUIRE(ct_seg_overwrite_arr32(&seg, 4, new_data, 2) == 0);
 
-	REQUIRE(seg.seek(5) == 0);
-	REQUIRE(seg.peekU8(-5) == 0x12);
-	REQUIRE(seg.peekU16(-4) == 0x3456);
-}
+		// Verify
+		ct_seg_rewind(&seg);
+		uint32_t out[3];
+		ct_seg_take_arr32(&seg, out, 3);
+		REQUIRE(out[0] == 0x11111111);
+		REQUIRE(out[1] == 0xAAAAAAAA);
+		REQUIRE(out[2] == 0xBBBBBBBB);
+	}
 
-TEST_CASE("Peek Arrays", "[seg][peek]") {
-	std::array<uint8_t, 4096> buffer{};
-	coter::Seg                seg(buffer.data(), buffer.size());
+	SECTION("Overwrite Endianness") {
+		// Write with Big Endian
+		ct_seg_set_endian(&seg, CT_ENDIAN_BIG);
+		ct_seg_put_u32(&seg, 0x12345678);
 
-	uint32_t data[] = {0x11223344, 0x55667788, 0x99AABBCC};
-	seg.putArr32(data, 3);
+		// Overwrite with Little Endian
+		ct_seg_set_endian(&seg, CT_ENDIAN_LITTLE);
+		REQUIRE(ct_seg_overwrite_u32(&seg, 0, 0xAABBCCDD) == 0);
 
-	seg.rewind();
-	uint32_t out[2]{};
-	REQUIRE(seg.peekArr32(0, out, 2) == 0);
-	REQUIRE(out[0] == 0x11223344);
-	REQUIRE(out[1] == 0x55667788);
-	REQUIRE(seg.pos() == 0);
-	REQUIRE(seg.peekArr32(4, out, 2) == 0);
-	REQUIRE(out[0] == 0x55667788);
-	REQUIRE(out[1] == 0x99AABBCC);
-}
+		// Check bytes (Little Endian: DD CC BB AA)
+		uint8_t expected[] = {0xDD, 0xCC, 0xBB, 0xAA};
+		REQUIRE(memcmp(buffer, expected, 4) == 0);
 
-TEST_CASE("Peek Bounds", "[seg][peek]") {
-	std::array<uint8_t, 10> buffer{};
-	coter::Seg              seg(buffer.data(), buffer.size());
+		// Read back with Little Endian
+		ct_seg_rewind(&seg);
+		REQUIRE(ct_seg_take_u32(&seg) == 0xAABBCCDD);
+	}
 
-	seg.putU32(0x12345678);
-	seg.rewind();
-	REQUIRE(seg.peekU32(0) == 0x12345678);
-	REQUIRE(seg.peekU32(10) == 0);
-	REQUIRE(seg.peekU64(0) == 0);
-	REQUIRE(seg.peekU32(-1) == 0);
-	uint32_t out[2]{};
-	REQUIRE(seg.peekArr32(0, out, 2) == -1);
-}
+	SECTION("Overwrite Bounds") {
+		// Re-init with small buffer
+		ct_seg_init(&seg, buffer, 10);
 
-TEST_CASE("Overwrite Primitives", "[seg][overwrite]") {
-	std::array<uint8_t, 4096> buffer{};
-	coter::Seg                seg(buffer.data(), buffer.size());
+		ct_seg_put_u32(&seg, 0x12345678);
 
-	seg.putU32(0x11111111);
-	seg.putU32(0x22222222);
-	seg.putU32(0x33333333);
-	auto pos_before = seg.pos();
-	REQUIRE(seg.overwriteU32(0, 0xAABBCCDD) == 0);
-	REQUIRE(seg.pos() == pos_before);
-	seg.rewind();
-	REQUIRE(seg.takeU32() == 0xAABBCCDD);
-	REQUIRE(seg.takeU32() == 0x22222222);
-	REQUIRE(seg.takeU32() == 0x33333333);
-}
+		// Valid overwrite
+		REQUIRE(ct_seg_overwrite_u8(&seg, 0, 0xAA) == 0);
 
-TEST_CASE("Overwrite Arrays", "[seg][overwrite]") {
-	std::array<uint8_t, 4096> buffer{};
-	coter::Seg                seg(buffer.data(), buffer.size());
+		// Out of bounds overwrite
+		REQUIRE(ct_seg_overwrite_u32(&seg, 10, 0xBBBBBBBB) == -1);
+		REQUIRE(ct_seg_overwrite_u64(&seg, 0, 0x1122334455667788ULL) == -1);  // Not enough space
 
-	uint32_t data[] = {0x11111111, 0x22222222, 0x33333333};
-	seg.putArr32(data, 3);
-	uint32_t new_data[] = {0xAAAAAAAA, 0xBBBBBBBB};
-	REQUIRE(seg.overwriteArr32(4, new_data, 2) == 0);
-	seg.rewind();
-	uint32_t out[3]{};
-	REQUIRE(seg.takeArr32(out, 3) == 0);
-	REQUIRE(out[0] == 0x11111111);
-	REQUIRE(out[1] == 0xAAAAAAAA);
-	REQUIRE(out[2] == 0xBBBBBBBB);
-}
-
-TEST_CASE("Overwrite Endianness", "[seg][overwrite]") {
-	std::array<uint8_t, 4096> buffer{};
-	coter::Seg                seg(buffer.data(), buffer.size());
-
-	seg.setEndian(CT_ENDIAN_BIG);
-	seg.putU32(0x12345678);
-	seg.setEndian(CT_ENDIAN_LITTLE);
-	REQUIRE(seg.overwriteU32(0, 0xAABBCCDD) == 0);
-	uint8_t expected[] = {0xDD, 0xCC, 0xBB, 0xAA};
-	REQUIRE(std::memcmp(buffer.data(), expected, 4) == 0);
-	seg.rewind();
-	REQUIRE(seg.takeU32() == 0xAABBCCDD);
-}
-
-TEST_CASE("Overwrite Bounds", "[seg][overwrite]") {
-	std::array<uint8_t, 10> buffer{};
-	coter::Seg              seg(buffer.data(), buffer.size());
-
-	seg.putU32(0x12345678);
-	REQUIRE(seg.overwriteU8(0, 0xAA) == 0);
-	REQUIRE(seg.overwriteU32(10, 0xBBBBBBBB) == -1);
-	REQUIRE(seg.overwriteU64(0, 0x1122334455667788ULL) == -1);
-	uint32_t data[] = {0x11111111, 0x22222222};
-	REQUIRE(seg.overwriteArr32(0, data, 2) == -1);
-}
-
-TEST_CASE("Move Semantics", "[seg][move]") {
-	std::array<uint8_t, 64> buffer{};
-	coter::Seg              seg(buffer.data(), buffer.size());
-	seg.putU32(0xDEADBEEF);
-	coter::Seg moved(std::move(seg));
-	REQUIRE(seg.capacity() == 0);
-	REQUIRE(seg.data() == nullptr);
-	moved.rewind();
-	REQUIRE(moved.takeU32() == 0xDEADBEEF);
-
-	std::array<uint8_t, 64> buffer2{};
-	coter::Seg              seg2(buffer2.data(), buffer2.size());
-	seg2 = std::move(moved);
-	REQUIRE(moved.capacity() == 0);
-	REQUIRE(moved.data() == nullptr);
-	seg2.rewind();
-	REQUIRE(seg2.takeU32() == 0xDEADBEEF);
+		// Array overwrite out of bounds
+		uint32_t data[] = {0x11111111, 0x22222222};
+		REQUIRE(ct_seg_overwrite_arr32(&seg, 0, data, 2) == -1);  // Only 1 u32 available
+	}
 }

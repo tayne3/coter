@@ -1,9 +1,8 @@
+set(MAIN_CPP ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
+
 add_library(Catch2 INTERFACE)
 target_include_directories(Catch2 INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
-
-add_library(Catch2Main INTERFACE)
-target_include_directories(Catch2Main INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
-target_compile_definitions(Catch2Main INTERFACE CATCH_CONFIG_MAIN)
+target_link_libraries(Catch2 INTERFACE coter_compile_dependency)
 
 add_subdirectory(bytes)
 add_subdirectory(container)
