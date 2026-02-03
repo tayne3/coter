@@ -76,7 +76,6 @@ set(project_source_files
 
   src/types/any.c
 )
-# target_sources(coter PRIVATE ${project_source_files})
 add_library(coter ${COTER_LIB_TYPE} ${project_source_files})
 add_library(coter::coter ALIAS coter)
 target_link_libraries(coter PRIVATE coter_compile_dependency)

@@ -1,158 +1,170 @@
 /**
  * @file vector.h
- * @brief 提供一个通用的、非类型安全的动态数组实现。
+ * @brief 类型安全的动态数组
  */
 #ifndef COTER_VECTOR_H
 #define COTER_VECTOR_H
 
 #include "coter/core/platform.h"
-#include "coter/types/any.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/**
- * @brief 通用动态数组结构体。
- * @details
- * `ct_vector` 是一个非类型安全的动态数组，可存储任意类型的元素，
- * 所有元素必须具有相同的大小。它通过 `void*` 指针和原始内存操作来实现通用性。
- */
-typedef struct ct_vector {
-	char*  _all;   ///< 指向存储元素的原始内存缓冲区的指针。
-	size_t _byte;  ///< 每个元素的字节大小。
-	size_t _cap;   ///< 当前已分配的容量 (以元素数量计)。
-	size_t _size;  ///< 当前存储的元素数量。
-} ct_vector_t;
+// 动态数组-最大内存限制 (2GB)
+#ifndef CT_VEC_MEMORY_MAX
+#define CT_VEC_MEMORY_MAX 0x80000000
+#endif
 
 /**
- * @brief 初始化一个动态数组。
- * @param self 动态数组指针。
- * @param byte 单个元素的字节大小。
- * @param capacity 初始容量 (以元素数量计)。
+ * @brief 声明一个类型安全的 Vector。
+ * @param TYPE 元素类型 (e.g. int, struct foo)
+ * @param NAME 生成的类型名 (e.g. IntList -> IntList_t)
  */
-COTER_API void ct_vector_init(ct_vector_t* self, size_t byte, size_t capacity);
+#define CT_VEC_DECL(TYPE, NAME)                                              \
+	typedef struct NAME {                                                    \
+		TYPE*  ptr;                                                          \
+		size_t size;                                                         \
+		size_t cap;                                                          \
+	} NAME##_t;                                                              \
+                                                                             \
+	static inline size_t NAME##_size(const NAME##_t* self) {                 \
+		return self ? self->size : 0;                                        \
+	}                                                                        \
+	static inline size_t NAME##_capacity(const NAME##_t* self) {             \
+		return self ? self->cap : 0;                                         \
+	}                                                                        \
+	static inline bool NAME##_empty(const NAME##_t* self) {                  \
+		return !self || self->size == 0;                                     \
+	}                                                                        \
+	static inline TYPE* NAME##_at(NAME##_t* self, size_t idx) {              \
+		return (self && idx < self->size) ? &self->ptr[idx] : NULL;          \
+	}                                                                        \
+	static inline TYPE* NAME##_front(NAME##_t* self) {                       \
+		return (self && self->size > 0) ? &self->ptr[0] : NULL;              \
+	}                                                                        \
+	static inline TYPE* NAME##_back(NAME##_t* self) {                        \
+		return (self && self->size > 0) ? &self->ptr[self->size - 1] : NULL; \
+	}                                                                        \
+                                                                             \
+	int  NAME##_init(NAME##_t* self, size_t cap);                            \
+	void NAME##_destroy(NAME##_t* self);                                     \
+	void NAME##_clear(NAME##_t* self);                                       \
+	bool NAME##_reserve(NAME##_t* self, size_t cap);                         \
+	bool NAME##_resize(NAME##_t* self, size_t new_size);                     \
+	bool NAME##_shrink(NAME##_t* self);                                      \
+	bool NAME##_push(NAME##_t* self, const TYPE* val);                       \
+	bool NAME##_pop(NAME##_t* self);                                         \
+	bool NAME##_insert(NAME##_t* self, size_t idx, const TYPE* val);         \
+	bool NAME##_erase(NAME##_t* self, size_t idx);
+
+#define CT_VEC_IMPL(TYPE, NAME)                                                                                \
+	int NAME##_init(NAME##_t* self, size_t cap) {                                                              \
+		if (!self) { return -1; }                                                                              \
+		self->ptr  = NULL;                                                                                     \
+		self->size = 0;                                                                                        \
+		self->cap  = 0;                                                                                        \
+		if (cap > 0 && !NAME##_reserve(self, cap)) { return -1; }                                              \
+		return 0;                                                                                              \
+	}                                                                                                          \
+	void NAME##_destroy(NAME##_t* self) {                                                                      \
+		if (!self) { return; }                                                                                 \
+		if (self->ptr) {                                                                                       \
+			free(self->ptr);                                                                                   \
+			self->ptr = NULL;                                                                                  \
+		}                                                                                                      \
+		self->size = self->cap = 0;                                                                            \
+	}                                                                                                          \
+	void NAME##_clear(NAME##_t* self) {                                                                        \
+		if (self) { self->size = 0; }                                                                          \
+	}                                                                                                          \
+	bool NAME##_reserve(NAME##_t* self, size_t cap) {                                                          \
+		if (!self) { return false; }                                                                           \
+		return _ct__vector_reserve((void**)&self->ptr, &self->cap, sizeof(TYPE), cap);                         \
+	}                                                                                                          \
+	bool NAME##_resize(NAME##_t* self, size_t new_size) {                                                      \
+		if (!self) { return false; }                                                                           \
+		return _ct__vector_resize((void**)&self->ptr, &self->size, &self->cap, sizeof(TYPE), new_size);        \
+	}                                                                                                          \
+	bool NAME##_shrink(NAME##_t* self) {                                                                       \
+		if (!self) { return false; }                                                                           \
+		return _ct__vector_shrink((void**)&self->ptr, self->size, &self->cap, sizeof(TYPE));                   \
+	}                                                                                                          \
+	bool NAME##_push(NAME##_t* self, const TYPE* val) {                                                        \
+		if (!self) { return false; }                                                                           \
+		return _ct__vector_insert((void**)&self->ptr, &self->size, &self->cap, sizeof(TYPE), self->size, val); \
+	}                                                                                                          \
+	bool NAME##_pop(NAME##_t* self) {                                                                          \
+		if (!self || self->size == 0) { return false; }                                                        \
+		self->size--;                                                                                          \
+		return true;                                                                                           \
+	}                                                                                                          \
+	bool NAME##_insert(NAME##_t* self, size_t idx, const TYPE* val) {                                          \
+		if (!self) { return false; }                                                                           \
+		return _ct__vector_insert((void**)&self->ptr, &self->size, &self->cap, sizeof(TYPE), idx, val);        \
+	}                                                                                                          \
+	bool NAME##_erase(NAME##_t* self, size_t idx) {                                                            \
+		if (!self) { return false; }                                                                           \
+		return _ct__vector_erase(self->ptr, &self->size, sizeof(TYPE), idx);                                   \
+	}
 
 /**
- * @brief 销毁动态数组，并释放其占用的内存。
- * @param self 动态数组指针。
+ * @brief 核心扩容逻辑
+ *
+ * @param p_ptr 指向数据区指针的指针 (因为 realloc 可能会改变地址)
+ * @param p_cap 指向容量变量的指针
+ * @param elem_size 单个元素的字节大小
+ * @param new_cap 请求的新容量
+ * @return true 成功, false 失败
  */
-COTER_API void ct_vector_destroy(ct_vector_t* self);
+COTER_API bool _ct__vector_reserve(void** p_ptr, size_t* p_cap, size_t elem_size, size_t new_cap);
 
 /**
- * @brief 清空动态数组中的所有元素，但不释放内存。
- * @param self 动态数组指针。
+ * @brief 核心调整大小逻辑
+ *
+ * @param p_ptr 指向数据区指针的指针
+ * @param p_size 指向当前大小变量的指针
+ * @param p_cap 指向容量变量的指针
+ * @param elem_size 单个元素的字节大小
+ * @param new_size 请求的新大小
+ * @return true 成功, false 失败
  */
-COTER_API void ct_vector_clear(ct_vector_t* self);
+COTER_API bool _ct__vector_resize(void** p_ptr, size_t* p_size, size_t* p_cap, size_t elem_size, size_t new_size);
 
 /**
- * @brief 获取动态数组的当前容量。
- * @param self 动态数组指针。
- * @return 当前容量 (以元素数量计)。
+ * @brief 核心插入逻辑
+ *
+ * @param p_ptr 指向数据区指针的指针
+ * @param p_size 指向当前大小变量的指针
+ * @param p_cap 指向容量变量的指针
+ * @param elem_size 单个元素的字节大小
+ * @param idx 插入位置索引
+ * @param data 要插入的数据指针 (如果是 NULL，则只开辟空间不拷贝)
+ * @return true 成功, false 失败
  */
-COTER_API size_t ct_vector_capacity(const ct_vector_t* self);
+COTER_API bool _ct__vector_insert(void** p_ptr, size_t* p_size, size_t* p_cap, size_t elem_size, size_t idx, const void* data);
 
 /**
- * @brief 获取动态数组中元素的数量。
- * @param self 动态数组指针。
- * @return 元素数量。
+ * @brief 核心删除逻辑
+ *
+ * @param ptr 数据区指针
+ * @param p_size 指向当前大小变量的指针
+ * @param elem_size 单个元素的字节大小
+ * @param idx 删除位置索引
+ * @return true 成功, false 失败
  */
-COTER_API size_t ct_vector_size(const ct_vector_t* self);
+COTER_API bool _ct__vector_erase(void* ptr, size_t* p_size, size_t elem_size, size_t idx);
 
 /**
- * @brief 检查动态数组是否为空。
- * @param self 动态数组指针。
- * @return `true` 表示为空，`false` 表示非空。
+ * @brief 核心收缩逻辑
+ *
+ * @param p_ptr 指向数据区指针的指针
+ * @param size 当前大小
+ * @param p_cap 指向容量变量的指针
+ * @param elem_size 单个元素的字节大小
+ * @return true 成功, false 失败
  */
-COTER_API bool ct_vector_empty(const ct_vector_t* self);
-
-/**
- * @brief 调整动态数组的大小。
- * @details 如果新大小大于当前大小，则新元素将被零初始化。如果新大小小于当前大小，则多余的元素将被截断。
- * @param self 动态数组指针。
- * @param new_size 新的大小。
- * @return `true` 表示成功，`false` 表示失败。
- */
-COTER_API bool ct_vector_resize(ct_vector_t* self, size_t new_size);
-
-/**
- * @brief 请求动态数组的容量至少能容纳指定数量的元素。
- * @details 如果 `capacity` 大于当前容量，将重新分配内存。此操作不改变数组的大小。
- * @param self 动态数组指针。
- * @param capacity 期望的最小容量。
- * @return `true` 表示成功，`false` 表示失败。
- */
-COTER_API bool ct_vector_reserve(ct_vector_t* self, size_t capacity);
-
-/**
- * @brief 收缩动态数组的容量以匹配其大小。
- * @details 释放未使用的内存，使容量等于当前元素数量。
- * @param self 动态数组指针。
- * @return `true` 表示成功，`false` 表示失败。
- */
-COTER_API bool ct_vector_shrink(ct_vector_t* self);
-
-/**
- * @brief 在指定索引处插入一个新元素。
- * @param self 动态数组指针。
- * @param idx 插入位置的索引。
- * @param data 指向要插入元素数据的指针。
- * @return `true` 表示成功，`false` 表示失败。
- */
-COTER_API bool ct_vector_insert(ct_vector_t* self, size_t idx, const void* data);
-
-/**
- * @brief 在动态数组的末尾添加一个新元素。
- * @param self 动态数组指针。
- * @param data 指向要添加元素数据的指针。
- * @return `true` 表示成功，`false` 表示失败。
- */
-COTER_API bool ct_vector_push(ct_vector_t* self, const void* data);
-
-/**
- * @brief 移除动态数组中指定索引处的元素。
- * @param self 动态数组指针。
- * @param idx 要移除的元素的索引。
- * @return `true` 表示成功，`false` 表示失败。
- */
-COTER_API bool ct_vector_erase(ct_vector_t* self, size_t idx);
-
-/**
- * @brief 移除动态数组的最后一个元素。
- * @param self 动态数组指针。
- * @return `true` 表示成功，`false` 表示失败。
- */
-COTER_API bool ct_vector_pop(ct_vector_t* self);
-
-/**
- * @brief 获取指向指定索引处元素的可变指针。
- * @param self 动态数组指针。
- * @param idx 元素索引。
- * @return 指向元素的指针；如果索引越界，则返回 `NULL`。
- */
-COTER_API void* ct_vector_at(ct_vector_t* self, size_t idx);
-
-/**
- * @brief 获取指向指定索引处元素的常量指针。
- * @param self 指向动态数组的常量指针。
- * @param idx 元素索引。
- * @return 指向元素的常量指针；如果索引越界，则返回 `NULL`。
- */
-COTER_API const void* ct_vector_value(const ct_vector_t* self, size_t idx);
-
-/**
- * @brief 获取指向动态数组第一个元素的可变指针。
- * @param self 动态数组指针。
- * @return 指向第一个元素的指针；如果数组为空，则返回 `NULL`。
- */
-COTER_API void* ct_vector_front(ct_vector_t* self);
-
-/**
- * @brief 获取指向动态数组最后一个元素的可变指针。
- * @param self 动态数组指针。
- * @return 指向最后一个元素的指针；如果数组为空，则返回 `NULL`。
- */
-COTER_API void* ct_vector_back(ct_vector_t* self);
+COTER_API bool _ct__vector_shrink(void** p_ptr, size_t size, size_t* p_cap, size_t elem_size);
 
 #ifdef __cplusplus
 }

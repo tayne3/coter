@@ -27,11 +27,10 @@ add_executable(stack_test stack_test.c)
 add_test(NAME stack_test COMMAND stack_test)
 target_link_libraries(stack_test PRIVATE coter::coter coter_compile_dependency cunit::cunit)
 
-add_executable(vector_define_test vector_define_test.c)
-add_test(NAME vector_define_test COMMAND vector_define_test)
-target_link_libraries(vector_define_test PRIVATE coter::coter coter_compile_dependency cunit::cunit)
+add_executable(array_test array_test.cpp ${MAIN_CPP})
+add_test(NAME array_test COMMAND array_test)
+target_link_libraries(array_test PRIVATE coter::coter coter_compile_dependency Catch2)
 
-add_executable(vector_test vector_test.c)
+add_executable(vector_test vector_test.cpp ${MAIN_CPP})
 add_test(NAME vector_test COMMAND vector_test)
-target_link_libraries(vector_test PRIVATE coter::coter coter_compile_dependency cunit::cunit)
-
+target_link_libraries(vector_test PRIVATE coter::coter coter_compile_dependency Catch2)

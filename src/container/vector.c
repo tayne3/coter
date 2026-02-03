@@ -1,220 +1,86 @@
-/**
- * @file vector.c
- * @brief 动态数组实现
- */
 #include "coter/container/vector.h"
 
-// -------------------------[STATIC DECLARATION]-------------------------
+bool _ct__vector_reserve(void** p_ptr, size_t* p_cap, size_t elem_size, size_t new_cap) {
+	if (!p_ptr || !p_cap || elem_size == 0) { return false; }
+	if (*p_cap >= new_cap) { return true; }
+	if (new_cap > CT_VEC_MEMORY_MAX / elem_size) { return false; }
 
-#define CT_VECTOR_ITEM(self, idx) (&(self)->_all[(idx) * (self)->_byte])  // 动态数组-指定元素
-#define CT_VECTOR_CAP(self)       ((self)->_cap)                          // 动态数组-最大容量
-#define CT_VECTOR_SIZE(self)      ((self)->_size)                         // 动态数组-当前大小
-#define CT_VECTOR_MEMORY_MAX      0x80000000                              // 动态数组-最大内存限制
+	size_t target_cap = new_cap;
+	target_cap--;
+	target_cap |= target_cap >> 1;
+	target_cap |= target_cap >> 2;
+	target_cap |= target_cap >> 4;
+	target_cap |= target_cap >> 8;
+	target_cap |= target_cap >> 16;
+#if SIZE_MAX > 0xFFFFFFFF
+	target_cap |= target_cap >> 32;  // 64 位系统
+#endif
+	target_cap++;
+	if (target_cap > CT_VEC_MEMORY_MAX / elem_size) { return false; }
 
-// -------------------------[GLOBAL DEFINITION]-------------------------
+	void* new_ptr = realloc(*p_ptr, elem_size * target_cap);
+	if (!new_ptr) { return false; }
 
-void ct_vector_init(ct_vector_t* self, size_t byte, size_t capacity) {
-	if (!self) {
-		return;
-	}
-	if (!byte) {
-		return;
-	}
-	if (byte * capacity > CT_VECTOR_MEMORY_MAX) {
-		return;
-	}
-	self->_all = calloc(capacity, byte);
-	if (!self->_all) {
-		return;
-	}
-	self->_byte = byte;
-	self->_cap  = capacity;
-	self->_size = 0;
+	*p_ptr = new_ptr;
+	*p_cap = target_cap;
+	return true;
 }
 
-void ct_vector_destroy(ct_vector_t* self) {
-	if (!self) {
-		return;
+bool _ct__vector_resize(void** p_ptr, size_t* p_size, size_t* p_cap, size_t elem_size, size_t new_size) {
+	if (!p_ptr || !p_size || !p_cap || elem_size == 0) { return false; }
+
+	if (new_size > *p_cap) {
+		if (!_ct__vector_reserve(p_ptr, p_cap, elem_size, new_size)) { return false; }
 	}
-	if (self->_all) {
-		free(self->_all);
-		self->_all = NULL;
+	if (new_size > *p_size) {
+		char* base = (char*)(*p_ptr);
+		memset(base + (*p_size * elem_size), 0, (new_size - *p_size) * elem_size);
 	}
-	self->_byte = self->_cap = self->_size = 0;
+
+	*p_size = new_size;
+	return true;
 }
 
-void ct_vector_clear(ct_vector_t* self) {
-	if (!self) {
-		return;
+bool _ct__vector_insert(void** p_ptr, size_t* p_size, size_t* p_cap, size_t elem_size, size_t idx, const void* data) {
+	if (!p_ptr || !p_size || !p_cap || elem_size == 0) { return false; }
+	if (idx > *p_size) { return false; }
+	if (*p_size >= *p_cap) {
+		if (!_ct__vector_reserve(p_ptr, p_cap, elem_size, *p_size + 1)) { return false; }
 	}
-	self->_size = 0;
+
+	char* base = (char*)(*p_ptr);
+	if (idx < *p_size) { memmove(base + ((idx + 1) * elem_size), base + (idx * elem_size), (*p_size - idx) * elem_size); }
+	if (data) { memcpy(base + (idx * elem_size), data, elem_size); }
+
+	++(*p_size);
+	return true;
 }
 
-size_t ct_vector_capacity(const ct_vector_t* self) {
-	if (!self) {
-		return 0;
-	}
-	return CT_VECTOR_CAP(self);
+bool _ct__vector_erase(void* ptr, size_t* p_size, size_t elem_size, size_t idx) {
+	if (!ptr || !p_size || elem_size == 0) { return false; }
+	if (idx >= *p_size) { return false; }
+
+	char* base = (char*)ptr;
+	if (idx < *p_size - 1) { memmove(base + (idx * elem_size), base + ((idx + 1) * elem_size), (*p_size - idx - 1) * elem_size); }
+
+	--(*p_size);
+	return true;
 }
 
-size_t ct_vector_size(const ct_vector_t* self) {
-	if (!self) {
-		return 0;
-	}
-	return CT_VECTOR_SIZE(self);
-}
-
-bool ct_vector_empty(const ct_vector_t* self) {
-	if (!self) {
+bool _ct__vector_shrink(void** p_ptr, size_t size, size_t* p_cap, size_t elem_size) {
+	if (!p_ptr || !p_cap || elem_size == 0) { return false; }
+	if (*p_cap == size) { return true; }
+	if (size == 0) {
+		free(*p_ptr);
+		*p_ptr = NULL;
+		*p_cap = 0;
 		return true;
 	}
-	return CT_VECTOR_SIZE(self) == 0;
-}
 
-bool ct_vector_resize(ct_vector_t* self, size_t new_size) {
-	if (!self) {
-		return false;
-	}
-	if (new_size > self->_cap) {
-		if (!ct_vector_reserve(self, new_size)) {
-			return false;
-		}
-	}
-	if (new_size > self->_size) {
-		memset(CT_VECTOR_ITEM(self, self->_size), 0, (new_size - self->_size) * self->_byte);
-	}
-	self->_size = new_size;
+	void* new_ptr = realloc(*p_ptr, elem_size * size);
+	if (!new_ptr) { return false; }
+
+	*p_ptr = new_ptr;
+	*p_cap = size;
 	return true;
 }
-
-bool ct_vector_reserve(ct_vector_t* self, size_t capacity) {
-	if (!self) {
-		return false;
-	}
-	if (self->_cap >= capacity) {
-		return true;
-	}
-	size_t new_cap = self->_cap == 0 ? 1 : self->_cap;
-	while (new_cap < capacity) {
-		new_cap *= 2;
-	}
-	if (self->_byte * new_cap > CT_VECTOR_MEMORY_MAX) {
-		return false; /* out of memory */
-	}
-	char* new_all = realloc(self->_all, self->_byte * new_cap);
-	if (!new_all) {
-		return false; /* realloc failed */
-	}
-	self->_all = new_all;
-	self->_cap = new_cap;
-	return true;
-}
-
-bool ct_vector_shrink(ct_vector_t* self) {
-	if (!self) {
-		return false;
-	}
-	if (self->_cap == self->_size) {
-		return true;
-	}
-	if (self->_size == 0) {
-		free(self->_all);
-		self->_all = NULL;
-		self->_cap = 0;
-		return true;
-	}
-	char* new_all = realloc(self->_all, self->_byte * self->_size);
-	if (!new_all) {
-		return false;
-	}
-	self->_all = new_all;
-	self->_cap = self->_size;
-	return true;
-}
-
-bool ct_vector_insert(ct_vector_t* self, size_t idx, const void* data) {
-	if (!self) {
-		return false;
-	}
-	if (idx > self->_size) {
-		return false;
-	}
-	if (!ct_vector_reserve(self, self->_size + 1)) {
-		return false;
-	}
-	if (idx < self->_size) {
-		memmove(CT_VECTOR_ITEM(self, idx + 1), CT_VECTOR_ITEM(self, idx), (self->_size - idx) * self->_byte);
-	}
-	memcpy(CT_VECTOR_ITEM(self, idx), data, self->_byte);
-	++self->_size;
-	return true;
-}
-
-bool ct_vector_push(ct_vector_t* self, const void* data) {
-	if (!self) {
-		return false;
-	}
-	if (self->_size >= self->_cap) {
-		if (!ct_vector_reserve(self, self->_size + 1)) {
-			return false;
-		}
-	}
-	memcpy(CT_VECTOR_ITEM(self, self->_size), data, self->_byte);
-	++self->_size;
-	return true;
-}
-
-bool ct_vector_erase(ct_vector_t* self, size_t idx) {
-	if (!self) {
-		return false;
-	}
-	if (idx >= self->_size) {
-		return false;
-	}
-	if (idx < self->_size - 1) {
-		memmove(CT_VECTOR_ITEM(self, idx), CT_VECTOR_ITEM(self, idx + 1), (self->_size - idx - 1) * self->_byte);
-	}
-	--self->_size;
-	return true;
-}
-
-bool ct_vector_pop(ct_vector_t* self) {
-	if (!self) {
-		return false;
-	}
-	if (self->_size == 0) {
-		return false;
-	}
-	--self->_size;
-	return true;
-}
-
-void* ct_vector_at(ct_vector_t* self, size_t idx) {
-	if (!self) {
-		return NULL;
-	}
-	return idx >= self->_size ? NULL : CT_VECTOR_ITEM(self, idx);
-}
-
-const void* ct_vector_value(const ct_vector_t* self, size_t idx) {
-	if (!self) {
-		return NULL;
-	}
-	return idx >= self->_size ? NULL : CT_VECTOR_ITEM(self, idx);
-}
-
-void* ct_vector_front(ct_vector_t* self) {
-	if (!self) {
-		return NULL;
-	}
-	return self->_size == 0 ? NULL : CT_VECTOR_ITEM(self, 0);
-}
-
-void* ct_vector_back(ct_vector_t* self) {
-	if (!self) {
-		return NULL;
-	}
-	return self->_size == 0 ? NULL : CT_VECTOR_ITEM(self, self->_size - 1);
-}
-
-// -------------------------[STATIC DEFINITION]-------------------------
