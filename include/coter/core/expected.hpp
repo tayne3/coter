@@ -8,14 +8,22 @@
 // and: http://eel.is/c++draft/cpp.predefined#1.1
 #if ((defined(_MSVC_LANG) && _MSVC_LANG > 202002L) || __cplusplus > 202002L)
 // Standard library provides std::expected in C++23 and above.
+#ifdef _MSC_VER
 #pragma warning(push, 0)
+#endif
 #include <expected>
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
 #else
 // We rely on https://github.com/TartanLlama/expected for expected structure.
+#ifdef _MSC_VER
 #pragma warning(push, 0)
+#endif
 #include "coter/core/tl/expected.hpp"
+#i #ifdef _MSC_VER
 #pragma warning(pop)
+#endif
 #endif
 
 namespace cxx23 {
