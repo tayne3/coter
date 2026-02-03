@@ -315,33 +315,104 @@ TEST_CASE("IO Operations", "[seg][io]") {
 	}
 }
 
+TEST_CASE("Handle Access", "[seg][handle]") {
+	std::array<uint8_t, 64> buffer{};
+	coter::seg              seg(buffer.data(), buffer.size(), 32);
+
+	SECTION("non-const handle") {
+		ct_seg_t* h = seg.handle();
+		REQUIRE(h != nullptr);
+		REQUIRE(h->bytes == buffer.data());
+		REQUIRE(h->cap == buffer.size());
+		REQUIRE(h->len == 32);
+	}
+
+	SECTION("const handle") {
+		const coter::seg& cseg = seg;
+		const ct_seg_t*   h    = cseg.handle();
+		REQUIRE(h != nullptr);
+		REQUIRE(h->bytes == buffer.data());
+	}
+}
+
+TEST_CASE("Getter Methods", "[seg][config]") {
+	std::array<uint8_t, 64> buffer{};
+	coter::seg              seg(buffer.data(), buffer.size());
+
+	SECTION("default values") {
+		REQUIRE(seg.get_endian() == CT_ENDIAN_BIG);
+		REQUIRE(seg.get_hlswap() == 0);
+	}
+
+	SECTION("get after set") {
+		seg.set_endian(CT_ENDIAN_LITTLE);
+		REQUIRE(seg.get_endian() == CT_ENDIAN_LITTLE);
+
+		seg.set_hlswap(1);
+		REQUIRE(seg.get_hlswap() == 1);
+	}
+}
+
 TEST_CASE("View Operations", "[seg][view]") {
 	std::array<uint8_t, 64> buffer{};
 	for (size_t i = 0; i < 64; i++) buffer[i] = static_cast<uint8_t>(i);
 
-	SECTION("since valid/invalid") {
+	SECTION("since valid range") {
 		coter::seg seg(buffer.data(), buffer.size(), 32);
-		coter::seg view(buffer.data(), 0);
+		auto       result = seg.since(8, 24);
 
-		REQUIRE(seg.since(view, 8, 24) == 0);
-		REQUIRE(view.data() == buffer.data() + 8);
-		REQUIRE(view.count() == 16);
-
-		REQUIRE(seg.since(view, 24, 8) == -1);
-		REQUIRE(seg.since(view, 0, 100) == -1);
+		REQUIRE(result.has_value());
+		REQUIRE(result->data() == buffer.data() + 8);
+		REQUIRE(result->capacity() == buffer.size() - 8);
+		REQUIRE(result->count() == 16);
+		REQUIRE(result->pos() == 0);
 	}
 
-	SECTION("readable_since/writable_since") {
+	SECTION("since invalid range returns nullopt") {
 		coter::seg seg(buffer.data(), buffer.size(), 32);
-		coter::seg view(buffer.data(), 0);
 
+		REQUIRE_FALSE(seg.since(24, 8).has_value());   // end < start
+		REQUIRE_FALSE(seg.since(0, 100).has_value());  // end > cap
+	}
+
+	SECTION("since empty range") {
+		coter::seg seg(buffer.data(), buffer.size(), 32);
+		auto       result = seg.since(10, 10);
+
+		REQUIRE(result.has_value());
+		REQUIRE(result->count() == 0);
+		REQUIRE(result->data() == buffer.data() + 10);
+	}
+
+	SECTION("since inherits config") {
+		coter::seg seg(buffer.data(), buffer.size(), 32);
+		seg.set_endian(CT_ENDIAN_LITTLE);
+		seg.set_hlswap(1);
+
+		auto result = seg.since(0, 16);
+		REQUIRE(result.has_value());
+		REQUIRE(result->get_endian() == CT_ENDIAN_LITTLE);
+		REQUIRE(result->get_hlswap() == 1);
+	}
+
+	SECTION("readable_since") {
+		coter::seg seg(buffer.data(), buffer.size(), 32);
 		seg.seek(8);
-		seg.readable_since(view);
-		REQUIRE(view.data() == buffer.data() + 8);
-		REQUIRE(view.count() == 24);
 
-		seg.writable_since(view);
-		REQUIRE(view.data() == buffer.data() + 8);
+		auto result = seg.readable_since();
+		REQUIRE(result.has_value());
+		REQUIRE(result->data() == buffer.data() + 8);
+		REQUIRE(result->count() == 24);  // [pos, len] = [8, 32]
+	}
+
+	SECTION("writable_since") {
+		coter::seg seg(buffer.data(), buffer.size(), 32);
+		seg.seek(8);
+
+		auto result = seg.writable_since();
+		REQUIRE(result.has_value());
+		REQUIRE(result->data() == buffer.data() + 8);
+		REQUIRE(result->count() == buffer.size() - 8);  // [pos, cap] = [8, 64]
 	}
 
 	SECTION("compact") {

@@ -2,6 +2,7 @@
 #define COTER_BYTES_SEG_HPP
 
 #include "coter/bytes/seg.h"
+#include "coter/core/optional.hpp"
 #include "coter/math/bit.hpp"
 
 namespace coter {
@@ -49,9 +50,13 @@ public:
 	int  skip(size_t length) noexcept { return ct_seg_skip(&d, length); }
 	int  commit(size_t length) noexcept { return ct_seg_commit(&d, length); }
 
-	int since(seg &since, size_t start, size_t end) noexcept { return ct_seg_since(&d, &since.d, start, end); }
-	int readable_since(seg &since) noexcept { return ct_seg_readable_since(&d, &since.d); }
-	int writable_since(seg &since) noexcept { return ct_seg_writable_since(&d, &since.d); }
+	cxx17::optional<seg> since(size_t start, size_t end) noexcept {
+		seg since = *this;
+		if (ct_seg_since(&d, &since.d, start, end) != 0) { return cxx17::nullopt; }
+		return since;
+	}
+	cxx17::optional<seg> readable_since() noexcept { return since(pos(), count()); }
+	cxx17::optional<seg> writable_since() noexcept { return since(pos(), capacity()); }
 
 	void compact() noexcept { ct_seg_compact(&d); }
 	int  peek(uint8_t *p, size_t length) const noexcept { return ct_seg_peek(&d, p, length); }

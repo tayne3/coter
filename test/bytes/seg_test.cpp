@@ -142,8 +142,14 @@ TEST_CASE("seg Configuration", "[seg][config]") {
 	memset(buffer, 0, sizeof(buffer));
 	ct_seg_init(&seg, buffer, sizeof(buffer));
 
+	SECTION("Default config values") {
+		REQUIRE(ct_seg_get_endian(&seg) == CT_ENDIAN_BIG);
+		REQUIRE(ct_seg_get_hlswap(&seg) == 0);
+	}
+
 	SECTION("Endianness") {
 		ct_seg_set_endian(&seg, CT_ENDIAN_LITTLE);
+		REQUIRE(ct_seg_get_endian(&seg) == CT_ENDIAN_LITTLE);
 		ct_seg_put_u32(&seg, 0x12345678);
 
 		uint8_t expected_le[] = {0x78, 0x56, 0x34, 0x12};
@@ -151,6 +157,7 @@ TEST_CASE("seg Configuration", "[seg][config]") {
 
 		ct_seg_rewind(&seg);
 		ct_seg_set_endian(&seg, CT_ENDIAN_BIG);
+		REQUIRE(ct_seg_get_endian(&seg) == CT_ENDIAN_BIG);
 		ct_seg_put_u32(&seg, 0x12345678);
 
 		uint8_t expected_be[] = {0x12, 0x34, 0x56, 0x78};
@@ -160,6 +167,7 @@ TEST_CASE("seg Configuration", "[seg][config]") {
 	SECTION("High-Low Swap") {
 		ct_seg_set_endian(&seg, CT_ENDIAN_BIG);
 		ct_seg_set_hlswap(&seg, 1);
+		REQUIRE(ct_seg_get_hlswap(&seg) == 1);
 
 		// u32: 0x11223344 -> 0x22114433
 		ct_seg_put_u32(&seg, 0x11223344);
@@ -508,6 +516,14 @@ TEST_CASE("seg View Operations", "[seg][view]") {
 		ct_seg_from(&seg, buffer, sizeof(buffer), 32);
 		REQUIRE(ct_seg_since(&seg, &view, 24, 8) == -1);
 		REQUIRE(ct_seg_since(&seg, &view, 0, 100) == -1);
+	}
+
+	SECTION("since empty range") {
+		ct_seg_from(&seg, buffer, sizeof(buffer), 32);
+		REQUIRE(ct_seg_since(&seg, &view, 10, 10) == 0);
+		REQUIRE(view.bytes == buffer + 10);
+		REQUIRE(view.len == 0);
+		REQUIRE(view.pos == 0);
 	}
 
 	SECTION("since inherits config") {
