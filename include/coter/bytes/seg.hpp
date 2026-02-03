@@ -8,7 +8,7 @@ namespace coter {
 
 class seg {
 public:
-	explicit seg(uint8_t *bytes, size_t cap) noexcept { ct_seg_init(&d, bytes, cap); }
+	explicit seg(uint8_t *bytes, size_t cap, size_t len = 0) noexcept { ct_seg_from(&d, bytes, cap, len); }
 	seg(seg &&other) noexcept : d(other.d) { ct_seg_init(&other.d, nullptr, 0); }
 	seg &operator=(seg &&other) noexcept {
 		if (this != &other) {
