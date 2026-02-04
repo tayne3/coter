@@ -514,6 +514,20 @@ TEST_CASE("seg View Operations", "[seg][view]") {
 		REQUIRE(view.pos == 0);
 	}
 
+	SECTION("since with default end (0)") {
+		ct_seg_from(&seg, buffer, sizeof(buffer), 32);
+
+		// Case 1: start=0, end=0 -> [0, 32]
+		REQUIRE(ct_seg_since(&seg, &view, 0, 0) == 0);
+		REQUIRE(view.bytes == buffer);
+		REQUIRE(view.len == 32);
+
+		// Case 2: start=10, end=0 -> [10, 32]
+		REQUIRE(ct_seg_since(&seg, &view, 10, 0) == 0);
+		REQUIRE(view.bytes == buffer + 10);
+		REQUIRE(view.len == 22);
+	}
+
 	SECTION("since invalid range") {
 		ct_seg_from(&seg, buffer, sizeof(buffer), 32);
 		REQUIRE(ct_seg_since(&seg, &view, 24, 8) == -1);

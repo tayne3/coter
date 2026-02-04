@@ -371,6 +371,28 @@ TEST_CASE("View Operations", "[seg][view]") {
 		REQUIRE(result->pos() == 0);
 	}
 
+	SECTION("since default arguments") {
+		coter::seg seg(buffer.data(), buffer.size(), 32);
+
+		// Case 1: since() -> [0, 32]
+		auto res1 = seg.since();
+		REQUIRE(res1.has_value());
+		REQUIRE(res1->data() == buffer.data());
+		REQUIRE(res1->count() == 32);
+
+		// Case 2: since(10) -> [10, 32]
+		auto res2 = seg.since(10);
+		REQUIRE(res2.has_value());
+		REQUIRE(res2->data() == buffer.data() + 10);
+		REQUIRE(res2->count() == 22);
+
+		// Case 3: since(10, 0) -> [10, 32] (explicit 0 for end)
+		auto res3 = seg.since(10, 0);
+		REQUIRE(res3.has_value());
+		REQUIRE(res3->data() == buffer.data() + 10);
+		REQUIRE(res3->count() == 22);
+	}
+
 	SECTION("since invalid range returns nullopt") {
 		coter::seg seg(buffer.data(), buffer.size(), 32);
 

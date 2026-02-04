@@ -50,7 +50,7 @@ public:
 	int  skip(size_t length) noexcept { return ct_seg_skip(&d, length); }
 	int  commit(size_t length) noexcept { return ct_seg_commit(&d, length); }
 
-	cxx17::optional<seg> since(size_t start, size_t end) noexcept {
+	cxx17::optional<seg> since(size_t start = 0, size_t end = 0) noexcept {
 		seg since = *this;
 		if (ct_seg_since(&d, &since.d, start, end) != 0) { return cxx17::nullopt; }
 		return since;
