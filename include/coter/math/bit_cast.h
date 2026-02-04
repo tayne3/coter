@@ -3,7 +3,9 @@
 
 #include "coter/core/platform.h"
 
-#ifndef __cplusplus
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * @brief Convert a 32-bit float to its bit representation
@@ -14,7 +16,8 @@ static inline uint32_t ct_bits_from_float32(float f) {
 	union {
 		float    f;
 		uint32_t u;
-	} c = {.f = f};
+	} c;
+	c.f = f;
 	return c.u;
 }
 
@@ -27,7 +30,8 @@ static inline float ct_bits_to_float32(uint32_t u) {
 	union {
 		float    f;
 		uint32_t u;
-	} c = {.u = u};
+	} c;
+	c.u = u;
 	return c.f;
 }
 
@@ -40,7 +44,8 @@ static inline uint64_t ct_bits_from_float64(double f) {
 	union {
 		double   f;
 		uint64_t u;
-	} c = {.f = f};
+	} c;
+	c.f = f;
 	return c.u;
 }
 
@@ -53,10 +58,12 @@ static inline double ct_bits_to_float64(uint64_t u) {
 	union {
 		double   f;
 		uint64_t u;
-	} c = {.u = u};
+	} c;
+	c.u = u;
 	return c.f;
 }
 
+#ifdef __cplusplus
+}
 #endif
-
 #endif  // COTER_MATH_BIT_CAST_H
