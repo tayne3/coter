@@ -1,5 +1,5 @@
-name: Build
-run-name: ${{ gitea.actor }} is building the project 🚀
+name: Test
+run-name: ${{ gitea.actor }} is running tests 🧪
 
 on:
   push:
@@ -44,10 +44,19 @@ jobs:
         uses: https://gitea.com/actions/checkout@v3
         with:
           fetch-depth: 0
+
+      - name: Cache dependencies
+        uses: https://gitea.com/actions/cache@v4
+        with:
+          path: cmake_modules
+          key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
+
       - name: Configure Git for private repositories
         run: |
           git config --global http.http://192.168.1.47:3000.extraheader "Authorization: token ${{ secrets.READONLY_TOKEN }}"
+
       - name: Configure project
         run: task config
+
       - name: Run tests
         run: task test
