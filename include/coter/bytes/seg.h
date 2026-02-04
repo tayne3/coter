@@ -142,10 +142,10 @@ static inline int ct_seg_since(const ct_seg_t *self, ct_seg_t *since, size_t sta
 COTER_API void ct_seg_compact(ct_seg_t *self);
 
 /**
- * @brief Peek reads data from the current position into p without advancing the position.
+ * @brief Peek reads data from the buffer at the specified offset into p.
  * @return The actual number of bytes read.
  */
-COTER_API int ct_seg_peek(const ct_seg_t *self, uint8_t *p, size_t length);
+COTER_API int ct_seg_peek(const ct_seg_t *self, size_t offset, uint8_t *p, size_t length);
 
 /**
  * @brief Fill fills the buffer with byte bt for the specified length.

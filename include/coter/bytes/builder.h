@@ -92,8 +92,8 @@ static inline int ct_builder_seg(ct_builder_t *self, ct_seg_t *seg, size_t start
 #define ct_builder_writable_seg(self, s) ct_seg_since(&(self)->seg, (s), (self)->seg.pos, (self)->seg.cap);
 #define ct_builder_compact(self)         ct_seg_compact(&(self)->seg)
 
-#define ct_builder_peek(self, p, len) ct_seg_peek(&(self)->seg, p, len)
-#define ct_builder_read(self, p, len) ct_seg_read(&(self)->seg, p, len)
+#define ct_builder_peek(self, offset, p, len) ct_seg_peek(&(self)->seg, offset, p, len)
+#define ct_builder_read(self, p, len)         ct_seg_read(&(self)->seg, p, len)
 
 #define ct_builder_take_u8(self)          ct_seg_take_u8(&(self)->seg)
 #define ct_builder_take_u16(self)         ct_seg_take_u16(&(self)->seg)

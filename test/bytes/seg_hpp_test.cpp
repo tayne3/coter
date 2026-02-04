@@ -295,9 +295,14 @@ TEST_CASE("IO Operations", "[seg][io]") {
 		seg.rewind();
 
 		uint8_t out[4] = {0};
-		REQUIRE(seg.peek(out, 4) == 4);
+		REQUIRE(seg.peek(0, out, 4) == 4);
 		REQUIRE(std::memcmp(out, data, 4) == 0);
 		REQUIRE(seg.pos() == 0);
+
+		uint8_t out2[2] = {0};
+		REQUIRE(seg.peek(2, out2, 2) == 2);
+		REQUIRE(out2[0] == 0xCC);
+		REQUIRE(out2[1] == 0xDD);
 	}
 
 	SECTION("fill pattern") {

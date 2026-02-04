@@ -166,6 +166,20 @@ TEST_CASE_METHOD(BuilderFixture, "Builder Operations", "[builder][ops]") {
 		ct_seg_put_u8(&seg, 0xFF);
 		REQUIRE(ct_builder_pos(builder) == builder_pos);
 	}
+
+	SECTION("Peek Bytes") {
+		uint8_t data[] = {0x01, 0x02, 0x03, 0x04};
+		ct_builder_write(builder, data, 4);
+
+		uint8_t out[4] = {0};
+		REQUIRE(ct_builder_peek(builder, 0, out, 4) == 4);
+		REQUIRE(std::memcmp(out, data, 4) == 0);
+
+		uint8_t out2[2] = {0};
+		REQUIRE(ct_builder_peek(builder, 2, out2, 2) == 2);
+		REQUIRE(out2[0] == 0x03);
+		REQUIRE(out2[1] == 0x04);
+	}
 }
 
 TEST_CASE_METHOD(BuilderFixture, "Builder Configuration", "[builder][config]") {

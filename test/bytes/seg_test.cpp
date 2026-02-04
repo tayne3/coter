@@ -479,9 +479,14 @@ TEST_CASE("seg IO Operations", "[seg][io]") {
 		ct_seg_rewind(&seg);
 
 		uint8_t out[4] = {0};
-		REQUIRE(ct_seg_peek(&seg, out, 4) == 4);
+		REQUIRE(ct_seg_peek(&seg, 0, out, 4) == 4);
 		REQUIRE(memcmp(out, data, 4) == 0);
 		REQUIRE(ct_seg_pos(&seg) == 0);
+
+		uint8_t out2[2] = {0};
+		REQUIRE(ct_seg_peek(&seg, 2, out2, 2) == 2);
+		REQUIRE(out2[0] == 0x33);
+		REQUIRE(out2[1] == 0x44);
 	}
 
 	SECTION("fill pattern") {

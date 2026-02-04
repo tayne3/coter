@@ -59,7 +59,7 @@ public:
 	cxx17::optional<seg> writable_since() const noexcept { return since(pos(), capacity()); }
 
 	void compact() noexcept { ct_seg_compact(&d); }
-	int  peek(uint8_t *p, size_t length) const noexcept { return ct_seg_peek(&d, p, length); }
+	int  peek(size_t offset, uint8_t *p, size_t length) const noexcept { return ct_seg_peek(&d, offset, p, length); }
 	int  fill(uint8_t bt, size_t length) noexcept { return ct_seg_fill(&d, bt, length); }
 	int  read(uint8_t *p, size_t length) noexcept { return ct_seg_read(&d, p, length); }
 	int  write(const uint8_t *p, size_t length) noexcept { return ct_seg_write(&d, p, length); }
