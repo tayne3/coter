@@ -122,7 +122,7 @@ static inline int ct_seg_commit(ct_seg_t *self, size_t length) {
 }
 
 // Create a view buffer pointing to a range [start, end] of the original buffer.
-static inline int ct_seg_since(ct_seg_t *self, ct_seg_t *since, size_t start, size_t end) {
+static inline int ct_seg_since(const ct_seg_t *self, ct_seg_t *since, size_t start, size_t end) {
 	if (end == 0) { end = self->len; }
 	if (end < start || end > (size_t)self->cap) { return -1; }
 	since->bytes  = self->bytes + start;

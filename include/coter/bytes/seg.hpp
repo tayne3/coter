@@ -50,13 +50,13 @@ public:
 	int  skip(size_t length) noexcept { return ct_seg_skip(&d, length); }
 	int  commit(size_t length) noexcept { return ct_seg_commit(&d, length); }
 
-	cxx17::optional<seg> since(size_t start = 0, size_t end = 0) noexcept {
+	cxx17::optional<seg> since(size_t start = 0, size_t end = 0) const noexcept {
 		seg since = *this;
 		if (ct_seg_since(&d, &since.d, start, end) != 0) { return cxx17::nullopt; }
 		return since;
 	}
-	cxx17::optional<seg> readable_since() noexcept { return since(pos(), count()); }
-	cxx17::optional<seg> writable_since() noexcept { return since(pos(), capacity()); }
+	cxx17::optional<seg> readable_since() const noexcept { return since(pos(), count()); }
+	cxx17::optional<seg> writable_since() const noexcept { return since(pos(), capacity()); }
 
 	void compact() noexcept { ct_seg_compact(&d); }
 	int  peek(uint8_t *p, size_t length) const noexcept { return ct_seg_peek(&d, p, length); }
