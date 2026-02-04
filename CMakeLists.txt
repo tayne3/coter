@@ -41,6 +41,7 @@ set(project_source_files
 
   src/crypto/sha1.c
   src/crypto/md5.c
+  src/crypto/hash/hash.c
 
   src/encoding/hex.c
   src/encoding/binary.c
@@ -49,8 +50,6 @@ set(project_source_files
 
   src/event/hub.c
   src/event/msgqueue.c
-
-  src/hash/hash.c
 
   src/log/logger.c
   src/log/log_storage.c

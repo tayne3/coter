@@ -18,7 +18,7 @@
 #include "coter/container/hash.h"
 
 #include "coter/core/platform.h"
-#include "coter/hash/hash.h"
+#include "coter/crypto/hash/hash.h"
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
@@ -39,15 +39,11 @@ static inline bool ct_hash_resize(ct_hash_buf_t self, size_t max);
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
 void ct_hash_init(ct_hash_buf_t self) {
-	if (!self) {
-		return;
-	}
+	if (!self) { return; }
 
 	// 申请内存
 	self->all = (ct_hash_pair_t **)calloc(CT_HASH_DEFAULT_MAX, sizeof(ct_hash_pair_t *));
-	if (!self->all) {
-		return;
-	}
+	if (!self->all) { return; }
 
 	self->methods      = ct_any_methods_default;
 	self->max          = CT_HASH_DEFAULT_MAX;
@@ -56,19 +52,13 @@ void ct_hash_init(ct_hash_buf_t self) {
 }
 
 void ct_hash_init_s(ct_hash_buf_t self, size_t max, bool allow_resize, ct_any_methods_t methods) {
-	if (!self || !max) {
-		return;
-	}
+	if (!self || !max) { return; }
 
-	if (max > CT_HASH_MEMORY_MAX) {
-		max = CT_HASH_MEMORY_MAX;
-	}
+	if (max > CT_HASH_MEMORY_MAX) { max = CT_HASH_MEMORY_MAX; }
 
 	// 申请内存
 	self->all = (ct_hash_pair_t **)calloc(max, sizeof(ct_hash_pair_t *));
-	if (!self->all) {
-		return;
-	}
+	if (!self->all) { return; }
 
 	self->methods      = methods;
 	self->max          = max;
@@ -77,9 +67,7 @@ void ct_hash_init_s(ct_hash_buf_t self, size_t max, bool allow_resize, ct_any_me
 }
 
 void ct_hash_destroy(ct_hash_buf_t self) {
-	if (!self) {
-		return;
-	}
+	if (!self) { return; }
 
 	// 清空元素
 	ct_hash_clear(self);
@@ -91,12 +79,8 @@ void ct_hash_destroy(ct_hash_buf_t self) {
 }
 
 void ct_hash_reserve(ct_hash_buf_t self, size_t max) {
-	if (!self) {
-		return;
-	}
-	if (self->max < max && max < CT_HASH_MEMORY_MAX) {
-		ct_hash_resize(self, max);
-	}
+	if (!self) { return; }
+	if (self->max < max && max < CT_HASH_MEMORY_MAX) { ct_hash_resize(self, max); }
 }
 
 size_t ct_hash_size(const ct_hash_buf_t self) {
@@ -108,19 +92,13 @@ bool ct_hash_isempty(const ct_hash_buf_t self) {
 }
 
 bool ct_hash_contains(const ct_hash_buf_t self, const char *key) {
-	if (!self) {
-		return false;
-	}
+	if (!self) { return false; }
 
-	if (STR_ISEMPTY(key) || CT_HASH_ISEMPTY(self)) {
-		return false;
-	}
+	if (STR_ISEMPTY(key) || CT_HASH_ISEMPTY(self)) { return false; }
 
 	const size_t key_length = strlen(key);
 
-	if (!key_length) {
-		return false;
-	}
+	if (!key_length) { return false; }
 
 	// 生成索引值
 	const ct_hash32_t key_hash   = CT_HASH_HASHALGO(key, key_length);
@@ -130,9 +108,7 @@ bool ct_hash_contains(const ct_hash_buf_t self, const char *key) {
 
 	// 遍历链表, 检查key是否已经存在
 	for (const ct_hash_pair_t *it = pos; it; it = it->next) {
-		if (it->key_hash != key_hash || key_length != it->key_length || strncmp(key, it->key, key_length) != 0) {
-			continue;
-		}
+		if (it->key_hash != key_hash || key_length != it->key_length || strncmp(key, it->key, key_length) != 0) { continue; }
 		return true;
 	}
 
@@ -140,18 +116,12 @@ bool ct_hash_contains(const ct_hash_buf_t self, const char *key) {
 }
 
 bool ct_hash_insert(ct_hash_buf_t self, const char *key, ct_any_t value) {
-	if (!self) {
-		return false;
-	}
-	if (STR_ISEMPTY(key)) {
-		return false;
-	}
+	if (!self) { return false; }
+	if (STR_ISEMPTY(key)) { return false; }
 
 	const size_t key_length = strlen(key);
 
-	if (!key_length) {
-		return false;
-	}
+	if (!key_length) { return false; }
 
 	if (CT_HASH_ISFULL(self)) {
 		if (!self->allow_resize) {
@@ -160,9 +130,7 @@ bool ct_hash_insert(ct_hash_buf_t self, const char *key, ct_any_t value) {
 			return false;
 		} else {
 			size_t max = self->max * 2;
-			if (max > CT_HASH_MEMORY_MAX) {
-				max = CT_HASH_MEMORY_MAX;
-			}
+			if (max > CT_HASH_MEMORY_MAX) { max = CT_HASH_MEMORY_MAX; }
 			ct_hash_resize(self, max);
 		}
 	}
@@ -175,17 +143,13 @@ bool ct_hash_insert(ct_hash_buf_t self, const char *key, ct_any_t value) {
 
 	// 遍历链表, 检查key是否已经存在
 	for (ct_hash_pair_t *it = pos; it; it = it->next) {
-		if (it->key_hash != key_hash || key_length != it->key_length || strncmp(key, it->key, key_length) != 0) {
-			continue;
-		}
+		if (it->key_hash != key_hash || key_length != it->key_length || strncmp(key, it->key, key_length) != 0) { continue; }
 		ct_any_update(&self->methods, &it->value, &value);
 		return true;
 	}
 
 	ct_hash_pair_t *new_pair = (ct_hash_pair_t *)malloc(sizeof(ct_hash_pair_t) + key_length);
-	if (!new_pair) {
-		return false;
-	}
+	if (!new_pair) { return false; }
 
 	ct_any_ctor(&self->methods, &new_pair->value, &value);
 	strncpy(new_pair->key, key, key_length + 1);
@@ -198,20 +162,14 @@ bool ct_hash_insert(ct_hash_buf_t self, const char *key, ct_any_t value) {
 }
 
 bool ct_hash_remove(ct_hash_buf_t self, const char *key) {
-	if (!self) {
-		return false;
-	}
+	if (!self) { return false; }
 
 	do {
-		if (STR_ISEMPTY(key) || CT_HASH_ISEMPTY(self)) {
-			break;
-		}
+		if (STR_ISEMPTY(key) || CT_HASH_ISEMPTY(self)) { break; }
 
 		const size_t key_length = strlen(key);
 
-		if (!key_length) {
-			break;
-		}
+		if (!key_length) { break; }
 
 		// 生成索引值
 		const ct_hash32_t key_hash   = CT_HASH_HASHALGO(key, key_length);
@@ -221,9 +179,7 @@ bool ct_hash_remove(ct_hash_buf_t self, const char *key) {
 
 		// 遍历链表, 检查key是否已经存在
 		for (ct_hash_pair_t *it = pos, *prev = NULL; it; prev = it, it = it->next) {
-			if (it->key_hash != key_hash || key_length != it->key_length || strncmp(key, it->key, key_length) != 0) {
-				continue;
-			}
+			if (it->key_hash != key_hash || key_length != it->key_length || strncmp(key, it->key, key_length) != 0) { continue; }
 			if (prev) {
 				prev->next = it->next;
 			} else {
@@ -241,24 +197,18 @@ bool ct_hash_remove(ct_hash_buf_t self, const char *key) {
 }
 
 void ct_hash_clear(ct_hash_buf_t self) {
-	if (!self) {
-		return;
-	}
+	if (!self) { return; }
 
 	ct_hash_pair_t *it, *pos;
 
 	for (size_t i = 0; i < self->max && self->size > 0; i++) {
 		pos = CT_HASH_DATA(self, i);
-		if (!pos) {
-			continue;
-		}
+		if (!pos) { continue; }
 		// 置空
 		CT_HASH_DATA(self, i) = NULL;
 
 		for (it = pos; it; it = pos) {
-			if (pos) {
-				pos = pos->next;
-			}
+			if (pos) { pos = pos->next; }
 			ct_any_dtor(&self->methods, &it->value);
 			self->size--;
 			free(it);
@@ -267,20 +217,14 @@ void ct_hash_clear(ct_hash_buf_t self) {
 }
 
 ct_any_t ct_hash_value(ct_hash_buf_t self, const char *key) {
-	if (!self) {
-		return ct_any_null;
-	}
+	if (!self) { return ct_any_null; }
 
 	do {
-		if (STR_ISEMPTY(key) || CT_HASH_ISEMPTY(self)) {
-			break;
-		}
+		if (STR_ISEMPTY(key) || CT_HASH_ISEMPTY(self)) { break; }
 
 		const size_t key_length = strlen(key);
 
-		if (!key_length) {
-			break;
-		}
+		if (!key_length) { break; }
 
 		// 生成索引值
 		const ct_hash32_t key_hash   = CT_HASH_HASHALGO(key, key_length);
@@ -290,9 +234,7 @@ ct_any_t ct_hash_value(ct_hash_buf_t self, const char *key) {
 
 		// 遍历链表, 检查key是否已经存在
 		for (ct_hash_pair_t *it = pos; it; it = it->next) {
-			if (it->key_hash != key_hash || key_length != it->key_length || strncmp(key, it->key, key_length) != 0) {
-				continue;
-			}
+			if (it->key_hash != key_hash || key_length != it->key_length || strncmp(key, it->key, key_length) != 0) { continue; }
 			return it->value;
 		}
 	} while (0);
@@ -301,22 +243,16 @@ ct_any_t ct_hash_value(ct_hash_buf_t self, const char *key) {
 }
 
 bool ct_hash_value_r(ct_hash_buf_t self, const char *key, ct_any_t *value) {
-	if (!self) {
-		return false;
-	}
+	if (!self) { return false; }
 
 	bool is_ok = false;
 
 	do {
-		if (STR_ISEMPTY(key) || CT_HASH_ISEMPTY(self)) {
-			break;
-		}
+		if (STR_ISEMPTY(key) || CT_HASH_ISEMPTY(self)) { break; }
 
 		const size_t key_length = strlen(key);
 
-		if (!key_length) {
-			break;
-		}
+		if (!key_length) { break; }
 
 		// 生成索引值
 		const ct_hash32_t key_hash   = CT_HASH_HASHALGO(key, key_length);
@@ -326,38 +262,26 @@ bool ct_hash_value_r(ct_hash_buf_t self, const char *key, ct_any_t *value) {
 
 		// 遍历链表, 检查key是否已经存在
 		for (ct_hash_pair_t *it = pos; it; it = it->next) {
-			if (it->key_hash != key_hash || key_length != it->key_length || strncmp(key, it->key, key_length) != 0) {
-				continue;
-			}
-			if (value) {
-				*value = it->value;
-			}
+			if (it->key_hash != key_hash || key_length != it->key_length || strncmp(key, it->key, key_length) != 0) { continue; }
+			if (value) { *value = it->value; }
 			is_ok = true;
 			break;
 		}
 	} while (0);
 
-	if (!is_ok && value) {
-		*value = ct_any_null;
-	}
+	if (!is_ok && value) { *value = ct_any_null; }
 	return is_ok;
 }
 
 ct_any_t ct_hash_value_s(ct_hash_buf_t self, const char *key, ct_any_t default_value) {
-	if (!self) {
-		return ct_any_null;
-	}
+	if (!self) { return ct_any_null; }
 
 	do {
-		if (STR_ISEMPTY(key) || CT_HASH_ISEMPTY(self)) {
-			break;
-		}
+		if (STR_ISEMPTY(key) || CT_HASH_ISEMPTY(self)) { break; }
 
 		const size_t key_length = strlen(key);
 
-		if (!key_length) {
-			break;
-		}
+		if (!key_length) { break; }
 
 		// 生成索引值
 		const ct_hash32_t key_hash   = CT_HASH_HASHALGO(key, key_length);
@@ -367,9 +291,7 @@ ct_any_t ct_hash_value_s(ct_hash_buf_t self, const char *key, ct_any_t default_v
 
 		// 遍历链表, 检查key是否已经存在
 		for (ct_hash_pair_t *it = pos; it; it = it->next) {
-			if (it->key_hash != key_hash || key_length != it->key_length || strncmp(key, it->key, key_length) != 0) {
-				continue;
-			}
+			if (it->key_hash != key_hash || key_length != it->key_length || strncmp(key, it->key, key_length) != 0) { continue; }
 			return it->value;
 		}
 	} while (0);
@@ -380,9 +302,7 @@ ct_any_t ct_hash_value_s(ct_hash_buf_t self, const char *key, ct_any_t default_v
 // -------------------------[STATIC DEFINITION]-------------------------
 
 static inline bool ct_hash_resize(ct_hash_buf_t self, size_t max) {
-	if (!self || !self->all) {
-		return false;
-	}
+	if (!self || !self->all) { return false; }
 
 	ct_hash_pair_t **const old_all = self->all;
 	const size_t           old_max = self->max;
@@ -392,9 +312,7 @@ static inline bool ct_hash_resize(ct_hash_buf_t self, size_t max) {
 		ct_hash_pair_t **new_all;
 
 		new_all = (ct_hash_pair_t **)calloc(max, sizeof(ct_hash_pair_t *));
-		if (!new_all) {
-			return false;
-		}
+		if (!new_all) { return false; }
 
 		self->all  = new_all;
 		self->max  = max;
@@ -412,9 +330,7 @@ static inline bool ct_hash_resize(ct_hash_buf_t self, size_t max) {
 				continue;
 			}
 			for (it = pos; it; it = pos) {
-				if (pos) {
-					pos = pos->next;
-				}
+				if (pos) { pos = pos->next; }
 				hash_index                     = CT_HASH_INDEX(self, it->key_hash);
 				it->next                       = CT_HASH_DATA(self, hash_index);
 				CT_HASH_DATA(self, hash_index) = it;

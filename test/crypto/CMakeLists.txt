@@ -1,3 +1,4 @@
+add_subdirectory(hash)
 
 add_executable(md5_test md5_test.c)
 add_test(NAME md5_test COMMAND md5_test)

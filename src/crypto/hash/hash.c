@@ -2,7 +2,7 @@
  * @file hash.c
  * @brief Hash实现
  */
-#include "coter/hash/hash.h"
+#include "coter/crypto/hash/hash.h"
 
 #include "coter/encoding/binary.h"
 
@@ -11,50 +11,36 @@
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
 uint32_t ct_hashalgo_times33(const char *data, size_t size) {
-	if (!data) {
-		return 0;
-	}
+	if (!data) { return 0; }
 	register uint32_t hash = 5381U;
 
-	for (size_t i = 0; i < size; i++) {
-		hash = ((hash << 5) + hash) + (uint32_t)data[i];
-	}
+	for (size_t i = 0; i < size; i++) { hash = ((hash << 5) + hash) + (uint32_t)data[i]; }
 
 	return hash;
 }
 
 uint32_t ct_hashalgo_bkdr(const char *data, size_t size) {
-	if (!data) {
-		return 0;
-	}
+	if (!data) { return 0; }
 	register uint32_t hash = 0U;
 
-	for (size_t i = 0; i < size; i++) {
-		hash = hash * 131 + (uint32_t)data[i];
-	}
+	for (size_t i = 0; i < size; i++) { hash = hash * 131 + (uint32_t)data[i]; }
 
 	return hash;
 }
 
 uint32_t ct_hashalgo_pjw(const char *data, size_t size) {
-	if (!data) {
-		return 0;
-	}
+	if (!data) { return 0; }
 	uint32_t val = 0U, tmp;
 
 	for (size_t i = 0; i < size; i++) {
 		val = (val << 4) + data[i];
-		if ((tmp = val & 0xf0000000U)) {
-			val = (val ^ (tmp >> 24)) ^ tmp;
-		}
+		if ((tmp = val & 0xf0000000U)) { val = (val ^ (tmp >> 24)) ^ tmp; }
 	}
 	return val;
 }
 
 uint32_t ct_hashalgo_murmurhash2(const char *data, size_t size) {
-	if (!data) {
-		return 0;
-	}
+	if (!data) { return 0; }
 	uint32_t k, h = 0 ^ size;
 
 	for (; size >= 4;) {
@@ -88,9 +74,7 @@ uint32_t ct_hashalgo_murmurhash2(const char *data, size_t size) {
 }
 
 uint64_t ct_hashalgo_murmurhash2_64(const char *data, size_t size, uint64_t seed) {
-	if (!data) {
-		return 0;
-	}
+	if (!data) { return 0; }
 	const uint64_t m = 0xc6a4a7935bd1e995ULL;
 	const int      r = 47;
 
@@ -134,9 +118,7 @@ uint64_t ct_hashalgo_murmurhash2_64(const char *data, size_t size, uint64_t seed
 }
 
 uint64_t ct_hashalgo_siphash_64(const char *data, size_t size, const uint8_t siphash_keys[16]) {
-	if (!data) {
-		return 0;
-	}
+	if (!data) { return 0; }
 #define ROTATE(x, b) (uint64_t)(((x) << (b)) | ((x) >> (64 - (b))))
 
 #define HALF_ROUND(a, b, c, d, s, t) \
