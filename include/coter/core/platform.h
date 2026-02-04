@@ -76,6 +76,9 @@
     #define inline __inline
     #endif
     #endif
+    #ifndef NOMINMAX
+    #define NOMINMAX
+    #endif
     #include <winsock2.h>
     #include <windows.h>
     #include <process.h>   
