@@ -1,4 +1,7 @@
+#include <array>
 #include <catch.hpp>
+#include <cmath>
+#include <limits>
 
 #include "coter/bytes/seg.hpp"
 
@@ -446,54 +449,54 @@ TEST_CASE("Signed Types", "[seg][types]") {
 
 	SECTION("int16_t put/take") {
 		seg.put<int16_t>(0);
-		seg.put<int16_t>(32767);
-		seg.put<int16_t>(-32768);
+		seg.put<int16_t>(std::numeric_limits<int16_t>::max());
+		seg.put<int16_t>(std::numeric_limits<int16_t>::min());
 		seg.put<int16_t>(-1);
 
 		seg.rewind();
 		REQUIRE(seg.take<int16_t>() == 0);
-		REQUIRE(seg.take<int16_t>() == 32767);
-		REQUIRE(seg.take<int16_t>() == -32768);
+		REQUIRE(seg.take<int16_t>() == std::numeric_limits<int16_t>::max());
+		REQUIRE(seg.take<int16_t>() == std::numeric_limits<int16_t>::min());
 		REQUIRE(seg.take<int16_t>() == -1);
 	}
 
 	SECTION("int32_t put/take") {
 		seg.put<int32_t>(0);
-		seg.put<int32_t>(2147483647);
-		seg.put<int32_t>(-2147483648);
+		seg.put<int32_t>(std::numeric_limits<int32_t>::max());
+		seg.put<int32_t>(std::numeric_limits<int32_t>::min());
 		seg.put<int32_t>(-1);
 
 		seg.rewind();
 		REQUIRE(seg.take<int32_t>() == 0);
-		REQUIRE(seg.take<int32_t>() == 2147483647);
-		REQUIRE(seg.take<int32_t>() == -2147483648);
+		REQUIRE(seg.take<int32_t>() == std::numeric_limits<int32_t>::max());
+		REQUIRE(seg.take<int32_t>() == std::numeric_limits<int32_t>::min());
 		REQUIRE(seg.take<int32_t>() == -1);
 	}
 
 	SECTION("int64_t put/take") {
 		seg.put<int64_t>(0);
-		seg.put<int64_t>(9223372036854775807LL);
-		seg.put<int64_t>(-9223372036854775807LL - 1);
+		seg.put<int64_t>(std::numeric_limits<int64_t>::max());
+		seg.put<int64_t>(std::numeric_limits<int64_t>::min());
 		seg.put<int64_t>(-1);
 
 		seg.rewind();
 		REQUIRE(seg.take<int64_t>() == 0);
-		REQUIRE(seg.take<int64_t>() == 9223372036854775807LL);
-		REQUIRE(seg.take<int64_t>() == -9223372036854775807LL - 1);
+		REQUIRE(seg.take<int64_t>() == std::numeric_limits<int64_t>::max());
+		REQUIRE(seg.take<int64_t>() == std::numeric_limits<int64_t>::min());
 		REQUIRE(seg.take<int64_t>() == -1);
 	}
 
 	SECTION("signed peek") {
-		seg.put<int8_t>(-128);
-		seg.put<int16_t>(-32768);
-		seg.put<int32_t>(-2147483648);
-		seg.put<int64_t>(-9223372036854775807LL - 1);
+		seg.put<int8_t>(std::numeric_limits<int8_t>::min());
+		seg.put<int16_t>(std::numeric_limits<int16_t>::min());
+		seg.put<int32_t>(std::numeric_limits<int32_t>::min());
+		seg.put<int64_t>(std::numeric_limits<int64_t>::min());
 
 		seg.rewind();
-		REQUIRE(seg.peek<int8_t>(0) == -128);
-		REQUIRE(seg.peek<int16_t>(1) == -32768);
-		REQUIRE(seg.peek<int32_t>(3) == -2147483648);
-		REQUIRE(seg.peek<int64_t>(7) == -9223372036854775807LL - 1);
+		REQUIRE(seg.peek<int8_t>(0) == std::numeric_limits<int8_t>::min());
+		REQUIRE(seg.peek<int16_t>(1) == std::numeric_limits<int16_t>::min());
+		REQUIRE(seg.peek<int32_t>(3) == std::numeric_limits<int32_t>::min());
+		REQUIRE(seg.peek<int64_t>(7) == std::numeric_limits<int64_t>::min());
 	}
 
 	SECTION("signed overwrite") {
@@ -521,15 +524,15 @@ TEST_CASE("Floating Point Types", "[seg][types]") {
 
 		seg.rewind();
 		REQUIRE(seg.take<float>() == 0.0f);
-		REQUIRE(seg.take<float>() == Catch::Approx(3.14159f));
-		REQUIRE(seg.take<float>() == Catch::Approx(-123.456f));
+		REQUIRE(seg.take<float>() == Catch::Detail::Approx(3.14159f));
+		REQUIRE(seg.take<float>() == Catch::Detail::Approx(-123.456f));
 
 		seg.rewind();
 		REQUIRE(seg.peek<float>(0) == 0.0f);
-		REQUIRE(seg.peek<float>(4) == Catch::Approx(3.14159f));
+		REQUIRE(seg.peek<float>(4) == Catch::Detail::Approx(3.14159f));
 
 		REQUIRE(seg.overwrite<float>(0, 99.9f) == 0);
-		REQUIRE(seg.peek<float>(0) == Catch::Approx(99.9f));
+		REQUIRE(seg.peek<float>(0) == Catch::Detail::Approx(99.9f));
 	}
 
 	SECTION("double put/take/peek/overwrite") {
@@ -539,15 +542,15 @@ TEST_CASE("Floating Point Types", "[seg][types]") {
 
 		seg.rewind();
 		REQUIRE(seg.take<double>() == 0.0);
-		REQUIRE(seg.take<double>() == Catch::Approx(3.141592653589793));
-		REQUIRE(seg.take<double>() == Catch::Approx(-123456.789012));
+		REQUIRE(seg.take<double>() == Catch::Detail::Approx(3.141592653589793));
+		REQUIRE(seg.take<double>() == Catch::Detail::Approx(-123456.789012));
 
 		seg.rewind();
 		REQUIRE(seg.peek<double>(0) == 0.0);
-		REQUIRE(seg.peek<double>(8) == Catch::Approx(3.141592653589793));
+		REQUIRE(seg.peek<double>(8) == Catch::Detail::Approx(3.141592653589793));
 
 		REQUIRE(seg.overwrite<double>(0, 99.999) == 0);
-		REQUIRE(seg.peek<double>(0) == Catch::Approx(99.999));
+		REQUIRE(seg.peek<double>(0) == Catch::Detail::Approx(99.999));
 	}
 
 	SECTION("special values") {
@@ -574,45 +577,45 @@ TEST_CASE("Overwrite All Types", "[seg][overwrite]") {
 	SECTION("u8/i8") {
 		seg.fill(0, 16);
 		REQUIRE(seg.overwrite<uint8_t>(0, 0xAB) == 0);
-		REQUIRE(seg.overwrite<int8_t>(1, -100) == 0);
+		REQUIRE(seg.overwrite<int8_t>(1, static_cast<int8_t>(-100)) == 0);
 
 		seg.rewind();
 		REQUIRE(seg.take<uint8_t>() == 0xAB);
-		REQUIRE(seg.take<int8_t>() == -100);
+		REQUIRE(seg.take<int8_t>() == static_cast<int8_t>(-100));
 	}
 
 	SECTION("u16/i16") {
 		seg.fill(0, 16);
 		REQUIRE(seg.overwrite<uint16_t>(0, 0xABCD) == 0);
-		REQUIRE(seg.overwrite<int16_t>(2, -12345) == 0);
+		REQUIRE(seg.overwrite<int16_t>(2, static_cast<int16_t>(-12345)) == 0);
 
 		seg.rewind();
 		REQUIRE(seg.take<uint16_t>() == 0xABCD);
-		REQUIRE(seg.take<int16_t>() == -12345);
+		REQUIRE(seg.take<int16_t>() == static_cast<int16_t>(-12345));
 	}
 
 	SECTION("u32/i32/float") {
 		seg.fill(0, 16);
 		REQUIRE(seg.overwrite<uint32_t>(0, 0xDEADBEEF) == 0);
-		REQUIRE(seg.overwrite<int32_t>(4, -123456789) == 0);
+		REQUIRE(seg.overwrite<int32_t>(4, static_cast<int32_t>(-123456789)) == 0);
 		REQUIRE(seg.overwrite<float>(8, 3.14f) == 0);
 
 		seg.rewind();
 		REQUIRE(seg.take<uint32_t>() == 0xDEADBEEF);
-		REQUIRE(seg.take<int32_t>() == -123456789);
-		REQUIRE(seg.take<float>() == Catch::Approx(3.14f));
+		REQUIRE(seg.take<int32_t>() == static_cast<int32_t>(-123456789));
+		REQUIRE(seg.take<float>() == Catch::Detail::Approx(3.14f));
 	}
 
 	SECTION("u64/i64/double") {
 		seg.fill(0, 32);
 		REQUIRE(seg.overwrite<uint64_t>(0, 0xDEADBEEFCAFEBABEULL) == 0);
-		REQUIRE(seg.overwrite<int64_t>(8, -123456789012345LL) == 0);
+		REQUIRE(seg.overwrite<int64_t>(8, static_cast<int64_t>(-123456789012345LL)) == 0);
 		REQUIRE(seg.overwrite<double>(16, 3.141592653589793) == 0);
 
 		seg.rewind();
 		REQUIRE(seg.take<uint64_t>() == 0xDEADBEEFCAFEBABEULL);
-		REQUIRE(seg.take<int64_t>() == -123456789012345LL);
-		REQUIRE(seg.take<double>() == Catch::Approx(3.141592653589793));
+		REQUIRE(seg.take<int64_t>() == static_cast<int64_t>(-123456789012345LL));
+		REQUIRE(seg.take<double>() == Catch::Detail::Approx(3.141592653589793));
 	}
 
 	SECTION("boundary errors") {

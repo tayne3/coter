@@ -6,8 +6,9 @@ TEST_CASE("seg Initialization", "[seg][init]") {
 	uint8_t buffer[64];
 	memset(buffer, 0xAA, sizeof(buffer));
 
-	SECTION("CT_SEG_INIT macro") {
-		ct_seg_t seg = CT_SEG_INIT(buffer, sizeof(buffer));
+	SECTION("ct_seg_init function") {
+		ct_seg_t seg;
+		ct_seg_init(&seg, buffer, sizeof(buffer));
 		REQUIRE(seg.bytes == buffer);
 		REQUIRE(seg.cap == sizeof(buffer));
 		REQUIRE(seg.len == 0);
@@ -16,8 +17,9 @@ TEST_CASE("seg Initialization", "[seg][init]") {
 		REQUIRE(seg.hlswap == 0);
 	}
 
-	SECTION("CT_SEG_FROM macro") {
-		ct_seg_t seg = CT_SEG_FROM(buffer, sizeof(buffer), 32);
+	SECTION("ct_seg_from function (clamped)") {
+		ct_seg_t seg;
+		ct_seg_from(&seg, buffer, sizeof(buffer), 32);
 		REQUIRE(seg.bytes == buffer);
 		REQUIRE(seg.cap == sizeof(buffer));
 		REQUIRE(seg.len == 32);
