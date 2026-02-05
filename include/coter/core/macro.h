@@ -213,6 +213,7 @@ typedef int ct_endian_t;
 
 // variable unused
 # define ct_unused(_var)							(void)(_var)
+# define CT_UNUSED(_var)							(void)(_var)
 
 // min and max
 # define CT_MIN(_a, _b) 							((_a) < (_b) ? (_a) : (_b))
