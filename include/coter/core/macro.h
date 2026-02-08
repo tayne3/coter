@@ -1,7 +1,7 @@
 /**
  * @file macro.h
- * @brief 基本定义和宏
- * @note 提供了基本定义和宏，包括基本类型、宏、通用宏和特定于平台的宏
+ * @brief Basic definitions and macros
+ * @note Provides fundamental types, safety macros, common utilities, and platform specifics.
  */
 #ifndef COTER_CORE_MACRO_H
 #define COTER_CORE_MACRO_H
@@ -43,6 +43,46 @@
 #   define COTER_API
 # endif
 
+// OS
+# if defined(WIN64) || defined(_WIN64) || defined(__WIN64__)
+#	define CT_OS_WIN64
+# elif defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#	define CT_OS_WIN32
+# elif defined(WINCE) || defined(_WIN32_WCE)
+#	define CT_OS_WINCE
+# elif defined(linux) || defined(__linux__) || defined(__linux)
+#	define CT_OS_LINUX
+# elif defined(__APPLE__) && (defined(__GNUC__) || defined(__xlC__) || defined(__xlc__))
+#    include <TargetConditionals.h>
+#    if defined(TARGET_OS_MAC) && TARGET_OS_MAC
+#        define CT_OS_MAC
+#    elif defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE
+#        define CT_OS_IOS
+#    endif
+#    define CT_OS_DARWIN
+# else
+#	error "Unsupported platform!"
+# endif
+
+# if defined(__LP64__) || defined(__64BIT__) || defined(_LP64) || defined(__x86_64) || defined(__x86_64__) ||           \
+	 defined(__amd64) || defined(__amd64__) || defined(__arm64) || defined(__arm64__) || defined(__sparc64__) ||        \
+	 defined(__PPC64__) || defined(__ppc64__) || defined(__powerpc64__) || defined(__loongarch64) || defined(_M_X64) || \
+	 defined(_M_AMD64) || defined(_M_ARM64) || defined(_M_IA64) || defined(__ia64__) || defined(__ia64) ||              \
+	 (defined(__WORDSIZE) && (__WORDSIZE == 64)) || (defined(__SIZEOF_POINTER__) && (__SIZEOF_POINTER__ == 8)) ||       \
+	 defined(TCC_TARGET_X86_64)
+#	define __CT_WORDSIZE 64
+# else
+#	define __CT_WORDSIZE 32
+# endif
+
+# ifndef __GNUC_PREREQ
+#   if defined(__GNUC__) && defined(__GNUC_MINOR__)
+#     define __GNUC_PREREQ(maj, min) ((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
+#   else
+#     define __GNUC_PREREQ(maj, min) 0
+#   endif
+# endif
+
 # ifndef __cplusplus
 #	if HAVE_STDBOOL_H
 #		include <stdbool.h>
@@ -73,8 +113,8 @@
 # endif
 
 # ifdef _MSC_VER
-#	define strcasecmp  stricmp
-#	define strncasecmp strnicmp
+#   define strcasecmp  _stricmp
+#   define strncasecmp _strnicmp
 # else
 #	include <strings.h>
 #	define stricmp     strcasecmp
@@ -91,48 +131,22 @@
 #   define STR_ISEMPTY(_s) 	(!(_s) || !*(const char *)(_s))
 # endif
 
-// newline
-# ifdef _MSC_VER
-#   define STR_NEWLINE "\r\n"
-# else
-#   define STR_NEWLINE "\n"
-# endif
-
-// separator
-# ifdef _MSC_VER
-#   define STR_SEPARATOR "\\"
-#   define STR_SEPARATOR_CHAR '\\'
-# else
-#   define STR_SEPARATOR "/"
-#   define STR_SEPARATOR_CHAR '/'
-# endif
-
-// OS
-# if defined(WIN64) || defined(_WIN64) || defined(__WIN64__)
-#	define CT_OS_WIN64
-# elif defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-#	define CT_OS_WIN32
-# elif defined(WINCE) || defined(_WIN32_WCE)
-#	define CT_OS_WINCE
-# elif defined(linux) || defined(__linux__) || defined(__linux)
-#	define CT_OS_LINUX
-# elif defined(__APPLE__) && (defined(__GNUC__) || defined(__xlC__) || defined(__xlc__))
-#    include <TargetConditionals.h>
-#    if defined(TARGET_OS_MAC) && TARGET_OS_MAC
-#        define CT_OS_MAC
-#    elif defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE
-#        define CT_OS_IOS
-#    endif
-#    define CT_OS_DARWIN
-# else
-#	error "Unsupported platform!"
-# endif
-
 #if defined(CT_OS_WIN64) || defined(CT_OS_WIN32) || defined(CT_OS_WINCE)
     #define CT_OS_WIN
 #else
     #define CT_OS_UNIX
 #endif
+
+// newline and separator
+# ifdef CT_OS_WIN
+#   define STR_NEWLINE "\r\n"
+#   define STR_SEPARATOR "\\"
+#   define STR_SEPARATOR_CHAR '\\'
+# else
+#   define STR_NEWLINE "\n"
+#   define STR_SEPARATOR "/"
+#   define STR_SEPARATOR_CHAR '/'
+# endif
 
 #if defined(__x86_64__) || defined(__i386__)
     #if defined(__GNUC__) || defined(__clang__)
@@ -208,25 +222,33 @@ typedef int ct_endian_t;
 #define CT_ENDIAN_IS_LITTLE (CT_ENDIAN_SYSTEM == CT_ENDIAN_LITTLE)
 
 // array size
-# define ct_arrsize(_arr)							(sizeof(_arr) / sizeof((_arr)[0]))
-# define CT_ARRSIZE(_arr)							(sizeof(_arr) / sizeof((_arr)[0]))
+# define ct_arrsize(_arr) (sizeof(_arr) / sizeof((_arr)[0]))
+# define CT_ARRSIZE(_arr) (sizeof(_arr) / sizeof((_arr)[0]))
 
 // variable unused
-# define ct_unused(_var)							(void)(_var)
-# define CT_UNUSED(_var)							(void)(_var)
+# define ct_unused(_var) (void)(_var)
+# define CT_UNUSED(_var) (void)(_var)
 
 // min and max
-# define CT_MIN(_a, _b) 							((_a) < (_b) ? (_a) : (_b))
-# define CT_MAX(_a, _b) 							((_a) > (_b) ? (_a) : (_b))
-# define CT_CLAMP(_val, _min, _max)					CT_MIN(CT_MAX(_val, _min), _max)
-
-// swap value
-# define ct_swap(x, y)	\
-	do {              	\
-		x = x ^ y;		\
-		y = x ^ y;		\
-		x = x ^ y;		\
-	} while (0)
+#ifdef __cplusplus
+#define CT_MIN(_a, _b)             std::min(_a, _b)
+#define CT_MAX(_a, _b)             std::max(_a, _b)
+#define CT_CLAMP(_val, _min, _max) std::clamp(_val, _min, _max)
+#elif defined(__GNUC__) || defined(__clang__)
+# define CT_MIN(_a, _b)         ({ __typeof__(_a) _a_ = (_a); __typeof__(_b) _b_ = (_b); _a_ < _b_ ? _a_ : _b_; })
+# define CT_MAX(_a, _b)         ({ __typeof__(_a) _a_ = (_a); __typeof__(_b) _b_ = (_b); _a_ > _b_ ? _a_ : _b_; })
+#define CT_CLAMP(_val, _min, _max)                                   \
+	({                                                               \
+		__typeof__(_val) _val_ = (_val);                             \
+		__typeof__(_min) _min_ = (_min);                             \
+		__typeof__(_max) _max_ = (_max);                             \
+		(_val_ < _min_) ? _min_ : ((_val_ > _max_) ? _max_ : _val_); \
+	})
+#else
+# define CT_MIN(_a, _b)             ((_a) < (_b) ? (_a) : (_b))
+# define CT_MAX(_a, _b)             ((_a) > (_b) ? (_a) : (_b))
+# define CT_CLAMP(_val, _min, _max) CT_MIN(CT_MAX(_val, _min), _max)
+#endif
 
 // offset of member
 # ifndef OFFSET_OF
@@ -237,23 +259,8 @@ typedef int ct_endian_t;
 # 	define CONTAINER_OF(_ptr, _type, _member)		(_type *)((_ptr) == NULL ? NULL : ((char *)(_ptr)-OFFSET_OF(_type, _member)))
 # endif
 
-# if defined(__LP64__) || defined(__64BIT__) || defined(_LP64) || defined(__x86_64) || defined(__x86_64__) ||           \
-	 defined(__amd64) || defined(__amd64__) || defined(__arm64) || defined(__arm64__) || defined(__sparc64__) ||        \
-	 defined(__PPC64__) || defined(__ppc64__) || defined(__powerpc64__) || defined(__loongarch64) || defined(_M_X64) || \
-	 defined(_M_AMD64) || defined(_M_ARM64) || defined(_M_IA64) || defined(__ia64__) || defined(__ia64) ||              \
-	 (defined(__WORDSIZE) && (__WORDSIZE == 64)) || (defined(__SIZEOF_POINTER__) && (__SIZEOF_POINTER__ == 8)) ||       \
-	 defined(TCC_TARGET_X86_64)
-#	define __CT_WORDSIZE 64
-# else
-#	define __CT_WORDSIZE 32
-# endif
-
-# ifndef __GNUC_PREREQ
-# 	define __GNUC_PREREQ(a, b)	0
-# endif
-
 // current function name, file name, and line number
-# if defined __cplusplus ? __GNUC_PREREQ (2, 6) : __GNUC_PREREQ (2, 4)
+# if defined __cplusplus ? __GNUC_PREREQ(2, 6) : __GNUC_PREREQ(2, 4)
 #	define __ct_func__		__extension__ __PRETTY_FUNCTION__
 #	define __ct_file__		__FILE__
 #	define __ct_line__		__LINE__
@@ -279,36 +286,66 @@ typedef int ct_endian_t;
 #	define __ct_line__		0
 # endif
 
-# define __ct_filename__  (strrchr(STR_SEPARATOR __ct_file__, STR_SEPARATOR_CHAR) + 1)
+// filename without path (prefer compile-time when available)
+# if defined(__clang__) || (defined(__GNUC__) && __GNUC__ >= 12)
+#   define __ct_filename__  __FILE_NAME__
+# else
+#   define __ct_filename__  (strrchr(STR_SEPARATOR __ct_file__, STR_SEPARATOR_CHAR) + 1)
+# endif
 
-// inline
+// inline keyword compatibility
+# ifndef __cplusplus
+#   if !defined(__STDC_VERSION__) || __STDC_VERSION__ < 199901L
+#       ifndef inline // Only needed in C89/C90 mode (C99+ has inline as keyword)
+#           define inline __inline
+#       endif
+#   endif
+# endif
 # ifndef CT_INLINE
 #   define CT_INLINE 				static inline
 # endif
 // force inline
 # if defined(_MSC_VER)
 #	define __ct_force_inline		__forceinline
-# elif __GNUC_PREREQ (3,2)
+# elif __GNUC_PREREQ(3,2)
 #  	define __ct_force_inline		__always_inline
 # else
 #  	define __ct_force_inline		inline
 # endif
 
-# if defined(__GNUC__) && __GNUC__ >= 2
-#   define __ct_attribute__(...)		__attribute__(__VA_ARGS__)				// GCC属性声明
-#   define __ct_attribute_weak__ 		__attribute__((weak))					// 标记弱引用函数
-#   define __ct_packed__ 				__attribute__((packed))					// 紧凑打包,平台默认对齐方式
-#   define __ct_aligned__(_n)  			__attribute__((aligned(_n)))			// 允许成员间填充,n字节对齐
-#   define __ct_packed_aligned__(_n)	__attribute__((packed, aligned(_n)))	// 紧凑打包,n字节对齐
+# if defined(__GNUC__) || defined(__clang__)
+#   define __ct_attribute__(...)		__attribute__(__VA_ARGS__)				// GCC/Clang attribute declaration
+#   define __ct_attribute_weak__ 		__attribute__((weak))					// Mark weak reference function
+#   define __ct_packed__ 				__attribute__((packed))					// Packed struct (GCC/Clang)
+#   define __ct_aligned__(_n)  			__attribute__((aligned(_n)))			// Aligned struct
+#   define __ct_packed_aligned__(_n)	__attribute__((packed, aligned(_n)))	// Packed and aligned
+# elif defined(_MSC_VER)
+#   define __ct_attribute__(...)
+#   define __ct_attribute_weak__
+#   define __ct_packed__                /* WARNING: Use CT_PACK_PUSH/POP for MSVC packing */
+#   define __ct_aligned__(_n)  			__declspec(align(_n))
+#   define __ct_packed_aligned__(_n)	__declspec(align(_n))
 # else
 #   define __ct_attribute__(...)
 #   define __ct_attribute_weak__
 #   define __ct_packed__
-#   define __ct_aligned__(_n) 
+#   define __ct_aligned__(_n)
 #   define __ct_packed_aligned__(_n)
 # endif
 
-# if !defined __cplusplus && __GNUC_PREREQ (3,3) && defined(__THROW)
+// MSVC-compatible packing macros (use around struct definitions)
+# ifdef _MSC_VER
+#   define CT_PACK_PUSH(_n)	    __pragma(pack(push, _n))
+#   define CT_PACK_POP()		__pragma(pack(pop))
+# elif defined(__GNUC__) || defined(__clang__)
+#   define CT_PACK_PUSH(_n)	    _Pragma("pack(push, " #_n ")")
+#   define CT_PACK_POP()		_Pragma("pack(pop)")
+# else
+#   define CT_PACK_PUSH(_n)
+#   define CT_PACK_POP()
+# endif
+
+# if !defined __cplusplus && __GNUC_PREREQ(3,3) && defined(__THROW)
 #   define __ct_throw __THROW
 # else
 #   define __ct_throw

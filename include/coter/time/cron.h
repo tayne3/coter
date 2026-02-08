@@ -7,7 +7,6 @@
 
 #include "coter/core/platform.h"
 #include "coter/time/time.h"
-#include "coter/types/any.h"
 
 #ifdef __cplusplus
 extern "C" {

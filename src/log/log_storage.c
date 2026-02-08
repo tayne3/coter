@@ -12,14 +12,6 @@
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
-#ifdef CT_OS_WIN
-typedef struct _stat ct_stat_t;
-#define ct_stat _stat
-#else
-typedef struct stat ct_stat_t;
-#define ct_stat stat
-#endif
-
 #define LOG_FILE_FORMAT "%s" STR_SEPARATOR "%s.log%d"
 
 // 日志存储器
@@ -79,15 +71,10 @@ static inline bool storage_file_writable_set(const char *filename);
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
-ct_log_storage_t *ct_log_storage_create(ct_time64_t tick, struct ct_bytepool *bytepool,
-										const struct ct_log_config *config) {
-	if (!config || !bytepool) {
-		return NULL;
-	}
+ct_log_storage_t *ct_log_storage_create(ct_time64_t tick, struct ct_bytepool *bytepool, const struct ct_log_config *config) {
+	if (!config || !bytepool) { return NULL; }
 	ct_log_storage_t *self = (ct_log_storage_t *)malloc(sizeof(ct_log_storage_t));
-	if (!self) {
-		return NULL;
-	}
+	if (!self) { return NULL; }
 
 	self->bytepool = bytepool;
 	strncpy(self->file_dir, config->file_dir, sizeof(self->file_dir));
@@ -113,9 +100,7 @@ ct_log_storage_t *ct_log_storage_create(ct_time64_t tick, struct ct_bytepool *by
 }
 
 void ct_log_storage_destroy(ct_log_storage_t *self) {
-	if (!self) {
-		return;
-	}
+	if (!self) { return; }
 
 	pthread_mutex_lock(&self->producer_mutex);
 	pthread_mutex_lock(&self->consumer_mutex);
@@ -141,9 +126,7 @@ void ct_log_storage_destroy(ct_log_storage_t *self) {
 }
 
 void ct_log_storage_handle(ct_log_storage_t *self, const char *buf, size_t size) {
-	if (!self || !buf || !size) {
-		return;
-	}
+	if (!self || !buf || !size) { return; }
 
 	pthread_mutex_lock(&self->producer_mutex);
 	do {
@@ -169,9 +152,7 @@ void ct_log_storage_handle(ct_log_storage_t *self, const char *buf, size_t size)
 }
 
 void ct_log_storage_flush(ct_log_storage_t *self) {
-	if (!self) {
-		return;
-	}
+	if (!self) { return; }
 
 	pthread_mutex_lock(&self->producer_mutex);
 	if (!ct_bytes_isempty(self->producer_buffer)) {
@@ -191,16 +172,12 @@ void ct_log_storage_flush(ct_log_storage_t *self) {
 }
 
 void ct_log_storage_schedule(ct_log_storage_t *self, ct_time64_t tick) {
-	if (!self) {
-		return;
-	}
+	if (!self) { return; }
 	if (tick >= self->next_save_time) {
 		self->next_save_time = tick + (self->autosave_interval * 1000);
 		ct_log_storage_flush(self);
 	}
-	if (ct_atomic_flag_test_and_set(&self->consumer_flag)) {
-		return;
-	}
+	if (ct_atomic_flag_test_and_set(&self->consumer_flag)) { return; }
 
 	ct_list_t flush_head[1];
 	ct_list_init(flush_head);
@@ -244,9 +221,7 @@ void ct_log_storage_schedule(ct_log_storage_t *self, ct_time64_t tick) {
 			size_t remaining = ct_bytes_size(bytes);
 
 			while (remaining > 0) {
-				size_t to_copy = (self->file_cache_size - buffer_used) < remaining ?
-									 (self->file_cache_size - buffer_used) :
-									 remaining;
+				size_t to_copy = (self->file_cache_size - buffer_used) < remaining ? (self->file_cache_size - buffer_used) : remaining;
 
 				memcpy(flush_buffer + buffer_used, data, to_copy);
 				buffer_used += to_copy;
@@ -326,17 +301,14 @@ static inline bool storage_file_init(ct_log_storage_t *self) {
 
 	// 遍历文件序号范围
 	for (int i = 0; i < self->file_count_max; i++) {
-		curr_length =
-			ct_snprintf_s(curr_filename, sizeof(curr_filename), LOG_FILE_FORMAT, self->file_dir, self->file_name, i);
+		curr_length = ct_snprintf_s(curr_filename, sizeof(curr_filename), LOG_FILE_FORMAT, self->file_dir, self->file_name, i);
 		if (ct_stat(curr_filename, &curr_st) == -1) {
 			continue;  // 获取文件状态失败
 		}
 #ifdef CT_OS_WIN
 		storage_file_writable_set(last_filename);
 #else
-		if (!(curr_st.st_mode & S_IRUSR) || !(curr_st.st_mode & S_IWUSR)) {
-			storage_file_writable_set(last_filename);
-		}
+		if (!(curr_st.st_mode & S_IRUSR) || !(curr_st.st_mode & S_IWUSR)) { storage_file_writable_set(last_filename); }
 #endif
 		if (last_index == -1) {
 			last_index = i;
@@ -382,9 +354,7 @@ static inline bool storage_file_init(ct_log_storage_t *self) {
 }
 
 static inline bool storage_file_next(ct_log_storage_t *self) {
-	if (!self) {
-		return false;
-	}
+	if (!self) { return false; }
 	if (self->file) {
 		fclose(self->file);  // 关闭文件
 	}
@@ -395,8 +365,7 @@ static inline bool storage_file_next(ct_log_storage_t *self) {
 	}
 	// 更新文件序号
 	self->file_index = self->file_index + 1 >= self->file_count_max ? 0 : self->file_index + 1;
-	ct_snprintf_s(curr_filename, sizeof(curr_filename), LOG_FILE_FORMAT, self->file_dir, self->file_name,
-				  self->file_index);
+	ct_snprintf_s(curr_filename, sizeof(curr_filename), LOG_FILE_FORMAT, self->file_dir, self->file_name, self->file_index);
 	if (ct_stat(curr_filename, &curr_st) == 0) {
 		storage_file_writable_set(curr_filename);  // 设置可写权限
 	}
@@ -410,39 +379,26 @@ static inline bool storage_file_next(ct_log_storage_t *self) {
 }
 
 static inline bool storage_folder_create_recursive(const char *path) {
-	if (!path) {
-		return false;
-	}
+	if (!path) { return false; }
 	const size_t str_len = strlen(path);
-
-	if (!str_len) {
-		return false;
-	}
+	if (!str_len) { return false; }
 
 	char str_tmp[256];
 	ct_snprintf_s(str_tmp, sizeof(str_tmp), "%s", path);
 
-	if (str_tmp[str_len - 1] == STR_SEPARATOR_CHAR) {
-		str_tmp[str_len - 1] = '\0';
-	}
+	if (str_tmp[str_len - 1] == STR_SEPARATOR_CHAR) { str_tmp[str_len - 1] = '\0'; }
 
 	struct stat st;
 
 	for (char *p = str_tmp; *p; p++) {
-		if (*p != STR_SEPARATOR_CHAR) {
-			continue;
-		}
+		if (*p != STR_SEPARATOR_CHAR) { continue; }
 
 		*p = '\0';
-		if (stat(str_tmp, &st) == -1) {
-			ct_mkdir(str_tmp);
-		}
+		if (stat(str_tmp, &st) == -1) { ct_mkdir(str_tmp); }
 		*p = STR_SEPARATOR_CHAR;
 	}
 
-	if (stat(str_tmp, &st) == -1) {
-		return ct_mkdir(str_tmp);
-	}
+	if (stat(str_tmp, &st) == -1) { return ct_mkdir(str_tmp); }
 	return 0;
 }
 

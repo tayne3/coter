@@ -5,7 +5,7 @@
 #ifndef COTER_SYNC_ATOMIC_H
 #define COTER_SYNC_ATOMIC_H
 
-#include "coter/core/platform.h"
+#include "coter/core/config.h"
 
 #if CT_ATOMIC_USE_GCC
 #include "coter/sync/atomic/atomic_gcc.h"

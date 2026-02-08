@@ -10,8 +10,6 @@ static constexpr int MIN_BUFFER_SIZE = 1;
 static constexpr int MAX_BUFFER_SIZE = 1024;
 
 static constexpr int CONCURRENCY_THREADS    = 10;
-static constexpr int CONCURRENCY_ITERATIONS = 1000;
-static constexpr int MEMORY_LEAK_ITERATIONS = 10000;
 
 static void test_bytepool_basic_operations(void) {
 	ct_bytepool_t* pool = ct_bytepool_create(10, 100);

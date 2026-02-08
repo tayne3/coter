@@ -216,7 +216,7 @@ static inline void ctl_config_init(ct_thpool_t* self, ct_thpool_config_t* attr) 
 	}
 
 	if (attr && attr->idle_timeout) {
-		sattr->idle_timeout = CT_MIN(attr->idle_timeout, 50);
+		sattr->idle_timeout = CT_MIN(attr->idle_timeout, 50U);
 	} else {
 		sattr->idle_timeout = 1000;
 	}

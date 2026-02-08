@@ -7,7 +7,6 @@
 
 #include "coter/bytes/seg.h"
 #include "coter/container/list.h"
-#include "coter/core/platform.h"
 
 #ifdef __cplusplus
 extern "C" {

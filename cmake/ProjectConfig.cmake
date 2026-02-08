@@ -69,16 +69,45 @@ target_compile_features(coter_compile_dependency INTERFACE c_std_99 cxx_std_11)
 add_library(coter_public_dependency INTERFACE)
 target_compile_features(coter_public_dependency INTERFACE c_std_99 cxx_std_11)
 
-# set source charset to utf-8 for MSVC
+# Enable GNU extensions on Linux/Unix systems (covers glibc, musl, etc.)
+if((UNIX AND NOT APPLE) OR CMAKE_SYSTEM_NAME MATCHES "Linux|GNU")
+  target_compile_definitions(coter_compile_dependency INTERFACE
+    _GNU_SOURCE=1
+  )
+endif()
+
+if(WIN32)
+  target_compile_definitions(coter_compile_dependency INTERFACE
+    _CRT_SECURE_NO_WARNINGS          # Suppress secure CRT warnings
+    _CRT_NONSTDC_NO_DEPRECATE        # Suppress POSIX deprecation warnings
+    _WINSOCK_DEPRECATED_NO_WARNINGS  # Suppress Winsock deprecation warnings
+    NOMINMAX                         # Prevent min/max macro definitions
+  )
+endif()
+
 if(CMAKE_C_COMPILER_ID STREQUAL "MSVC")
   target_compile_options(coter_compile_dependency INTERFACE 
 		"$<$<COMPILE_LANGUAGE:C>:/utf-8>"
+    "$<$<COMPILE_LANGUAGE:C>:/wd4018>"  # signed/unsigned comparison
+    "$<$<COMPILE_LANGUAGE:C>:/wd4100>"  # unused parameter
+    "$<$<COMPILE_LANGUAGE:C>:/wd4102>"  # unreferenced label
+    "$<$<COMPILE_LANGUAGE:C>:/wd4244>"  # conversion with possible loss of data
+    "$<$<COMPILE_LANGUAGE:C>:/wd4267>"  # size_t to int conversion
+    "$<$<COMPILE_LANGUAGE:C>:/wd4819>"  # Unicode character issues
+    "$<$<COMPILE_LANGUAGE:C>:/wd4996>"  # deprecated function warnings
 	)
 endif()
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-  target_compile_options(coter_compile_dependency INTERFACE 
-		"$<$<COMPILE_LANGUAGE:CXX>:/utf-8>"
+  target_compile_options(coter_compile_dependency INTERFACE
 		"$<$<COMPILE_LANGUAGE:CXX>:/Zc:__cplusplus>"
+		"$<$<COMPILE_LANGUAGE:CXX>:/utf-8>"
+    "$<$<COMPILE_LANGUAGE:CXX>:/wd4018>"  # signed/unsigned comparison
+    "$<$<COMPILE_LANGUAGE:CXX>:/wd4100>"  # unused parameter
+    "$<$<COMPILE_LANGUAGE:CXX>:/wd4102>"  # unreferenced label
+    "$<$<COMPILE_LANGUAGE:CXX>:/wd4244>"  # conversion with possible loss of data
+    "$<$<COMPILE_LANGUAGE:CXX>:/wd4267>"  # size_t to int conversion
+    "$<$<COMPILE_LANGUAGE:CXX>:/wd4819>"  # Unicode character issues
+    "$<$<COMPILE_LANGUAGE:CXX>:/wd4996>"  # deprecated function warnings
 	)
 endif()
 

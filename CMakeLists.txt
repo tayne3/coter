@@ -1,6 +1,14 @@
 cmake_minimum_required(VERSION 3.14)
 
-include(${CMAKE_CURRENT_LIST_DIR}/cmake/PreventInSourceBuilds.cmake)
+# In-source build guard
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
+  message(
+    FATAL_ERROR
+    "In-source builds are not supported. "
+    "You may need to delete 'CMakeCache.txt' and 'CMakeFiles/' before rebuilding this project."
+  )
+endif()
+
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/GitVersion.cmake)
 git_version_info(VERSION COTER_VERSION DEFAULT_VERSION 0.8.0)
 project(coter VERSION ${COTER_VERSION})
@@ -94,8 +102,8 @@ endif()
 if(COTER_BUILD_TEST)
   CPMAddPackage(
     NAME cunit
-    URL "https://codeload.github.com/tayne3/cunit/tar.gz/refs/tags/v0.2.5"
-    URL_HASH "SHA256=73429bf8bc733ce5431b012689e56f9d255bab3d6d1ac745311f81514b322186"
+    URL "https://codeload.github.com/tayne3/cunit/tar.gz/refs/tags/v0.2.6"
+    URL_HASH "SHA256=f3168ba06b2b3daf6a75088faf324915a38e01c6302f741b510f49c30d2c9f80"
     OPTIONS "BUILD_SHARED_LIBS OFF"
   )
   enable_testing()

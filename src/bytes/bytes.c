@@ -4,8 +4,6 @@
  */
 #include "coter/bytes/bytes.h"
 
-#include "coter/core/platform.h"
-
 // -------------------------[STATIC DECLARATION]-------------------------
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
