@@ -123,9 +123,18 @@ void ct_seg_put_arr16(ct_seg_t *self, const uint16_t *v, size_t count) {
 	if (!count) { return; }
 	const size_t required = count << 1;
 	if (ct_seg_writable(self) < required) { return; }
-	memcpy(self->bytes + self->pos, v, required);
-	if (self->endian != CT_ENDIAN_SYSTEM) { ct_binary_bswap16_batch((uint16_t *)(self->bytes + self->pos), count); }
-	self->pos += (uint32_t)required;
+
+	uint16_t val;
+	for (size_t i = 0; i < count; i++) {
+		if (self->endian != CT_ENDIAN_SYSTEM) {
+			val = ct_binary_bswap16(v[i]);
+		} else {
+			val = v[i];
+		}
+		memcpy(self->bytes + self->pos, &val, 2);
+		self->pos += 2;
+	}
+
 	if (self->pos > self->len) { self->len = self->pos; }
 }
 
@@ -133,18 +142,26 @@ void ct_seg_put_arr32(ct_seg_t *self, const uint32_t *v, size_t count) {
 	if (!count) { return; }
 	const size_t required = count << 2;
 	if (ct_seg_writable(self) < required) { return; }
-	memcpy(self->bytes + self->pos, v, required);
-	if (self->endian == CT_ENDIAN_SYSTEM) {
-		if (self->hlswap) { ct_binary_bswap16_x2_batch((uint32_t *)(self->bytes + self->pos), count); }
-	} else {
-		if (self->hlswap) {
-			ct_binary_reverse_words32_batch((uint32_t *)(self->bytes + self->pos), count);
+
+	uint32_t val;
+	for (size_t i = 0; i < count; i++) {
+		if (self->endian == CT_ENDIAN_SYSTEM) {
+			if (self->hlswap) {
+				val = ct_binary_bswap16_x2(v[i]);
+			} else {
+				val = v[i];
+			}
 		} else {
-			ct_binary_bswap32_batch((uint32_t *)(self->bytes + self->pos), count);
+			if (self->hlswap) {
+				val = ct_binary_reverse_words32(v[i]);
+			} else {
+				val = ct_binary_bswap32(v[i]);
+			}
 		}
+		memcpy(self->bytes + self->pos, &val, 4);
+		self->pos += 4;
 	}
 
-	self->pos += (uint32_t)required;
 	if (self->pos > self->len) { self->len = self->pos; }
 }
 
@@ -152,17 +169,26 @@ void ct_seg_put_arr64(ct_seg_t *self, const uint64_t *v, size_t count) {
 	if (!count) { return; }
 	const size_t required = count * 8;
 	if (ct_seg_writable(self) < required) { return; }
-	memcpy(self->bytes + self->pos, v, required);
-	if (self->endian == CT_ENDIAN_SYSTEM) {
-		if (self->hlswap) { ct_binary_bswap16_x4_batch((uint64_t *)(self->bytes + self->pos), count); }
-	} else {
-		if (self->hlswap) {
-			ct_binary_reverse_words64_batch((uint64_t *)(self->bytes + self->pos), count);
+
+	uint64_t val;
+	for (size_t i = 0; i < count; i++) {
+		if (self->endian == CT_ENDIAN_SYSTEM) {
+			if (self->hlswap) {
+				val = ct_binary_bswap16_x4(v[i]);
+			} else {
+				val = v[i];
+			}
 		} else {
-			ct_binary_bswap64_batch((uint64_t *)(self->bytes + self->pos), count);
+			if (self->hlswap) {
+				val = ct_binary_reverse_words64(v[i]);
+			} else {
+				val = ct_binary_bswap64(v[i]);
+			}
 		}
+		memcpy(self->bytes + self->pos, &val, 8);
+		self->pos += 8;
 	}
-	self->pos += (uint32_t)required;
+
 	if (self->pos > self->len) { self->len = self->pos; }
 }
 
@@ -228,10 +254,14 @@ int ct_seg_take_arr16(ct_seg_t *self, uint16_t *out, size_t count) {
 	const size_t required = count * 2;
 	if (ct_seg_readable(self) < required) { return -1; }
 
-	memcpy(out, self->bytes + self->pos, required);
-	self->pos += (uint32_t)required;
+	uint16_t val;
+	for (size_t i = 0; i < count; i++) {
+		memcpy(&val, self->bytes + self->pos, 2);
+		if (self->endian != CT_ENDIAN_SYSTEM) { val = ct_binary_bswap16(val); }
+		out[i] = val;
+		self->pos += 2;
+	}
 
-	if (self->endian != CT_ENDIAN_SYSTEM) { ct_binary_bswap16_batch(out, count); }
 	return 0;
 }
 
@@ -240,18 +270,22 @@ int ct_seg_take_arr32(ct_seg_t *self, uint32_t *out, size_t count) {
 	const size_t required = count * 4;
 	if (ct_seg_readable(self) < required) { return -1; }
 
-	memcpy(out, self->bytes + self->pos, required);
-	self->pos += (uint32_t)required;
-
-	if (self->endian == CT_ENDIAN_SYSTEM) {
-		if (self->hlswap) { ct_binary_bswap16_x2_batch(out, count); }
-	} else {
-		if (self->hlswap) {
-			ct_binary_reverse_words32_batch(out, count);
+	uint32_t val;
+	for (size_t i = 0; i < count; i++) {
+		memcpy(&val, self->bytes + self->pos, 4);
+		if (self->endian == CT_ENDIAN_SYSTEM) {
+			if (self->hlswap) { val = ct_binary_bswap16_x2(val); }
 		} else {
-			ct_binary_bswap32_batch(out, count);
+			if (self->hlswap) {
+				val = ct_binary_reverse_words32(val);
+			} else {
+				val = ct_binary_bswap32(val);
+			}
 		}
+		out[i] = val;
+		self->pos += 4;
 	}
+
 	return 0;
 }
 
@@ -260,18 +294,22 @@ int ct_seg_take_arr64(ct_seg_t *self, uint64_t *out, size_t count) {
 	const size_t required = count * 8;
 	if (ct_seg_readable(self) < required) { return -1; }
 
-	memcpy(out, self->bytes + self->pos, required);
-	self->pos += (uint32_t)required;
-
-	if (self->endian == CT_ENDIAN_SYSTEM) {
-		if (self->hlswap) { ct_binary_bswap16_x4_batch(out, count); }
-	} else {
-		if (self->hlswap) {
-			ct_binary_reverse_words64_batch(out, count);
+	uint64_t val;
+	for (size_t i = 0; i < count; i++) {
+		memcpy(&val, self->bytes + self->pos, 8);
+		if (self->endian == CT_ENDIAN_SYSTEM) {
+			if (self->hlswap) { val = ct_binary_bswap16_x4(val); }
 		} else {
-			ct_binary_bswap64_batch(out, count);
+			if (self->hlswap) {
+				val = ct_binary_reverse_words64(val);
+			} else {
+				val = ct_binary_bswap64(val);
+			}
 		}
+		out[i] = val;
+		self->pos += 8;
 	}
+
 	return 0;
 }
 
