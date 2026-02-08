@@ -1,4 +1,4 @@
-#include "coter/math/bcd.h"
+#include "coter/encoding/bcd.h"
 
 #include <catch.hpp>
 

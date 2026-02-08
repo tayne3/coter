@@ -1,5 +1,5 @@
-#ifndef COTER_MATH_BCD_H
-#define COTER_MATH_BCD_H
+#ifndef COTER_ENCODING_BCD_H
+#define COTER_ENCODING_BCD_H
 
 #include "coter/core/platform.h"
 
@@ -124,4 +124,4 @@ static inline uint64_t ct_bcd_to_u64(uint64_t bcd) {
 #ifdef __cplusplus
 }
 #endif
-#endif  // COTER_MATH_BCD_H
+#endif  // COTER_ENCODING_BCD_H

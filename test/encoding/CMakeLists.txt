@@ -14,3 +14,7 @@ target_link_libraries(hex_test PRIVATE coter::coter coter_compile_dependency cun
 add_executable(pack_test pack_test.c)
 add_test(NAME pack_test COMMAND pack_test)
 target_link_libraries(pack_test PRIVATE coter::coter coter_compile_dependency cunit::cunit)
+
+add_executable(bcd_test bcd_test.cpp ${MAIN_CPP})
+add_test(NAME bcd_test COMMAND bcd_test)
+target_link_libraries(bcd_test PRIVATE Catch2 coter::coter)

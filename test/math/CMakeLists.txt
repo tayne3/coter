@@ -10,7 +10,3 @@ target_link_libraries(bit_cast_test PRIVATE Catch2 coter::coter)
 add_executable(bit_hpp_test bit_test.cpp ${MAIN_CPP})
 add_test(NAME bit_hpp_test COMMAND bit_hpp_test)
 target_link_libraries(bit_hpp_test PRIVATE Catch2 coter::coter)
-
-add_executable(bcd_test bcd_test.cpp ${MAIN_CPP})
-add_test(NAME bcd_test COMMAND bcd_test)
-target_link_libraries(bcd_test PRIVATE Catch2 coter::coter)
