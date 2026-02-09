@@ -9,10 +9,7 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
   )
 endif()
 
-include(${CMAKE_CURRENT_LIST_DIR}/cmake/GitVersion.cmake)
-git_version_info(VERSION COTER_VERSION DEFAULT_VERSION 0.8.0)
-project(coter VERSION ${COTER_VERSION})
-
+project(coter VERSION 0.9.0)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/ProjectFunctions.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/ProjectConfig.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/CPM.cmake)
@@ -20,92 +17,37 @@ include(${CMAKE_CURRENT_LIST_DIR}/cmake/SetupPthreads.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/SetupLibrarys.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/SetupAtomic.cmake)
 
-set(COTER_LIB_TYPE STATIC)
 if(BUILD_SHARED_LIBS)
   set(COTER_LIB_TYPE SHARED)
+else()
+  set(COTER_LIB_TYPE STATIC)
 endif()
-message(STATUS "coter v${COTER_VERSION} ${COTER_LIB_TYPE} library")
-
-configure_file(
-  "include/coter/core/config.h.in"
-  "include/coter/core/config.h"
-  @ONLY
-)
-
-set(project_source_files
-  src/bytes/builder.c
-  src/bytes/bytes.c
-  src/bytes/seg.c
-  src/bytes/pool.c
-
-  src/container/list.c
-  src/container/heap.c
-  src/container/stack.c
-  src/container/packet.c
-  src/container/vector.c
-  src/container/rbuf.c
-  src/container/queue.c
-  src/container/hash.c
-
-  src/crypto/sha1.c
-  src/crypto/md5.c
-  src/crypto/hash/hash.c
-
-  src/encoding/hex.c
-  src/encoding/binary.c
-  src/encoding/pack.c
-  src/encoding/base64.c
-
-  src/event/hub.c
-  src/event/msgqueue.c
-
-  src/log/logger.c
-  src/log/log_storage.c
-  src/log/log_config.c
-  src/log/log_printer.c
-  src/log/log_callback.c
-
-  src/math/rand.c
-
-  src/strings/strings.c
-
-  src/sync/waitgroup.c
-  src/sync/atomic/atomic_mutex.c
-
-  src/thread/jobpool.c
-  src/thread/cache.c
-  src/thread/thpool.c
-
-  src/time/timer.c
-  src/time/time.c
-  src/time/cron.c
-  src/time/datetime.c
-
-  src/types/any.c
-)
-add_library(coter ${COTER_LIB_TYPE} ${project_source_files})
+message(STATUS "coter v${PROJECT_VERSION} ${COTER_LIB_TYPE} library")
+add_library(coter ${COTER_LIB_TYPE})
 add_library(coter::coter ALIAS coter)
 target_link_libraries(coter PRIVATE coter_compile_dependency)
-target_link_libraries(coter PUBLIC coter_public_dependency)
-target_include_directories(coter PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
-)
-if(BUILD_SHARED_LIBS)
-  target_compile_definitions(coter PRIVATE COTER_LIB_EXPORT INTERFACE COTER_SHARED)
-endif()
-
-if(COTER_BUILD_EXAMPLE)
-  add_subdirectory(example)
-endif()
 
 if(COTER_BUILD_TEST)
+  enable_testing()
   CPMAddPackage(
     NAME cunit
-    URL "https://codeload.github.com/tayne3/cunit/tar.gz/refs/tags/v0.2.6"
-    URL_HASH "SHA256=f3168ba06b2b3daf6a75088faf324915a38e01c6302f741b510f49c30d2c9f80"
+    URL "https://codeload.github.com/tayne3/cunit/tar.gz/refs/tags/v0.2.7"
+    URL_HASH "SHA256=5ede3cb48cb7e59cef32b4e31cc258a510751b81906d85756d71401b1772b9fc"
     OPTIONS "BUILD_SHARED_LIBS OFF"
   )
-  enable_testing()
-  add_subdirectory(test)
 endif()
+add_subdirectory(catch)
+
+add_subdirectory(bytes)
+add_subdirectory(container)
+add_subdirectory(core)
+add_subdirectory(crypto)
+add_subdirectory(encoding)
+add_subdirectory(event)
+add_subdirectory(log)
+add_subdirectory(math)
+add_subdirectory(strings)
+add_subdirectory(sync)
+add_subdirectory(thread)
+add_subdirectory(time)
+add_subdirectory(types)

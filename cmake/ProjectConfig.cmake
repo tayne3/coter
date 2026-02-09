@@ -16,7 +16,6 @@ if(NOT DEFINED PROJECT_IS_TOP_LEVEL)
 endif()
 
 if(PROJECT_IS_TOP_LEVEL)
-  option(COTER_BUILD_EXAMPLE "build example program" OFF)
   option(COTER_BUILD_TEST "build test program" OFF)
 
   get_property(isMultiConfig GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
