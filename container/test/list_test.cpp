@@ -4,12 +4,12 @@
 #include <cstring>
 
 typedef struct my_struct {
-	ct_list_buf_t list;
-	int           data;
+	ct_list_t list[1];
+	int       data;
 } my_struct_t;
 
 TEST_CASE("list_basic", "[list]") {
-	ct_list_buf_t head;
+	ct_list_t head[1];
 	ct_list_init(head);
 	REQUIRE(ct_list_isempty(head));
 	REQUIRE(ct_list_size(head) == 0);
@@ -76,7 +76,7 @@ TEST_CASE("list_basic", "[list]") {
 }
 
 TEST_CASE("list_operations", "[list]") {
-	ct_list_buf_t head, node1, node2, node3, node4;
+	ct_list_t head[1], node1[1], node2[1], node3[1], node4[1];
 	ct_list_init(head);
 	REQUIRE(ct_list_isempty(head));
 	REQUIRE(ct_list_size(head) == 0);
@@ -148,9 +148,9 @@ TEST_CASE("list_operations", "[list]") {
 }
 
 TEST_CASE("list_splice", "[list]") {
-	ct_list_buf_t head1, head2, head3;
-	ct_list_buf_t node1, node2, node3, node4, node5, node6;
-	int           count;
+	ct_list_t head1[1], head2[1], head3[1];
+	ct_list_t node1[1], node2[1], node3[1], node4[1], node5[1], node6[1];
+	int       count;
 	ct_list_init(head1);
 	ct_list_init(head2);
 	ct_list_init(head3);
@@ -205,7 +205,7 @@ TEST_CASE("list_splice", "[list]") {
 	ct_list_remove(node5);
 	ct_list_remove(node6);
 	REQUIRE(ct_list_isempty(head1));
-	ct_list_buf_t empty_head;
+	ct_list_t empty_head[1];
 	ct_list_init(empty_head);
 	ct_list_splice_prev(head1, empty_head);
 	REQUIRE(ct_list_size(head1) == 0);
@@ -216,11 +216,11 @@ TEST_CASE("list_splice", "[list]") {
 }
 
 TEST_CASE("list_foreach", "[list]") {
-	ct_list_buf_t head;
+	ct_list_t head[1];
 	ct_list_init(head);
-	ct_list_buf_t node1;
+	ct_list_t node1[1];
 	ct_list_append(head, node1);
-	ct_list_buf_t node2;
+	ct_list_t node2[1];
 	ct_list_append(head, node2);
 	int count = 0;
 	ct_list_foreach (ptr, head) { count++; }
@@ -228,7 +228,7 @@ TEST_CASE("list_foreach", "[list]") {
 }
 
 TEST_CASE("list_foreach_entry", "[list]") {
-	ct_list_buf_t head;
+	ct_list_t head[1];
 	ct_list_init(head);
 	my_struct_t node1;
 	node1.data = 1;
@@ -246,7 +246,7 @@ TEST_CASE("list_foreach_entry", "[list]") {
 }
 
 TEST_CASE("list_foreach_entry_from", "[list]") {
-	ct_list_buf_t head;
+	ct_list_t head[1];
 	ct_list_init(head);
 	my_struct_t node1;
 	node1.data = 1;
@@ -255,7 +255,7 @@ TEST_CASE("list_foreach_entry_from", "[list]") {
 	node2.data = 2;
 	ct_list_append(head, node2.list);
 	int          sum = 0;
-	my_struct_t* pos = NULL;
+	my_struct_t* pos = nullptr;
 	sum              = 0;
 	pos              = &node1;
 	ct_list_foreach_entry_from (pos, head, my_struct_t, list) { sum += pos->data; }
@@ -271,7 +271,7 @@ TEST_CASE("list_foreach_entry_from", "[list]") {
 }
 
 TEST_CASE("list_foreach_entry_safe", "[list]") {
-	ct_list_buf_t head;
+	ct_list_t head[1];
 	ct_list_init(head);
 	my_struct_t node1;
 	node1.data = 1;

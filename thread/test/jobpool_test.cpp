@@ -4,8 +4,9 @@
  */
 #include "coter/thread/jobpool.h"
 
-#include "coter/core/platform.h"
 #include <catch.hpp>
+
+#include "coter/core/platform.h"
 
 #define TEST_DATA_MAX 10000
 
@@ -38,7 +39,7 @@ static void *test_job_publish(void *arg) {
 	ct_jobpool_t *jobpool = (ct_jobpool_t *)arg;
 	for (size_t i = 0; i < test_data.data_size; ++i) { REQUIRE(ct_jobpool_submit(jobpool, test_job_routine, (void *)(uintptr_t)i) == 0); }
 
-	return NULL;
+	return nullptr;
 }
 
 static void setup(void) {
@@ -56,10 +57,10 @@ static void test_jobpool_add(size_t data_count, size_t task_count, size_t job_co
 
 	test_data.data_size   = data_count;
 	ct_jobpool_t *jobpool = ct_jobpool_create(task_count, job_count);
-	REQUIRE(jobpool != NULL);
+	REQUIRE(jobpool != nullptr);
 
 	pthread_t thread;
-	REQUIRE(pthread_create(&thread, NULL, test_job_publish, jobpool) == 0);
+	REQUIRE(pthread_create(&thread, nullptr, test_job_publish, jobpool) == 0);
 
 	// 等待结束 (超时时长: 5s)
 	bool is_end = false;
@@ -71,7 +72,7 @@ static void test_jobpool_add(size_t data_count, size_t task_count, size_t job_co
 		ct_msleep(5);
 	}
 
-	REQUIRE(pthread_join(thread, NULL) == 0);
+	REQUIRE(pthread_join(thread, nullptr) == 0);
 
 	pthread_mutex_lock(&test_data.mutex);
 	REQUIRE(test_data.end_number == test_data.data_size);

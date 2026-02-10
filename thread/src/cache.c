@@ -81,7 +81,7 @@ int __ct_threadcache_basic(ct_threadcache_t *self, const char *fmt, ...) {
 	va_start(args, fmt);
 	va_list args1;
 	va_copy(args1, args);
-#ifdef CT_OS_WIN
+#ifdef CT_COMPILER_MSVC
 	va_list args2;
 	va_copy(args2, args);
 	result = _vsnprintf_s(self->buffer, self->buffer_size, _TRUNCATE, fmt, args);
@@ -115,7 +115,7 @@ int __ct_threadcache_brief(ct_threadcache_t *self, const char *info, const char 
 	va_start(args, fmt);
 	va_list args1;
 	va_copy(args1, args);
-#ifdef CT_OS_WIN
+#ifdef CT_COMPILER_MSVC
 	va_list args2;
 	va_copy(args2, args);
 	result = _vsnprintf_s(self->buffer + prefix_size, self->buffer_size - prefix_size, _TRUNCATE, fmt, args);
@@ -161,7 +161,7 @@ int __ct_threadcache_detail(ct_threadcache_t *self, const char *file, int line, 
 	va_start(args, fmt);
 	va_list args1;
 	va_copy(args1, args);
-#ifdef CT_OS_WIN
+#ifdef CT_COMPILER_MSVC
 	va_list args2;
 	va_copy(args2, args);
 	result = _vsnprintf_s(self->buffer + prefix_size, self->buffer_size - prefix_size, _TRUNCATE, fmt, args);

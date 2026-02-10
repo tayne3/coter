@@ -23,7 +23,7 @@
  * @var arg 回调参数
  */
 typedef struct ct_timer {
-	ct_list_buf_t       list;           // 链表
+	ct_list_t           list[1];        // 链表
 	ct_timer_id_t       id;             // 定时器id
 	uint32_t            is_active : 1;  // 是否激活
 	uint32_t            is_loop : 1;    // 是否周期性触发
@@ -60,7 +60,7 @@ typedef struct ct_timer {
  * 注意, 在定时器机制中, 最多存在一个异步任务, 当存在异步任务时, 忙碌状态为真。
  */
 static struct ct_timer_manager {
-	ct_list_buf_t   idle_list;                   // 可用链表
+	ct_list_t       idle_list[1];                // 可用链表
 	pthread_mutex_t lock[1];                     // 线程锁
 	ct_timer_t      timer_buffer[CT_TIMER_MAX];  // 定时器缓存数组
 	ct_any_t        heap_buffer[CT_TIMER_MAX];   // 最小堆缓存数组

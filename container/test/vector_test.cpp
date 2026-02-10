@@ -19,7 +19,7 @@ TEST_CASE("Vec Init and Destroy", "[vec]") {
 	IntVec_destroy(&v);
 	REQUIRE(v.ptr == nullptr);
 
-	REQUIRE(IntVec_init(NULL, 10) == -1);
+	REQUIRE(IntVec_init(nullptr, 10) == -1);
 }
 
 TEST_CASE("Vec Push and Pop", "[vec]") {

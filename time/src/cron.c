@@ -40,7 +40,7 @@ typedef enum {
  * @brief Cron任务结构体
  */
 typedef struct cron {
-	ct_list_buf_t      list_node;     // 链表节点
+	ct_list_t          list_node[1];  // 链表节点
 	ct_cron_id_t       id;            // 任务唯一标识
 	bool               is_active;     // 激活状态
 	int                minute;        // 分钟字段 (0-59, -1表示任意)
@@ -57,7 +57,7 @@ typedef struct cron {
  * @brief Cron任务管理器全局状态
  */
 static struct ct_cron_manager {
-	ct_list_buf_t   idle_task_list;                   // 空闲任务链表
+	ct_list_t       idle_task_list[1];                // 空闲任务链表
 	pthread_mutex_t mutex[1];                         // 管理器互斥锁
 	cron_t          task_pool[CT_CRON_MAX_TASKS];     // 任务对象池
 	ct_any_t        heap_storage[CT_CRON_MAX_TASKS];  // 堆存储数组

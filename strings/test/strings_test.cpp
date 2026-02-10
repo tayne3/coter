@@ -49,11 +49,11 @@ TEST_CASE("strings_snprintf_s", "[strings]") {
 	len = ct_snprintf_s(buf, 6, "Hello!");
 	REQUIRE(len == 5);
 	REQUIRE(std::strcmp(buf, "Hello") == 0);
-	len = ct_snprintf_s(NULL, 10, "Test");
+	len = ct_snprintf_s(nullptr, 10, "Test");
 	REQUIRE(len == -1);
 	len = ct_snprintf_s(buf, 0, "Test");
 	REQUIRE(len == -1);
-	len = ct_snprintf_s(buf, sizeof(buf), NULL);
+	len = ct_snprintf_s(buf, sizeof(buf), nullptr);
 	REQUIRE(len == -1);
 	len = ct_snprintf_s(buf, sizeof(buf), "%d %u %f %s", -1, 2U, 3.14f, "test");
 	REQUIRE(std::strcmp(buf, "-1 2 3.140000 test") == 0);
@@ -80,9 +80,9 @@ TEST_CASE("strings_strncpy_s", "[strings]") {
 	REQUIRE(std::strcmp(buf, "Hi") == 0);
 	len = ct_strncpy_s(buf, 5, "This is a long string", 10);
 	REQUIRE(len == -1);
-	len = ct_strncpy_s(NULL, 10, "Test", 4);
+	len = ct_strncpy_s(nullptr, 10, "Test", 4);
 	REQUIRE(len == -1);
-	len = ct_strncpy_s(buf, sizeof(buf), NULL, 5);
+	len = ct_strncpy_s(buf, sizeof(buf), nullptr, 5);
 	REQUIRE(len == -1);
 	REQUIRE(std::strcmp(buf, "") == 0);
 	len = ct_strncpy_s(buf, sizeof(buf), "Test", 0);

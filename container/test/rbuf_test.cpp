@@ -31,7 +31,7 @@ TEST_CASE("rbuf_put_take", "[rbuf]") {
 	ct_rbuf_clear(rbuf);
 	{
 		char out;
-		for (int i = 0; i < TEST_BUF_SIZE; ++i) {
+		for (size_t i = 0; i < TEST_BUF_SIZE; ++i) {
 			for (char c = 0; c < 10; c++) {
 				REQUIRE(ct_rbuf_put(rbuf, &c));
 				REQUIRE(ct_rbuf_take(rbuf, &out));
@@ -51,7 +51,7 @@ TEST_CASE("rbuf_put_take", "[rbuf]") {
 	}
 	{
 		char out;
-		for (int i = 0; i < TEST_BUF_SIZE; ++i) {
+		for (size_t i = 0; i < TEST_BUF_SIZE; ++i) {
 			REQUIRE(ct_rbuf_take(rbuf, &out));
 			REQUIRE(out == (char)i);
 		}
@@ -73,10 +73,10 @@ TEST_CASE("rbuf_clear", "[rbuf]") {
 TEST_CASE("rbuf_full_empty", "[rbuf]") {
 	REQUIRE(ct_rbuf_isempty(rbuf));
 	ct_rbuf_clear(rbuf);
-	for (int i = 0; i < TEST_BUF_SIZE; ++i) { REQUIRE(ct_rbuf_put(rbuf, "x")); }
+	for (size_t i = 0; i < TEST_BUF_SIZE; ++i) { REQUIRE(ct_rbuf_put(rbuf, "x")); }
 	REQUIRE(ct_rbuf_isfull(rbuf));
 	char out;
-	for (int i = 0; i < TEST_BUF_SIZE; ++i) { REQUIRE(ct_rbuf_take(rbuf, &out)); }
+	for (size_t i = 0; i < TEST_BUF_SIZE; ++i) { REQUIRE(ct_rbuf_take(rbuf, &out)); }
 	REQUIRE(ct_rbuf_isempty(rbuf));
 }
 
@@ -88,7 +88,7 @@ TEST_CASE("rbuf_puts_takes", "[rbuf]") {
 	REQUIRE(ct_rbuf_puts(rbuf, items, TEST_BUF_SIZE) == TEST_BUF_SIZE);
 	REQUIRE(ct_rbuf_takes(rbuf, out, TEST_BUF_SIZE) == TEST_BUF_SIZE);
 	REQUIRE(std::strncmp(out, items, TEST_BUF_SIZE) == 0);
-	for (int i = 1; i <= TEST_BUF_SIZE; ++i) {
+	for (size_t i = 1; i <= TEST_BUF_SIZE; ++i) {
 		REQUIRE(ct_rbuf_puts(rbuf, items, i) == i);
 		REQUIRE(ct_rbuf_takes(rbuf, out, i) == i);
 		REQUIRE(std::strncmp(out, items, i) == 0);
@@ -135,7 +135,7 @@ TEST_CASE("rbuf_gets_remove", "[rbuf]") {
 	REQUIRE(ct_rbuf_takes(rbuf, out, TEST_BUF_SIZE) == 0);
 	REQUIRE(ct_rbuf_remove(rbuf, TEST_BUF_SIZE) == 0);
 	REQUIRE(ct_rbuf_isempty(rbuf));
-	for (int i = 1; i <= TEST_BUF_SIZE; ++i) {
+	for (size_t i = 1; i <= TEST_BUF_SIZE; ++i) {
 		REQUIRE(ct_rbuf_puts(rbuf, items, i) == i);
 		REQUIRE(ct_rbuf_gets(rbuf, out, i) == i);
 		REQUIRE(ct_rbuf_remove(rbuf, TEST_BUF_SIZE) == i);
@@ -164,7 +164,7 @@ TEST_CASE("rbuf_items", "[rbuf]") {
 		for (;;) {
 			ptr = (char*)ct_rbuf_items(rbuf, size, &ret);
 			if (!ret) break;
-			REQUIRE(ptr != NULL);
+			REQUIRE(ptr != nullptr);
 			std::memcpy(&tmp[size], ptr, ret);
 			size += ret;
 		}
@@ -181,7 +181,7 @@ TEST_CASE("rbuf_items", "[rbuf]") {
 		for (;;) {
 			ptr = (char*)ct_rbuf_items(rbuf, size, &ret);
 			if (!ret) break;
-			REQUIRE(ptr != NULL);
+			REQUIRE(ptr != nullptr);
 			std::memcpy(&tmp[size], ptr, ret);
 			size += ret;
 		}
@@ -198,7 +198,7 @@ TEST_CASE("rbuf_items", "[rbuf]") {
 		for (;;) {
 			ptr = (char*)ct_rbuf_items(rbuf, size, &ret);
 			if (!ret) break;
-			REQUIRE(ptr != NULL);
+			REQUIRE(ptr != nullptr);
 			std::memcpy(&tmp[size], ptr, ret);
 			size += ret;
 		}
@@ -212,7 +212,7 @@ TEST_CASE("rbuf_items", "[rbuf]") {
 			for (;;) {
 				ptr = (char*)ct_rbuf_items(rbuf, size, &ret);
 				if (!ret) break;
-				REQUIRE(ptr != NULL);
+				REQUIRE(ptr != nullptr);
 				std::memcpy(&tmp[size], ptr, ret);
 				size += ret;
 			}

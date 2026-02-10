@@ -24,7 +24,7 @@ typedef struct task {
  * @brief 工作者
  */
 typedef struct worker {
-	ct_list_buf_t     list;          // 链表节点
+	ct_list_t         list[1];       // 链表节点
 	pthread_t         thread;        // 线程
 	ct_thpool_t*      thpool;        // 所属线程池
 	task_t            task_buff[1];  // 任务缓存
@@ -49,7 +49,7 @@ struct ct_thpool {
 	ct_thpool_config_t config;  // 线程池属性
 	status_t           status;  // 线程池状态
 
-	ct_list_buf_t   worker_head;      // 工作者队列
+	ct_list_t       worker_head[1];   // 工作者队列
 	pthread_mutex_t worker_mutex[1];  // 互斥锁
 	pthread_cond_t  worker_cond[1];   // 条件变量
 
@@ -112,7 +112,7 @@ void ct_thpool_close(ct_thpool_t* self) {
 
 	if (self->config.idle_timeout > 0) { pthread_join(self->monitor_thread, NULL); }
 
-	ct_list_buf_t stale_head;
+	ct_list_t stale_head[1];
 	ct_list_init(stale_head);
 
 	pthread_mutex_lock(self->worker_mutex);
@@ -346,7 +346,7 @@ static inline void* ctl_monitor_thread(void* arg) {
 			const ct_time64_t expiry_time = now - pool->config.idle_timeout;
 			const size_t      total_size  = ct_atomic_long_load(&pool->status.total_size);
 
-			ct_list_buf_t stale_head;
+			ct_list_t stale_head[1];
 			ct_list_init(stale_head);
 
 			// 遍历工作者队列，找出空闲超时的工作者

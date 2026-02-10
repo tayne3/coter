@@ -11,7 +11,7 @@
 extern "C" {
 #endif
 
-#ifdef CT_OS_WIN
+#ifdef CT_COMPILER_MSVC
 /**
  * @brief Format string with buffer size limit (Windows implementation)
  * @param[out] __s Destination buffer (NULL to calculate required size)

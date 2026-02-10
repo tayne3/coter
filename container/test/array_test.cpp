@@ -33,7 +33,7 @@ TEST_CASE("Array Lifecycle and properties", "[array][lifecycle]") {
 	}
 
 	SECTION("Init failure checking") {
-		REQUIRE(ct_array_init(NULL, sizeof(int), 0) == -1);
+		REQUIRE(ct_array_init(nullptr, sizeof(int), 0) == -1);
 		REQUIRE(ct_array_init(&arr, 0, 10) == -1);
 	}
 }
@@ -187,27 +187,27 @@ TEST_CASE("Array Accessors and Safety", "[array][safety]") {
 		REQUIRE(ct_array_back(&arr) == nullptr);
 	}
 
-	SECTION("NULL self checks") {
-		REQUIRE(ct_array_capacity(NULL) == 0);
-		REQUIRE(ct_array_size(NULL) == 0);
-		REQUIRE(ct_array_empty(NULL) == true);
+	SECTION("nullptr self checks") {
+		REQUIRE(ct_array_capacity(nullptr) == 0);
+		REQUIRE(ct_array_size(nullptr) == 0);
+		REQUIRE(ct_array_empty(nullptr) == true);
 
-		REQUIRE(ct_array_reserve(NULL, 10) == false);
-		REQUIRE(ct_array_resize(NULL, 10) == false);
-		REQUIRE(ct_array_shrink(NULL) == false);
+		REQUIRE(ct_array_reserve(nullptr, 10) == false);
+		REQUIRE(ct_array_resize(nullptr, 10) == false);
+		REQUIRE(ct_array_shrink(nullptr) == false);
 
-		REQUIRE(ct_array_insert(NULL, 0, &val) == false);
-		REQUIRE(ct_array_push(NULL, &val) == false);
-		REQUIRE(ct_array_erase(NULL, 0) == false);
-		REQUIRE(ct_array_pop(NULL) == false);
+		REQUIRE(ct_array_insert(nullptr, 0, &val) == false);
+		REQUIRE(ct_array_push(nullptr, &val) == false);
+		REQUIRE(ct_array_erase(nullptr, 0) == false);
+		REQUIRE(ct_array_pop(nullptr) == false);
 
-		REQUIRE(ct_array_at(NULL, 0) == nullptr);
-		REQUIRE(ct_array_value(NULL, 0) == nullptr);
-		REQUIRE(ct_array_front(NULL) == nullptr);
-		REQUIRE(ct_array_back(NULL) == nullptr);
+		REQUIRE(ct_array_at(nullptr, 0) == nullptr);
+		REQUIRE(ct_array_value(nullptr, 0) == nullptr);
+		REQUIRE(ct_array_front(nullptr) == nullptr);
+		REQUIRE(ct_array_back(nullptr) == nullptr);
 
-		ct_array_destroy(NULL);
-		ct_array_clear(NULL);
+		ct_array_destroy(nullptr);
+		ct_array_clear(nullptr);
 	}
 
 	ct_array_destroy(&arr);

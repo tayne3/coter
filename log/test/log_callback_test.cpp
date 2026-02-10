@@ -1,10 +1,8 @@
-/**
- * @file log_callback_test.cpp
- * @brief 日志回调测试
- */
+#include <catch.hpp>
+#include <cstring>
+
 #include "coter/core/platform.h"
 #include "coter/log/log.h"
-#include <catch.hpp>
 
 #define test_basic_verbose(...) CTLogger_HandleBasic(Verbose, 0, __VA_ARGS__)
 #define test_basic_debug(...)   CTLogger_HandleBasic(Debug, 0, __VA_ARGS__)
@@ -16,8 +14,8 @@
 #define TEST_THREADS     4
 #define TEST_THREAD_DATA 50000
 
-static FILE*           g_file_with_log      = NULL;
-static FILE*           g_file_without_log   = NULL;
+static FILE*           g_file_with_log      = nullptr;
+static FILE*           g_file_without_log   = nullptr;
 static pthread_mutex_t g_file_without_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static pthread_t g_thread_logger;
@@ -25,46 +23,47 @@ static bool      is_exit = false;
 
 // 日志调度线程函数
 static void* thread_log_schedule(void* arg) {
-	(void)arg;
+	CT_UNUSED(arg);
 	for (; !is_exit;) {
 		ct_log_schedule(ct_getuptime_ms());
 		ct_msleep(10);
 	}
-	return NULL;
+	return nullptr;
 }
 
 // 日志回调函数
 static void log_callback(const char* msg, size_t size, void* userdata) {
 	(void)userdata;
-	REQUIRE(msg != NULL);
-	REQUIRE(g_file_with_log != NULL);
+	REQUIRE(msg != nullptr);
+	REQUIRE(g_file_with_log != nullptr);
 	fwrite(msg, 1, size, g_file_with_log);
 }
 
 // 带回调的测试线程函数
 static void* thread_callback_with_log(void* arg) {
-	(void)arg;
+	CT_UNUSED(arg);
 	for (int i = 0; i < TEST_THREAD_DATA; ++i) {
-		test_basic_trace("%04d/%05d/%06d/%07d %16p/%16p/%16p/%16p %10s/%11s/%12s/%13s %02x/%02x/%02x/%02x\n", 1234, 1234, 1234, 1234, (void*)0xFFFF0000ULL,
-						 (void*)0xFFFF0000ULL, (void*)0xFFFF0000ULL, (void*)0xFFFF0000ULL, "test1", "test2", "test3", "test4", 0x00, 0x01, 0x02, 0x03);
+		test_basic_trace("%04d/%05d/%06d/%07d %016llx/%016llx/%016llx/%016llx %10s/%11s/%12s/%13s %02x/%02x/%02x/%02x\n", 1234, 1234, 1234, 1234,
+						 (unsigned long long)0xFFFF0000ULL, (unsigned long long)0xFFFF0000ULL, (unsigned long long)0xFFFF0000ULL,
+						 (unsigned long long)0xFFFF0000ULL, "test1", "test2", "test3", "test4", 0x00, 0x01, 0x02, 0x03);
 	}
-	return NULL;
+	return nullptr;
 }
 
 // 直接调用回调函数的测试线程函数
 static void* thread_callback_without_log(void* arg) {
-	(void)arg;
+	CT_UNUSED(arg);
 	for (int i = 0; i < TEST_THREAD_DATA; ++i) {
 		pthread_mutex_lock(&g_file_without_mutex);
 		char buffer[1024];
-		int size = snprintf(buffer, sizeof(buffer), "%04d/%05d/%06d/%07d %16p/%16p/%16p/%16p %10s/%11s/%12s/%13s %02x/%02x/%02x/%02x\n", 1234, 1234, 1234, 1234,
-							(void*)0xFFFF0000ULL, (void*)0xFFFF0000ULL, (void*)0xFFFF0000ULL, (void*)0xFFFF0000ULL, "test1", "test2", "test3", "test4", 0x00,
-							0x01, 0x02, 0x03);
-		REQUIRE(g_file_without_log != NULL);
+		int size = snprintf(buffer, sizeof(buffer), "%04d/%05d/%06d/%07d %016llx/%016llx/%016llx/%016llx %10s/%11s/%12s/%13s %02x/%02x/%02x/%02x\n", 1234, 1234,
+							1234, 1234, (unsigned long long)0xFFFF0000ULL, (unsigned long long)0xFFFF0000ULL, (unsigned long long)0xFFFF0000ULL,
+							(unsigned long long)0xFFFF0000ULL, "test1", "test2", "test3", "test4", 0x00, 0x01, 0x02, 0x03);
+		REQUIRE(g_file_without_log != nullptr);
 		fwrite(buffer, 1, (size_t)size, g_file_without_log);
 		pthread_mutex_unlock(&g_file_without_mutex);
 	}
-	return NULL;
+	return nullptr;
 }
 
 // 回调性能对比测试函数
@@ -77,10 +76,10 @@ static void test_callback_performance_comparison(size_t limit) {
 	REQUIRE(access("test_log_out", 0) == 0);
 
 	g_file_without_log = fopen("test_log_out/callback_without_log.log", "w");
-	REQUIRE(g_file_without_log != NULL);
+	REQUIRE(g_file_without_log != nullptr);
 
 	g_file_with_log = fopen("test_log_out/callback_with_log.log", "w");
-	REQUIRE(g_file_with_log != NULL);
+	REQUIRE(g_file_with_log != nullptr);
 
 	// 创建 Logger
 	{
@@ -90,38 +89,38 @@ static void test_callback_performance_comparison(size_t limit) {
 		config.disable_print     = true;
 		config.disable_save      = true;
 		config.callback_routine  = log_callback;
-		config.callback_userdata = NULL;
+		config.callback_userdata = nullptr;
 		config.callback_limit    = limit;
 
 		ct_log_init(ct_getuptime_ms(), 1, &config);
 	}
 
-	REQUIRE(pthread_create(&g_thread_logger, NULL, thread_log_schedule, NULL) == 0);
+	REQUIRE(pthread_create(&g_thread_logger, nullptr, thread_log_schedule, nullptr) == 0);
 
 	// 测试直接调用回调函数的性能
 	start = ct_getuptime_ms();
-	for (int i = 0; i < TEST_THREADS; ++i) { REQUIRE(pthread_create(&threads[i], NULL, thread_callback_without_log, NULL) == 0); }
-	for (int i = 0; i < TEST_THREADS; ++i) { REQUIRE(pthread_join(threads[i], NULL) == 0); }
+	for (int i = 0; i < TEST_THREADS; ++i) { REQUIRE(pthread_create(&threads[i], nullptr, thread_callback_without_log, nullptr) == 0); }
+	for (int i = 0; i < TEST_THREADS; ++i) { REQUIRE(pthread_join(threads[i], nullptr) == 0); }
 	end                             = ct_getuptime_ms();
 	const int time_without_callback = (int)(end - start);
 
 	// 测试带日志回调的性能
 	start = ct_getuptime_ms();
-	for (int i = 0; i < TEST_THREADS; ++i) { REQUIRE(pthread_create(&threads[i], NULL, thread_callback_with_log, NULL) == 0); }
-	for (int i = 0; i < TEST_THREADS; ++i) { REQUIRE(pthread_join(threads[i], NULL) == 0); }
+	for (int i = 0; i < TEST_THREADS; ++i) { REQUIRE(pthread_create(&threads[i], nullptr, thread_callback_with_log, nullptr) == 0); }
+	for (int i = 0; i < TEST_THREADS; ++i) { REQUIRE(pthread_join(threads[i], nullptr) == 0); }
 	end                          = ct_getuptime_ms();
 	const int time_with_callback = (int)(end - start);
 
 	is_exit = true;
-	REQUIRE(pthread_join(g_thread_logger, NULL) == 0);
+	REQUIRE(pthread_join(g_thread_logger, nullptr) == 0);
 
 	ct_log_flush();
 	ct_log_schedule(ct_getuptime_ms());
 
 	fclose(g_file_with_log);
-	g_file_with_log = NULL;
+	g_file_with_log = nullptr;
 	fclose(g_file_without_log);
-	g_file_without_log = NULL;
+	g_file_without_log = nullptr;
 
 	printf("Execution time: with log callback %d ms, without log callback %d ms\n", time_with_callback, time_without_callback);
 
@@ -130,8 +129,8 @@ static void test_callback_performance_comparison(size_t limit) {
 	// 打开文件
 	FILE* file_with_log    = fopen("test_log_out/callback_with_log.log", "r");
 	FILE* file_without_log = fopen("test_log_out/callback_without_log.log", "r");
-	REQUIRE(file_with_log != NULL);
-	REQUIRE(file_without_log != NULL);
+	REQUIRE(file_with_log != nullptr);
+	REQUIRE(file_without_log != nullptr);
 
 	// 获取文件大小
 	fseek(file_with_log, 0, SEEK_END);
@@ -148,18 +147,15 @@ static void test_callback_performance_comparison(size_t limit) {
 	rewind(file_with_log);
 	rewind(file_without_log);
 
-	char buffer_with_log[128];
-	char buffer_without_log[128];
-
-	size_t bytes_read_with_log, bytes_read_without_log;
-
 	// 比较文件内容是否一致
 	while (1) {
-		bytes_read_with_log    = fread(buffer_with_log, 1, sizeof(buffer_with_log), file_with_log);
-		bytes_read_without_log = fread(buffer_without_log, 1, sizeof(buffer_without_log), file_without_log);
+		char         buffer_with_log[128]    = {0};
+		char         buffer_without_log[128] = {0};
+		const size_t bytes_read_with_log     = fread(buffer_with_log, 1, sizeof(buffer_with_log), file_with_log);
+		const size_t bytes_read_without_log  = fread(buffer_without_log, 1, sizeof(buffer_without_log), file_without_log);
 		if (bytes_read_with_log == 0 || bytes_read_without_log == 0) { break; }
 		REQUIRE(bytes_read_with_log == bytes_read_without_log);
-		REQUIRE(memcmp(buffer_with_log, buffer_without_log, bytes_read_with_log) == 0);
+		REQUIRE(std::memcmp(buffer_with_log, buffer_without_log, bytes_read_with_log) == 0);
 	}
 
 	// 确保两个文件都已读取完毕
@@ -175,7 +171,13 @@ static void test_callback_performance_comparison(size_t limit) {
 }
 
 TEST_CASE("log_callback", "[log]") {
-	SECTION("comparison_0") { test_callback_performance_comparison(0); }
-	SECTION("comparison_11") { test_callback_performance_comparison(11); }
-	SECTION("comparison_999") { test_callback_performance_comparison(999); }
+	SECTION("comparison_0") {
+		test_callback_performance_comparison(0);
+	}
+	SECTION("comparison_11") {
+		test_callback_performance_comparison(11);
+	}
+	SECTION("comparison_999") {
+		test_callback_performance_comparison(999);
+	}
 }

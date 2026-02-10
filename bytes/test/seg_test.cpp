@@ -1,6 +1,7 @@
 #include "coter/bytes/seg.h"
 
 #include <catch.hpp>
+#include <cstring>
 
 TEST_CASE("seg Initialization", "[seg][init]") {
 	uint8_t buffer[64];
@@ -173,7 +174,7 @@ TEST_CASE("seg Configuration", "[seg][config]") {
 		ct_seg_put_u32(&seg, 0x12345678);
 
 		uint8_t expected_le[] = {0x78, 0x56, 0x34, 0x12};
-		REQUIRE(memcmp(buffer, expected_le, 4) == 0);
+		REQUIRE(std::memcmp(buffer, expected_le, 4) == 0);
 
 		ct_seg_rewind(&seg);
 		ct_seg_set_endian(&seg, CT_ENDIAN_BIG);
@@ -181,7 +182,7 @@ TEST_CASE("seg Configuration", "[seg][config]") {
 		ct_seg_put_u32(&seg, 0x12345678);
 
 		uint8_t expected_be[] = {0x12, 0x34, 0x56, 0x78};
-		REQUIRE(memcmp(buffer, expected_be, 4) == 0);
+		REQUIRE(std::memcmp(buffer, expected_be, 4) == 0);
 	}
 
 	SECTION("High-Low Swap") {
@@ -192,14 +193,14 @@ TEST_CASE("seg Configuration", "[seg][config]") {
 		// u32: 0x11223344 -> 0x22114433
 		ct_seg_put_u32(&seg, 0x11223344);
 		uint8_t expected_32[] = {0x22, 0x11, 0x44, 0x33};
-		REQUIRE(memcmp(buffer, expected_32, 4) == 0);
+		REQUIRE(std::memcmp(buffer, expected_32, 4) == 0);
 
 		ct_seg_rewind(&seg);
 
 		// u64: 0x1122334455667788 -> 0x2211443366558877
 		ct_seg_put_u64(&seg, 0x1122334455667788ULL);
 		uint8_t expected_64[] = {0x22, 0x11, 0x44, 0x33, 0x66, 0x55, 0x88, 0x77};
-		REQUIRE(memcmp(buffer, expected_64, 8) == 0);
+		REQUIRE(std::memcmp(buffer, expected_64, 8) == 0);
 	}
 
 	SECTION("Array Swap") {
@@ -209,7 +210,7 @@ TEST_CASE("seg Configuration", "[seg][config]") {
 		const uint32_t data[] = {0x11223344};
 		ct_seg_put_arr32(&seg, data, 1);
 		const uint8_t expected[] = {0x33, 0x44, 0x11, 0x22};
-		REQUIRE(memcmp(buffer, expected, 4) == 0);
+		REQUIRE(std::memcmp(buffer, expected, 4) == 0);
 
 		ct_seg_rewind(&seg);
 		uint32_t out[1];
@@ -320,7 +321,7 @@ TEST_CASE("seg Overwrite Operations", "[seg][overwrite]") {
 		REQUIRE(ct_seg_overwrite_u32(&seg, 0, 0xAABBCCDD) == 0);
 
 		uint8_t expected[] = {0xDD, 0xCC, 0xBB, 0xAA};
-		REQUIRE(memcmp(buffer, expected, 4) == 0);
+		REQUIRE(std::memcmp(buffer, expected, 4) == 0);
 
 		ct_seg_rewind(&seg);
 		REQUIRE(ct_seg_take_u32(&seg) == 0xAABBCCDD);
@@ -459,7 +460,7 @@ TEST_CASE("seg IO Operations", "[seg][io]") {
 		REQUIRE(ct_seg_write(&seg, data, 5) == 5);
 		REQUIRE(ct_seg_pos(&seg) == 5);
 		REQUIRE(ct_seg_count(&seg) == 5);
-		REQUIRE(memcmp(buffer, data, 5) == 0);
+		REQUIRE(std::memcmp(buffer, data, 5) == 0);
 	}
 
 	SECTION("write partial") {
@@ -477,7 +478,7 @@ TEST_CASE("seg IO Operations", "[seg][io]") {
 
 		uint8_t out[4] = {0};
 		REQUIRE(ct_seg_read(&seg, out, 4) == 4);
-		REQUIRE(memcmp(out, data, 4) == 0);
+		REQUIRE(std::memcmp(out, data, 4) == 0);
 		REQUIRE(ct_seg_pos(&seg) == 4);
 	}
 
@@ -498,7 +499,7 @@ TEST_CASE("seg IO Operations", "[seg][io]") {
 
 		uint8_t out[4] = {0};
 		REQUIRE(ct_seg_peek(&seg, 0, out, 4) == 4);
-		REQUIRE(memcmp(out, data, 4) == 0);
+		REQUIRE(std::memcmp(out, data, 4) == 0);
 		REQUIRE(ct_seg_pos(&seg) == 0);
 
 		uint8_t out2[2] = {0};
@@ -656,7 +657,7 @@ TEST_CASE("seg Put/Take All Types", "[seg][types]") {
 		ct_seg_rewind(&seg);
 		uint8_t out[4];
 		REQUIRE(ct_seg_take_arr8(&seg, out, 4) == 0);
-		REQUIRE(memcmp(out, data, 4) == 0);
+		REQUIRE(std::memcmp(out, data, 4) == 0);
 	}
 
 	SECTION("arr16 roundtrip") {

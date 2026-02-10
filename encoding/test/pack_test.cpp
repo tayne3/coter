@@ -245,8 +245,8 @@ TEST_CASE("pack_combinations", "[pack]") {
 	uint64_t       L_out        = 0;
 	const char    *fmt          = "cb<h>I f z =L";
 	size_t         expected_len = 1 + 1 + 2 + 4 + 4 + (std::strlen(z) + 1) + 8;
-	REQUIRE(ct_pack(test_buffer, TEST_BUFFER_SIZE, fmt, c, b, h, I, f, z, L) == expected_len);
-	REQUIRE(ct_unpack(test_buffer, TEST_BUFFER_SIZE, fmt, &c_out, &b_out, &h_out, &I_out, &f_out, z_out, &L_out) == expected_len);
+	REQUIRE(ct_pack(test_buffer, TEST_BUFFER_SIZE, fmt, c, b, h, I, f, z, L) == static_cast<int>(expected_len));
+	REQUIRE(ct_unpack(test_buffer, TEST_BUFFER_SIZE, fmt, &c_out, &b_out, &h_out, &I_out, &f_out, z_out, &L_out) == static_cast<int>(expected_len));
 	REQUIRE(c_out == c);
 	REQUIRE(b_out == b);
 	REQUIRE(h_out == h);

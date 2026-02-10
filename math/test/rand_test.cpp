@@ -17,20 +17,20 @@ static bool is_distribution_uniform(const uint64_t *counts, size_t size, uint64_
 }
 
 TEST_CASE("rand_null_safety", "[rand]") {
-	REQUIRE_FALSE(ct_random_bool(NULL));
-	REQUIRE(ct_random_uint8(NULL, 0, 100) == 0);
-	REQUIRE(ct_random_int8(NULL, -50, 50) == 0);
-	REQUIRE(ct_random_uint16(NULL, 0, 1000) == 0);
-	REQUIRE(ct_random_int16(NULL, -500, 500) == 0);
-	REQUIRE(ct_random_uint32(NULL, 0, 10000) == 0);
-	REQUIRE(ct_random_int32(NULL, -5000, 5000) == 0);
-	REQUIRE(ct_random_uint64(NULL, 0, 100000) == 0);
-	REQUIRE(ct_random_int64(NULL, -50000, 50000) == 0);
-	REQUIRE(ct_random_float(NULL, 0.0f, 1.0f) == 0.0f);
-	REQUIRE(ct_random_double(NULL, 0.0, 1.0) == 0.0);
+	REQUIRE_FALSE(ct_random_bool(nullptr));
+	REQUIRE(ct_random_uint8(nullptr, 0, 100) == 0);
+	REQUIRE(ct_random_int8(nullptr, -50, 50) == 0);
+	REQUIRE(ct_random_uint16(nullptr, 0, 1000) == 0);
+	REQUIRE(ct_random_int16(nullptr, -500, 500) == 0);
+	REQUIRE(ct_random_uint32(nullptr, 0, 10000) == 0);
+	REQUIRE(ct_random_int32(nullptr, -5000, 5000) == 0);
+	REQUIRE(ct_random_uint64(nullptr, 0, 100000) == 0);
+	REQUIRE(ct_random_int64(nullptr, -50000, 50000) == 0);
+	REQUIRE(ct_random_float(nullptr, 0.0f, 1.0f) == 0.0f);
+	REQUIRE(ct_random_double(nullptr, 0.0, 1.0) == 0.0);
 	char buffer[10];
-	ct_random_string(NULL, buffer, 5);
-	ct_random_string(NULL, NULL, 5);
+	ct_random_string(nullptr, buffer, 5);
+	ct_random_string(nullptr, nullptr, 5);
 }
 
 TEST_CASE("rand_edge_min_equals_max", "[rand]") {

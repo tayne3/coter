@@ -14,7 +14,7 @@ static inline void *test_task_enqueue(void *arg) {
 		for (size_t n = 0; n < 1000 && i < test_data_size; n++, i++) { ct_msgqueue_enqueue(msgqueue, &test_data[i]); }
 		sched_yield();
 	}
-	return NULL;
+	return nullptr;
 }
 
 static inline void run_msgqueue(size_t data_size, size_t buffer_size) {
@@ -23,8 +23,8 @@ static inline void run_msgqueue(size_t data_size, size_t buffer_size) {
 	test_data_size   = data_size;
 	test_data        = (int *)calloc(test_data_size, sizeof(int));
 	int *test_buffer = (int *)calloc(buffer_size, sizeof(int));
-	REQUIRE(test_data != NULL);
-	REQUIRE(test_buffer != NULL);
+	REQUIRE(test_data != nullptr);
+	REQUIRE(test_buffer != nullptr);
 	ct_random_t rng;
 	ct_random_init(&rng);
 	for (size_t i = 0; i < test_data_size; ++i) { test_data[i] = ct_random_int32(&rng, INT32_MIN, INT32_MAX); }
@@ -35,7 +35,7 @@ static inline void run_msgqueue(size_t data_size, size_t buffer_size) {
 	{
 		bool      is_ok;
 		pthread_t thread;
-		is_ok = pthread_create(&thread, NULL, test_task_enqueue, msgqueue) == 0;
+		is_ok = pthread_create(&thread, nullptr, test_task_enqueue, msgqueue) == 0;
 		REQUIRE(is_ok);
 		int item = 0;
 		for (size_t i = 0; i < test_data_size;) {
@@ -46,7 +46,7 @@ static inline void run_msgqueue(size_t data_size, size_t buffer_size) {
 			}
 			sched_yield();
 		}
-		is_ok = pthread_join(thread, NULL) == 0;
+		is_ok = pthread_join(thread, nullptr) == 0;
 		REQUIRE(is_ok);
 		REQUIRE(ct_msgqueue_isempty(msgqueue));
 		REQUIRE_FALSE(ct_msgqueue_isfull(msgqueue));

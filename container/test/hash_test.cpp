@@ -36,9 +36,9 @@ TEST_CASE("hash_basic", "[hash]") {
 	REQUIRE(ct_hash_size(chash) == 0);
 	ct_hash_clear(chash);
 	REQUIRE(ct_hash_size(chash) == 0);
-	REQUIRE_FALSE(ct_hash_insert(chash, "", any_string(NULL)));
+	REQUIRE_FALSE(ct_hash_insert(chash, "", any_string(nullptr)));
 	REQUIRE_FALSE(ct_hash_remove(chash, ""));
-	REQUIRE_FALSE(ct_hash_value_r(chash, "", NULL));
+	REQUIRE_FALSE(ct_hash_value_r(chash, "", nullptr));
 
 	for (int i = 0; i < TEST_NUMBER; ++i) {
 		ct_snprintf_s(test_keys[i], sizeof(test_keys[0]), "Key%03d", i + 1);

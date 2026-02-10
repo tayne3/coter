@@ -38,7 +38,7 @@ TEST_CASE("queue_enqueue", "[queue]") {
 	for (int32_t i = 1; i <= max; ++i) {
 		ct_queue_enqueue(&queue, &i);
 		REQUIRE((int32_t)ct_queue_max(&queue) == max);
-		REQUIRE(ct_queue_size(&queue) == i);
+		REQUIRE(ct_queue_size(&queue) == (size_t)i);
 		REQUIRE(!ct_queue_isempty(&queue));
 		if (i == max)
 			REQUIRE(ct_queue_isfull(&queue));

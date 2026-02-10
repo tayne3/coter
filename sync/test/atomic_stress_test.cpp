@@ -2,9 +2,11 @@
  * @file atomic_stress_test.cpp
  * @brief Atomic pointer and CAS operations test with high concurrency
  */
-#include "coter/sync/atomic.h"
-#include <catch.hpp>
 #include <pthread.h>
+
+#include <catch.hpp>
+
+#include "coter/sync/atomic.h"
 
 // -----------------------------------------------------------------------------
 // Concurrent Increment/Decrement Test (Moved from atomic_test.c)
@@ -17,15 +19,15 @@
 static ct_atomic_long_t g_shared_counter;
 
 static void* thread_increment_routine(void* arg) {
-	(void)arg;
+	CT_UNUSED(arg);
 	for (int i = 0; i < NUM_ITERATIONS; ++i) { ct_atomic_long_add(&g_shared_counter, 1); }
-	return NULL;
+	return nullptr;
 }
 
 static void* thread_decrement_routine(void* arg) {
-	(void)arg;
+	CT_UNUSED(arg);
 	for (int i = 0; i < NUM_ITERATIONS; ++i) { ct_atomic_long_sub(&g_shared_counter, 1); }
-	return NULL;
+	return nullptr;
 }
 
 static void test_concurrent_inc_dec(void) {
@@ -34,13 +36,13 @@ static void test_concurrent_inc_dec(void) {
 	ct_atomic_long_store(&g_shared_counter, 0);
 
 	// 创建一半线程来增加
-	for (int i = 0; i < NUM_THREADS / 2; ++i) { pthread_create(&threads[i], NULL, thread_increment_routine, NULL); }
+	for (int i = 0; i < NUM_THREADS / 2; ++i) { pthread_create(&threads[i], nullptr, thread_increment_routine, nullptr); }
 
 	// 创建另一半来减少
-	for (int i = NUM_THREADS / 2; i < NUM_THREADS; ++i) { pthread_create(&threads[i], NULL, thread_decrement_routine, NULL); }
+	for (int i = NUM_THREADS / 2; i < NUM_THREADS; ++i) { pthread_create(&threads[i], nullptr, thread_decrement_routine, nullptr); }
 
 	// 等待所有线程完成
-	for (int i = 0; i < NUM_THREADS; ++i) { pthread_join(threads[i], NULL); }
+	for (int i = 0; i < NUM_THREADS; ++i) { pthread_join(threads[i], nullptr); }
 
 	// 最终结果应该为 0 如果所有操作都是原子的
 	REQUIRE(ct_atomic_long_load(&g_shared_counter) == 0);
@@ -57,7 +59,7 @@ typedef struct Node {
 	int          id;
 } Node;
 
-static ct_atomic_ptr_t g_stack_head = CT_ATOMIC_VAR_INIT(NULL);
+static ct_atomic_ptr_t g_stack_head = CT_ATOMIC_VAR_INIT(nullptr);
 static Node            g_nodes[NUM_THREADS * ITEMS_PER_THREAD];  // Pre-allocated nodes to avoid malloc/free overhead and ABA from reuse
 
 static void stack_push(Node* n) {
@@ -73,7 +75,7 @@ static Node* stack_pop(void) {
 	Node* next;
 	do {
 		old_head = (Node*)ct_atomic_ptr_load(&g_stack_head);
-		if (old_head == NULL) { return NULL; }
+		if (old_head == nullptr) { return nullptr; }
 		next = old_head->next;
 	} while (!ct_atomic_ptr_compare_exchange(&g_stack_head, (void**)&old_head, next));
 	return old_head;
@@ -86,11 +88,11 @@ static void* thread_push_routine(void* arg) {
 		g_nodes[start_idx + i].id = start_idx + i;
 		stack_push(&g_nodes[start_idx + i]);
 	}
-	return NULL;
+	return nullptr;
 }
 
 static void* thread_pop_routine(void* arg) {
-	(void)arg;
+	CT_UNUSED(arg);
 	int popped_count = 0;
 	for (int i = 0; i < ITEMS_PER_THREAD; ++i) {
 		Node* n = stack_pop();
@@ -108,14 +110,14 @@ static void test_atomic_ptr_stress(void) {
 	pthread_t threads[NUM_THREADS];
 
 	// Reset stack
-	ct_atomic_ptr_store(&g_stack_head, NULL);
+	ct_atomic_ptr_store(&g_stack_head, nullptr);
 
 	// 1. Concurrent Push
-	for (long i = 0; i < NUM_THREADS; ++i) { pthread_create(&threads[i], NULL, thread_push_routine, (void*)(intptr_t)i); }
-	for (int i = 0; i < NUM_THREADS; ++i) { pthread_join(threads[i], NULL); }
+	for (long i = 0; i < NUM_THREADS; ++i) { pthread_create(&threads[i], nullptr, thread_push_routine, (void*)(intptr_t)i); }
+	for (int i = 0; i < NUM_THREADS; ++i) { pthread_join(threads[i], nullptr); }
 
 	// 2. Concurrent Pop
-	for (long i = 0; i < NUM_THREADS; ++i) { pthread_create(&threads[i], NULL, thread_pop_routine, (void*)(intptr_t)i); }
+	for (long i = 0; i < NUM_THREADS; ++i) { pthread_create(&threads[i], nullptr, thread_pop_routine, (void*)(intptr_t)i); }
 
 	long total_popped = 0;
 	for (int i = 0; i < NUM_THREADS; ++i) {
@@ -125,10 +127,14 @@ static void test_atomic_ptr_stress(void) {
 	}
 
 	REQUIRE(total_popped == NUM_THREADS * ITEMS_PER_THREAD);
-	REQUIRE(ct_atomic_ptr_load(&g_stack_head) == NULL);
+	REQUIRE(ct_atomic_ptr_load(&g_stack_head) == nullptr);
 }
 
 TEST_CASE("atomic_stress", "[atomic]") {
-	SECTION("Concurrent increments/decrements") { test_concurrent_inc_dec(); }
-	SECTION("High concurrency stress test (Treiber Stack)") { test_atomic_ptr_stress(); }
+	SECTION("Concurrent increments/decrements") {
+		test_concurrent_inc_dec();
+	}
+	SECTION("High concurrency stress test (Treiber Stack)") {
+		test_atomic_ptr_stress();
+	}
 }

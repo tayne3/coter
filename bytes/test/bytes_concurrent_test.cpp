@@ -28,8 +28,8 @@ typedef struct {
 static void init_buffer_pool(buffer_pool_t* pool) {
 	ct_list_init(&pool->free_buffers);
 	ct_list_init(&pool->filled_buffers);
-	pthread_mutex_init(&pool->mutex, NULL);
-	pthread_cond_init(&pool->cond, NULL);
+	pthread_mutex_init(&pool->mutex, nullptr);
+	pthread_cond_init(&pool->cond, nullptr);
 	pool->total_chunks = 0;
 	pool->idx          = 0;
 }
@@ -111,7 +111,7 @@ static void* producer_thread_func(void* arg) {
 		produce_chunk(ctx);
 		sched_yield();
 	}
-	return NULL;
+	return nullptr;
 }
 
 static void* consumer_thread_func(void* arg) {
@@ -120,7 +120,7 @@ static void* consumer_thread_func(void* arg) {
 		consume_chunks(ctx);
 		sched_yield();
 	}
-	return NULL;
+	return nullptr;
 }
 
 TEST_CASE("bytes concurrent", "[bytes][concurrency]") {
@@ -131,27 +131,27 @@ TEST_CASE("bytes concurrent", "[bytes][concurrency]") {
 	ctx.free_pool      = &free_pool;
 	ctx.filled_pool    = &filled_pool;
 	ctx.current_buffer = ct_bytes_create(BUFFER_SIZE);
-	pthread_mutex_init(&ctx.mutex, NULL);
+	pthread_mutex_init(&ctx.mutex, nullptr);
 	ctx.test_complete = false;
 	for (int i = 0; i < CHUNK_SIZE; ++i) { ctx.sample_data[i] = (char)(0x31 + (i % 26)); }
 	pthread_t producer_threads[NUM_PRODUCER_THREADS];
 	pthread_t consumer_thread;
 	for (int i = 0; i < NUM_PRODUCER_THREADS; ++i) {
-		int ret = pthread_create(&producer_threads[i], NULL, producer_thread_func, &ctx);
+		int ret = pthread_create(&producer_threads[i], nullptr, producer_thread_func, &ctx);
 		REQUIRE(ret == 0);
 	}
 	{
-		int ret = pthread_create(&consumer_thread, NULL, consumer_thread_func, &ctx);
+		int ret = pthread_create(&consumer_thread, nullptr, consumer_thread_func, &ctx);
 		REQUIRE(ret == 0);
 	}
 	for (int i = 0; i < NUM_PRODUCER_THREADS; ++i) {
-		int ret = pthread_join(producer_threads[i], NULL);
+		int ret = pthread_join(producer_threads[i], nullptr);
 		REQUIRE(ret == 0);
 	}
 	{
 		ctx.test_complete = true;
 		pthread_cond_signal(&filled_pool.cond);
-		int ret = pthread_join(consumer_thread, NULL);
+		int ret = pthread_join(consumer_thread, nullptr);
 		REQUIRE(ret == 0);
 	}
 	while (!ct_list_isempty(&filled_pool.filled_buffers)) { consume_chunks(&ctx); }
