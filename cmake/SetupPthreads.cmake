@@ -50,15 +50,7 @@ endif()
 # ------------------------------------------------------------------------------
 # No pthreads found. Build pthread-win32 as a dependency.
 
-CPMAddPackage(
-  NAME pthread-win32
-  GIT_REPOSITORY "https://github.com/GerHobbelt/pthread-win32.git"
-  GIT_TAG "06e7608bfe926d2bd7176c0b02be0c98f40cced4"
-  GIT_SHALLOW TRUE
-  OPTIONS "BUILD_SHARED_LIBS OFF" 
-          "BUILD_TESTING OFF"
-)
-
+add_subdirectory(${PROJECT_SOURCE_DIR}/pthread-win32)
 if(NOT DEFINED PTHREADS_EXCEPTION_SCHEME)
   set(PTHREADS_EXCEPTION_SCHEME "C")
 endif()
