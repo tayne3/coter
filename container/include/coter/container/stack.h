@@ -25,13 +25,7 @@ typedef struct ct_stack {
 	size_t    _size;  // 元素数量
 } ct_stack_t, ct_stack_buf_t[1];
 
-// 初始化
-#define CT_STACK_INIT(__buffer, __max) \
-	{                                  \
-		._all  = (void*)__buffer,      \
-		._max  = __max,                \
-		._size = 0,                    \
-	}
+#define CT_STACK_INIT(__buffer, __max) {(ct_any_t*)(__buffer), __max, 0}
 
 #define ct_stack_max(self)     ((self)->_max)                   // 获取 栈 最大容量
 #define ct_stack_size(self)    ((self)->_size)                  // 获取 栈 大小

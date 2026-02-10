@@ -22,25 +22,9 @@ typedef struct ct_seg {
 	uint32_t hlswap : 1;  ///< High-low 16-bit word swap for 32/64-bit values
 } ct_seg_t;
 
-#define CT_SEG_INIT(__b, __cap)      \
-	{                                \
-		.bytes  = (uint8_t *)(__b),  \
-		.cap    = (uint32_t)(__cap), \
-		.len    = 0U,                \
-		.pos    = 0U,                \
-		.endian = CT_ENDIAN_BIG,     \
-		.hlswap = 0U,                \
-	}
+#define CT_SEG_INIT(__b, __cap) {(uint8_t *)(__b), (uint32_t)(__cap), 0U, 0U, CT_ENDIAN_BIG, 0U}
 
-#define CT_SEG_FROM(__b, __cap, __len) \
-	{                                  \
-		.bytes  = (uint8_t *)(__b),    \
-		.cap    = (uint32_t)(__cap),   \
-		.len    = (uint32_t)(__len),   \
-		.pos    = 0U,                  \
-		.endian = CT_ENDIAN_BIG,       \
-		.hlswap = 0U,                  \
-	}
+#define CT_SEG_FROM(__b, __cap, __len) {(uint8_t *)(__b), (uint32_t)(__cap), (uint32_t)(__len), 0U, CT_ENDIAN_BIG, 0U}
 
 #define ct_seg_capacity(self)   ((size_t)(self)->cap)
 #define ct_seg_count(self)      ((size_t)(self)->len)

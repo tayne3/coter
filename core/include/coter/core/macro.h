@@ -231,6 +231,7 @@ typedef int ct_endian_t;
 
 // min and max
 #ifdef __cplusplus
+#include <algorithm>
 #define CT_MIN(_a, _b)             std::min(_a, _b)
 #define CT_MAX(_a, _b)             std::max(_a, _b)
 #define CT_CLAMP(_val, _min, _max) std::clamp(_val, _min, _max)

@@ -1,9 +1,10 @@
 /**
- * @file atomic_stress_test.c
+ * @file atomic_stress_test.cpp
  * @brief Atomic pointer and CAS operations test with high concurrency
  */
 #include "coter/sync/atomic.h"
-#include "cunit.h"
+#include <catch.hpp>
+#include <pthread.h>
 
 // -----------------------------------------------------------------------------
 // Concurrent Increment/Decrement Test (Moved from atomic_test.c)
@@ -16,13 +17,13 @@
 static ct_atomic_long_t g_shared_counter;
 
 static void* thread_increment_routine(void* arg) {
-	ct_unused(arg);
+	(void)arg;
 	for (int i = 0; i < NUM_ITERATIONS; ++i) { ct_atomic_long_add(&g_shared_counter, 1); }
 	return NULL;
 }
 
 static void* thread_decrement_routine(void* arg) {
-	ct_unused(arg);
+	(void)arg;
 	for (int i = 0; i < NUM_ITERATIONS; ++i) { ct_atomic_long_sub(&g_shared_counter, 1); }
 	return NULL;
 }
@@ -42,7 +43,7 @@ static void test_concurrent_inc_dec(void) {
 	for (int i = 0; i < NUM_THREADS; ++i) { pthread_join(threads[i], NULL); }
 
 	// 最终结果应该为 0 如果所有操作都是原子的
-	assert_int64_eq(ct_atomic_long_load(&g_shared_counter), 0);
+	REQUIRE(ct_atomic_long_load(&g_shared_counter) == 0);
 }
 
 // -----------------------------------------------------------------------------
@@ -89,7 +90,7 @@ static void* thread_push_routine(void* arg) {
 }
 
 static void* thread_pop_routine(void* arg) {
-	ct_unused(arg);
+	(void)arg;
 	int popped_count = 0;
 	for (int i = 0; i < ITEMS_PER_THREAD; ++i) {
 		Node* n = stack_pop();
@@ -123,17 +124,11 @@ static void test_atomic_ptr_stress(void) {
 		total_popped += (long)(intptr_t)ret;
 	}
 
-	assert_int_eq(total_popped, NUM_THREADS * ITEMS_PER_THREAD);
-	assert_true(ct_atomic_ptr_load(&g_stack_head) == NULL);
+	REQUIRE(total_popped == NUM_THREADS * ITEMS_PER_THREAD);
+	REQUIRE(ct_atomic_ptr_load(&g_stack_head) == NULL);
 }
 
-int main(void) {
-	cunit_init();
-
-	CUNIT_SUITE_BEGIN("Atomic Stress Test", NULL, NULL);
-	CUNIT_TEST("Concurrent increments/decrements", test_concurrent_inc_dec)
-	CUNIT_TEST("High concurrency stress test (Treiber Stack)", test_atomic_ptr_stress)
-	CUNIT_SUITE_END()
-
-	return cunit_run();
+TEST_CASE("atomic_stress", "[atomic]") {
+	SECTION("Concurrent increments/decrements") { test_concurrent_inc_dec(); }
+	SECTION("High concurrency stress test (Treiber Stack)") { test_atomic_ptr_stress(); }
 }

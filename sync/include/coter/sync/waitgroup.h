@@ -23,7 +23,7 @@ typedef struct ct_waitgroup {
 	pthread_cond_t  cond;     // 条件变量
 } ct_waitgroup_t;
 
-#define CT_WAITGROUP_INITIALIZER {.counter = 0, .mutex = PTHREAD_MUTEX_INITIALIZER, .cond = PTHREAD_COND_INITIALIZER}
+#define CT_WAITGROUP_INITIALIZER {0, PTHREAD_MUTEX_INITIALIZER, PTHREAD_COND_INITIALIZER}
 
 /**
  * @brief 初始化等待组

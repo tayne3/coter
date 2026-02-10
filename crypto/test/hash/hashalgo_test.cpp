@@ -1,13 +1,10 @@
-/**
- * @file hashalgo_test.c
- * @brief Hash 算法测试
- */
+#include <catch.hpp>
+
 #include "coter/crypto/hash/hash.h"
-#include "cunit.h"
 
 #define TEST_HASH_NUMBER 100
 
-void test_hash_siphash(void) {
+TEST_CASE("siphash", "[hashalgo]") {
 	const uint64_t vectors[64] = {
 		0x726fdb47dd0e0e31ULL, 0x74f839c593dc67fdULL, 0x0d6c8009d9a94f5aULL, 0x85676696d7fb7e2dULL, 0xcf2794e0277187b7ULL, 0x18765564cd99a68dULL,
 		0xcbc9466e58fee3ceULL, 0xab0200f58b01d137ULL, 0x93f5f5799a932462ULL, 0x9e0082df0ba9e4b0ULL, 0x7a5dbbc594ddb9f3ULL, 0xf4b32f46226bada7ULL,
@@ -30,17 +27,10 @@ void test_hash_siphash(void) {
 
 	for (int i = 0; i < 64; ++i) { plaintext[i] = (char)i; }
 
-	for (int n = 0; n < TEST_HASH_NUMBER; n++) {
-		for (int i = 1; i < 64; ++i) { assert_uint64_eq(ct_hashalgo_siphash_64(plaintext, i, ct_hash_key), vectors[i], "n = %d, i = %d\n", n, i); }
+	for (int n = 0; n < TEST_HASH_NUMBER; ++n) {
+		for (int i = 1; i < 64; ++i) {
+			INFO("n = " << n << ", i = " << i);
+			REQUIRE(ct_hashalgo_siphash_64(plaintext, i, ct_hash_key) == vectors[i]);
+		}
 	}
-}
-
-int main(void) {
-	cunit_init();
-
-	CUNIT_SUITE_BEGIN("hashalgo", NULL, NULL)
-	CUNIT_TEST("siphash", test_hash_siphash)
-	CUNIT_SUITE_END()
-
-	return cunit_run();
 }

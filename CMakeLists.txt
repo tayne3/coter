@@ -29,12 +29,6 @@ target_link_libraries(coter PRIVATE coter_compile_dependency)
 
 if(COTER_BUILD_TEST)
   enable_testing()
-  CPMAddPackage(
-    NAME cunit
-    URL "https://codeload.github.com/tayne3/cunit/tar.gz/refs/tags/v0.2.7"
-    URL_HASH "SHA256=5ede3cb48cb7e59cef32b4e31cc258a510751b81906d85756d71401b1772b9fc"
-    OPTIONS "BUILD_SHARED_LIBS OFF"
-  )
 endif()
 add_subdirectory(catch)
 

@@ -1,11 +1,13 @@
 /**
- * @file waitgroup_test.c
+ * @file waitgroup_test.cpp
  * @brief 等待组相关单元测试
  * @author tayne3
  */
 #include "coter/sync/waitgroup.h"
 
-#include "cunit.h"
+#include <pthread.h>
+
+#include <catch.hpp>
 
 // 结构体用于线程传递参数
 typedef struct {
@@ -27,10 +29,10 @@ static void* thread_task(void* arg) {
 static void test_init_destroy(void) {
 	ct_waitgroup_t wg;
 	int            init_result = ct_waitgroup_init(&wg);
-	assert_int32_eq(init_result, 0);
+	REQUIRE(init_result == 0);
 
 	// 检查初始状态
-	assert_int32_eq(wg.counter, 0);
+	REQUIRE(wg.counter == 0);
 
 	ct_waitgroup_destroy(&wg);
 }
@@ -41,14 +43,14 @@ static void test_single_task(void) {
 	ct_waitgroup_init(&wg);
 
 	pthread_t    thread;
-	thread_arg_t arg = {.wg = &wg, .task_id = 1, .sleep_time = 100};
+	thread_arg_t arg = {&wg, 1, 100};
 	ct_waitgroup_add(&wg, 1);
 
 	pthread_create(&thread, NULL, thread_task, &arg);
 	ct_waitgroup_wait(&wg);
 
 	// 在任务完成后，计数器应为0
-	assert_int32_eq(wg.counter, 0);
+	REQUIRE(wg.counter == 0);
 
 	pthread_join(thread, NULL);
 	ct_waitgroup_destroy(&wg);
@@ -75,11 +77,9 @@ static void test_multiple_tasks(void) {
 	ct_waitgroup_wait(&wg);
 
 	// 计数器应为0
-	assert_int32_eq(wg.counter, 0);
+	REQUIRE(wg.counter == 0);
 
-	for (int i = 0; i < NUM_THREADS; ++i) {
-		pthread_join(threads[i], NULL);
-	}
+	for (int i = 0; i < NUM_THREADS; ++i) { pthread_join(threads[i], NULL); }
 
 	ct_waitgroup_destroy(&wg);
 #undef NUM_THREADS
@@ -92,64 +92,55 @@ static void test_repeated_add_done(void) {
 
 	// 初始添加3个任务
 	ct_waitgroup_add(&wg, 3);
-	assert_int32_eq(wg.counter, 3);
+	REQUIRE(wg.counter == 3);
 
 	// 完成2个任务
 	ct_waitgroup_done(&wg);
 	ct_waitgroup_done(&wg);
-	assert_int32_eq(wg.counter, 1);
+	REQUIRE(wg.counter == 1);
 
 	// 再添加2个任务
 	ct_waitgroup_add(&wg, 2);
-	assert_int32_eq(wg.counter, 3);
+	REQUIRE(wg.counter == 3);
 
 	// 完成剩下的3个任务
 	ct_waitgroup_done(&wg);
 	ct_waitgroup_done(&wg);
 	ct_waitgroup_done(&wg);
-	assert_int32_eq(wg.counter, 0);
+	REQUIRE(wg.counter == 0);
 
 	ct_waitgroup_destroy(&wg);
 }
 
 // 测试等待组的多次使用
 static void test_multiple_wait(void) {
-	ct_waitgroup_t wg = CT_WAITGROUP_INITIALIZER;
+	ct_waitgroup_t wg;
+	ct_waitgroup_init(&wg);
 
 	// 第一次使用
 	ct_waitgroup_add(&wg, 2);
 
 	pthread_t    threads[2];
-	thread_arg_t args[2] = {{.wg = &wg, .task_id = 1, .sleep_time = 100}, {.wg = &wg, .task_id = 2, .sleep_time = 150}};
+	thread_arg_t args[2] = {{&wg, 1, 100}, {&wg, 2, 150}};
 
-	for (int i = 0; i < 2; ++i) {
-		pthread_create(&threads[i], NULL, thread_task, &args[i]);
-	}
+	for (int i = 0; i < 2; ++i) { pthread_create(&threads[i], NULL, thread_task, &args[i]); }
 
 	ct_waitgroup_wait(&wg);
-	assert_int32_eq(wg.counter, 0);
+	REQUIRE(wg.counter == 0);
 
-	for (int i = 0; i < 2; ++i) {
-		pthread_join(threads[i], NULL);
-	}
+	for (int i = 0; i < 2; ++i) { pthread_join(threads[i], NULL); }
 
 	// 第二次使用
 	ct_waitgroup_add(&wg, 3);
 	pthread_t    threads2[3];
-	thread_arg_t args2[3] = {{.wg = &wg, .task_id = 3, .sleep_time = 100},
-							 {.wg = &wg, .task_id = 4, .sleep_time = 150},
-							 {.wg = &wg, .task_id = 5, .sleep_time = 200}};
+	thread_arg_t args2[3] = {{&wg, 3, 100}, {&wg, 4, 150}, {&wg, 5, 200}};
 
-	for (int i = 0; i < 3; ++i) {
-		pthread_create(&threads2[i], NULL, thread_task, &args2[i]);
-	}
+	for (int i = 0; i < 3; ++i) { pthread_create(&threads2[i], NULL, thread_task, &args2[i]); }
 
 	ct_waitgroup_wait(&wg);
-	assert_int32_eq(wg.counter, 0);
+	REQUIRE(wg.counter == 0);
 
-	for (int i = 0; i < 3; ++i) {
-		pthread_join(threads2[i], NULL);
-	}
+	for (int i = 0; i < 3; ++i) { pthread_join(threads2[i], NULL); }
 
 	ct_waitgroup_destroy(&wg);
 }
@@ -164,7 +155,7 @@ static void test_add_zero_tasks(void) {
 	ct_waitgroup_wait(&wg);
 
 	// 计数器应保持为0
-	assert_int32_eq(wg.counter, 0);
+	REQUIRE(wg.counter == 0);
 
 	ct_waitgroup_destroy(&wg);
 }
@@ -175,18 +166,18 @@ static void test_done_exceed_add(void) {
 	ct_waitgroup_init(&wg);
 
 	ct_waitgroup_add(&wg, 2);
-	assert_int32_eq(wg.counter, 2);
+	REQUIRE(wg.counter == 2);
 
 	ct_waitgroup_done(&wg);
-	assert_int32_eq(wg.counter, 1);
+	REQUIRE(wg.counter == 1);
 
 	ct_waitgroup_done(&wg);
-	assert_int32_eq(wg.counter, 0);
+	REQUIRE(wg.counter == 0);
 
 	// 调用多余的 done
 	ct_waitgroup_done(&wg);
 	// 根据实现，计数器可能会减到负数，使用断言检查
-	assert_int32_eq(wg.counter, -1);
+	REQUIRE(wg.counter == -1);
 
 	ct_waitgroup_destroy(&wg);
 }
@@ -224,14 +215,10 @@ static void test_dynamic_add_tasks(void) {
 	}
 
 	ct_waitgroup_wait(&wg);
-	assert_int32_eq(wg.counter, 0);
+	REQUIRE(wg.counter == 0);
 
-	for (int i = 0; i < INITIAL_THREADS; ++i) {
-		pthread_join(threads[i], NULL);
-	}
-	for (int i = 0; i < ADDITIONAL_THREADS; ++i) {
-		pthread_join(additional_threads[i], NULL);
-	}
+	for (int i = 0; i < INITIAL_THREADS; ++i) { pthread_join(threads[i], NULL); }
+	for (int i = 0; i < ADDITIONAL_THREADS; ++i) { pthread_join(additional_threads[i], NULL); }
 
 	ct_waitgroup_destroy(&wg);
 #undef INITIAL_THREADS
@@ -257,31 +244,40 @@ static void test_concurrent_add_done(void) {
 	}
 
 	ct_waitgroup_wait(&wg);
-	assert_int32_eq(wg.counter, 0);
+	REQUIRE(wg.counter == 0);
 
-	for (int i = 0; i < NUM_THREADS; ++i) {
-		pthread_join(threads[i], NULL);
-	}
+	for (int i = 0; i < NUM_THREADS; ++i) { pthread_join(threads[i], NULL); }
 
 	ct_waitgroup_destroy(&wg);
 #undef NUM_THREADS
 }
 
-// 执行所有测试
-int main(void) {
-	cunit_init();
-
-	CUNIT_SUITE_BEGIN("waitgroup", NULL, NULL)
-	CUNIT_TEST("init_destroy", test_init_destroy)
-	CUNIT_TEST("single_task", test_single_task)
-	CUNIT_TEST("multiple_tasks", test_multiple_tasks)
-	CUNIT_TEST("repeated_add_done", test_repeated_add_done)
-	CUNIT_TEST("multiple_wait", test_multiple_wait)
-	CUNIT_TEST("add_zero_tasks", test_add_zero_tasks)
-	CUNIT_TEST("done_exceed_add", test_done_exceed_add)
-	CUNIT_TEST("dynamic_add_tasks", test_dynamic_add_tasks)
-	CUNIT_TEST("concurrent_add_done", test_concurrent_add_done)
-	CUNIT_SUITE_END()
-
-	return cunit_run();
+TEST_CASE("waitgroup", "[waitgroup]") {
+	SECTION("init_destroy") {
+		test_init_destroy();
+	}
+	SECTION("single_task") {
+		test_single_task();
+	}
+	SECTION("multiple_tasks") {
+		test_multiple_tasks();
+	}
+	SECTION("repeated_add_done") {
+		test_repeated_add_done();
+	}
+	SECTION("multiple_wait") {
+		test_multiple_wait();
+	}
+	SECTION("add_zero_tasks") {
+		test_add_zero_tasks();
+	}
+	SECTION("done_exceed_add") {
+		test_done_exceed_add();
+	}
+	SECTION("dynamic_add_tasks") {
+		test_dynamic_add_tasks();
+	}
+	SECTION("concurrent_add_done") {
+		test_concurrent_add_done();
+	}
 }

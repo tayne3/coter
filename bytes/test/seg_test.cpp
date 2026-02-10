@@ -55,6 +55,24 @@ TEST_CASE("seg Initialization", "[seg][init]") {
 		ct_seg_from(&seg, buffer, sizeof(buffer), 1000);
 		REQUIRE(seg.len == sizeof(buffer));
 	}
+
+	SECTION("Static Initialization Macros") {
+		ct_seg_t seg_init = CT_SEG_INIT(buffer, sizeof(buffer));
+		REQUIRE(seg_init.bytes == buffer);
+		REQUIRE(seg_init.cap == sizeof(buffer));
+		REQUIRE(seg_init.len == 0);
+		REQUIRE(seg_init.pos == 0);
+		REQUIRE(seg_init.endian == CT_ENDIAN_BIG);
+		REQUIRE(seg_init.hlswap == 0);
+
+		ct_seg_t seg_from = CT_SEG_FROM(buffer, sizeof(buffer), 32);
+		REQUIRE(seg_from.bytes == buffer);
+		REQUIRE(seg_from.cap == sizeof(buffer));
+		REQUIRE(seg_from.len == 32);
+		REQUIRE(seg_from.pos == 0);
+		REQUIRE(seg_from.endian == CT_ENDIAN_BIG);
+		REQUIRE(seg_from.hlswap == 0);
+	}
 }
 
 TEST_CASE("seg State Queries", "[seg][state]") {

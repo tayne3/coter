@@ -26,16 +26,7 @@ typedef struct ct_rbuf {
 	size_t _size;  // 元素数量
 } ct_rbuf_t, ct_rbuf_buf_t[1];
 
-// 初始化
-#define CT_RBUF_INIT(__buffer, __byte, __max) \
-	{                                         \
-		._all  = (void *)__buffer,            \
-		._byte = __byte,                      \
-		._max  = __max,                       \
-		._head = 0,                           \
-		._tail = 0,                           \
-		._size = 0,                           \
-	}
+#define CT_RBUF_INIT(__buffer, __byte, __max) {(char *)(__buffer), __byte, __max, 0, 0, 0}
 
 #define ct_rbuf_max(self)       ((self)->_max)                                       // 获取 最大容量
 #define ct_rbuf_size(self)      ((self)->_size)                                      // 获取 大小
