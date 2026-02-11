@@ -21,7 +21,7 @@
 #pragma warning(push, 0)
 #endif
 #include "coter/core/tl/expected.hpp"
-#i #ifdef _MSC_VER
+#ifdef _MSC_VER
 #pragma warning(pop)
 #endif
 #endif
