@@ -1,4 +1,4 @@
 
 add_executable(platform_test platform_test.cpp)
 add_test(NAME platform_test COMMAND platform_test)
-target_link_libraries(platform_test PRIVATE coter_compile_dependency coter::coter Catch2WithMain)
+target_link_libraries(platform_test PRIVATE coter_compile_dependency coter::coter coter::catch2_with_main)
