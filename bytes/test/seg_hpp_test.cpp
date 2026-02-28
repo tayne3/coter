@@ -119,16 +119,36 @@ TEST_CASE("Endianness", "[seg][config]") {
 	std::array<uint8_t, 4096> buffer{};
 	coter::seg                seg(buffer.data(), buffer.size());
 
+	seg.put<uint16_t>(0x1234);
+	seg.set_endian(CT_ENDIAN_LITTLE);
+	seg.rewind();
+	REQUIRE(seg[0] == 0x12);
+	REQUIRE(seg[1] == 0x34);
+	REQUIRE(seg.take<uint16_t>() == 0x3412);
+
+	seg.clear();
+	seg.put<uint16_t>(0x1234);
+	seg.set_endian(CT_ENDIAN_BIG);
+	seg.rewind();
+	REQUIRE(seg[0] == 0x34);
+	REQUIRE(seg[1] == 0x12);
+	REQUIRE(seg.take<uint16_t>() == 0x3412);
+
+	seg.clear();
 	seg.set_endian(CT_ENDIAN_LITTLE);
 	seg.put<uint32_t>(0x12345678);
-	uint8_t expected_le[] = {0x78, 0x56, 0x34, 0x12};
-	REQUIRE(std::memcmp(buffer.data(), expected_le, 4) == 0);
+	REQUIRE(seg[0] == 0x78);
+	REQUIRE(seg[1] == 0x56);
+	REQUIRE(seg[2] == 0x34);
+	REQUIRE(seg[3] == 0x12);
 
 	seg.clear();
 	seg.set_endian(CT_ENDIAN_BIG);
 	seg.put<uint32_t>(0x12345678);
-	uint8_t expected_be[] = {0x12, 0x34, 0x56, 0x78};
-	REQUIRE(std::memcmp(buffer.data(), expected_be, 4) == 0);
+	REQUIRE(seg[0] == 0x12);
+	REQUIRE(seg[1] == 0x34);
+	REQUIRE(seg[2] == 0x56);
+	REQUIRE(seg[3] == 0x78);
 }
 
 TEST_CASE("High-Low Swap", "[seg][config]") {
@@ -181,7 +201,7 @@ TEST_CASE("Peek Bounds", "[seg][peek]") {
 	REQUIRE(seg.peek<uint32_t>(-1) == 0);
 }
 
-TEST_CASE("Overwrite Primitives", "[seg][overwrite]") {
+TEST_CASE("Set Primitives", "[seg][set]") {
 	std::array<uint8_t, 4096> buffer{};
 	coter::seg                seg(buffer.data(), buffer.size());
 
@@ -189,7 +209,7 @@ TEST_CASE("Overwrite Primitives", "[seg][overwrite]") {
 	seg.put<uint32_t>(0x22222222);
 	seg.put<uint32_t>(0x33333333);
 	auto pos_before = seg.pos();
-	REQUIRE(seg.overwrite<uint32_t>(0, 0xAABBCCDD) == 0);
+	REQUIRE(seg.set<uint32_t>(0, 0xAABBCCDD) == 0);
 	REQUIRE(seg.pos() == pos_before);
 	seg.rewind();
 	REQUIRE(seg.take<uint32_t>() == 0xAABBCCDD);
@@ -197,14 +217,14 @@ TEST_CASE("Overwrite Primitives", "[seg][overwrite]") {
 	REQUIRE(seg.take<uint32_t>() == 0x33333333);
 }
 
-TEST_CASE("Overwrite Endianness", "[seg][overwrite]") {
+TEST_CASE("Set Endianness", "[seg][set]") {
 	std::array<uint8_t, 4096> buffer{};
 	coter::seg                seg(buffer.data(), buffer.size());
 
 	seg.set_endian(CT_ENDIAN_BIG);
 	seg.put<uint32_t>(0x12345678);
 	seg.set_endian(CT_ENDIAN_LITTLE);
-	REQUIRE(seg.overwrite<uint32_t>(0, 0xAABBCCDD) == 0);
+	REQUIRE(seg.set<uint32_t>(0, 0xAABBCCDD) == 0);
 	uint8_t expected[] = {0xDD, 0xCC, 0xBB, 0xAA};
 	REQUIRE(std::memcmp(buffer.data(), expected, 4) == 0);
 	seg.rewind();
@@ -214,6 +234,7 @@ TEST_CASE("Overwrite Endianness", "[seg][overwrite]") {
 TEST_CASE("Move Semantics", "[seg][move]") {
 	std::array<uint8_t, 64> buffer{};
 	coter::seg              seg(buffer.data(), buffer.size());
+
 	seg.put<uint32_t>(0xDEADBEEF);
 	coter::seg moved(std::move(seg));
 	REQUIRE(seg.capacity() == 0);
@@ -330,7 +351,7 @@ TEST_CASE("Handle Access", "[seg][handle]") {
 	SECTION("non-const handle") {
 		ct_seg_t* h = seg.handle();
 		REQUIRE(h != nullptr);
-		REQUIRE(h->bytes == buffer.data());
+		REQUIRE(h->data == buffer.data());
 		REQUIRE(h->cap == buffer.size());
 		REQUIRE(h->len == 32);
 	}
@@ -339,7 +360,7 @@ TEST_CASE("Handle Access", "[seg][handle]") {
 		const coter::seg& cseg = seg;
 		const ct_seg_t*   h    = cseg.handle();
 		REQUIRE(h != nullptr);
-		REQUIRE(h->bytes == buffer.data());
+		REQUIRE(h->data == buffer.data());
 	}
 }
 
@@ -526,15 +547,15 @@ TEST_CASE("Signed Types", "[seg][types]") {
 		REQUIRE(seg.peek<int64_t>(7) == std::numeric_limits<int64_t>::min());
 	}
 
-	SECTION("signed overwrite") {
+	SECTION("signed set") {
 		seg.put<int32_t>(0);
-		REQUIRE(seg.overwrite<int32_t>(0, -12345) == 0);
+		REQUIRE(seg.set<int32_t>(0, -12345) == 0);
 		seg.rewind();
 		REQUIRE(seg.take<int32_t>() == -12345);
 
 		seg.clear();
 		seg.put<int8_t>(0);
-		REQUIRE(seg.overwrite<int8_t>(0, -100) == 0);
+		REQUIRE(seg.set<int8_t>(0, -100) == 0);
 		seg.rewind();
 		REQUIRE(seg.take<int8_t>() == -100);
 	}
@@ -544,7 +565,7 @@ TEST_CASE("Floating Point Types", "[seg][types]") {
 	std::array<uint8_t, 128> buffer{};
 	coter::seg               seg(buffer.data(), buffer.size());
 
-	SECTION("float put/take/peek/overwrite") {
+	SECTION("float put/take/peek/set") {
 		seg.put<float>(0.0f);
 		seg.put<float>(3.14159f);
 		seg.put<float>(-123.456f);
@@ -558,11 +579,11 @@ TEST_CASE("Floating Point Types", "[seg][types]") {
 		REQUIRE(seg.peek<float>(0) == 0.0f);
 		REQUIRE(seg.peek<float>(4) == Catch::Detail::Approx(3.14159f));
 
-		REQUIRE(seg.overwrite<float>(0, 99.9f) == 0);
+		REQUIRE(seg.set<float>(0, 99.9f) == 0);
 		REQUIRE(seg.peek<float>(0) == Catch::Detail::Approx(99.9f));
 	}
 
-	SECTION("double put/take/peek/overwrite") {
+	SECTION("double put/take/peek/set") {
 		seg.put<double>(0.0);
 		seg.put<double>(3.141592653589793);
 		seg.put<double>(-123456.789012);
@@ -576,7 +597,7 @@ TEST_CASE("Floating Point Types", "[seg][types]") {
 		REQUIRE(seg.peek<double>(0) == 0.0);
 		REQUIRE(seg.peek<double>(8) == Catch::Detail::Approx(3.141592653589793));
 
-		REQUIRE(seg.overwrite<double>(0, 99.999) == 0);
+		REQUIRE(seg.set<double>(0, 99.999) == 0);
 		REQUIRE(seg.peek<double>(0) == Catch::Detail::Approx(99.999));
 	}
 
@@ -597,14 +618,14 @@ TEST_CASE("Floating Point Types", "[seg][types]") {
 	}
 }
 
-TEST_CASE("Overwrite All Types", "[seg][overwrite]") {
+TEST_CASE("Set All Types", "[seg][set]") {
 	std::array<uint8_t, 128> buffer{};
 	coter::seg               seg(buffer.data(), buffer.size());
 
 	SECTION("u8/i8") {
 		seg.fill(0, 16);
-		REQUIRE(seg.overwrite<uint8_t>(0, 0xAB) == 0);
-		REQUIRE(seg.overwrite<int8_t>(1, static_cast<int8_t>(-100)) == 0);
+		REQUIRE(seg.set<uint8_t>(0, 0xAB) == 0);
+		REQUIRE(seg.set<int8_t>(1, static_cast<int8_t>(-100)) == 0);
 
 		seg.rewind();
 		REQUIRE(seg.take<uint8_t>() == 0xAB);
@@ -613,8 +634,8 @@ TEST_CASE("Overwrite All Types", "[seg][overwrite]") {
 
 	SECTION("u16/i16") {
 		seg.fill(0, 16);
-		REQUIRE(seg.overwrite<uint16_t>(0, 0xABCD) == 0);
-		REQUIRE(seg.overwrite<int16_t>(2, static_cast<int16_t>(-12345)) == 0);
+		REQUIRE(seg.set<uint16_t>(0, 0xABCD) == 0);
+		REQUIRE(seg.set<int16_t>(2, static_cast<int16_t>(-12345)) == 0);
 
 		seg.rewind();
 		REQUIRE(seg.take<uint16_t>() == 0xABCD);
@@ -623,9 +644,9 @@ TEST_CASE("Overwrite All Types", "[seg][overwrite]") {
 
 	SECTION("u32/i32/float") {
 		seg.fill(0, 16);
-		REQUIRE(seg.overwrite<uint32_t>(0, 0xDEADBEEF) == 0);
-		REQUIRE(seg.overwrite<int32_t>(4, static_cast<int32_t>(-123456789)) == 0);
-		REQUIRE(seg.overwrite<float>(8, 3.14f) == 0);
+		REQUIRE(seg.set<uint32_t>(0, 0xDEADBEEF) == 0);
+		REQUIRE(seg.set<int32_t>(4, static_cast<int32_t>(-123456789)) == 0);
+		REQUIRE(seg.set<float>(8, 3.14f) == 0);
 
 		seg.rewind();
 		REQUIRE(seg.take<uint32_t>() == 0xDEADBEEF);
@@ -635,9 +656,9 @@ TEST_CASE("Overwrite All Types", "[seg][overwrite]") {
 
 	SECTION("u64/i64/double") {
 		seg.fill(0, 32);
-		REQUIRE(seg.overwrite<uint64_t>(0, 0xDEADBEEFCAFEBABEULL) == 0);
-		REQUIRE(seg.overwrite<int64_t>(8, static_cast<int64_t>(-123456789012345LL)) == 0);
-		REQUIRE(seg.overwrite<double>(16, 3.141592653589793) == 0);
+		REQUIRE(seg.set<uint64_t>(0, 0xDEADBEEFCAFEBABEULL) == 0);
+		REQUIRE(seg.set<int64_t>(8, static_cast<int64_t>(-123456789012345LL)) == 0);
+		REQUIRE(seg.set<double>(16, 3.141592653589793) == 0);
 
 		seg.rewind();
 		REQUIRE(seg.take<uint64_t>() == 0xDEADBEEFCAFEBABEULL);
@@ -647,7 +668,101 @@ TEST_CASE("Overwrite All Types", "[seg][overwrite]") {
 
 	SECTION("boundary errors") {
 		seg.fill(0, 4);
-		REQUIRE(seg.overwrite<uint32_t>(4, 0x12345678) == -1);
-		REQUIRE(seg.overwrite<uint64_t>(0, 0x1234567890ABCDEFULL) == -1);
+		REQUIRE(seg.set<uint32_t>(4, 0x12345678) == -1);
+		REQUIRE(seg.set<uint64_t>(0, 0x1234567890ABCDEFULL) == -1);
+	}
+}
+
+TEST_CASE("Get Operations", "[seg][get]") {
+	std::array<uint8_t, 4096> buffer{};
+	coter::seg                seg(buffer.data(), buffer.size());
+
+	SECTION("Get Primitives") {
+		seg.put<uint8_t>(0x12);
+		seg.put<uint16_t>(0x3456);
+		seg.put<uint32_t>(0x789ABCDE);
+		seg.put<uint64_t>(0xFEDCBA9876543210ULL);
+
+		REQUIRE(seg.get<uint8_t>(0) == 0x12);
+		REQUIRE(seg.get<uint16_t>(1) == 0x3456);
+		REQUIRE(seg.get<uint32_t>(3) == 0x789ABCDE);
+		REQUIRE(seg.get<uint64_t>(7) == 0xFEDCBA9876543210ULL);
+
+		REQUIRE(seg.pos() == 15);
+	}
+
+	SECTION("Get does not change pos or count") {
+		seg.put<uint32_t>(0x12345678);
+		seg.rewind();
+
+		auto pos_before   = seg.pos();
+		auto count_before = seg.count();
+
+		seg.get<uint32_t>(0);
+
+		REQUIRE(seg.pos() == pos_before);
+		REQUIRE(seg.count() == count_before);
+	}
+
+	SECTION("Get Bounds") {
+		coter::seg small_seg(buffer.data(), 10);
+		small_seg.put<uint32_t>(0x12345678);
+
+		REQUIRE(small_seg.get<uint32_t>(0) == 0x12345678);
+		REQUIRE(small_seg.get<uint32_t>(10) == 0);
+		REQUIRE(small_seg.get<uint64_t>(0) == 0);
+		REQUIRE(small_seg.get<uint8_t>(100) == 0);
+	}
+
+	SECTION("Get Endianness Big") {
+		seg.set_endian(CT_ENDIAN_BIG);
+		seg.put<uint32_t>(0x11223344);
+
+		REQUIRE(seg.get<uint8_t>(0) == 0x11);
+		REQUIRE(seg.get<uint8_t>(1) == 0x22);
+		REQUIRE(seg.get<uint8_t>(2) == 0x33);
+		REQUIRE(seg.get<uint8_t>(3) == 0x44);
+	}
+
+	SECTION("Get Endianness Little") {
+		seg.set_endian(CT_ENDIAN_LITTLE);
+		seg.put<uint32_t>(0x11223344);
+
+		REQUIRE(seg.get<uint8_t>(0) == 0x44);
+		REQUIRE(seg.get<uint8_t>(1) == 0x33);
+		REQUIRE(seg.get<uint8_t>(2) == 0x22);
+		REQUIRE(seg.get<uint8_t>(3) == 0x11);
+	}
+
+	SECTION("Get All Types") {
+		seg.put<uint8_t>(0xAB);
+		seg.put<uint16_t>(0xCDEF);
+		seg.put<uint32_t>(0x12345678);
+		seg.put<uint64_t>(0xFEDCBA9876543210ULL);
+
+		REQUIRE(seg.get<uint8_t>(0) == 0xAB);
+		REQUIRE(seg.get<uint16_t>(1) == 0xCDEF);
+		REQUIRE(seg.get<uint32_t>(3) == 0x12345678);
+		REQUIRE(seg.get<uint64_t>(7) == 0xFEDCBA9876543210ULL);
+	}
+
+	SECTION("Get signed types") {
+		seg.put<int8_t>(-100);
+		seg.put<int16_t>(-12345);
+		seg.put<int32_t>(-123456789);
+		seg.put<int64_t>(-123456789012345LL);
+
+		REQUIRE(seg.get<int8_t>(0) == -100);
+		REQUIRE(seg.get<int16_t>(1) == -12345);
+		REQUIRE(seg.get<int32_t>(3) == -123456789);
+		REQUIRE(seg.get<int64_t>(7) == -123456789012345LL);
+	}
+
+	SECTION("Get float/double") {
+		seg.put<float>(3.14159f);
+		seg.put<double>(3.141592653589793);
+
+		REQUIRE(seg.get<float>(0) == Catch::Detail::Approx(3.14159f));
+		REQUIRE(seg.get<double>(4) == Catch::Detail::Approx(3.141592653589793));
 	}
 }

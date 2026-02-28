@@ -10,7 +10,7 @@ TEST_CASE("seg Initialization", "[seg][init]") {
 	SECTION("ct_seg_init function") {
 		ct_seg_t seg;
 		ct_seg_init(&seg, buffer, sizeof(buffer));
-		REQUIRE(seg.bytes == buffer);
+		REQUIRE(seg.data == buffer);
 		REQUIRE(seg.cap == sizeof(buffer));
 		REQUIRE(seg.len == 0);
 		REQUIRE(seg.pos == 0);
@@ -21,7 +21,7 @@ TEST_CASE("seg Initialization", "[seg][init]") {
 	SECTION("ct_seg_from function (clamped)") {
 		ct_seg_t seg;
 		ct_seg_from(&seg, buffer, sizeof(buffer), 32);
-		REQUIRE(seg.bytes == buffer);
+		REQUIRE(seg.data == buffer);
 		REQUIRE(seg.cap == sizeof(buffer));
 		REQUIRE(seg.len == 32);
 		REQUIRE(seg.pos == 0);
@@ -32,7 +32,7 @@ TEST_CASE("seg Initialization", "[seg][init]") {
 	SECTION("ct_seg_init function") {
 		ct_seg_t seg;
 		ct_seg_init(&seg, buffer, sizeof(buffer));
-		REQUIRE(seg.bytes == buffer);
+		REQUIRE(seg.data == buffer);
 		REQUIRE(seg.cap == sizeof(buffer));
 		REQUIRE(seg.len == 0);
 		REQUIRE(seg.pos == 0);
@@ -43,7 +43,7 @@ TEST_CASE("seg Initialization", "[seg][init]") {
 	SECTION("ct_seg_from function") {
 		ct_seg_t seg;
 		ct_seg_from(&seg, buffer, sizeof(buffer), 48);
-		REQUIRE(seg.bytes == buffer);
+		REQUIRE(seg.data == buffer);
 		REQUIRE(seg.cap == sizeof(buffer));
 		REQUIRE(seg.len == 48);
 		REQUIRE(seg.pos == 0);
@@ -59,7 +59,7 @@ TEST_CASE("seg Initialization", "[seg][init]") {
 
 	SECTION("Static Initialization Macros") {
 		ct_seg_t seg_init = CT_SEG_INIT(buffer, sizeof(buffer));
-		REQUIRE(seg_init.bytes == buffer);
+		REQUIRE(seg_init.data == buffer);
 		REQUIRE(seg_init.cap == sizeof(buffer));
 		REQUIRE(seg_init.len == 0);
 		REQUIRE(seg_init.pos == 0);
@@ -67,7 +67,7 @@ TEST_CASE("seg Initialization", "[seg][init]") {
 		REQUIRE(seg_init.hlswap == 0);
 
 		ct_seg_t seg_from = CT_SEG_FROM(buffer, sizeof(buffer), 32);
-		REQUIRE(seg_from.bytes == buffer);
+		REQUIRE(seg_from.data == buffer);
 		REQUIRE(seg_from.cap == sizeof(buffer));
 		REQUIRE(seg_from.len == 32);
 		REQUIRE(seg_from.pos == 0);
@@ -141,81 +141,217 @@ TEST_CASE("seg Basic Operations", "[seg][basic]") {
 		REQUIRE(ct_seg_take_u32(&seg) == 0x789ABCDE);
 		REQUIRE(ct_seg_take_u64(&seg) == 0xFEDCBA9876543210ULL);
 	}
-
-	SECTION("Read/Write Arrays") {
-		uint32_t data[] = {0x11223344, 0x55667788};
-		ct_seg_put_arr32(&seg, data, 2);
-
-		ct_seg_rewind(&seg);
-
-		uint32_t out[2];
-		ct_seg_take_arr32(&seg, out, 2);
-
-		REQUIRE(out[0] == 0x11223344);
-		REQUIRE(out[1] == 0x55667788);
-	}
 }
 
-TEST_CASE("seg Configuration", "[seg][config]") {
+TEST_CASE("ct_seg Endianness Write and Read Identity", "[seg][endian]") {
 	uint8_t  buffer[4096];
 	ct_seg_t seg;
-
-	memset(buffer, 0, sizeof(buffer));
 	ct_seg_init(&seg, buffer, sizeof(buffer));
 
-	SECTION("Default config values") {
+#define TEST_RW_IDENTITY(PutFn, TakeFn, PeekFn, OverwriteFn, Value) \
+	do {                                                            \
+		ct_seg_clear(&seg);                                         \
+		ct_seg_set_endian(&seg, CT_ENDIAN_LITTLE);                  \
+		PutFn(&seg, Value);                                         \
+		ct_seg_rewind(&seg);                                        \
+		REQUIRE(TakeFn(&seg) == Value);                             \
+		ct_seg_clear(&seg);                                         \
+		ct_seg_set_endian(&seg, CT_ENDIAN_BIG);                     \
+		PutFn(&seg, Value);                                         \
+		ct_seg_rewind(&seg);                                        \
+		REQUIRE(TakeFn(&seg) == Value);                             \
+		ct_seg_clear(&seg);                                         \
+		ct_seg_set_endian(&seg, CT_ENDIAN_LITTLE);                  \
+		PutFn(&seg, Value);                                         \
+		ct_seg_rewind(&seg);                                        \
+		REQUIRE(PeekFn(&seg, 0) == Value);                          \
+		REQUIRE(OverwriteFn(&seg, 0, Value) == 0);                  \
+		ct_seg_rewind(&seg);                                        \
+		REQUIRE(TakeFn(&seg) == Value);                             \
+	} while (0)
+
+	TEST_RW_IDENTITY(ct_seg_put_u8, ct_seg_take_u8, ct_seg_peek_u8, ct_seg_set_u8, 0x12);
+	TEST_RW_IDENTITY(ct_seg_put_u16, ct_seg_take_u16, ct_seg_peek_u16, ct_seg_set_u16, 0x1234);
+	TEST_RW_IDENTITY(ct_seg_put_u32, ct_seg_take_u32, ct_seg_peek_u32, ct_seg_set_u32, 0x12345678);
+	TEST_RW_IDENTITY(ct_seg_put_u64, ct_seg_take_u64, ct_seg_peek_u64, ct_seg_set_u64, 0x1122334455667788ULL);
+
+#undef TEST_RW_IDENTITY
+
+	SECTION("Default config values from ct_seg_init") {
+		ct_seg_set_endian(&seg, CT_ENDIAN_LITTLE);
+		ct_seg_set_hlswap(&seg, 1);
+		REQUIRE(ct_seg_get_endian(&seg) == CT_ENDIAN_LITTLE);
+		REQUIRE(ct_seg_get_hlswap(&seg) == 1);
+
+		ct_seg_init(&seg, buffer, sizeof(buffer));
 		REQUIRE(ct_seg_get_endian(&seg) == CT_ENDIAN_BIG);
 		REQUIRE(ct_seg_get_hlswap(&seg) == 0);
 	}
+}
 
-	SECTION("Endianness") {
+TEST_CASE("ct_seg Endianness Memory Layout Verification", "[seg][endian]") {
+	uint8_t  buffer[4096];
+	ct_seg_t seg;
+	ct_seg_init(&seg, buffer, sizeof(buffer));
+
+	SECTION("16-bit") {
 		ct_seg_set_endian(&seg, CT_ENDIAN_LITTLE);
-		REQUIRE(ct_seg_get_endian(&seg) == CT_ENDIAN_LITTLE);
-		ct_seg_put_u32(&seg, 0x12345678);
-
-		uint8_t expected_le[] = {0x78, 0x56, 0x34, 0x12};
-		REQUIRE(std::memcmp(buffer, expected_le, 4) == 0);
-
-		ct_seg_rewind(&seg);
+		ct_seg_put_u16(&seg, 0xABCD);
+		REQUIRE(buffer[0] == 0xCD);
+		REQUIRE(buffer[1] == 0xAB);
+		ct_seg_clear(&seg);
 		ct_seg_set_endian(&seg, CT_ENDIAN_BIG);
-		REQUIRE(ct_seg_get_endian(&seg) == CT_ENDIAN_BIG);
-		ct_seg_put_u32(&seg, 0x12345678);
-
-		uint8_t expected_be[] = {0x12, 0x34, 0x56, 0x78};
-		REQUIRE(std::memcmp(buffer, expected_be, 4) == 0);
+		ct_seg_put_u16(&seg, 0xABCD);
+		REQUIRE(buffer[0] == 0xAB);
+		REQUIRE(buffer[1] == 0xCD);
 	}
 
-	SECTION("High-Low Swap") {
+	SECTION("32-bit") {
+		ct_seg_set_endian(&seg, CT_ENDIAN_LITTLE);
+		ct_seg_put_u32(&seg, 0x12345678);
+		REQUIRE(buffer[0] == 0x78);
+		REQUIRE(buffer[1] == 0x56);
+		REQUIRE(buffer[2] == 0x34);
+		REQUIRE(buffer[3] == 0x12);
+		ct_seg_clear(&seg);
 		ct_seg_set_endian(&seg, CT_ENDIAN_BIG);
-		ct_seg_set_hlswap(&seg, 1);
-		REQUIRE(ct_seg_get_hlswap(&seg) == 1);
+		ct_seg_put_u32(&seg, 0x12345678);
+		REQUIRE(buffer[0] == 0x12);
+		REQUIRE(buffer[1] == 0x34);
+		REQUIRE(buffer[2] == 0x56);
+		REQUIRE(buffer[3] == 0x78);
+	}
 
-		// u32: 0x11223344 -> 0x22114433
-		ct_seg_put_u32(&seg, 0x11223344);
-		uint8_t expected_32[] = {0x22, 0x11, 0x44, 0x33};
-		REQUIRE(std::memcmp(buffer, expected_32, 4) == 0);
-
-		ct_seg_rewind(&seg);
-
-		// u64: 0x1122334455667788 -> 0x2211443366558877
+	SECTION("64-bit") {
+		ct_seg_set_endian(&seg, CT_ENDIAN_LITTLE);
 		ct_seg_put_u64(&seg, 0x1122334455667788ULL);
-		uint8_t expected_64[] = {0x22, 0x11, 0x44, 0x33, 0x66, 0x55, 0x88, 0x77};
-		REQUIRE(std::memcmp(buffer, expected_64, 8) == 0);
+		REQUIRE(buffer[0] == 0x88);
+		REQUIRE(buffer[1] == 0x77);
+		REQUIRE(buffer[2] == 0x66);
+		REQUIRE(buffer[3] == 0x55);
+		REQUIRE(buffer[4] == 0x44);
+		REQUIRE(buffer[5] == 0x33);
+		REQUIRE(buffer[6] == 0x22);
+		REQUIRE(buffer[7] == 0x11);
+
+		ct_seg_clear(&seg);
+		ct_seg_set_endian(&seg, CT_ENDIAN_BIG);
+		ct_seg_put_u64(&seg, 0x1122334455667788ULL);
+		REQUIRE(buffer[0] == 0x11);
+		REQUIRE(buffer[1] == 0x22);
+		REQUIRE(buffer[2] == 0x33);
+		REQUIRE(buffer[3] == 0x44);
+		REQUIRE(buffer[4] == 0x55);
+		REQUIRE(buffer[5] == 0x66);
+		REQUIRE(buffer[6] == 0x77);
+		REQUIRE(buffer[7] == 0x88);
+	}
+}
+
+TEST_CASE("ct_seg High-Low Word Swap Constraints", "[seg][hlswap]") {
+	uint8_t  buffer[4096];
+	ct_seg_t seg;
+	ct_seg_init(&seg, buffer, sizeof(buffer));
+
+	SECTION("16-bit is unaffected by hlswap") {
+		ct_seg_clear(&seg);
+		ct_seg_set_hlswap(&seg, 1);
+		ct_seg_set_endian(&seg, CT_ENDIAN_BIG);
+		ct_seg_put_u16(&seg, 0xABCD);
+		REQUIRE(buffer[0] == 0xAB);
+		REQUIRE(buffer[1] == 0xCD);
+
+		ct_seg_clear(&seg);
+		ct_seg_set_endian(&seg, CT_ENDIAN_LITTLE);
+		ct_seg_put_u16(&seg, 0xABCD);
+		REQUIRE(buffer[0] == 0xCD);
+		REQUIRE(buffer[1] == 0xAB);
 	}
 
-	SECTION("Array Swap") {
-		ct_seg_set_endian(&seg, CT_ENDIAN_LITTLE);
+	SECTION("32-bit swap") {
+		ct_seg_clear(&seg);
 		ct_seg_set_hlswap(&seg, 1);
+		ct_seg_set_endian(&seg, CT_ENDIAN_BIG);
+		ct_seg_put_u32(&seg, 0xAABBCCDD);
+		REQUIRE(buffer[0] == 0xBB);
+		REQUIRE(buffer[1] == 0xAA);
+		REQUIRE(buffer[2] == 0xDD);
+		REQUIRE(buffer[3] == 0xCC);
 
-		const uint32_t data[] = {0x11223344};
-		ct_seg_put_arr32(&seg, data, 1);
-		const uint8_t expected[] = {0x33, 0x44, 0x11, 0x22};
-		REQUIRE(std::memcmp(buffer, expected, 4) == 0);
+		ct_seg_clear(&seg);
+		ct_seg_set_endian(&seg, CT_ENDIAN_LITTLE);
+		ct_seg_put_u32(&seg, 0xAABBCCDD);
+		REQUIRE(buffer[0] == 0xCC);
+		REQUIRE(buffer[1] == 0xDD);
+		REQUIRE(buffer[2] == 0xAA);
+		REQUIRE(buffer[3] == 0xBB);
+	}
 
+	SECTION("64-bit swap") {
+		ct_seg_clear(&seg);
+		ct_seg_set_hlswap(&seg, 1);
+		ct_seg_set_endian(&seg, CT_ENDIAN_BIG);
+		ct_seg_put_u64(&seg, 0x1122334455667788ULL);
+		REQUIRE(buffer[0] == 0x22);
+		REQUIRE(buffer[1] == 0x11);
+		REQUIRE(buffer[2] == 0x44);
+		REQUIRE(buffer[3] == 0x33);
+		REQUIRE(buffer[4] == 0x66);
+		REQUIRE(buffer[5] == 0x55);
+		REQUIRE(buffer[6] == 0x88);
+		REQUIRE(buffer[7] == 0x77);
+
+		ct_seg_clear(&seg);
+		ct_seg_set_endian(&seg, CT_ENDIAN_LITTLE);
+		ct_seg_put_u64(&seg, 0x1122334455667788ULL);
+		REQUIRE(buffer[0] == 0x77);
+		REQUIRE(buffer[1] == 0x88);
+		REQUIRE(buffer[2] == 0x55);
+		REQUIRE(buffer[3] == 0x66);
+		REQUIRE(buffer[4] == 0x33);
+		REQUIRE(buffer[5] == 0x44);
+		REQUIRE(buffer[6] == 0x11);
+		REQUIRE(buffer[7] == 0x22);
+	}
+}
+
+TEST_CASE("ct_seg View-Only Operation Endianness Validation", "[seg][peek][set]") {
+	uint8_t  buffer[4096];
+	ct_seg_t seg;
+	ct_seg_init(&seg, buffer, sizeof(buffer));
+
+	buffer[0] = 0x11;
+	buffer[1] = 0x22;
+	buffer[2] = 0x33;
+	buffer[3] = 0x44;
+
+	SECTION("Peek respects endian") {
+		ct_seg_commit(&seg, 4);
 		ct_seg_rewind(&seg);
-		uint32_t out[1];
-		ct_seg_take_arr32(&seg, out, 1);
-		REQUIRE(out[0] == 0x11223344);
+
+		ct_seg_set_endian(&seg, CT_ENDIAN_BIG);
+		REQUIRE(ct_seg_peek_u32(&seg, 0) == 0x11223344);
+
+		ct_seg_set_endian(&seg, CT_ENDIAN_LITTLE);
+		REQUIRE(ct_seg_peek_u32(&seg, 0) == 0x44332211);
+	}
+
+	SECTION("Overwrite respects endian") {
+		ct_seg_commit(&seg, 4);
+
+		ct_seg_set_endian(&seg, CT_ENDIAN_BIG);
+		REQUIRE(ct_seg_set_u32(&seg, 0, 0xAABBCCDD) == 0);
+		REQUIRE(buffer[0] == 0xAA);
+		REQUIRE(buffer[1] == 0xBB);
+		REQUIRE(buffer[2] == 0xCC);
+		REQUIRE(buffer[3] == 0xDD);
+
+		ct_seg_set_endian(&seg, CT_ENDIAN_LITTLE);
+		REQUIRE(ct_seg_set_u32(&seg, 0, 0xAABBCCDD) == 0);
+		REQUIRE(buffer[0] == 0xDD);
+		REQUIRE(buffer[1] == 0xCC);
+		REQUIRE(buffer[2] == 0xBB);
+		REQUIRE(buffer[3] == 0xAA);
 	}
 }
 
@@ -244,22 +380,6 @@ TEST_CASE("seg Peek Operations", "[seg][peek]") {
 		REQUIRE(ct_seg_peek_u16(&seg, -4) == 0x3456);
 	}
 
-	SECTION("Peek Arrays") {
-		uint32_t data[] = {0x11223344, 0x55667788, 0x99AABBCC};
-		ct_seg_put_arr32(&seg, data, 3);
-		ct_seg_rewind(&seg);
-
-		uint32_t out[2];
-		REQUIRE(ct_seg_peek_arr32(&seg, 0, out, 2) == 0);
-		REQUIRE(out[0] == 0x11223344);
-		REQUIRE(out[1] == 0x55667788);
-
-		REQUIRE(ct_seg_pos(&seg) == 0);
-		REQUIRE(ct_seg_peek_arr32(&seg, 4, out, 2) == 0);
-		REQUIRE(out[0] == 0x55667788);
-		REQUIRE(out[1] == 0x99AABBCC);
-	}
-
 	SECTION("Peek Bounds") {
 		ct_seg_init(&seg, buffer, 10);
 		ct_seg_put_u32(&seg, 0x12345678);
@@ -270,26 +390,23 @@ TEST_CASE("seg Peek Operations", "[seg][peek]") {
 		REQUIRE(ct_seg_peek_u32(&seg, 10) == 0);
 		REQUIRE(ct_seg_peek_u64(&seg, 0) == 0);
 		REQUIRE(ct_seg_peek_u32(&seg, -1) == 0);
-
-		uint32_t out[2];
-		REQUIRE(ct_seg_peek_arr32(&seg, 0, out, 2) == -1);
 	}
 }
 
-TEST_CASE("seg Overwrite Operations", "[seg][overwrite]") {
+TEST_CASE("seg Set Operations", "[seg][set]") {
 	uint8_t  buffer[4096];
 	ct_seg_t seg;
 
 	memset(buffer, 0, sizeof(buffer));
 	ct_seg_init(&seg, buffer, sizeof(buffer));
 
-	SECTION("Overwrite Primitives") {
+	SECTION("Set Primitives") {
 		ct_seg_put_u32(&seg, 0x11111111);
 		ct_seg_put_u32(&seg, 0x22222222);
 		ct_seg_put_u32(&seg, 0x33333333);
 
 		size_t pos_before = ct_seg_pos(&seg);
-		REQUIRE(ct_seg_overwrite_u32(&seg, 0, 0xAABBCCDD) == 0);
+		REQUIRE(ct_seg_set_u32(&seg, 0, 0xAABBCCDD) == 0);
 		REQUIRE(ct_seg_pos(&seg) == pos_before);
 
 		ct_seg_rewind(&seg);
@@ -298,27 +415,12 @@ TEST_CASE("seg Overwrite Operations", "[seg][overwrite]") {
 		REQUIRE(ct_seg_take_u32(&seg) == 0x33333333);
 	}
 
-	SECTION("Overwrite Arrays") {
-		uint32_t data[] = {0x11111111, 0x22222222, 0x33333333};
-		ct_seg_put_arr32(&seg, data, 3);
-
-		uint32_t new_data[] = {0xAAAAAAAA, 0xBBBBBBBB};
-		REQUIRE(ct_seg_overwrite_arr32(&seg, 4, new_data, 2) == 0);
-
-		ct_seg_rewind(&seg);
-		uint32_t out[3];
-		ct_seg_take_arr32(&seg, out, 3);
-		REQUIRE(out[0] == 0x11111111);
-		REQUIRE(out[1] == 0xAAAAAAAA);
-		REQUIRE(out[2] == 0xBBBBBBBB);
-	}
-
-	SECTION("Overwrite Endianness") {
+	SECTION("Set Endianness") {
 		ct_seg_set_endian(&seg, CT_ENDIAN_BIG);
 		ct_seg_put_u32(&seg, 0x12345678);
 
 		ct_seg_set_endian(&seg, CT_ENDIAN_LITTLE);
-		REQUIRE(ct_seg_overwrite_u32(&seg, 0, 0xAABBCCDD) == 0);
+		REQUIRE(ct_seg_set_u32(&seg, 0, 0xAABBCCDD) == 0);
 
 		uint8_t expected[] = {0xDD, 0xCC, 0xBB, 0xAA};
 		REQUIRE(std::memcmp(buffer, expected, 4) == 0);
@@ -327,24 +429,21 @@ TEST_CASE("seg Overwrite Operations", "[seg][overwrite]") {
 		REQUIRE(ct_seg_take_u32(&seg) == 0xAABBCCDD);
 	}
 
-	SECTION("Overwrite Bounds") {
+	SECTION("Set Bounds") {
 		ct_seg_init(&seg, buffer, 10);
 		ct_seg_put_u32(&seg, 0x12345678);
-		REQUIRE(ct_seg_overwrite_u8(&seg, 0, 0xAA) == 0);
-		REQUIRE(ct_seg_overwrite_u32(&seg, 10, 0xBBBBBBBB) == -1);
-		REQUIRE(ct_seg_overwrite_u64(&seg, 0, 0x1122334455667788ULL) == -1);
-
-		uint32_t data[] = {0x11111111, 0x22222222};
-		REQUIRE(ct_seg_overwrite_arr32(&seg, 0, data, 2) == -1);
+		REQUIRE(ct_seg_set_u8(&seg, 0, 0xAA) == 0);
+		REQUIRE(ct_seg_set_u32(&seg, 10, 0xBBBBBBBB) == -1);
+		REQUIRE(ct_seg_set_u64(&seg, 0, 0x1122334455667788ULL) == -1);
 	}
 
-	SECTION("Overwrite All Types") {
+	SECTION("Set All Types") {
 		ct_seg_put_u64(&seg, 0);
 		ct_seg_put_u64(&seg, 0);
 
-		REQUIRE(ct_seg_overwrite_u8(&seg, 0, 0xAB) == 0);
-		REQUIRE(ct_seg_overwrite_u16(&seg, 2, 0xCDEF) == 0);
-		REQUIRE(ct_seg_overwrite_u64(&seg, 8, 0x1122334455667788ULL) == 0);
+		REQUIRE(ct_seg_set_u8(&seg, 0, 0xAB) == 0);
+		REQUIRE(ct_seg_set_u16(&seg, 2, 0xCDEF) == 0);
+		REQUIRE(ct_seg_set_u64(&seg, 8, 0x1122334455667788ULL) == 0);
 
 		ct_seg_rewind(&seg);
 		REQUIRE(ct_seg_take_u8(&seg) == 0xAB);
@@ -455,7 +554,7 @@ TEST_CASE("seg IO Operations", "[seg][io]") {
 	memset(buffer, 0, sizeof(buffer));
 	ct_seg_init(&seg, buffer, sizeof(buffer));
 
-	SECTION("write bytes") {
+	SECTION("write data") {
 		uint8_t data[] = {0x11, 0x22, 0x33, 0x44, 0x55};
 		REQUIRE(ct_seg_write(&seg, data, 5) == 5);
 		REQUIRE(ct_seg_pos(&seg) == 5);
@@ -471,7 +570,7 @@ TEST_CASE("seg IO Operations", "[seg][io]") {
 		REQUIRE(ct_seg_count(&seg) == 4);
 	}
 
-	SECTION("read bytes") {
+	SECTION("read data") {
 		uint8_t data[] = {0xAA, 0xBB, 0xCC, 0xDD};
 		ct_seg_write(&seg, data, 4);
 		ct_seg_rewind(&seg);
@@ -492,7 +591,7 @@ TEST_CASE("seg IO Operations", "[seg][io]") {
 		REQUIRE(ct_seg_pos(&seg) == 2);
 	}
 
-	SECTION("peek bytes") {
+	SECTION("peek data") {
 		uint8_t data[] = {0x11, 0x22, 0x33, 0x44};
 		ct_seg_write(&seg, data, 4);
 		ct_seg_rewind(&seg);
@@ -504,6 +603,11 @@ TEST_CASE("seg IO Operations", "[seg][io]") {
 
 		uint8_t out2[2] = {0};
 		REQUIRE(ct_seg_peek(&seg, 2, out2, 2) == 2);
+		REQUIRE(out2[0] == 0x33);
+		REQUIRE(out2[1] == 0x44);
+
+		ct_seg_skip(&seg, 2);
+		REQUIRE(ct_seg_peek(&seg, 0, out2, 2) == 2);
 		REQUIRE(out2[0] == 0x33);
 		REQUIRE(out2[1] == 0x44);
 	}
@@ -532,7 +636,7 @@ TEST_CASE("seg View Operations", "[seg][view]") {
 	SECTION("since valid range") {
 		ct_seg_from(&seg, buffer, sizeof(buffer), 32);
 		REQUIRE(ct_seg_since(&seg, &view, 8, 24) == 0);
-		REQUIRE(view.bytes == buffer + 8);
+		REQUIRE(view.data == buffer + 8);
 		REQUIRE(view.cap == sizeof(buffer) - 8);
 		REQUIRE(view.len == 16);
 		REQUIRE(view.pos == 0);
@@ -543,12 +647,12 @@ TEST_CASE("seg View Operations", "[seg][view]") {
 
 		// Case 1: start=0, end=0 -> [0, 32]
 		REQUIRE(ct_seg_since(&seg, &view, 0, 0) == 0);
-		REQUIRE(view.bytes == buffer);
+		REQUIRE(view.data == buffer);
 		REQUIRE(view.len == 32);
 
 		// Case 2: start=10, end=0 -> [10, 32]
 		REQUIRE(ct_seg_since(&seg, &view, 10, 0) == 0);
-		REQUIRE(view.bytes == buffer + 10);
+		REQUIRE(view.data == buffer + 10);
 		REQUIRE(view.len == 22);
 	}
 
@@ -561,7 +665,7 @@ TEST_CASE("seg View Operations", "[seg][view]") {
 	SECTION("since empty range") {
 		ct_seg_from(&seg, buffer, sizeof(buffer), 32);
 		REQUIRE(ct_seg_since(&seg, &view, 10, 10) == 0);
-		REQUIRE(view.bytes == buffer + 10);
+		REQUIRE(view.data == buffer + 10);
 		REQUIRE(view.len == 0);
 		REQUIRE(view.pos == 0);
 	}
@@ -580,7 +684,7 @@ TEST_CASE("seg View Operations", "[seg][view]") {
 		ct_seg_from(&seg, buffer, sizeof(buffer), 32);
 		ct_seg_seek(&seg, 8);
 		ct_seg_readable_since(&seg, &view);
-		REQUIRE(view.bytes == buffer + 8);
+		REQUIRE(view.data == buffer + 8);
 		REQUIRE(view.len == 24);
 	}
 
@@ -588,7 +692,7 @@ TEST_CASE("seg View Operations", "[seg][view]") {
 		ct_seg_from(&seg, buffer, sizeof(buffer), 32);
 		ct_seg_seek(&seg, 8);
 		ct_seg_writable_since(&seg, &view);
-		REQUIRE(view.bytes == buffer + 8);
+		REQUIRE(view.data == buffer + 8);
 		REQUIRE(view.len == sizeof(buffer) - 8);
 	}
 
@@ -650,90 +754,6 @@ TEST_CASE("seg Put/Take All Types", "[seg][types]") {
 		REQUIRE(ct_seg_take_u64(&seg) == 0xFFFFFFFFFFFFFFFFULL);
 		REQUIRE(ct_seg_take_u64(&seg) == 0x123456789ABCDEF0ULL);
 	}
-
-	SECTION("arr8 roundtrip") {
-		uint8_t data[] = {0x11, 0x22, 0x33, 0x44};
-		ct_seg_put_arr8(&seg, data, 4);
-		ct_seg_rewind(&seg);
-		uint8_t out[4];
-		REQUIRE(ct_seg_take_arr8(&seg, out, 4) == 0);
-		REQUIRE(std::memcmp(out, data, 4) == 0);
-	}
-
-	SECTION("arr16 roundtrip") {
-		uint16_t data[] = {0x1122, 0x3344, 0x5566};
-		ct_seg_put_arr16(&seg, data, 3);
-		ct_seg_rewind(&seg);
-		uint16_t out[3];
-		REQUIRE(ct_seg_take_arr16(&seg, out, 3) == 0);
-		REQUIRE(out[0] == 0x1122);
-		REQUIRE(out[1] == 0x3344);
-		REQUIRE(out[2] == 0x5566);
-	}
-
-	SECTION("arr32 roundtrip") {
-		uint32_t data[] = {0x11223344, 0x55667788};
-		ct_seg_put_arr32(&seg, data, 2);
-		ct_seg_rewind(&seg);
-		uint32_t out[2];
-		REQUIRE(ct_seg_take_arr32(&seg, out, 2) == 0);
-		REQUIRE(out[0] == 0x11223344);
-		REQUIRE(out[1] == 0x55667788);
-	}
-
-	SECTION("arr64 roundtrip") {
-		uint64_t data[] = {0x1122334455667788ULL, 0x99AABBCCDDEEFF00ULL};
-		ct_seg_put_arr64(&seg, data, 2);
-		ct_seg_rewind(&seg);
-		uint64_t out[2];
-		REQUIRE(ct_seg_take_arr64(&seg, out, 2) == 0);
-		REQUIRE(out[0] == 0x1122334455667788ULL);
-		REQUIRE(out[1] == 0x99AABBCCDDEEFF00ULL);
-	}
-
-	SECTION("peek arr8/16/64") {
-		uint8_t  d8[]  = {0xAA, 0xBB};
-		uint16_t d16[] = {0x1234, 0x5678};
-		uint64_t d64[] = {0xDEADBEEFCAFEBABEULL};
-
-		ct_seg_put_arr8(&seg, d8, 2);
-		ct_seg_put_arr16(&seg, d16, 2);
-		ct_seg_put_arr64(&seg, d64, 1);
-		ct_seg_rewind(&seg);
-
-		uint8_t o8[2];
-		REQUIRE(ct_seg_peek_arr8(&seg, 0, o8, 2) == 0);
-		REQUIRE(o8[0] == 0xAA);
-		REQUIRE(o8[1] == 0xBB);
-
-		uint16_t o16[2];
-		REQUIRE(ct_seg_peek_arr16(&seg, 2, o16, 2) == 0);
-		REQUIRE(o16[0] == 0x1234);
-		REQUIRE(o16[1] == 0x5678);
-
-		uint64_t o64[1];
-		REQUIRE(ct_seg_peek_arr64(&seg, 6, o64, 1) == 0);
-		REQUIRE(o64[0] == 0xDEADBEEFCAFEBABEULL);
-	}
-
-	SECTION("overwrite arr8/16/64") {
-		ct_seg_fill(&seg, 0, 32);
-
-		uint8_t d8[] = {0xAA, 0xBB};
-		REQUIRE(ct_seg_overwrite_arr8(&seg, 0, d8, 2) == 0);
-		REQUIRE(buffer[0] == 0xAA);
-		REQUIRE(buffer[1] == 0xBB);
-
-		uint16_t d16[] = {0x1234};
-		REQUIRE(ct_seg_overwrite_arr16(&seg, 4, d16, 1) == 0);
-
-		uint64_t d64[] = {0xDEADBEEFCAFEBABEULL};
-		REQUIRE(ct_seg_overwrite_arr64(&seg, 8, d64, 1) == 0);
-
-		ct_seg_rewind(&seg);
-		ct_seg_seek(&seg, 8);
-		REQUIRE(ct_seg_take_u64(&seg) == 0xDEADBEEFCAFEBABEULL);
-	}
 }
 
 TEST_CASE("seg Boundary Overflow", "[seg][boundary]") {
@@ -763,23 +783,242 @@ TEST_CASE("seg Boundary Overflow", "[seg][boundary]") {
 		REQUIRE(ct_seg_take_u32(&seg) == 0);
 		REQUIRE(ct_seg_pos(&seg) == 4);
 	}
+}
 
-	SECTION("array partial fit") {
+TEST_CASE("seg Get Operations", "[seg][get]") {
+	uint8_t  buffer[4096];
+	ct_seg_t seg;
+
+	memset(buffer, 0, sizeof(buffer));
+	ct_seg_init(&seg, buffer, sizeof(buffer));
+
+	SECTION("Get Primitives") {
+		ct_seg_put_u8(&seg, 0x12);
+		ct_seg_put_u16(&seg, 0x3456);
+		ct_seg_put_u32(&seg, 0x789ABCDE);
+		ct_seg_put_u64(&seg, 0xFEDCBA9876543210ULL);
+
+		REQUIRE(ct_seg_get_u8(&seg, 0) == 0x12);
+		REQUIRE(ct_seg_get_u16(&seg, 1) == 0x3456);
+		REQUIRE(ct_seg_get_u32(&seg, 3) == 0x789ABCDE);
+		REQUIRE(ct_seg_get_u64(&seg, 7) == 0xFEDCBA9876543210ULL);
+
+		REQUIRE(ct_seg_pos(&seg) == 15);
+	}
+
+	SECTION("Get does not change pos or len") {
+		ct_seg_put_u32(&seg, 0x12345678);
+		ct_seg_rewind(&seg);
+
+		size_t pos_before = ct_seg_pos(&seg);
+		size_t len_before = ct_seg_count(&seg);
+
+		ct_seg_get_u32(&seg, 0);
+
+		REQUIRE(ct_seg_pos(&seg) == pos_before);
+		REQUIRE(ct_seg_count(&seg) == len_before);
+	}
+
+	SECTION("Get Bounds") {
+		ct_seg_init(&seg, buffer, 10);
+		ct_seg_put_u32(&seg, 0x12345678);
+
+		REQUIRE(ct_seg_get_u32(&seg, 0) == 0x12345678);
+		REQUIRE(ct_seg_get_u32(&seg, 10) == 0);
+		REQUIRE(ct_seg_get_u64(&seg, 0) == 0);
+		REQUIRE(ct_seg_get_u8(&seg, 100) == 0);
+	}
+
+	SECTION("Get Endianness Big") {
+		ct_seg_set_endian(&seg, CT_ENDIAN_BIG);
+		ct_seg_put_u32(&seg, 0x11223344);
+
+		REQUIRE(ct_seg_get_u8(&seg, 0) == 0x11);
+		REQUIRE(ct_seg_get_u8(&seg, 1) == 0x22);
+		REQUIRE(ct_seg_get_u8(&seg, 2) == 0x33);
+		REQUIRE(ct_seg_get_u8(&seg, 3) == 0x44);
+	}
+
+	SECTION("Get Endianness Little") {
+		ct_seg_set_endian(&seg, CT_ENDIAN_LITTLE);
+		ct_seg_put_u32(&seg, 0x11223344);
+
+		REQUIRE(ct_seg_get_u8(&seg, 0) == 0x44);
+		REQUIRE(ct_seg_get_u8(&seg, 1) == 0x33);
+		REQUIRE(ct_seg_get_u8(&seg, 2) == 0x22);
+		REQUIRE(ct_seg_get_u8(&seg, 3) == 0x11);
+	}
+
+	SECTION("Get All Types") {
+		ct_seg_put_u8(&seg, 0xAB);
+		ct_seg_put_u16(&seg, 0xCDEF);
+		ct_seg_put_u32(&seg, 0x12345678);
+		ct_seg_put_u64(&seg, 0xFEDCBA9876543210ULL);
+
+		REQUIRE(ct_seg_get_u8(&seg, 0) == 0xAB);
+		REQUIRE(ct_seg_get_u16(&seg, 1) == 0xCDEF);
+		REQUIRE(ct_seg_get_u32(&seg, 3) == 0x12345678);
+		REQUIRE(ct_seg_get_u64(&seg, 7) == 0xFEDCBA9876543210ULL);
+	}
+}
+
+TEST_CASE("seg Truncate", "[seg][truncate]") {
+	uint8_t  buffer[64];
+	ct_seg_t seg;
+
+	memset(buffer, 0, sizeof(buffer));
+	ct_seg_init(&seg, buffer, sizeof(buffer));
+
+	SECTION("Truncate normal") {
+		ct_seg_put_u32(&seg, 0x11111111);
+		ct_seg_put_u32(&seg, 0x22222222);
+		ct_seg_put_u32(&seg, 0x33333333);
+
+		REQUIRE(ct_seg_count(&seg) == 12);
+
+		ct_seg_truncate(&seg, 8);
+		REQUIRE(ct_seg_count(&seg) == 8);
+		REQUIRE(ct_seg_pos(&seg) == 8);
+
+		ct_seg_rewind(&seg);
+		REQUIRE(ct_seg_take_u32(&seg) == 0x11111111);
+		REQUIRE(ct_seg_take_u32(&seg) == 0x22222222);
+		REQUIRE(ct_seg_readable(&seg) == 0);
+	}
+
+	SECTION("Truncate adjusts pos if needed") {
+		ct_seg_put_u32(&seg, 0x11111111);
+		ct_seg_put_u32(&seg, 0x22222222);
+		ct_seg_put_u32(&seg, 0x33333333);
+
+		ct_seg_seek(&seg, 10);
+		REQUIRE(ct_seg_pos(&seg) == 10);
+
+		ct_seg_truncate(&seg, 4);
+		REQUIRE(ct_seg_count(&seg) == 4);
+		REQUIRE(ct_seg_pos(&seg) == 4);
+	}
+
+	SECTION("Truncate no effect if new_len >= len") {
+		ct_seg_put_u32(&seg, 0x12345678);
+		REQUIRE(ct_seg_count(&seg) == 4);
+
+		ct_seg_truncate(&seg, 10);
+		REQUIRE(ct_seg_count(&seg) == 4);
+
+		ct_seg_truncate(&seg, 4);
+		REQUIRE(ct_seg_count(&seg) == 4);
+	}
+
+	SECTION("Truncate to zero") {
+		ct_seg_put_u32(&seg, 0x12345678);
+		ct_seg_seek(&seg, 2);
+
+		ct_seg_truncate(&seg, 0);
+		REQUIRE(ct_seg_count(&seg) == 0);
+		REQUIRE(ct_seg_pos(&seg) == 0);
+	}
+}
+
+TEST_CASE("seg Find", "[seg][find]") {
+	uint8_t  buffer[64];
+	ct_seg_t seg;
+
+	for (int i = 0; i < 64; ++i) buffer[i] = (uint8_t)i;
+
+	SECTION("Find byte exists") {
+		ct_seg_from(&seg, buffer, sizeof(buffer), 32);
+
+		REQUIRE(ct_seg_find(&seg, 0, 0) == 0);
+		REQUIRE(ct_seg_find(&seg, 10, 0) == 10);
+		REQUIRE(ct_seg_find(&seg, 31, 0) == 31);
+	}
+
+	SECTION("Find byte not exists") {
+		ct_seg_from(&seg, buffer, sizeof(buffer), 32);
+
+		REQUIRE(ct_seg_find(&seg, 100, 0) == -1);
+		REQUIRE(ct_seg_find(&seg, 32, 0) == -1);
+		REQUIRE(ct_seg_find(&seg, 255, 0) == -1);
+	}
+
+	SECTION("Find from pos") {
+		ct_seg_from(&seg, buffer, sizeof(buffer), 32);
+		ct_seg_seek(&seg, 10);
+
+		REQUIRE(ct_seg_find(&seg, 5, 0) == -1);
+		REQUIRE(ct_seg_find(&seg, 10, 0) == 0);
+		REQUIRE(ct_seg_find(&seg, 15, 0) == 5);
+		REQUIRE(ct_seg_find(&seg, 31, 0) == 21);
+	}
+
+	SECTION("Find first match") {
+		buffer[10] = 0xAA;
+		buffer[20] = 0xAA;
+		ct_seg_from(&seg, buffer, sizeof(buffer), 32);
+
+		REQUIRE(ct_seg_find(&seg, 0xAA, 0) == 10);
+
+		ct_seg_seek(&seg, 15);
+		REQUIRE(ct_seg_find(&seg, 0xAA, 0) == 5);
+	}
+
+	SECTION("Find in empty buffer") {
 		ct_seg_init(&seg, buffer, sizeof(buffer));
-		uint32_t data[] = {0x11111111, 0x22222222, 0x33333333};
-		ct_seg_put_arr32(&seg, data, 3);
 
+		REQUIRE(ct_seg_find(&seg, 0, 0) == -1);
+		REQUIRE(ct_seg_find(&seg, 0xFF, 0) == -1);
+	}
+}
+
+TEST_CASE("seg Overfill", "[seg][overfill]") {
+	uint8_t  buffer[64];
+	ct_seg_t seg;
+
+	memset(buffer, 0xAA, sizeof(buffer));
+	ct_seg_init(&seg, buffer, sizeof(buffer));
+
+	SECTION("Overfill does not advance pos") {
+		REQUIRE(ct_seg_pos(&seg) == 0);
+
+		REQUIRE(ct_seg_overfill(&seg, 0x00, 10) == 10);
 		REQUIRE(ct_seg_pos(&seg) == 0);
 		REQUIRE(ct_seg_count(&seg) == 0);
 
-		ct_seg_put_arr32(&seg, data, 2);
-		REQUIRE(ct_seg_pos(&seg) == 8);
-		REQUIRE(ct_seg_count(&seg) == 8);
+		for (int i = 0; i < 10; ++i) { REQUIRE(buffer[i] == 0x00); }
+	}
 
-		ct_seg_rewind(&seg);
-		uint32_t out[2] = {0};
-		REQUIRE(ct_seg_take_arr32(&seg, out, 2) == 0);
-		REQUIRE(out[0] == 0x11111111);
-		REQUIRE(out[1] == 0x22222222);
+	SECTION("Overfill does not change len") {
+		ct_seg_put_u32(&seg, 0x12345678);
+		REQUIRE(ct_seg_count(&seg) == 4);
+
+		REQUIRE(ct_seg_overfill(&seg, 0xFF, 8) == 8);
+		REQUIRE(ct_seg_count(&seg) == 4);
+	}
+
+	SECTION("Overfill capped by capacity") {
+		REQUIRE(ct_seg_overfill(&seg, 0xBB, 100) == 64);
+
+		for (int i = 0; i < 64; ++i) { REQUIRE(buffer[i] == 0xBB); }
+	}
+
+	SECTION("Overfill from buffer start") {
+		ct_seg_put_u32(&seg, 0x12345678);
+		ct_seg_seek(&seg, 4);
+
+		REQUIRE(ct_seg_overfill(&seg, 0xCC, 8) == 8);
+
+		for (int i = 0; i < 8; ++i) { REQUIRE(buffer[i] == 0xCC); }
+		REQUIRE(ct_seg_pos(&seg) == 4);
+	}
+
+	SECTION("Overfill zeroing") {
+		memset(buffer, 0xFF, sizeof(buffer));
+		ct_seg_init(&seg, buffer, sizeof(buffer));
+
+		REQUIRE(ct_seg_overfill(&seg, 0, 32) == 32);
+
+		for (int i = 0; i < 32; ++i) { REQUIRE(buffer[i] == 0); }
+		for (int i = 32; i < 64; ++i) { REQUIRE(buffer[i] == 0xFF); }
 	}
 }

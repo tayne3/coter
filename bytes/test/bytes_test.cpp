@@ -175,7 +175,7 @@ TEST_CASE_METHOD(BytesFixture, "Bytes Operations", "[bytes][ops]") {
 		ct_seg_read(&seg, buf, 6);
 		REQUIRE(std::memcmp((char*)buf, "234567", 6) == 0);
 		ct_seg_rewind(&seg);
-		ct_seg_overwrite_u8(&seg, 0, 'A');
+		ct_seg_set_u8(&seg, 0, 'A');
 		char* raw_buffer = ct_bytes_buffer(small_bytes);
 		REQUIRE(raw_buffer[2] == 'A');
 		REQUIRE(ct_bytes_seg(small_bytes, &seg, 0, 16) == 0);

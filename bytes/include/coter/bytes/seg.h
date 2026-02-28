@@ -14,8 +14,8 @@ extern "C" {
  * Supports endianness conversion and high-low word swap for multi-byte values.
  */
 typedef struct ct_seg {
-	uint8_t *bytes;       ///< Base address of buffer
-	uint32_t cap;         ///< Total capacity in bytes
+	uint8_t *data;        ///< Base address of buffer
+	uint32_t cap;         ///< Total capacity in data
 	uint32_t len;         ///< Valid data length [0, cap]
 	uint32_t pos;         ///< Current read/write position [0, len]
 	uint32_t endian : 1;  ///< Byte order
@@ -34,23 +34,23 @@ typedef struct ct_seg {
 #define ct_seg_appendable(self) ((size_t)((self)->cap - (self)->len))
 #define ct_seg_is_empty(self)   ((self)->len == 0U)
 #define ct_seg_is_full(self)    ((self)->len == (self)->cap)
-#define ct_seg_data(self)       ((self)->bytes)
+#define ct_seg_data(self)       ((self)->data)
 
+#define ct_seg_rewind(self)        ((self)->pos = 0U)
+#define ct_seg_clear(self)         ((self)->len = (self)->pos = 0U)
 #define ct_seg_get_endian(self)    ((self)->endian)
 #define ct_seg_set_endian(self, e) ((self)->endian = (e))
 #define ct_seg_get_hlswap(self)    ((self)->hlswap)
 #define ct_seg_set_hlswap(self, h) ((self)->hlswap = (h))
-#define ct_seg_rewind(self)        ((self)->pos = 0U)
-#define ct_seg_clear(self)         ((self)->len = (self)->pos = 0U)
 
 /**
  * @brief Initialize buffer with external memory.
  * @param self Buffer to initialize
- * @param bytes External byte array
- * @param cap Capacity in bytes
+ * @param data External byte array
+ * @param cap Capacity in data
  */
-static inline void ct_seg_init(ct_seg_t *self, uint8_t *bytes, size_t cap) {
-	self->bytes  = bytes;
+static inline void ct_seg_init(ct_seg_t *self, uint8_t *data, size_t cap) {
+	self->data   = data;
 	self->cap    = (uint32_t)cap;
 	self->len    = 0U;
 	self->pos    = 0U;
@@ -61,12 +61,12 @@ static inline void ct_seg_init(ct_seg_t *self, uint8_t *bytes, size_t cap) {
 /**
  * @brief Initialize buffer from existing data.
  * @param self Buffer to initialize
- * @param bytes External byte array with existing data
- * @param cap Capacity in bytes
+ * @param data External byte array with existing data
+ * @param cap Capacity in data
  * @param len Valid data length (must be <= cap)
  */
-static inline void ct_seg_from(ct_seg_t *self, uint8_t *bytes, size_t cap, size_t len) {
-	self->bytes  = bytes;
+static inline void ct_seg_from(ct_seg_t *self, uint8_t *data, size_t cap, size_t len) {
+	self->data   = data;
 	self->cap    = (uint32_t)cap;
 	self->len    = (uint32_t)(len <= cap ? len : cap);
 	self->pos    = 0U;
@@ -88,7 +88,7 @@ static inline int ct_seg_reseek(ct_seg_t *self, size_t offset) {
 	return 0;
 }
 
-// Advance position forward. Returns actual bytes skipped.
+// Advance position forward. Returns actual data skipped.
 static inline int ct_seg_skip(ct_seg_t *self, size_t length) {
 	const size_t readable = ct_seg_readable(self);
 	if (length > readable) { length = readable; }
@@ -96,7 +96,7 @@ static inline int ct_seg_skip(ct_seg_t *self, size_t length) {
 	return (int)length;
 }
 
-// Advance position and extend len if needed. Used after writing directly to bytes. Returns actual bytes committed.
+// Advance position and extend len if needed. Used after writing directly to data. Returns actual data committed.
 static inline int ct_seg_commit(ct_seg_t *self, size_t length) {
 	const size_t writable = ct_seg_writable(self);
 	if (length > writable) { length = writable; }
@@ -105,11 +105,18 @@ static inline int ct_seg_commit(ct_seg_t *self, size_t length) {
 	return (int)length;
 }
 
+// Truncates the buffer to a smaller length, discarding data after new_len.
+static inline void ct_seg_truncate(ct_seg_t *self, size_t new_len) {
+	if (new_len >= self->len) { return; }
+	self->len = (uint32_t)new_len;
+	if (self->pos > self->len) { self->pos = self->len; }
+}
+
 // Create a view buffer pointing to a range [start, end] of the original buffer.
 static inline int ct_seg_since(const ct_seg_t *self, ct_seg_t *since, size_t start, size_t end) {
 	if (end == 0) { end = self->len; }
 	if (end < start || end > (size_t)self->cap) { return -1; }
-	since->bytes  = self->bytes + start;
+	since->data   = self->data + start;
 	since->cap    = self->cap - (uint32_t)start;
 	since->len    = (uint32_t)(end - start);
 	since->pos    = 0U;
@@ -125,27 +132,30 @@ static inline int ct_seg_since(const ct_seg_t *self, ct_seg_t *since, size_t sta
 // Remove read data by moving unread portion to start.
 COTER_API void ct_seg_compact(ct_seg_t *self);
 
+// Find byte in readable portion. Returns relative offset from pos, or -1 if not found.
+COTER_API int ct_seg_find(const ct_seg_t *self, uint8_t bt, size_t offset);
+
+// Fill writable portion with byte, advancing pos. Returns actual bytes filled.
+COTER_API int ct_seg_fill(ct_seg_t *self, uint8_t bt, size_t length);
+
+// Fill buffer memory absolutely. Does not advance pos. Typically used for zeroing.
+COTER_API int ct_seg_overfill(ct_seg_t *self, uint8_t bt, size_t length);
+
 /**
  * @brief Peek reads data from the buffer at the specified offset into p.
- * @return The actual number of bytes read.
+ * @return The actual number of data read.
  */
 COTER_API int ct_seg_peek(const ct_seg_t *self, size_t offset, uint8_t *p, size_t length);
 
 /**
- * @brief Fill fills the buffer with byte bt for the specified length.
- * @return The actual number of bytes filled.
- */
-COTER_API int ct_seg_fill(ct_seg_t *self, uint8_t bt, size_t length);
-
-/**
  * @brief Read reads data from the buffer into p (advances pos).
- * @return The actual number of bytes read (0 if empty).
+ * @return The actual number of data read (0 if empty).
  */
 COTER_API int ct_seg_read(ct_seg_t *self, uint8_t *p, size_t length);
 
 /**
  * @brief Write writes data from p into the buffer (advances pos).
- * @return The actual number of bytes written (0 if full).
+ * @return The actual number of data written (0 if full).
  */
 COTER_API int ct_seg_write(ct_seg_t *self, const uint8_t *p, size_t length);
 
@@ -157,14 +167,6 @@ COTER_API void ct_seg_put_u16(ct_seg_t *self, uint16_t v);
 COTER_API void ct_seg_put_u32(ct_seg_t *self, uint32_t v);
 // Write uint64_t with endianness conversion.
 COTER_API void ct_seg_put_u64(ct_seg_t *self, uint64_t v);
-// Write uint8_t array with endianness conversion.
-COTER_API void ct_seg_put_arr8(ct_seg_t *self, const uint8_t *v, size_t count);
-// Write uint16_t array with endianness conversion.
-COTER_API void ct_seg_put_arr16(ct_seg_t *self, const uint16_t *v, size_t count);
-// Write uint32_t array with endianness conversion.
-COTER_API void ct_seg_put_arr32(ct_seg_t *self, const uint32_t *v, size_t count);
-// Write uint64_t array with endianness conversion.
-COTER_API void ct_seg_put_arr64(ct_seg_t *self, const uint64_t *v, size_t count);
 
 // Read uint8_t with endianness conversion. Advances pos.
 COTER_API uint8_t ct_seg_take_u8(ct_seg_t *self);
@@ -174,14 +176,6 @@ COTER_API uint16_t ct_seg_take_u16(ct_seg_t *self);
 COTER_API uint32_t ct_seg_take_u32(ct_seg_t *self);
 // Read uint64_t with endianness conversion. Advances pos.
 COTER_API uint64_t ct_seg_take_u64(ct_seg_t *self);
-// Read uint8_t array with endianness conversion. Advances pos. Returns 0 on success, -1 on insufficient data.
-COTER_API int ct_seg_take_arr8(ct_seg_t *self, uint8_t *out, size_t count);
-// Read uint16_t array with endianness conversion. Advances pos. Returns 0 on success, -1 on insufficient data.
-COTER_API int ct_seg_take_arr16(ct_seg_t *self, uint16_t *out, size_t count);
-// Read uint32_t array with endianness conversion. Advances pos. Returns 0 on success, -1 on insufficient data.
-COTER_API int ct_seg_take_arr32(ct_seg_t *self, uint32_t *out, size_t count);
-// Read uint64_t array with endianness conversion. Advances pos. Returns 0 on success, -1 on insufficient data.
-COTER_API int ct_seg_take_arr64(ct_seg_t *self, uint64_t *out, size_t count);
 
 // Peek uint8_t at pos+offset without advancing pos.
 COTER_API uint8_t ct_seg_peek_u8(const ct_seg_t *self, int offset);
@@ -191,31 +185,24 @@ COTER_API uint16_t ct_seg_peek_u16(const ct_seg_t *self, int offset);
 COTER_API uint32_t ct_seg_peek_u32(const ct_seg_t *self, int offset);
 // Peek uint64_t at pos+offset without advancing pos.
 COTER_API uint64_t ct_seg_peek_u64(const ct_seg_t *self, int offset);
-// Peek uint8_t array at pos+offset without advancing pos. Returns 0 on success, -1 on out of bounds.
-COTER_API int ct_seg_peek_arr8(const ct_seg_t *self, int offset, uint8_t *out, size_t count);
-// Peek uint16_t array at pos+offset without advancing pos. Returns 0 on success, -1 on out of bounds.
-COTER_API int ct_seg_peek_arr16(const ct_seg_t *self, int offset, uint16_t *out, size_t count);
-// Peek uint32_t array at pos+offset without advancing pos. Returns 0 on success, -1 on out of bounds.
-COTER_API int ct_seg_peek_arr32(const ct_seg_t *self, int offset, uint32_t *out, size_t count);
-// Peek uint64_t array at pos+offset without advancing pos. Returns 0 on success, -1 on out of bounds.
-COTER_API int ct_seg_peek_arr64(const ct_seg_t *self, int offset, uint64_t *out, size_t count);
 
-// Overwrite uint8_t at absolute offset. Does not change pos or len. Returns 0 on success, -1 on out of bounds.
-COTER_API int ct_seg_overwrite_u8(ct_seg_t *self, size_t offset, uint8_t v);
-// Overwrite uint16_t at absolute offset. Does not change pos or len. Returns 0 on success, -1 on out of bounds.
-COTER_API int ct_seg_overwrite_u16(ct_seg_t *self, size_t offset, uint16_t v);
-// Overwrite uint32_t at absolute offset. Does not change pos or len. Returns 0 on success, -1 on out of bounds.
-COTER_API int ct_seg_overwrite_u32(ct_seg_t *self, size_t offset, uint32_t v);
-// Overwrite uint64_t at absolute offset. Does not change pos or len. Returns 0 on success, -1 on out of bounds.
-COTER_API int ct_seg_overwrite_u64(ct_seg_t *self, size_t offset, uint64_t v);
-// Overwrite uint8_t array at absolute offset. Does not change pos or len. Returns 0 on success, -1 on out of bounds.
-COTER_API int ct_seg_overwrite_arr8(ct_seg_t *self, size_t offset, const uint8_t *v, size_t count);
-// Overwrite uint16_t array at absolute offset. Does not change pos or len. Returns 0 on success, -1 on out of bounds.
-COTER_API int ct_seg_overwrite_arr16(ct_seg_t *self, size_t offset, const uint16_t *v, size_t count);
-// Overwrite uint32_t array at absolute offset. Does not change pos or len. Returns 0 on success, -1 on out of bounds.
-COTER_API int ct_seg_overwrite_arr32(ct_seg_t *self, size_t offset, const uint32_t *v, size_t count);
-// Overwrite uint64_t array at absolute offset. Does not change pos or len. Returns 0 on success, -1 on out of bounds.
-COTER_API int ct_seg_overwrite_arr64(ct_seg_t *self, size_t offset, const uint64_t *v, size_t count);
+// Read uint8_t at absolute offset.
+COTER_API uint8_t ct_seg_get_u8(const ct_seg_t *self, size_t offset);
+// Read uint16_t at absolute offset.
+COTER_API uint16_t ct_seg_get_u16(const ct_seg_t *self, size_t offset);
+// Read uint32_t at absolute offset.
+COTER_API uint32_t ct_seg_get_u32(const ct_seg_t *self, size_t offset);
+// Read uint64_t at absolute offset.
+COTER_API uint64_t ct_seg_get_u64(const ct_seg_t *self, size_t offset);
+
+// Set uint8_t at absolute offset. Does not change pos or len. Returns 0 on success, -1 on out of bounds.
+COTER_API int ct_seg_set_u8(ct_seg_t *self, size_t offset, uint8_t v);
+// Set uint16_t at absolute offset. Does not change pos or len. Returns 0 on success, -1 on out of bounds.
+COTER_API int ct_seg_set_u16(ct_seg_t *self, size_t offset, uint16_t v);
+// Set uint32_t at absolute offset. Does not change pos or len. Returns 0 on success, -1 on out of bounds.
+COTER_API int ct_seg_set_u32(ct_seg_t *self, size_t offset, uint32_t v);
+// Set uint64_t at absolute offset. Does not change pos or len. Returns 0 on success, -1 on out of bounds.
+COTER_API int ct_seg_set_u64(ct_seg_t *self, size_t offset, uint64_t v);
 
 #ifdef __cplusplus
 }

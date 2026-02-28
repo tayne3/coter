@@ -108,18 +108,6 @@ TEST_CASE_METHOD(BuilderFixture, "Builder Operations", "[builder][ops]") {
 		REQUIRE(ct_builder_take_u64(builder) == 0xFEDCBA9876543210ULL);
 	}
 
-	SECTION("Array Types") {
-		uint32_t data[] = {0x11223344, 0x55667788, 0x99AABBCC};
-		ct_builder_put_arr32(builder, data, 3);
-		REQUIRE(ct_builder_count(builder) == 12);
-		ct_builder_rewind(builder);
-		uint32_t out[3];
-		ct_builder_take_arr32(builder, out, 3);
-		REQUIRE(out[0] == 0x11223344);
-		REQUIRE(out[1] == 0x55667788);
-		REQUIRE(out[2] == 0x99AABBCC);
-	}
-
 	SECTION("Read & Peek") {
 		ct_builder_put_u32(builder, 0x12345678);
 		ct_builder_put_u32(builder, 0xAABBCCDD);
@@ -131,10 +119,18 @@ TEST_CASE_METHOD(BuilderFixture, "Builder Operations", "[builder][ops]") {
 		REQUIRE(ct_builder_pos(builder) == 4);
 	}
 
-	SECTION("Overwrite") {
+	SECTION("Get") {
 		ct_builder_put_u32(builder, 0x11111111);
 		ct_builder_put_u32(builder, 0x22222222);
-		ct_builder_overwrite_u32(builder, 0, 0xAAAAAAAA);
+		ct_builder_rewind(builder);
+		REQUIRE(ct_builder_get_u32(builder, 0) == 0x11111111);
+		REQUIRE(ct_builder_get_u32(builder, 4) == 0x22222222);
+	}
+
+	SECTION("Set") {
+		ct_builder_put_u32(builder, 0x11111111);
+		ct_builder_put_u32(builder, 0x22222222);
+		ct_builder_set_u32(builder, 0, 0xAAAAAAAA);
 		ct_builder_rewind(builder);
 		REQUIRE(ct_builder_take_u32(builder) == 0xAAAAAAAA);
 		REQUIRE(ct_builder_take_u32(builder) == 0x22222222);
@@ -170,6 +166,7 @@ TEST_CASE_METHOD(BuilderFixture, "Builder Operations", "[builder][ops]") {
 	SECTION("Peek Bytes") {
 		uint8_t data[] = {0x01, 0x02, 0x03, 0x04};
 		ct_builder_write(builder, data, 4);
+		ct_builder_rewind(builder);
 
 		uint8_t out[4] = {0};
 		REQUIRE(ct_builder_peek(builder, 0, out, 4) == 4);
@@ -177,6 +174,11 @@ TEST_CASE_METHOD(BuilderFixture, "Builder Operations", "[builder][ops]") {
 
 		uint8_t out2[2] = {0};
 		REQUIRE(ct_builder_peek(builder, 2, out2, 2) == 2);
+		REQUIRE(out2[0] == 0x03);
+		REQUIRE(out2[1] == 0x04);
+
+		ct_builder_skip(builder, 2);
+		REQUIRE(ct_builder_peek(builder, 0, out2, 2) == 2);
 		REQUIRE(out2[0] == 0x03);
 		REQUIRE(out2[1] == 0x04);
 	}
