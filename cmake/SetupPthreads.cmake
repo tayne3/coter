@@ -45,6 +45,10 @@ if(CMAKE_HAVE_PTHREAD_CREATE)
   return()
 endif()
 
+if(NOT MSVC)
+  message(FATAL_ERROR "Pthreads are required on MSVC. Please install a compatible version.")
+endif()
+
 # ------------------------------------------------------------------------------
 # Build pthread-win32 from source
 # ------------------------------------------------------------------------------
