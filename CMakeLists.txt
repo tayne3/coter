@@ -1,6 +1,4 @@
 cmake_minimum_required(VERSION 3.14)
-
-# In-source build guard
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
   message(
     FATAL_ERROR
@@ -9,7 +7,7 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
   )
 endif()
 
-project(coter VERSION 0.9.2)
+project(coter VERSION 0.9.4)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/ProjectFunctions.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/ProjectConfig.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/SetupPthreads.cmake)

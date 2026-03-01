@@ -19,10 +19,6 @@ add_executable(queue_test queue_test.cpp)
 add_test(NAME queue_test COMMAND queue_test)
 target_link_libraries(queue_test PRIVATE coter_compile_dependency coter::coter coter::catch2_with_main)
 
-add_executable(rbuf_test rbuf_test.cpp)
-add_test(NAME rbuf_test COMMAND rbuf_test)
-target_link_libraries(rbuf_test PRIVATE coter_compile_dependency coter::coter coter::catch2_with_main)
-
 add_executable(stack_test stack_test.cpp)
 add_test(NAME stack_test COMMAND stack_test)
 target_link_libraries(stack_test PRIVATE coter_compile_dependency coter::coter coter::catch2_with_main)

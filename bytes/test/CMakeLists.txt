@@ -26,3 +26,7 @@ target_link_libraries(seg_hpp_test PRIVATE coter_compile_dependency coter::coter
 add_executable(segment_test segment_test.cpp)
 add_test(NAME segment_test COMMAND segment_test)
 target_link_libraries(segment_test PRIVATE coter_compile_dependency coter::coter coter::catch2_with_main)
+
+add_executable(rbuf_test rbuf_test.cpp)
+add_test(NAME rbuf_test COMMAND rbuf_test)
+target_link_libraries(rbuf_test PRIVATE coter_compile_dependency coter::coter coter::catch2_with_main)
