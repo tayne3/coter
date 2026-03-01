@@ -142,22 +142,40 @@ COTER_API int ct_seg_fill(ct_seg_t *self, uint8_t bt, size_t length);
 COTER_API int ct_seg_overfill(ct_seg_t *self, uint8_t bt, size_t length);
 
 /**
- * @brief Peek reads data from the buffer at the specified offset into p.
+ * @brief Get reads data from the buffer absolute offset into p.
  * @return The actual number of data read.
  */
-COTER_API int ct_seg_peek(const ct_seg_t *self, size_t offset, uint8_t *p, size_t length);
+COTER_API int ct_seg_get_bytes(const ct_seg_t *self, size_t offset, uint8_t *p, size_t length);
 
 /**
- * @brief Read reads data from the buffer into p (advances pos).
+ * @brief Set writes data from p into the buffer absolute offset.
+ * @return The actual number of data written. 0 if successful, -1 if any part is out of bounds.
+ */
+COTER_API int ct_seg_set_bytes(ct_seg_t *self, size_t offset, const uint8_t *p, size_t length);
+
+/**
+ * @brief Peek reads data from the buffer at the specified relative offset from pos into p.
+ * @return The actual number of data read.
+ */
+COTER_API int ct_seg_peek_bytes(const ct_seg_t *self, int offset, uint8_t *p, size_t length);
+
+/**
+ * @brief Poke writes data from p into the buffer at the specified relative offset from pos.
+ * @return The actual number of data written. 0 if successful, -1 if any part is out of bounds.
+ */
+COTER_API int ct_seg_poke_bytes(ct_seg_t *self, int offset, const uint8_t *p, size_t length);
+
+/**
+ * @brief Take reads data from the buffer into p (advances pos).
  * @return The actual number of data read (0 if empty).
  */
-COTER_API int ct_seg_read(ct_seg_t *self, uint8_t *p, size_t length);
+COTER_API int ct_seg_take_bytes(ct_seg_t *self, uint8_t *p, size_t length);
 
 /**
- * @brief Write writes data from p into the buffer (advances pos).
- * @return The actual number of data written (0 if full).
+ * @brief Put writes data from p into the buffer (advances pos).
+ * @return The actual number of data written.
  */
-COTER_API int ct_seg_write(ct_seg_t *self, const uint8_t *p, size_t length);
+COTER_API int ct_seg_put_bytes(ct_seg_t *self, const uint8_t *p, size_t length);
 
 // Write uint8_t with endianness conversion.
 COTER_API void ct_seg_put_u8(ct_seg_t *self, uint8_t v);

@@ -80,11 +80,11 @@ TEST_CASE_METHOD(BuilderFixture, "Builder Lifecycle", "[builder][lifecycle]") {
 TEST_CASE_METHOD(BuilderFixture, "Builder Operations", "[builder][ops]") {
 	SECTION("Raw Bytes Write") {
 		uint8_t data[] = {0x01, 0x02, 0x03, 0x04, 0x05};
-		REQUIRE(ct_builder_write(builder, data, sizeof(data)) == 5);
+		REQUIRE(ct_builder_put_bytes(builder, data, sizeof(data)) == 5);
 		REQUIRE(ct_builder_count(builder) == 5);
 		ct_builder_rewind(builder);
 		uint8_t out[5];
-		ct_builder_read(builder, out, 5);
+		ct_builder_take_bytes(builder, out, 5);
 		REQUIRE(std::memcmp(out, data, 5) == 0);
 	}
 
@@ -155,7 +155,7 @@ TEST_CASE_METHOD(BuilderFixture, "Builder Operations", "[builder][ops]") {
 		REQUIRE(ct_builder_seg(builder, &seg, 2, 6) == 0);
 		REQUIRE(ct_seg_count(&seg) == 4);
 		uint8_t buf[4];
-		ct_seg_read(&seg, buf, 4);
+		ct_seg_take_bytes(&seg, buf, 4);
 		uint8_t expected[] = {0x33, 0x44, 0xAA, 0xBB};
 		REQUIRE(std::memcmp(buf, expected, 4) == 0);
 		size_t builder_pos = ct_builder_pos(builder);
@@ -165,20 +165,20 @@ TEST_CASE_METHOD(BuilderFixture, "Builder Operations", "[builder][ops]") {
 
 	SECTION("Peek Bytes") {
 		uint8_t data[] = {0x01, 0x02, 0x03, 0x04};
-		ct_builder_write(builder, data, 4);
+		ct_builder_put_bytes(builder, data, 4);
 		ct_builder_rewind(builder);
 
 		uint8_t out[4] = {0};
-		REQUIRE(ct_builder_peek(builder, 0, out, 4) == 4);
+		REQUIRE(ct_builder_peek_bytes(builder, 0, out, 4) == 4);
 		REQUIRE(std::memcmp(out, data, 4) == 0);
 
 		uint8_t out2[2] = {0};
-		REQUIRE(ct_builder_peek(builder, 2, out2, 2) == 2);
+		REQUIRE(ct_builder_peek_bytes(builder, 2, out2, 2) == 2);
 		REQUIRE(out2[0] == 0x03);
 		REQUIRE(out2[1] == 0x04);
 
 		ct_builder_skip(builder, 2);
-		REQUIRE(ct_builder_peek(builder, 0, out2, 2) == 2);
+		REQUIRE(ct_builder_peek_bytes(builder, 0, out2, 2) == 2);
 		REQUIRE(out2[0] == 0x03);
 		REQUIRE(out2[1] == 0x04);
 	}

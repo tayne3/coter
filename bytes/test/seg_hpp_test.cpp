@@ -300,30 +300,40 @@ TEST_CASE("IO Operations", "[seg][io]") {
 
 	SECTION("write/read bytes") {
 		uint8_t data[] = {0x11, 0x22, 0x33, 0x44, 0x55};
-		REQUIRE(seg.write(data, 5) == 5);
+		REQUIRE(seg.put_bytes(data, 5) == 5);
 		REQUIRE(seg.pos() == 5);
 		REQUIRE(seg.count() == 5);
 
 		seg.rewind();
 		uint8_t out[5] = {0};
-		REQUIRE(seg.read(out, 5) == 5);
+		REQUIRE(seg.take_bytes(out, 5) == 5);
 		REQUIRE(std::memcmp(out, data, 5) == 0);
 	}
 
-	SECTION("peek bytes") {
+	SECTION("peek_bytes and poke_bytes") {
 		uint8_t data[] = {0xAA, 0xBB, 0xCC, 0xDD};
-		seg.write(data, 4);
+		seg.put_bytes(data, 4);
 		seg.rewind();
 
 		uint8_t out[4] = {0};
-		REQUIRE(seg.peek(0, out, 4) == 4);
+		REQUIRE(seg.peek_bytes(0, out, 4) == 4);
 		REQUIRE(std::memcmp(out, data, 4) == 0);
 		REQUIRE(seg.pos() == 0);
 
 		uint8_t out2[2] = {0};
-		REQUIRE(seg.peek(2, out2, 2) == 2);
+		REQUIRE(seg.peek_bytes(2, out2, 2) == 2);
 		REQUIRE(out2[0] == 0xCC);
 		REQUIRE(out2[1] == 0xDD);
+
+		uint8_t inject[] = {0xEE, 0xFF};
+		REQUIRE(seg.poke_bytes(1, inject, 2) == 0);
+		REQUIRE(seg.peek_bytes(1, out2, 2) == 2);
+		REQUIRE(out2[0] == 0xEE);
+		REQUIRE(out2[1] == 0xFF);
+
+		// Boundaries
+		REQUIRE(seg.poke_bytes(-1, inject, 2) == -1);
+		REQUIRE(seg.poke_bytes(3, inject, 2) == -1);
 	}
 
 	SECTION("fill pattern") {
@@ -336,11 +346,35 @@ TEST_CASE("IO Operations", "[seg][io]") {
 	SECTION("partial operations") {
 		coter::seg small_seg(buffer.data(), 4);
 		uint8_t    data[] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88};
-		REQUIRE(small_seg.write(data, 8) == 4);
+		REQUIRE(small_seg.put_bytes(data, 8) == 4);
 
 		small_seg.rewind();
 		uint8_t out[8] = {0};
-		REQUIRE(small_seg.read(out, 8) == 4);
+		REQUIRE(small_seg.take_bytes(out, 8) == 4);
+	}
+
+	SECTION("get_bytes and set_bytes") {
+		coter::seg seg(buffer.data(), buffer.size());
+		uint8_t    data[] = {0x11, 0x22, 0x33, 0x44, 0x55};
+		seg.put_bytes(data, 5);
+		seg.rewind();
+
+		uint8_t chunk[3];
+		REQUIRE(seg.get_bytes(1, chunk, 3) == 3);
+		REQUIRE(chunk[0] == 0x22);
+		REQUIRE(chunk[1] == 0x33);
+		REQUIRE(chunk[2] == 0x44);
+
+		uint8_t overwrite[] = {0xAA, 0xBB};
+		REQUIRE(seg.set_bytes(2, overwrite, 2) == 0);
+		REQUIRE(seg.get_bytes(2, chunk, 2) == 2);
+		REQUIRE(chunk[0] == 0xAA);
+		REQUIRE(chunk[1] == 0xBB);
+
+		// Boundaries
+		REQUIRE(seg.set_bytes(4, overwrite, 2) == -1);
+		REQUIRE(seg.get_bytes(4, chunk, 3) == 1);
+		REQUIRE(chunk[0] == 0x55);
 	}
 }
 

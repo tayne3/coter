@@ -172,7 +172,7 @@ TEST_CASE_METHOD(BytesFixture, "Bytes Operations", "[bytes][ops]") {
 		REQUIRE(ct_seg_count(&seg) == 6);
 		REQUIRE(ct_seg_pos(&seg) == 0);
 		uint8_t buf[10];
-		ct_seg_read(&seg, buf, 6);
+		ct_seg_take_bytes(&seg, buf, 6);
 		REQUIRE(std::memcmp((char*)buf, "234567", 6) == 0);
 		ct_seg_rewind(&seg);
 		ct_seg_set_u8(&seg, 0, 'A');

@@ -55,7 +55,7 @@ COTER_API int ct_builder_reserve(ct_builder_t *self, size_t capacity);
  * @brief Write bytes to builder (auto-grows if needed).
  * @return Number of bytes written, or -1 on error
  */
-COTER_API int ct_builder_write(ct_builder_t *self, const uint8_t *p, size_t length);
+COTER_API int ct_builder_put_bytes(ct_builder_t *self, const uint8_t *p, size_t length);
 
 /**
  * @brief Fill builder with byte value (auto-grows if needed).
@@ -92,8 +92,11 @@ static inline int ct_builder_seg(ct_builder_t *self, ct_seg_t *seg, size_t start
 #define ct_builder_writable_seg(self, s) ct_seg_since(&(self)->seg, (s), (self)->seg.pos, (self)->seg.cap);
 #define ct_builder_compact(self)         ct_seg_compact(&(self)->seg)
 
-#define ct_builder_peek(self, offset, p, len) ct_seg_peek(&(self)->seg, offset, p, len)
-#define ct_builder_read(self, p, len)         ct_seg_read(&(self)->seg, p, len)
+#define ct_builder_get_bytes(self, offset, p, len)  ct_seg_get_bytes(&(self)->seg, offset, p, len)
+#define ct_builder_set_bytes(self, offset, p, len)  ct_seg_set_bytes(&(self)->seg, offset, p, len)
+#define ct_builder_peek_bytes(self, offset, p, len) ct_seg_peek_bytes(&(self)->seg, offset, p, len)
+#define ct_builder_poke_bytes(self, offset, p, len) ct_seg_poke_bytes(&(self)->seg, offset, p, len)
+#define ct_builder_take_bytes(self, p, len)         ct_seg_take_bytes(&(self)->seg, p, len)
 
 #define ct_builder_take_u8(self)  ct_seg_take_u8(&(self)->seg)
 #define ct_builder_take_u16(self) ct_seg_take_u16(&(self)->seg)

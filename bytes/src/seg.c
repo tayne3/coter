@@ -40,16 +40,43 @@ int ct_seg_overfill(ct_seg_t *self, uint8_t bt, size_t length) {
 	return (int)length;
 }
 
-int ct_seg_peek(const ct_seg_t *self, size_t offset, uint8_t *p, size_t length) {
+int ct_seg_get_bytes(const ct_seg_t *self, size_t offset, uint8_t *p, size_t length) {
 	if (offset >= self->len) { return 0; }
-	if (length + self->pos + offset > self->len) { length = self->len - self->pos - offset; }
+	if (length + offset > self->len) { length = self->len - offset; }
 	if (!p || !length) { return 0; }
 
-	memcpy(p, self->data + self->pos + offset, length);
+	memcpy(p, self->data + offset, length);
 	return (int)length;
 }
 
-int ct_seg_read(ct_seg_t *self, uint8_t *p, size_t length) {
+int ct_seg_set_bytes(ct_seg_t *self, size_t offset, const uint8_t *p, size_t length) {
+	if (offset + length > self->len) { return -1; }
+	if (!p || !length) { return 0; }
+
+	memcpy(self->data + offset, p, length);
+	return 0;
+}
+
+int ct_seg_peek_bytes(const ct_seg_t *self, int offset, uint8_t *p, size_t length) {
+	const int absPos = (int)self->pos + offset;
+	if (absPos < 0 || absPos >= (int)self->len) { return 0; }
+	if ((size_t)absPos + length > self->len) { length = self->len - (size_t)absPos; }
+	if (!p || !length) { return 0; }
+
+	memcpy(p, self->data + absPos, length);
+	return (int)length;
+}
+
+int ct_seg_poke_bytes(ct_seg_t *self, int offset, const uint8_t *p, size_t length) {
+	const int absPos = (int)self->pos + offset;
+	if (absPos < 0 || (size_t)absPos + length > self->len) { return -1; }
+	if (!p || !length) { return 0; }
+
+	memcpy(self->data + absPos, p, length);
+	return 0;
+}
+
+int ct_seg_take_bytes(ct_seg_t *self, uint8_t *p, size_t length) {
 	if (length + self->pos > self->len) { length = self->len - self->pos; }
 	if (!p || !length) { return 0; }
 
@@ -58,7 +85,7 @@ int ct_seg_read(ct_seg_t *self, uint8_t *p, size_t length) {
 	return (int)length;
 }
 
-int ct_seg_write(ct_seg_t *self, const uint8_t *p, size_t length) {
+int ct_seg_put_bytes(ct_seg_t *self, const uint8_t *p, size_t length) {
 	if (length + self->pos > self->cap) { length = self->cap - self->pos; }
 	if (!p || !length) { return 0; }
 

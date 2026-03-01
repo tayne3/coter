@@ -55,14 +55,14 @@ int ct_builder_reserve(ct_builder_t *self, size_t capacity) {
 	return ensure_capacity(self, capacity);
 }
 
-int ct_builder_write(ct_builder_t *self, const uint8_t *p, size_t length) {
+int ct_builder_put_bytes(ct_builder_t *self, const uint8_t *p, size_t length) {
 	if (!p || length == 0) { return 0; }
 
 	const size_t required = self->seg.pos + length;
 	if (ensure_capacity(self, required) != 0) {
 		return -1;  // Failed to grow
 	}
-	return ct_seg_write(&self->seg, p, length);
+	return ct_seg_put_bytes(&self->seg, p, length);
 }
 
 int ct_builder_fill(ct_builder_t *self, uint8_t bt, size_t length) {

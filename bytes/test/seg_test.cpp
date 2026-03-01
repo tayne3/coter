@@ -175,7 +175,33 @@ TEST_CASE("ct_seg Endianness Write and Read Identity", "[seg][endian]") {
 	TEST_RW_IDENTITY(ct_seg_put_u32, ct_seg_take_u32, ct_seg_peek_u32, ct_seg_set_u32, 0x12345678);
 	TEST_RW_IDENTITY(ct_seg_put_u64, ct_seg_take_u64, ct_seg_peek_u64, ct_seg_set_u64, 0x1122334455667788ULL);
 
+#define TEST_RW_IDENTITY_BYTES(PutFn, TakeFn, PeekFn, OverwriteFn, ValueType, ValBytesPtr, Len) \
+	do {                                                                                        \
+		ct_seg_clear(&seg);                                                                     \
+		const uint8_t* in_buf       = (ValBytesPtr);                                            \
+		uint8_t        out_buf[Len] = {0};                                                      \
+		PutFn(&seg, in_buf, Len);                                                               \
+		ct_seg_rewind(&seg);                                                                    \
+		REQUIRE(TakeFn(&seg, out_buf, Len) == Len);                                             \
+		REQUIRE(memcmp(in_buf, out_buf, Len) == 0);                                             \
+		ct_seg_clear(&seg);                                                                     \
+		PutFn(&seg, in_buf, Len);                                                               \
+		ct_seg_rewind(&seg);                                                                    \
+		memset(out_buf, 0, Len);                                                                \
+		REQUIRE(PeekFn(&seg, 0, out_buf, Len) == Len);                                          \
+		REQUIRE(memcmp(in_buf, out_buf, Len) == 0);                                             \
+		REQUIRE(OverwriteFn(&seg, 0, in_buf, Len) == 0);                                        \
+		ct_seg_rewind(&seg);                                                                    \
+		memset(out_buf, 0, Len);                                                                \
+		REQUIRE(TakeFn(&seg, out_buf, Len) == Len);                                             \
+		REQUIRE(memcmp(in_buf, out_buf, Len) == 0);                                             \
+	} while (0)
+
+	const uint8_t identity_bytes[] = {0x11, 0x22, 0x33, 0x44};
+	TEST_RW_IDENTITY_BYTES(ct_seg_put_bytes, ct_seg_take_bytes, ct_seg_peek_bytes, ct_seg_set_bytes, uint8_t, identity_bytes, 4);
+
 #undef TEST_RW_IDENTITY
+#undef TEST_RW_IDENTITY_BYTES
 
 	SECTION("Default config values from ct_seg_init") {
 		ct_seg_set_endian(&seg, CT_ENDIAN_LITTLE);
@@ -554,62 +580,71 @@ TEST_CASE("seg IO Operations", "[seg][io]") {
 	memset(buffer, 0, sizeof(buffer));
 	ct_seg_init(&seg, buffer, sizeof(buffer));
 
-	SECTION("write data") {
+	SECTION("put_bytes data") {
 		uint8_t data[] = {0x11, 0x22, 0x33, 0x44, 0x55};
-		REQUIRE(ct_seg_write(&seg, data, 5) == 5);
+		REQUIRE(ct_seg_put_bytes(&seg, data, 5) == 5);
 		REQUIRE(ct_seg_pos(&seg) == 5);
 		REQUIRE(ct_seg_count(&seg) == 5);
 		REQUIRE(std::memcmp(buffer, data, 5) == 0);
 	}
 
-	SECTION("write partial") {
+	SECTION("put_bytes partial") {
 		ct_seg_init(&seg, buffer, 4);
 		uint8_t data[] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88};
-		REQUIRE(ct_seg_write(&seg, data, 8) == 4);
+		REQUIRE(ct_seg_put_bytes(&seg, data, 8) == 4);
 		REQUIRE(ct_seg_pos(&seg) == 4);
 		REQUIRE(ct_seg_count(&seg) == 4);
 	}
 
-	SECTION("read data") {
+	SECTION("take_bytes data") {
 		uint8_t data[] = {0xAA, 0xBB, 0xCC, 0xDD};
-		ct_seg_write(&seg, data, 4);
+		ct_seg_put_bytes(&seg, data, 4);
 		ct_seg_rewind(&seg);
 
 		uint8_t out[4] = {0};
-		REQUIRE(ct_seg_read(&seg, out, 4) == 4);
+		REQUIRE(ct_seg_take_bytes(&seg, out, 4) == 4);
 		REQUIRE(std::memcmp(out, data, 4) == 0);
 		REQUIRE(ct_seg_pos(&seg) == 4);
 	}
 
-	SECTION("read partial") {
+	SECTION("take_bytes partial") {
 		uint8_t data[] = {0xAA, 0xBB};
-		ct_seg_write(&seg, data, 2);
+		ct_seg_put_bytes(&seg, data, 2);
 		ct_seg_rewind(&seg);
 
 		uint8_t out[8] = {0};
-		REQUIRE(ct_seg_read(&seg, out, 8) == 2);
+		REQUIRE(ct_seg_take_bytes(&seg, out, 8) == 2);
 		REQUIRE(ct_seg_pos(&seg) == 2);
 	}
 
-	SECTION("peek data") {
+	SECTION("peek_bytes and poke_bytes data") {
 		uint8_t data[] = {0x11, 0x22, 0x33, 0x44};
-		ct_seg_write(&seg, data, 4);
+		ct_seg_put_bytes(&seg, data, 4);
 		ct_seg_rewind(&seg);
 
 		uint8_t out[4] = {0};
-		REQUIRE(ct_seg_peek(&seg, 0, out, 4) == 4);
+		REQUIRE(ct_seg_peek_bytes(&seg, 0, out, 4) == 4);
 		REQUIRE(std::memcmp(out, data, 4) == 0);
 		REQUIRE(ct_seg_pos(&seg) == 0);
 
 		uint8_t out2[2] = {0};
-		REQUIRE(ct_seg_peek(&seg, 2, out2, 2) == 2);
+		REQUIRE(ct_seg_peek_bytes(&seg, 2, out2, 2) == 2);
 		REQUIRE(out2[0] == 0x33);
 		REQUIRE(out2[1] == 0x44);
 
 		ct_seg_skip(&seg, 2);
-		REQUIRE(ct_seg_peek(&seg, 0, out2, 2) == 2);
+		REQUIRE(ct_seg_peek_bytes(&seg, 0, out2, 2) == 2);
 		REQUIRE(out2[0] == 0x33);
 		REQUIRE(out2[1] == 0x44);
+
+		uint8_t inject[] = {0xAA, 0xBB};
+		REQUIRE(ct_seg_poke_bytes(&seg, -1, inject, 2) == 0);
+		REQUIRE(ct_seg_peek_bytes(&seg, -1, out2, 2) == 2);
+		REQUIRE(out2[0] == 0xAA);
+		REQUIRE(out2[1] == 0xBB);
+
+		REQUIRE(ct_seg_poke_bytes(&seg, -3, inject, 2) == -1);  // out of bounds negative
+		REQUIRE(ct_seg_poke_bytes(&seg, 2, inject, 2) == -1);   // out of bounds positive
 	}
 
 	SECTION("fill pattern") {

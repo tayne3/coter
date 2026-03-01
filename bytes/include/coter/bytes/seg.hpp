@@ -70,9 +70,12 @@ public:
 	int  fill(uint8_t bt, size_t length) noexcept { return ct_seg_fill(&d, bt, length); }
 	int  overfill(uint8_t bt, size_t length) noexcept { return ct_seg_overfill(&d, bt, length); }
 
-	int peek(size_t offset, uint8_t *p, size_t length) const noexcept { return ct_seg_peek(&d, offset, p, length); }
-	int read(uint8_t *p, size_t length) noexcept { return ct_seg_read(&d, p, length); }
-	int write(const uint8_t *p, size_t length) noexcept { return ct_seg_write(&d, p, length); }
+	int get_bytes(size_t offset, uint8_t *p, size_t length) const noexcept { return ct_seg_get_bytes(&d, offset, p, length); }
+	int set_bytes(size_t offset, const uint8_t *p, size_t length) noexcept { return ct_seg_set_bytes(&d, offset, p, length); }
+	int peek_bytes(int offset, uint8_t *p, size_t length) const noexcept { return ct_seg_peek_bytes(&d, offset, p, length); }
+	int poke_bytes(int offset, const uint8_t *p, size_t length) noexcept { return ct_seg_poke_bytes(&d, offset, p, length); }
+	int take_bytes(uint8_t *p, size_t length) noexcept { return ct_seg_take_bytes(&d, p, length); }
+	int put_bytes(const uint8_t *p, size_t length) noexcept { return ct_seg_put_bytes(&d, p, length); }
 
 	template <typename T, typename Target, typename Ret>
 	using verify_type = typename std::enable_if<std::is_same<T, Target>::value, Ret>::type;
