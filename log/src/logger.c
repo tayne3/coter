@@ -133,8 +133,8 @@ bool ct_log_is_enable(size_t type_id, int level) {
 }
 
 void ct_log_handle(size_t type_id, int level, const char* buf, size_t size) {
+	CT_UNUSED(level);
 	if (!buf) { return; }
-	ct_unused(level);
 	struct ct_log_data* data = &glogger->datas[type_id];
 	if (!data) { return; }
 	if (!data->disable_print) { ct_log_printer_handle(glogger->printer, buf, size); }

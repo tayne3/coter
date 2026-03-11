@@ -458,7 +458,7 @@ static inline void ct_cron_trigger_handler_callback(void *arg) {
 }
 
 static inline void ct_cron_time_correction_callback(void *arg) {
-	ct_unused(arg);
+	CT_UNUSED(arg);
 	CT_CRON_MGR_LOCK();
 
 	// 获取cron任务数量

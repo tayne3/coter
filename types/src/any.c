@@ -39,19 +39,15 @@ void ct_any_update(const ct_any_methods_buf_t methods, ct_any_t* src, const ct_a
 }
 
 void ct_any_methods_ctor_default(ct_any_t* src, const ct_any_t* value) {
-	if (src && value) {
-		*src = *value;
-	}
+	if (src && value) { *src = *value; }
 }
 
 void ct_any_methods_dtor_default(ct_any_t* src) {
-	ct_unused(src);
+	CT_UNUSED(src);
 }
 
 void ct_any_methods_update_default(ct_any_t* src, const ct_any_t* value) {
-	if (src && value) {
-		*src = *value;
-	}
+	if (src && value) { *src = *value; }
 }
 
 bool ct_any_isvalid(const ct_any_t* self) {
@@ -59,9 +55,7 @@ bool ct_any_isvalid(const ct_any_t* self) {
 }
 
 size_t ct_any_to_string(const ct_any_t* self, char* buf, size_t max) {
-	if (!self || !buf || !max) {
-		return 0;
-	}
+	if (!self || !buf || !max) { return 0; }
 	switch (self->type) {
 		case CTAny_TypeBool: return ct_snprintf_s(buf, max, "%d", self->_d->b);
 		case CTAny_TypeFloat: return ct_snprintf_s(buf, max, "%f", self->_d->f32);
@@ -84,9 +78,7 @@ size_t ct_any_to_string(const ct_any_t* self, char* buf, size_t max) {
 }
 
 int ct_any_compare(const ct_any_t* l, const ct_any_t* r) {
-	if (!l || !r || l->type != r->type) {
-		return -2;
-	}
+	if (!l || !r || l->type != r->type) { return -2; }
 	switch (l->type) {
 		case CTAny_TypeBool: return (l->_d->b > r->_d->b) - (l->_d->b < r->_d->b);
 		case CTAny_TypeFloat: return (l->_d->f32 > r->_d->f32) - (l->_d->f32 < r->_d->f32);
@@ -109,9 +101,7 @@ int ct_any_compare(const ct_any_t* l, const ct_any_t* r) {
 }
 
 void ct_any_swap(ct_any_t* l, ct_any_t* r) {
-	if (!l || !r) {
-		return;
-	}
+	if (!l || !r) { return; }
 	l->_d->u64 ^= r->_d->u64;
 	r->_d->u64 ^= l->_d->u64;
 	l->_d->u64 ^= r->_d->u64;
@@ -121,9 +111,7 @@ void ct_any_swap(ct_any_t* l, ct_any_t* r) {
 }
 
 void ct_any_copy(ct_any_t* self, const ct_any_t* other) {
-	if (!self || !other) {
-		return;
-	}
+	if (!self || !other) { return; }
 	self->type    = other->type;
 	self->_d->u64 = other->_d->u64;
 }

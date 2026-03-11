@@ -25,6 +25,10 @@ if(BUILD_SHARED_LIBS)
 endif()
 target_link_libraries(coter PUBLIC coter::strings)
 
+if(MINGW)
+  target_compile_definitions(coter_strings PRIVATE __USE_MINGW_ANSI_STDIO=1)
+endif()
+
 if(COTER_BUILD_TEST)
   add_subdirectory(test)
 endif()

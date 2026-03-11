@@ -49,9 +49,7 @@ void ct_md5_update(ct_md5_ctx_t *self, const void *data, size_t len) {
 
 	{
 		uint32_t t = self->bits[0];
-		if ((self->bits[0] = t + ((uint32_t)len << 3)) < t) {
-			self->bits[1]++;
-		}
+		if ((self->bits[0] = t + ((uint32_t)len << 3)) < t) { self->bits[1]++; }
 		self->bits[1] += (uint32_t)len >> 29;
 
 		t = (t >> 3) & 0x3f;
@@ -121,8 +119,8 @@ static inline void ct_md5_byte_reverse(uint8_t *buf, unsigned longs) {
 		buf += 4;
 	} while (--longs);
 #else
-	ct_unused(buf);
-	ct_unused(longs);
+	CT_UNUSED(buf);
+	CT_UNUSED(longs);
 #endif
 }
 

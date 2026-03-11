@@ -8,6 +8,19 @@
 #ifndef COTER_CORE_PLATFORM_H
 #define COTER_CORE_PLATFORM_H
 
+#include <assert.h>
+#include <ctype.h>
+#include <errno.h>
+#include <float.h>
+#include <inttypes.h>
+#include <limits.h>
+#include <math.h>
+#include <signal.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
 #include "coter/core/macro.h"
 
 // clang-format off

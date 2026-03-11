@@ -6,23 +6,10 @@
 #ifndef COTER_CORE_MACRO_H
 #define COTER_CORE_MACRO_H
 
-#include "coter/core/config.h"
-
-// ANSI C
-#include <assert.h>
-#include <ctype.h>
-#include <errno.h>
-#include <float.h>
-#include <inttypes.h>
-#include <limits.h>
-#include <math.h>
-#include <signal.h>
-#include <stdarg.h>
 #include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <time.h>
+
+#include "coter/core/config.h"
 
 // clang-format off
 
@@ -222,42 +209,23 @@ typedef int ct_endian_t;
 #define CT_ENDIAN_IS_LITTLE (CT_ENDIAN_SYSTEM == CT_ENDIAN_LITTLE)
 
 // array size
-# define ct_arrsize(_arr) (sizeof(_arr) / sizeof((_arr)[0]))
 # define CT_ARRSIZE(_arr) (sizeof(_arr) / sizeof((_arr)[0]))
-
 // variable unused
-# define ct_unused(_var) (void)(_var)
 # define CT_UNUSED(_var) (void)(_var)
 
-// min and max
-#ifdef __cplusplus
-#include <algorithm>
-#define CT_MIN(_a, _b)             std::min(_a, _b)
-#define CT_MAX(_a, _b)             std::max(_a, _b)
-#define CT_CLAMP(_val, _min, _max) std::clamp(_val, _min, _max)
-#elif defined(__GNUC__) || defined(__clang__)
-# define CT_MIN(_a, _b)         ({ __typeof__(_a) _a_ = (_a); __typeof__(_b) _b_ = (_b); _a_ < _b_ ? _a_ : _b_; })
-# define CT_MAX(_a, _b)         ({ __typeof__(_a) _a_ = (_a); __typeof__(_b) _b_ = (_b); _a_ > _b_ ? _a_ : _b_; })
-#define CT_CLAMP(_val, _min, _max)                                   \
-	({                                                               \
-		__typeof__(_val) _val_ = (_val);                             \
-		__typeof__(_min) _min_ = (_min);                             \
-		__typeof__(_max) _max_ = (_max);                             \
-		(_val_ < _min_) ? _min_ : ((_val_ > _max_) ? _max_ : _val_); \
-	})
-#else
+# define CT_ABS(_n)                 ((_n) > 0 ? (_n) : -(_n))
+# define CT_NABS(_n)                ((_n) < 0 ? (_n) : -(_n))
 # define CT_MIN(_a, _b)             ((_a) < (_b) ? (_a) : (_b))
 # define CT_MAX(_a, _b)             ((_a) > (_b) ? (_a) : (_b))
 # define CT_CLAMP(_val, _min, _max) CT_MIN(CT_MAX(_val, _min), _max)
-#endif
 
 // offset of member
 # ifndef OFFSET_OF
-#   define OFFSET_OF(_type, _member)				offsetof(_type, _member)
+#   define OFFSET_OF(_type, _member) offsetof(_type, _member)
 # endif
 // container of
 # ifndef CONTAINER_OF
-# 	define CONTAINER_OF(_ptr, _type, _member)		(_type *)((_ptr) == NULL ? NULL : ((char *)(_ptr)-OFFSET_OF(_type, _member)))
+# 	define CONTAINER_OF(_ptr, _type, _member) (_type *)((_ptr) == NULL ? NULL : ((char *)(_ptr)-OFFSET_OF(_type, _member)))
 # endif
 
 // current function name, file name, and line number
@@ -287,25 +255,22 @@ typedef int ct_endian_t;
 #	define __ct_line__		0
 # endif
 
-// filename without path (prefer compile-time when available)
+// Filename without path (prefer compile-time when available).
 # if defined(__clang__) || (defined(__GNUC__) && __GNUC__ >= 12)
 #   define __ct_filename__  __FILE_NAME__
 # else
 #   define __ct_filename__  (strrchr(STR_SEPARATOR __ct_file__, STR_SEPARATOR_CHAR) + 1)
 # endif
 
-// inline keyword compatibility
-# ifndef __cplusplus
-#   if !defined(__STDC_VERSION__) || __STDC_VERSION__ < 199901L
-#       ifndef inline // Only needed in C89/C90 mode (C99+ has inline as keyword)
-#           define inline __inline
-#       endif
-#   endif
+// Provide 'inline' keyword for C89/C90 compatibility.
+# if !defined(__cplusplus) && !defined(inline) && (!defined(__STDC_VERSION__) || __STDC_VERSION__ < 199901L)
+#   define inline __inline
 # endif
+// Default inline modifier (internal linkage).
 # ifndef CT_INLINE
-#   define CT_INLINE 				static inline
+#   define CT_INLINE static inline
 # endif
-// force inline
+// Compiler-specific directive to force function inlining.
 # if defined(_MSC_VER)
 #	define __ct_force_inline		__forceinline
 # elif __GNUC_PREREQ(3,2)
