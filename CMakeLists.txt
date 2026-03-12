@@ -27,7 +27,7 @@ target_link_libraries(coter PRIVATE coter_compile_dependency)
 if(COTER_BUILD_TEST)
   enable_testing()
 endif()
-add_subdirectory(catch)
+add_subdirectory(testing)
 
 add_subdirectory(bytes)
 add_subdirectory(container)

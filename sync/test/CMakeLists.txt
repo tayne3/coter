@@ -1,12 +1,12 @@
 
 add_executable(atomic_stress_test atomic_stress_test.cpp)
 add_test(NAME atomic_stress_test COMMAND atomic_stress_test)
-target_link_libraries(atomic_stress_test PRIVATE coter_compile_dependency coter::coter coter::catch2_with_main)
+target_link_libraries(atomic_stress_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
 
 add_executable(atomic_test atomic_test.cpp)
 add_test(NAME atomic_test COMMAND atomic_test)
-target_link_libraries(atomic_test PRIVATE coter_compile_dependency coter::coter coter::catch2_with_main)
+target_link_libraries(atomic_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
 
 add_executable(waitgroup_test waitgroup_test.cpp)
 add_test(NAME waitgroup_test COMMAND waitgroup_test)
-target_link_libraries(waitgroup_test PRIVATE coter_compile_dependency coter::coter coter::catch2_with_main)
+target_link_libraries(waitgroup_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
