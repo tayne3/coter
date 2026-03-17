@@ -9,8 +9,9 @@
 /.gemini/
 /.codex/
 
-/build/
 /out/
+/build/
+/build-*/
 /cmake-build-*/
 /cmake_modules/
 /[Bb]in/
