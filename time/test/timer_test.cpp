@@ -1,30 +1,27 @@
-#include "timer_core.h"
-
 #include <catch.hpp>
 
 #include "coter/sync/atomic.h"
 #include "coter/thread/thread.h"
+#include "timer_core.h"
 
 namespace {
 struct capture {
-	int     value;
-	int     fired_count;
-	int     order[8];
-	size_t  order_size;
+	int    value;
+	int    fired_count;
+	int    order[8];
+	size_t order_size;
 };
 
 static void capture_cb(void* arg) {
 	capture* cap = (capture*)arg;
 	if (!cap) { return; }
 	cap->fired_count++;
-	if (cap->order_size < CT_ARRSIZE(cap->order)) {
-		cap->order[cap->order_size++] = cap->value;
-	}
+	if (cap->order_size < CT_ARRSIZE(cap->order)) { cap->order[cap->order_size++] = cap->value; }
 }
 
 struct manager_env {
-	ct_atomic_int_t stop;
-	ct_atomic_int_t fired;
+	ct_atomic_int_t stop  = CT_ATOMIC_VAR_INIT(0);
+	ct_atomic_int_t fired = CT_ATOMIC_VAR_INIT(0);
 };
 
 static void manager_cb(void* arg) {
@@ -47,9 +44,9 @@ TEST_CASE("timer_core_orders_deadlines", "[timer][core]") {
 	ct_timer_t a{};
 	ct_timer_t b{};
 	ct_timer_t c{};
-	capture ca{1, 0, {0}, 0};
-	capture cb{2, 0, {0}, 0};
-	capture cc{3, 0, {0}, 0};
+	capture    ca{1, 0, {0}, 0};
+	capture    cb{2, 0, {0}, 0};
+	capture    cc{3, 0, {0}, 0};
 
 	ct_timer_core_start_timer(&core, &a, 100, 30, capture_cb, &ca);
 	ct_timer_core_start_timer(&core, &b, 100, 10, capture_cb, &cb);
@@ -83,7 +80,7 @@ TEST_CASE("timer_core_reset_and_stop", "[timer][core]") {
 	ct_timer_core_init(&core);
 
 	ct_timer_t timer{};
-	capture cap{7, 0, {0}, 0};
+	capture    cap{7, 0, {0}, 0};
 
 	ct_timer_core_start_timer(&core, &timer, 100, 20, capture_cb, &cap);
 	REQUIRE(ct_timer_core_next_deadline(&core) == 120);
@@ -105,7 +102,7 @@ TEST_CASE("ticker_core_requeues_after_fire", "[ticker][core]") {
 	ct_timer_core_init(&core);
 
 	ct_ticker_t ticker{};
-	capture cap{9, 0, {0}, 0};
+	capture     cap{9, 0, {0}, 0};
 
 	ct_timer_core_start_ticker(&core, &ticker, 100, 25, capture_cb, &cap);
 	REQUIRE(ct_timer_core_next_deadline(&core) == 125);
@@ -130,7 +127,7 @@ TEST_CASE("timer_core_clear_disposes_dynamic_timeouts", "[timer][core]") {
 	ct_timer_t* dynamic_timer = (ct_timer_t*)calloc(1, sizeof(ct_timer_t));
 	REQUIRE(dynamic_timer != nullptr);
 	capture cap{4, 0, {0}, 0};
-	int disposed = 0;
+	int     disposed = 0;
 
 	ct_timer_core_start_timeout(&core, dynamic_timer, 0, 10, capture_cb, &cap);
 	REQUIRE_FALSE(ct_timer_core_is_empty(&core));
@@ -151,10 +148,7 @@ TEST_CASE("timer_core_clear_disposes_dynamic_timeouts", "[timer][core]") {
 }
 
 TEST_CASE("timer_manager_smoke_timeout_and_ticker", "[timer][mgr]") {
-	manager_env env = {
-		.stop  = CT_ATOMIC_VAR_INIT(0),
-		.fired = CT_ATOMIC_VAR_INIT(0),
-	};
+	manager_env env;
 	ct_thread_t tid;
 
 	REQUIRE(ct_thread_create(&tid, nullptr, manager_thread, &env) == 0);
@@ -164,9 +158,7 @@ TEST_CASE("timer_manager_smoke_timeout_and_ticker", "[timer][mgr]") {
 	ct_ticker_t ticker{};
 	ct_ticker_start(&ticker, 10, manager_cb, &env);
 
-	for (int i = 0; i < 50 && ct_atomic_int_load(&env.fired) < 3; ++i) {
-		ct_msleep(10);
-	}
+	for (int i = 0; i < 50 && ct_atomic_int_load(&env.fired) < 3; ++i) { ct_msleep(10); }
 
 	ct_ticker_stop(&ticker);
 	ct_timer_mgr_close();
