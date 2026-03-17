@@ -9,9 +9,7 @@
 #include "coter/thread/thread.h"
 #include "coter/thread/tls.h"
 
-#if defined(CT_OS_WIN) && !defined(CT_COMPILER_MSVC)
-#include <sys/time.h>
-#elif defined(CT_OS_LINUX)
+#if defined(CT_OS_LINUX)
 #include <sys/syscall.h>
 #endif
 
