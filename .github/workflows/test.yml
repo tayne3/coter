@@ -4,22 +4,20 @@ run-name: ${{ github.actor }} is testing the project 🔬
 on:
   push:
     branches: [master, develop]
-    paths:
-      - ".github/workflows/test.yml"
-      - "CMakeLists.txt"
-      - "cmake/**"
-      - "include/**"
-      - "src/**"
-      - "test/**"
+    paths-ignore:
+      - ".clang-format"
+      - ".gitignore"
+      - ".gitattributes"
+      - "README.md"
+      - "docs/**"
   pull_request:
     branches: [master]
-    paths:
-      - ".github/workflows/test.yml"
-      - "CMakeLists.txt"
-      - "cmake/**"
-      - "include/**"
-      - "src/**"
-      - "test/**"
+    paths-ignore:
+      - ".clang-format"
+      - ".gitignore"
+      - ".gitattributes"
+      - "README.md"
+      - "docs/**"
   workflow_dispatch:
 
 concurrency:
