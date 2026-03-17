@@ -6,6 +6,7 @@
 #   rather than hardcoded OS checks where possible.
 # ===========================================
 
+project_check_header("inttypes.h")
 project_check_header("stdbool.h")
 project_check_header("stdint.h")
 project_check_header("stdatomic.h")
@@ -56,4 +57,9 @@ elseif(UNIX)
   if(HAVE_CLOCK_GETTIME_IN_RT)
     target_link_libraries(coter_compile_dependency INTERFACE rt)
   endif()
+endif()
+
+find_package(Threads QUIET)
+if(CMAKE_USE_PTHREADS_INIT)
+  target_link_libraries(coter_compile_dependency INTERFACE ${CMAKE_THREAD_LIBS_INIT})
 endif()

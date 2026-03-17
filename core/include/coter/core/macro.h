@@ -51,6 +51,12 @@
 #	error "Unsupported platform!"
 # endif
 
+#if defined(CT_OS_WIN64) || defined(CT_OS_WIN32) || defined(CT_OS_WINCE)
+    #define CT_OS_WIN
+#else
+    #define CT_OS_UNIX
+#endif
+
 # if defined(__LP64__) || defined(__64BIT__) || defined(_LP64) || defined(__x86_64) || defined(__x86_64__) ||           \
 	 defined(__amd64) || defined(__amd64__) || defined(__arm64) || defined(__arm64__) || defined(__sparc64__) ||        \
 	 defined(__PPC64__) || defined(__ppc64__) || defined(__powerpc64__) || defined(__loongarch64) || defined(_M_X64) || \
@@ -87,16 +93,19 @@
 # endif
 
 # if HAVE_STDINT_H
-#	include <stdint.h>
+    #include <stdint.h>
 # elif defined(_MSC_VER) && _MSC_VER < 1700
 	typedef __int8              int8_t;
 	typedef __int16             int16_t;
 	typedef __int32             int32_t;
 	typedef __int64             int64_t;
+
 	typedef unsigned __int8     uint8_t;
 	typedef unsigned __int16    uint16_t;
 	typedef unsigned __int32    uint32_t;
 	typedef unsigned __int64    uint64_t;
+#else
+    #error "Unsupported platform!"
 # endif
 
 # ifdef _MSC_VER
@@ -117,12 +126,6 @@
 # ifndef STR_ISEMPTY
 #   define STR_ISEMPTY(_s) 	(!(_s) || !*(const char *)(_s))
 # endif
-
-#if defined(CT_OS_WIN64) || defined(CT_OS_WIN32) || defined(CT_OS_WINCE)
-    #define CT_OS_WIN
-#else
-    #define CT_OS_UNIX
-#endif
 
 // newline and separator
 # ifdef CT_OS_WIN

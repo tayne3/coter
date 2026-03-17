@@ -4,8 +4,7 @@
  * @author tayne3
  */
 #include "coter/sync/waitgroup.h"
-
-#include <pthread.h>
+#include "coter/thread/thread.h"
 
 #include <catch.hpp>
 
@@ -17,12 +16,12 @@ typedef struct {
 } thread_arg_t;
 
 // 线程执行的任务
-static void* thread_task(void* arg) {
+static int thread_task(void* arg) {
 	thread_arg_t* targ = (thread_arg_t*)arg;
 	// 模拟任务执行时间
 	ct_msleep(targ->sleep_time);
 	ct_waitgroup_done(targ->wg);
-	return nullptr;
+	return 0;
 }
 
 // 测试初始化和销毁
@@ -42,17 +41,17 @@ static void test_single_task(void) {
 	ct_waitgroup_t wg;
 	ct_waitgroup_init(&wg);
 
-	pthread_t    thread;
+	ct_thread_t  thread;
 	thread_arg_t arg = {&wg, 1, 100};
 	ct_waitgroup_add(&wg, 1);
 
-	pthread_create(&thread, nullptr, thread_task, &arg);
+	ct_thread_create(&thread, nullptr, thread_task, &arg);
 	ct_waitgroup_wait(&wg);
 
 	// 在任务完成后，计数器应为0
 	REQUIRE(wg.counter == 0);
 
-	pthread_join(thread, nullptr);
+	ct_thread_join(thread, nullptr);
 	ct_waitgroup_destroy(&wg);
 }
 
@@ -62,7 +61,7 @@ static void test_multiple_tasks(void) {
 	ct_waitgroup_t wg;
 	ct_waitgroup_init(&wg);
 
-	pthread_t    threads[NUM_THREADS];
+	ct_thread_t  threads[NUM_THREADS];
 	thread_arg_t args[NUM_THREADS];
 
 	ct_waitgroup_add(&wg, NUM_THREADS);
@@ -71,7 +70,7 @@ static void test_multiple_tasks(void) {
 		args[i].wg         = &wg;
 		args[i].task_id    = i + 1;
 		args[i].sleep_time = 50 + (i * 10);  // 不同的睡眠时间
-		pthread_create(&threads[i], nullptr, thread_task, &args[i]);
+		ct_thread_create(&threads[i], nullptr, thread_task, &args[i]);
 	}
 
 	ct_waitgroup_wait(&wg);
@@ -79,7 +78,7 @@ static void test_multiple_tasks(void) {
 	// 计数器应为0
 	REQUIRE(wg.counter == 0);
 
-	for (int i = 0; i < NUM_THREADS; ++i) { pthread_join(threads[i], nullptr); }
+	for (int i = 0; i < NUM_THREADS; ++i) { ct_thread_join(threads[i], nullptr); }
 
 	ct_waitgroup_destroy(&wg);
 #undef NUM_THREADS
@@ -120,27 +119,27 @@ static void test_multiple_wait(void) {
 	// 第一次使用
 	ct_waitgroup_add(&wg, 2);
 
-	pthread_t    threads[2];
+	ct_thread_t  threads[2];
 	thread_arg_t args[2] = {{&wg, 1, 100}, {&wg, 2, 150}};
 
-	for (int i = 0; i < 2; ++i) { pthread_create(&threads[i], nullptr, thread_task, &args[i]); }
+	for (int i = 0; i < 2; ++i) { ct_thread_create(&threads[i], nullptr, thread_task, &args[i]); }
 
 	ct_waitgroup_wait(&wg);
 	REQUIRE(wg.counter == 0);
 
-	for (int i = 0; i < 2; ++i) { pthread_join(threads[i], nullptr); }
+	for (int i = 0; i < 2; ++i) { ct_thread_join(threads[i], nullptr); }
 
 	// 第二次使用
 	ct_waitgroup_add(&wg, 3);
-	pthread_t    threads2[3];
+	ct_thread_t  threads2[3];
 	thread_arg_t args2[3] = {{&wg, 3, 100}, {&wg, 4, 150}, {&wg, 5, 200}};
 
-	for (int i = 0; i < 3; ++i) { pthread_create(&threads2[i], nullptr, thread_task, &args2[i]); }
+	for (int i = 0; i < 3; ++i) { ct_thread_create(&threads2[i], nullptr, thread_task, &args2[i]); }
 
 	ct_waitgroup_wait(&wg);
 	REQUIRE(wg.counter == 0);
 
-	for (int i = 0; i < 3; ++i) { pthread_join(threads2[i], nullptr); }
+	for (int i = 0; i < 3; ++i) { ct_thread_join(threads2[i], nullptr); }
 
 	ct_waitgroup_destroy(&wg);
 }
@@ -189,7 +188,7 @@ static void test_dynamic_add_tasks(void) {
 	ct_waitgroup_t wg;
 	ct_waitgroup_init(&wg);
 
-	pthread_t    threads[INITIAL_THREADS];
+	ct_thread_t  threads[INITIAL_THREADS];
 	thread_arg_t args[INITIAL_THREADS];
 
 	ct_waitgroup_add(&wg, INITIAL_THREADS);
@@ -198,12 +197,12 @@ static void test_dynamic_add_tasks(void) {
 		args[i].wg         = &wg;
 		args[i].task_id    = i + 1;
 		args[i].sleep_time = 100;
-		pthread_create(&threads[i], nullptr, thread_task, &args[i]);
+		ct_thread_create(&threads[i], nullptr, thread_task, &args[i]);
 	}
 
 	// 等待一半的任务完成后，动态添加更多任务
 	ct_msleep(150);  // 等待150ms
-	pthread_t    additional_threads[ADDITIONAL_THREADS];
+	ct_thread_t  additional_threads[ADDITIONAL_THREADS];
 	thread_arg_t additional_args[ADDITIONAL_THREADS];
 
 	ct_waitgroup_add(&wg, ADDITIONAL_THREADS);
@@ -211,14 +210,14 @@ static void test_dynamic_add_tasks(void) {
 		additional_args[i].wg         = &wg;
 		additional_args[i].task_id    = INITIAL_THREADS + i + 1;
 		additional_args[i].sleep_time = 100;
-		pthread_create(&additional_threads[i], nullptr, thread_task, &additional_args[i]);
+		ct_thread_create(&additional_threads[i], nullptr, thread_task, &additional_args[i]);
 	}
 
 	ct_waitgroup_wait(&wg);
 	REQUIRE(wg.counter == 0);
 
-	for (int i = 0; i < INITIAL_THREADS; ++i) { pthread_join(threads[i], nullptr); }
-	for (int i = 0; i < ADDITIONAL_THREADS; ++i) { pthread_join(additional_threads[i], nullptr); }
+	for (int i = 0; i < INITIAL_THREADS; ++i) { ct_thread_join(threads[i], nullptr); }
+	for (int i = 0; i < ADDITIONAL_THREADS; ++i) { ct_thread_join(additional_threads[i], nullptr); }
 
 	ct_waitgroup_destroy(&wg);
 #undef INITIAL_THREADS
@@ -231,7 +230,7 @@ static void test_concurrent_add_done(void) {
 	ct_waitgroup_t wg;
 	ct_waitgroup_init(&wg);
 
-	pthread_t    threads[NUM_THREADS];
+	ct_thread_t  threads[NUM_THREADS];
 	thread_arg_t args[NUM_THREADS];
 
 	// 同时添加和完成任务
@@ -240,13 +239,13 @@ static void test_concurrent_add_done(void) {
 		args[i].task_id    = i + 1;
 		args[i].sleep_time = 50;
 		ct_waitgroup_add(&wg, 1);
-		pthread_create(&threads[i], nullptr, thread_task, &args[i]);
+		ct_thread_create(&threads[i], nullptr, thread_task, &args[i]);
 	}
 
 	ct_waitgroup_wait(&wg);
 	REQUIRE(wg.counter == 0);
 
-	for (int i = 0; i < NUM_THREADS; ++i) { pthread_join(threads[i], nullptr); }
+	for (int i = 0; i < NUM_THREADS; ++i) { ct_thread_join(threads[i], nullptr); }
 
 	ct_waitgroup_destroy(&wg);
 #undef NUM_THREADS

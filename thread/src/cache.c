@@ -5,8 +5,13 @@
 #include "coter/thread/cache.h"
 
 #include "coter/strings/strings.h"
+#include "coter/thread/once.h"
+#include "coter/thread/thread.h"
+#include "coter/thread/tls.h"
 
-#ifdef CT_OS_LINUX
+#if defined(CT_OS_WIN) && !defined(CT_COMPILER_MSVC)
+#include <sys/time.h>
+#elif defined(CT_OS_LINUX)
 #include <sys/syscall.h>
 #endif
 
@@ -33,9 +38,9 @@ struct ct_threadcache {
 };
 
 // 线程本地存储键
-static pthread_key_t timecache_key;
+static ct_tls_key_t timecache_key;
 // 线程本地存储键初始化标志
-static pthread_once_t timecache_key_once = PTHREAD_ONCE_INIT;
+static ct_once_t timecache_key_once = CT_ONCE_INIT;
 
 /// 线程退出时清理缓存的回调函数
 static void tc__thread_destroy(void *ptr);
@@ -49,8 +54,8 @@ static inline void tc__gettid_str(char *str, size_t max);
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
 ct_threadcache_t *ct_threadcache_get(void) {
-	pthread_once(&timecache_key_once, tc__thread_create_key);
-	ct_threadcache_t *self = pthread_getspecific(timecache_key);
+	ct_once_exec(&timecache_key_once, tc__thread_create_key);
+	ct_threadcache_t *self = ct_tls_get(timecache_key);
 	if (!self) {
 		self         = calloc(1, sizeof(ct_threadcache_t));
 		self->buffer = malloc(1024);
@@ -60,7 +65,7 @@ ct_threadcache_t *ct_threadcache_get(void) {
 			self->buffer_size = 1024;
 		}
 		tc__gettid_str(self->tid_str, sizeof(self->tid_str));
-		pthread_setspecific(timecache_key, self);
+		ct_tls_set(timecache_key, self);
 	}
 	return self;
 }
@@ -199,7 +204,7 @@ static void tc__thread_destroy(void *ptr) {
 }
 
 static void tc__thread_create_key(void) {
-	pthread_key_create(&timecache_key, tc__thread_destroy);
+	ct_tls_create(&timecache_key, tc__thread_destroy);
 }
 
 /// 整数转字符串 (两位数)

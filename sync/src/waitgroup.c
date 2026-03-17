@@ -12,11 +12,11 @@ int ct_waitgroup_init(ct_waitgroup_t* wg) {
 	if (!wg) {
 		return -1;
 	}
-	if (pthread_mutex_init(&wg->mutex, NULL) != 0) {
+	if (ct_mutex_init(&wg->mutex) != 0) {
 		return -1;
 	}
-	if (pthread_cond_init(&wg->cond, NULL) != 0) {
-		pthread_mutex_destroy(&wg->mutex);
+	if (ct_cond_init(&wg->cond) != 0) {
+		ct_mutex_destroy(&wg->mutex);
 		return -1;
 	}
 	wg->counter = 0;
@@ -27,40 +27,40 @@ void ct_waitgroup_destroy(ct_waitgroup_t* wg) {
 	if (!wg) {
 		return;
 	}
-	pthread_mutex_destroy(&wg->mutex);
-	pthread_cond_destroy(&wg->cond);
+	ct_mutex_destroy(&wg->mutex);
+	ct_cond_destroy(&wg->cond);
 }
 
 void ct_waitgroup_add(ct_waitgroup_t* wg, int delta) {
 	if (!wg || delta < 0) {
 		return;
 	}
-	pthread_mutex_lock(&wg->mutex);
+	ct_mutex_lock(&wg->mutex);
 	wg->counter += delta;
-	pthread_mutex_unlock(&wg->mutex);
+	ct_mutex_unlock(&wg->mutex);
 }
 
 void ct_waitgroup_done(ct_waitgroup_t* wg) {
 	if (!wg) {
 		return;
 	}
-	pthread_mutex_lock(&wg->mutex);
+	ct_mutex_lock(&wg->mutex);
 	wg->counter--;
 	if (wg->counter == 0) {
-		pthread_cond_broadcast(&wg->cond);
+		ct_cond_broadcast(&wg->cond);
 	}
-	pthread_mutex_unlock(&wg->mutex);
+	ct_mutex_unlock(&wg->mutex);
 }
 
 void ct_waitgroup_wait(ct_waitgroup_t* wg) {
 	if (!wg) {
 		return;
 	}
-	pthread_mutex_lock(&wg->mutex);
+	ct_mutex_lock(&wg->mutex);
 	while (wg->counter > 0) {
-		pthread_cond_wait(&wg->cond, &wg->mutex);
+		ct_cond_wait(&wg->cond, &wg->mutex);
 	}
-	pthread_mutex_unlock(&wg->mutex);
+	ct_mutex_unlock(&wg->mutex);
 }
 
 // -------------------------[STATIC DEFINITION]-------------------------

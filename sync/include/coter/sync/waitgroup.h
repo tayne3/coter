@@ -6,6 +6,8 @@
 #define COTER_SYNC_WAITGROUP_H
 
 #include "coter/core/platform.h"
+#include "coter/sync/cond.h"
+#include "coter/sync/mutex.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -19,11 +21,11 @@ extern "C" {
  */
 typedef struct ct_waitgroup {
 	int             counter;  // 计数器
-	pthread_mutex_t mutex;    // 互斥锁
-	pthread_cond_t  cond;     // 条件变量
+	ct_mutex_t      mutex;    // 互斥锁
+	ct_cond_t       cond;     // 条件变量
 } ct_waitgroup_t;
 
-#define CT_WAITGROUP_INITIALIZER {0, PTHREAD_MUTEX_INITIALIZER, PTHREAD_COND_INITIALIZER}
+#define CT_WAITGROUP_INITIALIZER {0, CT_MUTEX_INITIALIZER, CT_COND_INITIALIZER}
 
 /**
  * @brief 初始化等待组

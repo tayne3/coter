@@ -1,8 +1,6 @@
 #ifndef COTER_CORE_CONFIG_H
 #define COTER_CORE_CONFIG_H
 
-#include <pthread.h>
-
 #define __coter_version_string__   "@PROJECT_VERSION@"
 #define __coter_version_major__    @PROJECT_VERSION_MAJOR@
 #define __coter_version_minor__    @PROJECT_VERSION_MINOR@
@@ -15,6 +13,10 @@
 #define CT_ATOMIC_USE_GCC          @CT_ATOMIC_USE_GCC@
 #define CT_ATOMIC_USE_WIN          @CT_ATOMIC_USE_WIN@
 #define CT_ATOMIC_USE_MUTEX        @CT_ATOMIC_USE_MUTEX@
+
+#ifndef HAVE_INTTYPES_H
+#define HAVE_INTTYPES_H @HAVE_INTTYPES_H@
+#endif
 
 #ifndef HAVE_STDBOOL_H
 #define HAVE_STDBOOL_H @HAVE_STDBOOL_H@

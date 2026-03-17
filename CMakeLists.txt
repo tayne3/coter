@@ -10,7 +10,6 @@ endif()
 project(coter VERSION 0.9.4)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/ProjectFunctions.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/ProjectConfig.cmake)
-include(${CMAKE_CURRENT_LIST_DIR}/cmake/SetupPthreads.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/SetupLibrarys.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/SetupAtomic.cmake)
 

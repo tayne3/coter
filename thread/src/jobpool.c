@@ -7,7 +7,7 @@
 #include "coter/container/list.h"
 #include "coter/core/platform.h"
 #include "coter/event/msgqueue.h"
-#include "sched.h"
+#include "coter/thread/thread.h"
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
@@ -24,7 +24,7 @@ typedef struct job {
 
 typedef struct unit {
 	ct_list_t      list[1];    // 链表节点
-	pthread_t      thread;     // 线程
+	ct_thread_t    thread;     // 线程
 	ct_msgqueue_t* job_queue;  // 工作队列
 	job_t          job[1];     // 工作
 } unit_t;
@@ -33,15 +33,15 @@ typedef struct unit {
  * @brief 任务池
  */
 struct ct_jobpool {
-	job_t*            job_buffer;       // 工作队列缓冲区
-	ct_msgqueue_buf_t job_queue;        // 工作队列
-	ct_list_t         regular_list[1];  // 执行常规任务的线程
-	size_t            thread_max;       // 线程数
-	size_t            job_max;          // 工作数
+	job_t*        job_buffer;       // 工作队列缓冲区
+	ct_msgqueue_t job_queue[1];     // 工作队列
+	ct_list_t     regular_list[1];  // 执行常规任务的线程
+	size_t        thread_max;       // 线程数
+	size_t        job_max;          // 工作数
 };
 
 // 线程执行函数-常规
-static inline void* ct_jobpool_thread_do_regular(void* arg);
+static inline int ct_jobpool_thread_do_regular(void* arg);
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
@@ -65,16 +65,9 @@ ct_jobpool_t* ct_jobpool_create(size_t thread_max, size_t job_max) {
 	ct_list_init(self->regular_list);
 
 	// 线程属性
-	pthread_attr_t attr[1];
-	pthread_attr_init(attr);
+	ct_thread_attr_t attr = CT_THREAD_ATTR_INIT;
 	// 设置堆栈大小: 1MB
-	pthread_attr_setstacksize(attr, 1 * 1024 * 1024);
-	// 设置调度策略: 轮转调度
-	pthread_attr_setschedpolicy(attr, SCHED_RR);
-	// 设置调度优先级: 0
-	struct sched_param param;
-	param.sched_priority = 0;
-	pthread_attr_setschedparam(attr, &param);
+	ct_thread_attr_set_stack_size(&attr, 1 * 1024 * 1024);
 
 	unit_t* unit = NULL;
 
@@ -87,10 +80,10 @@ ct_jobpool_t* ct_jobpool_create(size_t thread_max, size_t job_max) {
 		ct_list_init(unit->list);
 
 		// 创建线程
-		const int ret = pthread_create(&unit->thread, attr, ct_jobpool_thread_do_regular, unit);
+		const int ret = ct_thread_create(&unit->thread, &attr, ct_jobpool_thread_do_regular, unit);
 		if (ret == 0) {
 			ct_list_append(self->regular_list, unit->list);
-			sched_yield();
+			ct_thread_yield();
 		} else {
 			free(unit);
 			fprintf(stderr, "failed to create thread" STR_NEWLINE);
@@ -98,7 +91,7 @@ ct_jobpool_t* ct_jobpool_create(size_t thread_max, size_t job_max) {
 	}
 
 	// 销毁线程属性
-	pthread_attr_destroy(attr);
+	ct_thread_attr_destroy(&attr);
 	return self;
 }
 
@@ -110,7 +103,7 @@ void ct_jobpool_destroy(ct_jobpool_t* self) {
 
 	// 等待所有线程退出
 	ct_list_foreach_entry_safe (unit, self->regular_list, unit_t, list) {
-		pthread_join(unit->thread, NULL);
+		ct_thread_join(unit->thread, NULL);
 		ct_list_remove(unit->list);
 		free(unit);
 	}
@@ -134,7 +127,7 @@ int ct_jobpool_submit(ct_jobpool_t* self, ct_jobpool_routine_t routine, void* ar
 
 // -------------------------[STATIC DEFINITION]-------------------------
 
-static inline void* ct_jobpool_thread_do_regular(void* arg) {
+static inline int ct_jobpool_thread_do_regular(void* arg) {
 	unit_t* unit = (unit_t*)arg;
 	job_t*  job  = unit->job;
 
@@ -146,5 +139,5 @@ static inline void* ct_jobpool_thread_do_regular(void* arg) {
 		CT_PAUSE();  // 避免独占CPU
 	}
 
-	return NULL;
+	return 0;
 }

@@ -8,11 +8,9 @@
 #ifndef COTER_CORE_PLATFORM_H
 #define COTER_CORE_PLATFORM_H
 
-#include <assert.h>
 #include <ctype.h>
 #include <errno.h>
 #include <float.h>
-#include <inttypes.h>
 #include <limits.h>
 #include <math.h>
 #include <signal.h>
@@ -77,6 +75,10 @@
 
 #if HAVE_FCNTL_H
 #include <fcntl.h>
+#endif
+
+#if HAVE_INTTYPES_H
+#include <inttypes.h>
 #endif
 
 #ifdef __cplusplus
