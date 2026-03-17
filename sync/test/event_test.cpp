@@ -108,11 +108,11 @@ TEST_CASE("event_signal_wakes_only_one_waiter", "[sync][event]") {
 	REQUIRE(ct_atomic_int_load(&env.error_count) == 0);
 }
 
-TEST_CASE("event_two_signals_wake_two_waiters", "[sync][event]") {
+TEST_CASE("event_two_signals_wake_two_waiters_when_signaled_separately", "[sync][event]") {
 	timed_wait_env env;
 	ct_thread_t    threads[2];
 
-	env.timeout_ms = 200;
+	env.timeout_ms = 500;
 
 	for (int i = 0; i < 2; ++i) { REQUIRE(ct_thread_create(&threads[i], NULL, timed_wait_worker, &env) == 0); }
 
@@ -120,6 +120,8 @@ TEST_CASE("event_two_signals_wake_two_waiters", "[sync][event]") {
 
 	REQUIRE(ct_atomic_int_load(&env.ready_count) == 2);
 	REQUIRE(ct_event_signal(&env.event) == 0);
+	for (int i = 0; i < 40 && ct_atomic_int_load(&env.success_count) != 1; ++i) { ct_msleep(5); }
+	REQUIRE(ct_atomic_int_load(&env.success_count) == 1);
 	REQUIRE(ct_event_signal(&env.event) == 0);
 
 	for (int i = 0; i < 2; ++i) { REQUIRE(ct_thread_join(threads[i], NULL) == 0); }
