@@ -53,6 +53,44 @@ ct_time64_t ct_gethrtime_us(void) {
 #endif
 }
 
+void ct_sleep(uint32_t s) {
+#ifdef CT_OS_WIN
+	Sleep((DWORD)(s * 1000U));
+#else
+	struct timespec req;
+	req.tv_sec  = (time_t)s;
+	req.tv_nsec = 0;
+	while (nanosleep(&req, &req) != 0 && errno == EINTR) {}
+#endif
+}
+
+void ct_msleep(uint32_t ms) {
+#ifdef CT_OS_WIN
+	Sleep((DWORD)ms);
+#else
+	struct timespec req;
+	req.tv_sec  = (time_t)(ms / 1000U);
+	req.tv_nsec = (long)((ms % 1000U) * 1000000UL);
+	while (nanosleep(&req, &req) != 0 && errno == EINTR) {}
+#endif
+}
+
+void ct_usleep(uint32_t us) {
+#ifdef CT_OS_WIN
+	if (us > 0U) {
+		DWORD ms = (DWORD)(us / 1000U);
+		Sleep(ms > 0U ? ms : 1U);
+	} else {
+		Sleep(0);
+	}
+#else
+	struct timespec req;
+	req.tv_sec  = (time_t)(us / 1000000U);
+	req.tv_nsec = (long)((us % 1000000U) * 1000UL);
+	while (nanosleep(&req, &req) != 0 && errno == EINTR) {}
+#endif
+}
+
 void ct_localtime_now(struct tm* tm) {
 	const time_t now = time(NULL);
 	ct_localtime_s(tm, &now);

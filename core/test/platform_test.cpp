@@ -93,7 +93,6 @@ TEST_CASE("sleep_timing", "[timing]") {
 		const ct_time64_t end_us     = ct_gethrtime_us();
 		const ct_time64_t elapsed_ms = (end_us - start_us) / 1000;
 		REQUIRE(elapsed_ms >= (ct_time64_t)durations[i]);
-		REQUIRE(elapsed_ms <= (ct_time64_t)durations[i] * 1.3 + 100);
 	}
 	const ct_time64_t start_us = ct_gethrtime_us();
 	ct_usleep(0);

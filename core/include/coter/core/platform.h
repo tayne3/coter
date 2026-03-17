@@ -86,17 +86,6 @@ extern "C" {
 #endif
 
 #ifdef CT_OS_WIN
-    #define ct_sleep(s)     Sleep((s) * 1000)
-    #define ct_msleep(ms)   Sleep(ms)
-    #define ct_usleep(us)                     \
-    do {                                      \
-		if ((us) > 0) {                       \
-			DWORD _ms = (DWORD)((us) / 1000); \
-			Sleep(_ms > 0 ? _ms : 1);         \
-		} else {                              \
-			Sleep(0);                         \
-		}                                     \
-	} while (0)
     #define ct_mkdir(dir)          _mkdir(dir)
     #define ct_rmdir(dir)          _rmdir(dir)
     #define ct_remove(file)        remove(file)
@@ -129,9 +118,6 @@ extern "C" {
     #define ct_stat         _stat
     #define ct_fstat        _fstat
 #else
-    #define ct_sleep(s)            sleep(s)
-    #define ct_msleep(ms)          usleep((ms) * 1000)
-    #define ct_usleep(us)          usleep(us)
     #define ct_mkdir(dir)          mkdir(dir, 0777)
     #define ct_rmdir(dir)          rmdir(dir)
     #define ct_remove(file)        remove(file)
@@ -190,6 +176,13 @@ COTER_API ct_time64_t ct_gettimeofday_ms(void);
 COTER_API ct_time64_t ct_gettimeofday_us(void);
 // get high-resolution time in microseconds.
 COTER_API ct_time64_t ct_gethrtime_us(void);
+
+// sleep for seconds.
+COTER_API void ct_sleep(uint32_t s);
+// sleep for milliseconds.
+COTER_API void ct_msleep(uint32_t ms);
+// sleep for microseconds.
+COTER_API void ct_usleep(uint32_t us);
 
 // 获取当前秒级时间戳 (自纪元时间)
 #define ct_current_second() time(NULL)
