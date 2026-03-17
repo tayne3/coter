@@ -8,6 +8,7 @@
 #include "coter/core/platform.h"
 
 #if defined(CT_OS_WIN)
+#include <windows.h>
 #elif defined(CT_OS_MAC)
 #include <dispatch/dispatch.h>
 #else

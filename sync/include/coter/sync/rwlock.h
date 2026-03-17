@@ -5,8 +5,13 @@
 #ifndef COTER_SYNC_RWLOCK_H
 #define COTER_SYNC_RWLOCK_H
 
-#include "coter/core/config.h"
 #include "coter/core/platform.h"
+
+#ifdef CT_OS_WIN
+#include <windows.h>
+#else
+#include <pthread.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {
