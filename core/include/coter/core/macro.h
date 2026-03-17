@@ -138,13 +138,16 @@
 #   define STR_SEPARATOR_CHAR '/'
 # endif
 
-#if defined(__x86_64__) || defined(__i386__)
+#if defined(__x86_64__) || defined(__i386__) || defined(_M_IX86) || defined(_M_X64) || defined(_M_AMD64)
     #if defined(__GNUC__) || defined(__clang__)
         #define CT_PAUSE() __asm__ volatile("pause" ::: "memory")
     #elif defined(_MSC_VER)
         #include <intrin.h>
         #define CT_PAUSE() _mm_pause()
     #endif
+#elif defined(_MSC_VER) && (defined(_M_ARM64) || defined(_M_ARM))
+    #include <intrin.h>
+    #define CT_PAUSE() __yield()
 #elif (defined(__aarch64__) || defined(__arm__)) && defined(__ARM_ARCH)
     #if __ARM_ARCH >= 7
         #define CT_PAUSE() __asm__ volatile("yield" ::: "memory")
