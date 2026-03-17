@@ -4,17 +4,18 @@
 
 #include "coter/core/platform.h"
 #include "coter/math/rand.h"
+#include "coter/thread/thread.h"
 
 static size_t test_data_size = 0;
 static int   *test_data;
 
-static inline void *test_task_enqueue(void *arg) {
+static inline int test_task_enqueue(void *arg) {
 	ct_msgqueue_t *msgqueue = (ct_msgqueue_t *)arg;
 	for (size_t i = 0; i < test_data_size;) {
 		for (size_t n = 0; n < 1000 && i < test_data_size; n++, i++) { ct_msgqueue_enqueue(msgqueue, &test_data[i]); }
-		sched_yield();
+		ct_thread_yield();
 	}
-	return nullptr;
+	return 0;
 }
 
 static inline void run_msgqueue(size_t data_size, size_t buffer_size) {
@@ -28,14 +29,14 @@ static inline void run_msgqueue(size_t data_size, size_t buffer_size) {
 	ct_random_t rng;
 	ct_random_init(&rng);
 	for (size_t i = 0; i < test_data_size; ++i) { test_data[i] = ct_random_int32(&rng, INT32_MIN, INT32_MAX); }
-	ct_msgqueue_buf_t msgqueue;
+	ct_msgqueue_t msgqueue[1];
 	ct_msgqueue_init(msgqueue, test_buffer, sizeof(int), buffer_size);
 	REQUIRE(ct_msgqueue_isempty(msgqueue));
 	REQUIRE_FALSE(ct_msgqueue_isfull(msgqueue));
 	{
 		bool      is_ok;
-		pthread_t thread;
-		is_ok = pthread_create(&thread, nullptr, test_task_enqueue, msgqueue) == 0;
+		ct_thread_t thread;
+		is_ok = ct_thread_create(&thread, nullptr, test_task_enqueue, msgqueue) == 0;
 		REQUIRE(is_ok);
 		int item = 0;
 		for (size_t i = 0; i < test_data_size;) {
@@ -44,9 +45,9 @@ static inline void run_msgqueue(size_t data_size, size_t buffer_size) {
 				REQUIRE(is_ok);
 				REQUIRE(item == test_data[i]);
 			}
-			sched_yield();
+			ct_thread_yield();
 		}
-		is_ok = pthread_join(thread, nullptr) == 0;
+		is_ok = ct_thread_join(thread, nullptr) == 0;
 		REQUIRE(is_ok);
 		REQUIRE(ct_msgqueue_isempty(msgqueue));
 		REQUIRE_FALSE(ct_msgqueue_isfull(msgqueue));
@@ -62,7 +63,7 @@ static inline void run_msgqueue(size_t data_size, size_t buffer_size) {
 					REQUIRE_FALSE(is_ok);
 				}
 			}
-			sched_yield();
+			ct_thread_yield();
 		}
 		REQUIRE_FALSE(ct_msgqueue_isempty(msgqueue));
 		REQUIRE((bool)ct_msgqueue_isfull(msgqueue) == (bool)(buffer_size <= test_data_size));
@@ -77,7 +78,7 @@ static inline void run_msgqueue(size_t data_size, size_t buffer_size) {
 					REQUIRE_FALSE(is_ok);
 				}
 			}
-			sched_yield();
+			ct_thread_yield();
 		}
 		REQUIRE(ct_msgqueue_isempty(msgqueue));
 		REQUIRE_FALSE(ct_msgqueue_isfull(msgqueue));

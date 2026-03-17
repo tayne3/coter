@@ -32,10 +32,10 @@ int ct_evhub_subscribe(ct_evhub_t *self, uint32_t type, ct_evhub_callback_t cb, 
 		.user_data = user_data,
 	};
 	if (!ct_array_push(&self->sub_list, &sub)) {
-		ct_rwlock_unlock(&self->rwlock);
+		ct_rwlock_wrunlock(&self->rwlock);
 		return -1;
 	}
-	ct_rwlock_unlock(&self->rwlock);
+	ct_rwlock_wrunlock(&self->rwlock);
 	return 0;
 }
 
@@ -51,7 +51,7 @@ int ct_evhub_unsubscribe(ct_evhub_t *self, uint32_t type, ct_evhub_callback_t cb
 			ret = 0;
 		}
 	}
-	ct_rwlock_unlock(&self->rwlock);
+	ct_rwlock_wrunlock(&self->rwlock);
 	return ret;
 }
 
@@ -63,6 +63,6 @@ int ct_evhub_publish(ct_evhub_t *self, uint32_t type, void *data) {
 		sub = (evhub__sub_t *)ct_array_at(&self->sub_list, i);
 		if (sub && sub->type == type) { sub->cb(type, data, sub->user_data); }
 	}
-	ct_rwlock_unlock(&self->rwlock);
+	ct_rwlock_rdunlock(&self->rwlock);
 	return 0;
 }

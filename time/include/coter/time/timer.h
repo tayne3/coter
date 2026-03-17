@@ -1,56 +1,75 @@
 /**
  * @file timer.h
- * @brief 软件定时器实现
+ * @brief 一次性定时器 (Timer)
  */
 #ifndef COTER_TIME_TIMER_H
 #define COTER_TIME_TIMER_H
 
+#include "coter/container/heap.h"
 #include "coter/core/platform.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct ct_thpool;
+/**
+ * @brief 运行定时器管理器
+ * @param gettime_cb 时间获取回调 (为空则使用默认系统时间)
+ * @note 阻塞运行, 使用 ct_timer_mgr_close 停止
+ */
+COTER_API void ct_timer_mgr_run(ct_time64_t (*gettime_cb)(void));
 
-// 定时器id类型
-typedef uint32_t ct_timer_id_t;
-// 无效的定时器id
-#define CT_TIMER_ID_INVALID 0
-// 定时器回调函数类型
+/**
+ * @brief 停止定时器管理器
+ */
+COTER_API void ct_timer_mgr_close(void);
+
 typedef void (*ct_timer_callback_t)(void *);
 
-/**
- * @brief 定时器管理初始化
- * @param tick 运行时间 (ms)
- * @param thpool 任务池
- * @return int 成功返回0，失败返回非0值
- */
-COTER_API int ct_timer_mgr_init(ct_time64_t tick, struct ct_thpool *thpool);
+#define CT_TIMER_BASE                  \
+	ct_heap_node_t      node;          \
+	ct_time64_t         trigger_time;  \
+	ct_timer_callback_t cb;            \
+	void               *arg;           \
+	uint64_t            type : 2;      \
+	uint64_t            is_active : 1; \
+	uint64_t            reserved : 61;
 
-/**
- * @brief 定时器调度
- * @param tick 运行时间 (ms)
- * @return bool 是否有定时器被触发
- */
-COTER_API bool ct_timer_mgr_schedule(ct_time64_t tick);
+typedef struct ct_timer {
+	CT_TIMER_BASE
+} ct_timer_t;
 
 /**
  * @brief 启动定时器
- * @param interval 触发间隔 (ms)
- * @param is_loop 是否循环触发
- * @param is_now 是否立即触发
- * @param callback 回调函数
+ * @param timer 定时器指针
+ * @param timeout_ms 超时时间 (ms)
+ * @param cb 回调函数
  * @param arg 回调参数
- * @return ct_timer_id_t 定时器id
  */
-COTER_API ct_timer_id_t ct_timer_start(ct_time64_t interval, bool is_loop, bool is_now, ct_timer_callback_t callback, void *arg);
+COTER_API void ct_timer_start(ct_timer_t *timer, ct_time64_t timeout_ms, ct_timer_callback_t cb, void *arg);
+
+/**
+ * @brief 重置定时器
+ * @param timer 定时器指针
+ * @param timeout_ms 超时时间 (ms)
+ */
+COTER_API void ct_timer_reset(ct_timer_t *timer, ct_time64_t timeout_ms);
 
 /**
  * @brief 停止定时器
- * @param id 定时器id
+ * @param timer 定时器指针
  */
-COTER_API void ct_timer_stop(ct_timer_id_t id);
+COTER_API void ct_timer_stop(ct_timer_t *timer);
+
+/**
+ * @brief 创建并启动一个定时器
+ * @param timeout_ms 超时时间 (ms)
+ * @param cb 回调函数
+ * @param arg 回调参数
+ * @return 成功返回 0, 失败返回 -1
+ * @note 到期自动关闭, 无法手动停止
+ */
+COTER_API int ct_set_timeout(ct_time64_t timeout_ms, void (*cb)(void *), void *arg);
 
 #ifdef __cplusplus
 }

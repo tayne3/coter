@@ -3,6 +3,7 @@
 
 #include "coter/core/platform.h"
 #include "coter/log/log.h"
+#include "coter/sync/mutex.h"
 
 #define test_basic_verbose(...) CTLogger_HandleBasic(Verbose, 0, __VA_ARGS__)
 #define test_basic_debug(...)   CTLogger_HandleBasic(Debug, 0, __VA_ARGS__)
@@ -14,9 +15,23 @@
 #define TEST_THREADS     4
 #define TEST_THREAD_DATA 50000
 
-static FILE*           g_file_with_log      = nullptr;
-static FILE*           g_file_without_log   = nullptr;
-static pthread_mutex_t g_file_without_mutex = PTHREAD_MUTEX_INITIALIZER;
+namespace {
+struct mutex {
+	mutex() { ct_mutex_init(&d); }
+	~mutex() { ct_mutex_destroy(&d); }
+
+	void lock() { ct_mutex_lock(&d); }
+	void unlock() { ct_mutex_unlock(&d); }
+	bool try_lock() { return ct_mutex_trylock(&d); }
+
+private:
+	ct_mutex_t d;
+};
+}  // namespace
+
+static FILE* g_file_with_log    = nullptr;
+static FILE* g_file_without_log = nullptr;
+static mutex g_file_without_mutex;
 
 static pthread_t g_thread_logger;
 static bool      is_exit = false;
@@ -54,14 +69,14 @@ static void* thread_callback_with_log(void* arg) {
 static void* thread_callback_without_log(void* arg) {
 	CT_UNUSED(arg);
 	for (int i = 0; i < TEST_THREAD_DATA; ++i) {
-		pthread_mutex_lock(&g_file_without_mutex);
+		g_file_without_mutex.lock();
 		char buffer[1024];
 		int size = snprintf(buffer, sizeof(buffer), "%04d/%05d/%06d/%07d %016llx/%016llx/%016llx/%016llx %10s/%11s/%12s/%13s %02x/%02x/%02x/%02x\n", 1234, 1234,
 							1234, 1234, (unsigned long long)0xFFFF0000ULL, (unsigned long long)0xFFFF0000ULL, (unsigned long long)0xFFFF0000ULL,
 							(unsigned long long)0xFFFF0000ULL, "test1", "test2", "test3", "test4", 0x00, 0x01, 0x02, 0x03);
 		REQUIRE(g_file_without_log != nullptr);
 		fwrite(buffer, 1, (size_t)size, g_file_without_log);
-		pthread_mutex_unlock(&g_file_without_mutex);
+		g_file_without_mutex.unlock();
 	}
 	return nullptr;
 }

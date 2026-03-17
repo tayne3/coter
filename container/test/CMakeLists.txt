@@ -1,4 +1,3 @@
-
 add_executable(hash_test hash_test.cpp)
 add_test(NAME hash_test COMMAND hash_test)
 target_link_libraries(hash_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
@@ -6,6 +5,10 @@ target_link_libraries(hash_test PRIVATE coter_compile_dependency coter::coter co
 add_executable(heap_test heap_test.cpp)
 add_test(NAME heap_test COMMAND heap_test)
 target_link_libraries(heap_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
+
+add_executable(pqueue_test pqueue_test.cpp)
+add_test(NAME pqueue_test COMMAND pqueue_test)
+target_link_libraries(pqueue_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
 
 add_executable(list_test list_test.cpp)
 add_test(NAME list_test COMMAND list_test)

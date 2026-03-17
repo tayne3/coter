@@ -9,6 +9,7 @@
 #include "coter/log/log_config.h"
 #include "coter/strings/strings.h"
 #include "coter/sync/atomic.h"
+#include "coter/sync/mutex.h"
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
@@ -29,13 +30,13 @@ struct ct_log_storage {
 	FILE *file;       /**< 文件指针 */
 	int   file_index; /**< 文件序号 */
 
-	ct_bytes_t     *producer_buffer; /**< 生产者缓冲区 */
-	pthread_mutex_t producer_mutex;  /**< 互斥锁 */
-	ct_list_t       filled_head;     /**< 已填充缓冲区列表 */
-	size_t          filled_size;     /**< 已填充缓冲区大小 */
+	ct_bytes_t *producer_buffer; /**< 生产者缓冲区 */
+	ct_mutex_t  producer_mutex;  /**< 互斥锁 */
+	ct_list_t   filled_head;     /**< 已填充缓冲区列表 */
+	size_t      filled_size;     /**< 已填充缓冲区大小 */
 
 	ct_list_t        consumer_head;  /**< 消费者缓冲区列表 */
-	pthread_mutex_t  consumer_mutex; /**< 互斥锁 */
+	ct_mutex_t       consumer_mutex; /**< 互斥锁 */
 	ct_atomic_flag_t consumer_flag;  /**< 消费者标志 */
 };
 
@@ -85,13 +86,13 @@ ct_log_storage_t *ct_log_storage_create(ct_time64_t tick, struct ct_bytepool *by
 	self->autosave_interval = config->autosave_interval;
 
 	self->producer_buffer = ct_bytepool_get(self->bytepool);
-	pthread_mutex_init(&self->producer_mutex, NULL);
+	ct_mutex_init(&self->producer_mutex);
 	ct_list_init(&self->filled_head);
 	self->filled_size    = 0;
 	self->next_save_time = tick + (self->autosave_interval * 1000);
 
 	ct_list_init(&self->consumer_head);
-	pthread_mutex_init(&self->consumer_mutex, NULL);
+	ct_mutex_init(&self->consumer_mutex);
 	self->consumer_flag = (ct_atomic_flag_t)CT_ATOMIC_FLAG_INIT;
 	ct_atomic_flag_test_and_set(&self->consumer_flag);
 
@@ -102,12 +103,12 @@ ct_log_storage_t *ct_log_storage_create(ct_time64_t tick, struct ct_bytepool *by
 void ct_log_storage_destroy(ct_log_storage_t *self) {
 	if (!self) { return; }
 
-	pthread_mutex_lock(&self->producer_mutex);
-	pthread_mutex_lock(&self->consumer_mutex);
+	ct_mutex_lock(&self->producer_mutex);
+	ct_mutex_lock(&self->consumer_mutex);
 	ct_list_splice_next(&self->consumer_head, &self->filled_head);
 	ct_atomic_flag_clear(&self->consumer_flag);
-	pthread_mutex_unlock(&self->consumer_mutex);
-	pthread_mutex_unlock(&self->producer_mutex);
+	ct_mutex_unlock(&self->consumer_mutex);
+	ct_mutex_unlock(&self->producer_mutex);
 
 	ct_log_storage_schedule(self, 0);
 
@@ -120,15 +121,15 @@ void ct_log_storage_destroy(ct_log_storage_t *self) {
 		self->file = NULL;
 	}
 
-	pthread_mutex_destroy(&self->producer_mutex);
-	pthread_mutex_destroy(&self->consumer_mutex);
+	ct_mutex_destroy(&self->producer_mutex);
+	ct_mutex_destroy(&self->consumer_mutex);
 	free(self);
 }
 
 void ct_log_storage_handle(ct_log_storage_t *self, const char *buf, size_t size) {
 	if (!self || !buf || !size) { return; }
 
-	pthread_mutex_lock(&self->producer_mutex);
+	ct_mutex_lock(&self->producer_mutex);
 	do {
 		const size_t written = ct_bytes_write(self->producer_buffer, buf, size);
 		buf += written;
@@ -142,33 +143,33 @@ void ct_log_storage_handle(ct_log_storage_t *self, const char *buf, size_t size)
 	} while (size > 0);
 
 	if ((int)self->filled_size >= self->file_cache_size) {
-		pthread_mutex_lock(&self->consumer_mutex);
+		ct_mutex_lock(&self->consumer_mutex);
 		ct_list_splice_next(&self->consumer_head, &self->filled_head);
 		ct_atomic_flag_clear(&self->consumer_flag);
-		pthread_mutex_unlock(&self->consumer_mutex);
+		ct_mutex_unlock(&self->consumer_mutex);
 		self->filled_size = 0;
 	}
-	pthread_mutex_unlock(&self->producer_mutex);
+	ct_mutex_unlock(&self->producer_mutex);
 }
 
 void ct_log_storage_flush(ct_log_storage_t *self) {
 	if (!self) { return; }
 
-	pthread_mutex_lock(&self->producer_mutex);
+	ct_mutex_lock(&self->producer_mutex);
 	if (!ct_bytes_isempty(self->producer_buffer)) {
 		ct_list_append(&self->filled_head, self->producer_buffer->list);
 		self->filled_size += ct_bytes_size(self->producer_buffer);
 		self->producer_buffer = ct_bytepool_get(self->bytepool);
 	}
 	if (!ct_list_isempty(&self->filled_head)) {
-		pthread_mutex_lock(&self->consumer_mutex);
+		ct_mutex_lock(&self->consumer_mutex);
 		ct_list_splice_next(&self->consumer_head, &self->filled_head);
 		ct_list_init(&self->filled_head);
 		self->filled_size = 0;
 		ct_atomic_flag_clear(&self->consumer_flag);
-		pthread_mutex_unlock(&self->consumer_mutex);
+		ct_mutex_unlock(&self->consumer_mutex);
 	}
-	pthread_mutex_unlock(&self->producer_mutex);
+	ct_mutex_unlock(&self->producer_mutex);
 }
 
 void ct_log_storage_schedule(ct_log_storage_t *self, ct_time64_t tick) {
@@ -181,9 +182,9 @@ void ct_log_storage_schedule(ct_log_storage_t *self, ct_time64_t tick) {
 
 	ct_list_t flush_head[1];
 	ct_list_init(flush_head);
-	pthread_mutex_lock(&self->consumer_mutex);
+	ct_mutex_lock(&self->consumer_mutex);
 	ct_list_splice_next(flush_head, &self->consumer_head);
-	pthread_mutex_unlock(&self->consumer_mutex);
+	ct_mutex_unlock(&self->consumer_mutex);
 
 	size_t size      = (size_t)ftell(self->file);
 	size_t available = (size_t)self->file_size_max > size ? (size_t)self->file_size_max - size : 0;
