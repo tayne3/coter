@@ -3,13 +3,14 @@
 #include <catch.hpp>
 
 #include "coter/thread/thpool.h"
+#include "coter/thread/thread.h"
 
 static ct_time_t mock_current_time = 0;
 
 static inline void cron_schedule_mock(ct_time_t seconds) {
 	for (;;) {
 		if (ct_cron_mgr_schedule(mock_current_time)) {
-			sched_yield();
+			ct_thread_yield();
 			continue;
 		}
 		if (seconds <= 0) { break; }
