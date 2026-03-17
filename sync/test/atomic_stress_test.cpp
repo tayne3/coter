@@ -2,11 +2,10 @@
  * @file atomic_stress_test.cpp
  * @brief Atomic pointer and CAS operations test with high concurrency
  */
-#include <pthread.h>
-
 #include <catch.hpp>
 
 #include "coter/sync/atomic.h"
+#include "coter/thread/thread.h"
 
 // -----------------------------------------------------------------------------
 // Concurrent Increment/Decrement Test (Moved from atomic_test.c)
@@ -18,31 +17,31 @@
 // 全局共享计数器
 static ct_atomic_long_t g_shared_counter;
 
-static void* thread_increment_routine(void* arg) {
+static int thread_increment_routine(void* arg) {
 	CT_UNUSED(arg);
 	for (int i = 0; i < NUM_ITERATIONS; ++i) { ct_atomic_long_add(&g_shared_counter, 1); }
-	return nullptr;
+	return 0;
 }
 
-static void* thread_decrement_routine(void* arg) {
+static int thread_decrement_routine(void* arg) {
 	CT_UNUSED(arg);
 	for (int i = 0; i < NUM_ITERATIONS; ++i) { ct_atomic_long_sub(&g_shared_counter, 1); }
-	return nullptr;
+	return 0;
 }
 
 static void test_concurrent_inc_dec(void) {
-	pthread_t threads[NUM_THREADS];
+	ct_thread_t threads[NUM_THREADS];
 
 	ct_atomic_long_store(&g_shared_counter, 0);
 
 	// 创建一半线程来增加
-	for (int i = 0; i < NUM_THREADS / 2; ++i) { pthread_create(&threads[i], nullptr, thread_increment_routine, nullptr); }
+	for (int i = 0; i < NUM_THREADS / 2; ++i) { REQUIRE(ct_thread_create(&threads[i], nullptr, thread_increment_routine, nullptr) == 0); }
 
 	// 创建另一半来减少
-	for (int i = NUM_THREADS / 2; i < NUM_THREADS; ++i) { pthread_create(&threads[i], nullptr, thread_decrement_routine, nullptr); }
+	for (int i = NUM_THREADS / 2; i < NUM_THREADS; ++i) { REQUIRE(ct_thread_create(&threads[i], nullptr, thread_decrement_routine, nullptr) == 0); }
 
 	// 等待所有线程完成
-	for (int i = 0; i < NUM_THREADS; ++i) { pthread_join(threads[i], nullptr); }
+	for (int i = 0; i < NUM_THREADS; ++i) { REQUIRE(ct_thread_join(threads[i], nullptr) == 0); }
 
 	// 最终结果应该为 0 如果所有操作都是原子的
 	REQUIRE(ct_atomic_long_load(&g_shared_counter) == 0);
@@ -81,17 +80,17 @@ static Node* stack_pop(void) {
 	return old_head;
 }
 
-static void* thread_push_routine(void* arg) {
+static int thread_push_routine(void* arg) {
 	long thread_id = (long)(intptr_t)arg;
 	int  start_idx = thread_id * ITEMS_PER_THREAD;
 	for (int i = 0; i < ITEMS_PER_THREAD; ++i) {
 		g_nodes[start_idx + i].id = start_idx + i;
 		stack_push(&g_nodes[start_idx + i]);
 	}
-	return nullptr;
+	return 0;
 }
 
-static void* thread_pop_routine(void* arg) {
+static int thread_pop_routine(void* arg) {
 	CT_UNUSED(arg);
 	int popped_count = 0;
 	for (int i = 0; i < ITEMS_PER_THREAD; ++i) {
@@ -103,27 +102,27 @@ static void* thread_pop_routine(void* arg) {
 			for (volatile int k = 0; k < 100; k++) {}
 		}
 	}
-	return (void*)(intptr_t)popped_count;
+	return popped_count;
 }
 
 static void test_atomic_ptr_stress(void) {
-	pthread_t threads[NUM_THREADS];
+	ct_thread_t threads[NUM_THREADS];
 
 	// Reset stack
 	ct_atomic_ptr_store(&g_stack_head, nullptr);
 
 	// 1. Concurrent Push
-	for (long i = 0; i < NUM_THREADS; ++i) { pthread_create(&threads[i], nullptr, thread_push_routine, (void*)(intptr_t)i); }
-	for (int i = 0; i < NUM_THREADS; ++i) { pthread_join(threads[i], nullptr); }
+	for (long i = 0; i < NUM_THREADS; ++i) { REQUIRE(ct_thread_create(&threads[i], nullptr, thread_push_routine, (void*)(intptr_t)i) == 0); }
+	for (int i = 0; i < NUM_THREADS; ++i) { REQUIRE(ct_thread_join(threads[i], nullptr) == 0); }
 
 	// 2. Concurrent Pop
-	for (long i = 0; i < NUM_THREADS; ++i) { pthread_create(&threads[i], nullptr, thread_pop_routine, (void*)(intptr_t)i); }
+	for (long i = 0; i < NUM_THREADS; ++i) { REQUIRE(ct_thread_create(&threads[i], nullptr, thread_pop_routine, (void*)(intptr_t)i) == 0); }
 
 	long total_popped = 0;
 	for (int i = 0; i < NUM_THREADS; ++i) {
-		void* ret;
-		pthread_join(threads[i], &ret);
-		total_popped += (long)(intptr_t)ret;
+		int popped_count = 0;
+		REQUIRE(ct_thread_join(threads[i], &popped_count) == 0);
+		total_popped += popped_count;
 	}
 
 	REQUIRE(total_popped == NUM_THREADS * ITEMS_PER_THREAD);

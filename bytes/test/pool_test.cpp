@@ -2,6 +2,8 @@
 
 #include <catch.hpp>
 
+#include "coter/thread/thread.h"
+
 static constexpr int TEST_THREADS    = 24;
 static constexpr int TEST_ITERATIONS = 20480;
 static constexpr int MIN_BUFFER_SIZE = 1;
@@ -60,40 +62,40 @@ static void test_bytepool_edge_cases(void) {
 	ct_bytepool_destroy(large_pool);
 }
 
-static void* thread_func_with_pool(void* arg) {
+static int thread_func_with_pool(void* arg) {
 	ct_bytepool_t* pool = (ct_bytepool_t*)arg;
 	for (int i = 0; i < TEST_ITERATIONS; ++i) {
 		ct_bytes_t* bytes = ct_bytepool_get(pool);
 		REQUIRE(bytes != nullptr);
-		sched_yield();
+		ct_thread_yield();
 		ct_bytepool_put(pool, bytes);
 	}
-	return nullptr;
+	return 0;
 }
 
-static void* thread_func_without_pool(void* arg) {
+static int thread_func_without_pool(void* arg) {
 	CT_UNUSED(arg);
 	for (int i = 0; i < TEST_ITERATIONS; ++i) {
 		char* buffer = (char*)malloc(MAX_BUFFER_SIZE);
 		REQUIRE(buffer != nullptr);
-		sched_yield();
+		ct_thread_yield();
 		free(buffer);
 	}
-	return nullptr;
+	return 0;
 }
 
 static void test_bytepool_concurrency(void) {
 	ct_bytepool_t* pool = ct_bytepool_create(CONCURRENCY_THREADS * 2, MAX_BUFFER_SIZE);
 	REQUIRE(pool != nullptr);
 
-	pthread_t threads[CONCURRENCY_THREADS];
+	ct_thread_t threads[CONCURRENCY_THREADS];
 	for (int i = 0; i < CONCURRENCY_THREADS; ++i) {
-		int result = pthread_create(&threads[i], nullptr, thread_func_with_pool, pool);
+		int result = ct_thread_create(&threads[i], nullptr, thread_func_with_pool, pool);
 		REQUIRE(result == 0);
 	}
 
 	for (int i = 0; i < CONCURRENCY_THREADS; ++i) {
-		int result = pthread_join(threads[i], nullptr);
+		int result = ct_thread_join(threads[i], nullptr);
 		REQUIRE(result == 0);
 	}
 
@@ -111,17 +113,17 @@ static void test_bytepool_concurrency(void) {
 }
 
 static void test_bytepool_performance(void) {
-	pthread_t   threads[TEST_THREADS];
+	ct_thread_t threads[TEST_THREADS];
 	ct_time64_t start, end;
 	bool        is_ok;
 
 	start = ct_getuptime_ms();
 	for (int i = 0; i < TEST_THREADS; ++i) {
-		is_ok = 0 == pthread_create(&threads[i], nullptr, thread_func_without_pool, nullptr);
+		is_ok = 0 == ct_thread_create(&threads[i], nullptr, thread_func_without_pool, nullptr);
 		REQUIRE(is_ok);
 	}
 	for (int i = 0; i < TEST_THREADS; ++i) {
-		is_ok = 0 == pthread_join(threads[i], nullptr);
+		is_ok = 0 == ct_thread_join(threads[i], nullptr);
 		REQUIRE(is_ok);
 	}
 	end                                 = ct_getuptime_ms();
@@ -130,11 +132,11 @@ static void test_bytepool_performance(void) {
 	ct_bytepool_t* pool = ct_bytepool_create(1024, MAX_BUFFER_SIZE);
 	start               = ct_getuptime_ms();
 	for (int i = 0; i < TEST_THREADS; ++i) {
-		is_ok = 0 == pthread_create(&threads[i], nullptr, thread_func_with_pool, pool);
+		is_ok = 0 == ct_thread_create(&threads[i], nullptr, thread_func_with_pool, pool);
 		REQUIRE(is_ok);
 	}
 	for (int i = 0; i < TEST_THREADS; ++i) {
-		is_ok = 0 == pthread_join(threads[i], nullptr);
+		is_ok = 0 == ct_thread_join(threads[i], nullptr);
 		REQUIRE(is_ok);
 	}
 	end                              = ct_getuptime_ms();

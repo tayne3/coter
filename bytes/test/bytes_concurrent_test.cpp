@@ -3,6 +3,7 @@
 #include "coter/bytes/bytes.h"
 #include "coter/sync/cond.h"
 #include "coter/sync/mutex.h"
+#include "coter/thread/thread.h"
 
 static constexpr int NUM_PRODUCER_THREADS  = 4;
 static constexpr int BUFFER_SIZE           = 100;
@@ -107,22 +108,22 @@ static void produce_chunk(test_context_t* ctx) {
 	ct_mutex_unlock(&ctx->mutex);
 }
 
-static void* producer_thread_func(void* arg) {
+static int producer_thread_func(void* arg) {
 	test_context_t* ctx = (test_context_t*)arg;
 	for (int i = 0; i < ITERATIONS_PER_THREAD; ++i) {
 		produce_chunk(ctx);
-		sched_yield();
+		ct_thread_yield();
 	}
-	return nullptr;
+	return 0;
 }
 
-static void* consumer_thread_func(void* arg) {
+static int consumer_thread_func(void* arg) {
 	test_context_t* ctx = (test_context_t*)arg;
 	while (!ctx->test_complete) {
 		consume_chunks(ctx);
-		sched_yield();
+		ct_thread_yield();
 	}
-	return nullptr;
+	return 0;
 }
 
 TEST_CASE("bytes concurrent", "[bytes][concurrency]") {
@@ -136,24 +137,24 @@ TEST_CASE("bytes concurrent", "[bytes][concurrency]") {
 	ct_mutex_init(&ctx.mutex);
 	ctx.test_complete = false;
 	for (int i = 0; i < CHUNK_SIZE; ++i) { ctx.sample_data[i] = (char)(0x31 + (i % 26)); }
-	pthread_t producer_threads[NUM_PRODUCER_THREADS];
-	pthread_t consumer_thread;
+	ct_thread_t producer_threads[NUM_PRODUCER_THREADS];
+	ct_thread_t consumer_thread;
 	for (int i = 0; i < NUM_PRODUCER_THREADS; ++i) {
-		int ret = pthread_create(&producer_threads[i], nullptr, producer_thread_func, &ctx);
+		int ret = ct_thread_create(&producer_threads[i], nullptr, producer_thread_func, &ctx);
 		REQUIRE(ret == 0);
 	}
 	{
-		int ret = pthread_create(&consumer_thread, nullptr, consumer_thread_func, &ctx);
+		int ret = ct_thread_create(&consumer_thread, nullptr, consumer_thread_func, &ctx);
 		REQUIRE(ret == 0);
 	}
 	for (int i = 0; i < NUM_PRODUCER_THREADS; ++i) {
-		int ret = pthread_join(producer_threads[i], nullptr);
+		int ret = ct_thread_join(producer_threads[i], nullptr);
 		REQUIRE(ret == 0);
 	}
 	{
 		ctx.test_complete = true;
 		ct_cond_signal(&filled_pool.cond);
-		int ret = pthread_join(consumer_thread, nullptr);
+		int ret = ct_thread_join(consumer_thread, nullptr);
 		REQUIRE(ret == 0);
 	}
 	while (!ct_list_isempty(&filled_pool.filled_buffers)) { consume_chunks(&ctx); }

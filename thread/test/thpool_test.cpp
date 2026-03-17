@@ -237,9 +237,9 @@ static void test_close_behavior(void) {
 }
 
 // 不使用线程池的任务函数
-static void* thread_task(void* arg) {
+static int thread_task(void* arg) {
 	sample_task(arg);
-	return nullptr;
+	return 0;
 }
 
 // 性能对比测试：使用线程池 vs 不使用线程池
@@ -287,7 +287,7 @@ static void test_performance_comparison(void) {
 	// ------------------- 不使用线程池 -------------------
 
 	{
-		pthread_t* threads = (pthread_t*)malloc(sizeof(pthread_t) * NUM_TASKS);
+		ct_thread_t* threads = (ct_thread_t*)malloc(sizeof(ct_thread_t) * NUM_TASKS);
 		if (!threads) {
 			printf("Failed to allocate memory for threads.");
 			REQUIRE(false);
@@ -299,7 +299,7 @@ static void test_performance_comparison(void) {
 		start = ct_getuptime_ms();
 
 		for (int i = 0; i < NUM_TASKS; ++i) {
-			const int ret = pthread_create(&threads[i], nullptr, thread_task, &counter_no_pool);
+			const int ret = ct_thread_create(&threads[i], nullptr, thread_task, &counter_no_pool);
 			REQUIRE(ret == 0);
 		}
 
@@ -319,7 +319,7 @@ static void test_performance_comparison(void) {
 
 		// 等待所有线程完成
 		for (int i = 0; i < NUM_TASKS; ++i) {
-			const int ret = pthread_join(threads[i], nullptr);
+			const int ret = ct_thread_join(threads[i], nullptr);
 			REQUIRE(ret == 0);
 		}
 

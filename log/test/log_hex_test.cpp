@@ -3,6 +3,7 @@
 
 #include "coter/core/platform.h"
 #include "coter/log/log.h"
+#include "coter/thread/thread.h"
 
 #define logVN(...) CTLogger_HandleBasic(Verbose, 0, __VA_ARGS__)
 #define logDN(...) CTLogger_HandleBasic(Debug, 0, __VA_ARGS__)
@@ -18,25 +19,25 @@
 #define logEH(__buf, __len) CTLogger_HandleHex(Error, 0, __buf, __len)
 #define logFH(__buf, __len) CTLogger_HandleHex(Fatal, 0, __buf, __len)
 
-static pthread_t g_thread_logger;
+static ct_thread_t g_thread_logger;
 static bool      is_exit = false;
 
 // 日志调度线程函数
-static void* thread_log_schedule(void* arg) {
+static int thread_log_schedule(void* arg) {
 	CT_UNUSED(arg);
 	for (; !is_exit;) {
 		ct_log_schedule(ct_getuptime_ms());
 		ct_msleep(10);
 	}
-	return nullptr;
+	return 0;
 }
 
 static void test_log_hex(void) {
 	ct_time64_t start, end;
 
 	// 检查当前文件夹下是否存在 test_log_out 文件夹
-	if (access("test_log_out", 0) == -1) { ct_mkdir("test_log_out"); }
-	REQUIRE(access("test_log_out", 0) == 0);
+	if (ct_access("test_log_out", 0) == -1) { ct_mkdir("test_log_out"); }
+	REQUIRE(ct_access("test_log_out", 0) == 0);
 
 	FILE* file_without_log = fopen("test_log_out/without_log.log", "w");
 	REQUIRE(file_without_log != nullptr);
@@ -62,7 +63,7 @@ static void test_log_hex(void) {
 		ct_log_init(ct_getuptime_ms(), 1, &config);
 	}
 
-	REQUIRE(pthread_create(&g_thread_logger, nullptr, thread_log_schedule, nullptr) == 0);
+	REQUIRE(ct_thread_create(&g_thread_logger, nullptr, thread_log_schedule, nullptr) == 0);
 
 	// 写入日志
 	const uint8_t buf[16] = {0x12, 0x23, 0x34, 0x45, 0x56, 0x67, 0x78, 0x89, 0x9A, 0xAB, 0xBC, 0xCD, 0xDE, 0xEF, 0xF0, 0x01};
@@ -98,7 +99,7 @@ static void test_log_hex(void) {
 	const int time_without_log = (int)(end - start);
 
 	is_exit = true;
-	REQUIRE(pthread_join(g_thread_logger, nullptr) == 0);
+	REQUIRE(ct_thread_join(g_thread_logger, nullptr) == 0);
 
 	fclose(file_without_log);
 	file_without_log = nullptr;
@@ -147,15 +148,15 @@ static void test_log_hex(void) {
 
 	remove("test_log_out/with_log.log0");
 	remove("test_log_out/without_log.log");
-	rmdir("test_log_out");
+	ct_rmdir("test_log_out");
 }
 
 static void test_log_long_text(const size_t text_size) {
 	ct_time64_t start, end;
 
 	// 检查当前文件夹下是否存在 test_log_out 文件夹
-	if (access("test_log_out", 0) == -1) { ct_mkdir("test_log_out"); }
-	REQUIRE(access("test_log_out", 0) == 0);
+	if (ct_access("test_log_out", 0) == -1) { ct_mkdir("test_log_out"); }
+	REQUIRE(ct_access("test_log_out", 0) == 0);
 
 	FILE* file_without_log = fopen("test_log_out/without_log.log", "w");
 	REQUIRE(file_without_log != nullptr);
@@ -183,7 +184,7 @@ static void test_log_long_text(const size_t text_size) {
 
 	// 创建日志线程
 	is_exit = false;
-	REQUIRE(pthread_create(&g_thread_logger, nullptr, thread_log_schedule, nullptr) == 0);
+	REQUIRE(ct_thread_create(&g_thread_logger, nullptr, thread_log_schedule, nullptr) == 0);
 
 	// 创建超长文本
 	uint8_t* long_text = (uint8_t*)malloc(text_size + 1);
@@ -225,7 +226,7 @@ static void test_log_long_text(const size_t text_size) {
 
 	// 清理
 	is_exit = true;
-	REQUIRE(pthread_join(g_thread_logger, nullptr) == 0);
+	REQUIRE(ct_thread_join(g_thread_logger, nullptr) == 0);
 
 	free(long_text);
 	long_text = nullptr;
@@ -275,7 +276,7 @@ static void test_log_long_text(const size_t text_size) {
 
 	remove("test_log_out/with_log.log0");
 	remove("test_log_out/without_log.log");
-	rmdir("test_log_out");
+	ct_rmdir("test_log_out");
 }
 
 TEST_CASE("log_hex", "[log]") {

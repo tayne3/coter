@@ -3,6 +3,7 @@
 
 #include "coter/core/platform.h"
 #include "coter/log/log.h"
+#include "coter/thread/thread.h"
 
 #define test_basic_verbose(...) CTLogger_HandleBasic(Verbose, 0, __VA_ARGS__)
 #define test_basic_debug(...)   CTLogger_HandleBasic(Debug, 0, __VA_ARGS__)
@@ -15,32 +16,32 @@
 #define TEST_THREAD_DATA 100000
 
 static FILE*     g_file = nullptr;
-static pthread_t g_thread_logger;
+static ct_thread_t g_thread_logger;
 static bool      is_exit = false;
 
 // 日志调度线程函数
-static void* thread_log_schedule(void* arg) {
+static int thread_log_schedule(void* arg) {
 	CT_UNUSED(arg);
 	for (; !is_exit;) {
 		ct_log_schedule(ct_getuptime_ms());
 		ct_msleep(10);
 	}
-	return nullptr;
+	return 0;
 }
 
 // 带日志的测试线程函数
-static void* thread_write_with_log(void* arg) {
+static int thread_write_with_log(void* arg) {
 	CT_UNUSED(arg);
 	for (int i = 0; i < TEST_THREAD_DATA; ++i) {
 		test_basic_trace("%04d/%05d/%06d/%07d %016llx/%016llx/%016llx/%016llx %10s/%11s/%12s/%13s %02x/%02x/%02x/%02x\n", 1234, 1234, 1234, 1234,
 						 (unsigned long long)0xFFFF0000ULL, (unsigned long long)0xFFFF0000ULL, (unsigned long long)0xFFFF0000ULL,
 						 (unsigned long long)0xFFFF0000ULL, "test1", "test2", "test3", "test4", 0x00, 0x01, 0x02, 0x03);
 	}
-	return nullptr;
+	return 0;
 }
 
 // 不带日志的测试线程函数
-static void* thread_write_without_log(void* arg) {
+static int thread_write_without_log(void* arg) {
 	CT_UNUSED(arg);
 	REQUIRE(g_file != nullptr);
 	for (int i = 0; i < TEST_THREAD_DATA; ++i) {
@@ -48,12 +49,12 @@ static void* thread_write_without_log(void* arg) {
 				(unsigned long long)0xFFFF0000ULL, (unsigned long long)0xFFFF0000ULL, (unsigned long long)0xFFFF0000ULL, (unsigned long long)0xFFFF0000ULL,
 				"test1", "test2", "test3", "test4", 0x00, 0x01, 0x02, 0x03);
 	}
-	return nullptr;
+	return 0;
 }
 
 // 写入性能对比测试函数
 static void test_write_performance_comparison(void) {
-	pthread_t   threads[TEST_THREADS] = {0};
+	ct_thread_t threads[TEST_THREADS] = {};
 	ct_time64_t start, end;
 
 	// 检查当前文件夹下是否存在 test_log_out 文件夹
@@ -84,22 +85,22 @@ static void test_write_performance_comparison(void) {
 		ct_log_init(ct_getuptime_ms(), 1, &config);
 	}
 
-	REQUIRE(pthread_create(&g_thread_logger, nullptr, thread_log_schedule, nullptr) == 0);
+	REQUIRE(ct_thread_create(&g_thread_logger, nullptr, thread_log_schedule, nullptr) == 0);
 
 	start = ct_getuptime_ms();
-	for (int i = 0; i < TEST_THREADS; ++i) { REQUIRE(pthread_create(&threads[i], nullptr, thread_write_without_log, (void*)(uintptr_t)i) == 0); }
-	for (int i = 0; i < TEST_THREADS; ++i) { REQUIRE(pthread_join(threads[i], nullptr) == 0); }
+	for (int i = 0; i < TEST_THREADS; ++i) { REQUIRE(ct_thread_create(&threads[i], nullptr, thread_write_without_log, (void*)(uintptr_t)i) == 0); }
+	for (int i = 0; i < TEST_THREADS; ++i) { REQUIRE(ct_thread_join(threads[i], nullptr) == 0); }
 	end                        = ct_getuptime_ms();
 	const int time_without_log = (int)(end - start);
 
 	start = ct_getuptime_ms();
-	for (int i = 0; i < TEST_THREADS; ++i) { REQUIRE(pthread_create(&threads[i], nullptr, thread_write_with_log, (void*)(uintptr_t)i) == 0); }
-	for (int i = 0; i < TEST_THREADS; ++i) { REQUIRE(pthread_join(threads[i], nullptr) == 0); }
+	for (int i = 0; i < TEST_THREADS; ++i) { REQUIRE(ct_thread_create(&threads[i], nullptr, thread_write_with_log, (void*)(uintptr_t)i) == 0); }
+	for (int i = 0; i < TEST_THREADS; ++i) { REQUIRE(ct_thread_join(threads[i], nullptr) == 0); }
 	end                     = ct_getuptime_ms();
 	const int time_with_log = (int)(end - start);
 
 	is_exit = true;
-	REQUIRE(pthread_join(g_thread_logger, nullptr) == 0);
+	REQUIRE(ct_thread_join(g_thread_logger, nullptr) == 0);
 
 	ct_log_flush();
 	ct_log_schedule(ct_getuptime_ms());
@@ -152,7 +153,7 @@ static void test_write_performance_comparison(void) {
 
 	remove("test_log_out/with_log.log0");
 	remove("test_log_out/without_log.log");
-	(void)rmdir("test_log_out");
+	(void)ct_rmdir("test_log_out");
 }
 
 TEST_CASE("log_write", "[log]") {
