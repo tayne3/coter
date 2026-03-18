@@ -5,66 +5,25 @@
 #ifndef COTER_TIME_CRON_H
 #define COTER_TIME_CRON_H
 
+#include "coter/container/heap.h"
 #include "coter/core/platform.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct ct_thpool;
-
-// cron任务id类型
-typedef uint32_t ct_cron_id_t;
-// 无效的cron任务id
-#define CT_CRON_ID_INVALID 0
-// cron任务回调函数类型
-typedef void (*ct_cron_callback_t)(void*);
-
-/**
- * @brief cron任务管理初始化
- * @param now 当前时间 (s)
- * @param thpool 任务池
- * @return int 成功返回0，失败返回非0值
- */
-COTER_API int ct_cron_mgr_init(ct_time_t now, struct ct_thpool* thpool);
-
-/**
- * @brief cron任务调度
- * @param now 当前时间 (s)
- * @return bool 是否有cron任务被触发
- */
-COTER_API bool ct_cron_mgr_schedule(ct_time_t now);
-
-/**
- * @brief 启动cron任务
- * @param minute 分钟 (0-59, -1 表示每分钟)
- * @param hour 小时 (0-23, -1 表示每小时)
- * @param day 日期 (1-31, -1 表示每天)
- * @param week 星期 (0-6, 0 表示周日, -1 表示每周)
- * @param month 月份 (1-12, -1 表示每月)
- * @param callback 任务触发时的回调函数
- * @param arg 传递给回调函数的参数
- * @return ct_cron_id_t 返回cron任务的唯一标识符，如果创建失败则返回 CT_CRON_ID_INVALID
- */
-COTER_API ct_cron_id_t ct_cron_start(int minute, int hour, int day, int week, int month, ct_cron_callback_t callback, void* arg);
-
-/**
- * @brief 停止cron任务
- * @param id cron任务id
- */
-COTER_API void ct_cron_stop(ct_cron_id_t id);
-
 /**
  * @brief 计算下一个 cron 任务执行时间
  *
  * 根据给定的 cron 表达式参数, 计算下一个符合条件的执行时间。
  *
+ * @param now 当前系统时间 (秒)
  * @param minute 分钟 (0-59, -1 表示每分钟)
  * @param hour 小时 (0-23, -1 表示每小时)
  * @param day 日期 (1-31, -1 表示每天)
  * @param week 星期 (0-6, 0 表示周日, -1 表示每周)
  * @param month 月份 (1-12, -1 表示每月)
- * @return time_t 下一个执行时间的时间戳, 如果参数无效则返回 -1
+ * @return ct_time_t 下一个执行时间的秒级时间戳, 如果参数无效则返回 -1
  *
  * @code
  * // 设置每天凌晨1:30执行
@@ -88,6 +47,78 @@ COTER_API void ct_cron_stop(ct_cron_id_t id);
  *  30      1        1      -1      10          cron.yearly
  */
 COTER_API ct_time_t ct_cron_next_timeout(ct_time_t now, int minute, int hour, int day, int week, int month);
+
+typedef ct_time64_t (*ct_cron_gettime_cb)(void);
+typedef void (*ct_cron_callback_t)(void*);
+
+typedef struct ct_cron {
+	ct_heap_node_t     node;
+	ct_time_t          next_time;
+	ct_cron_callback_t cb;
+	void*              arg;
+	int32_t            minute : 7;
+	int32_t            hour : 6;
+	int32_t            day : 6;
+	int32_t            week : 4;
+	int32_t            month : 5;
+	uint32_t           is_active : 1;
+	uint32_t           is_queued : 1;
+	uint32_t           reserved : 2;
+} ct_cron_t;
+
+/**
+ * @brief 初始化cron任务
+ * @param self cron对象
+ */
+COTER_API void ct_cron_init(ct_cron_t* self);
+
+/**
+ * @brief 启动cron任务
+ * @param self cron对象
+ * @param minute 分钟 (0-59, -1 表示每分钟)
+ * @param hour 小时 (0-23, -1 表示每小时)
+ * @param day 日期 (1-31, -1 表示每天)
+ * @param week 星期 (0-6, 0 表示周日, -1 表示每周)
+ * @param month 月份 (1-12, -1 表示每月)
+ * @param callback 任务触发时的回调函数
+ * @param arg 传递给回调函数的参数
+ */
+COTER_API int ct_cron_start(ct_cron_t* self, int minute, int hour, int day, int week, int month, ct_cron_callback_t callback, void* arg);
+
+/**
+ * @brief 重置cron任务
+ * @param self cron对象
+ * @param minute 分钟 (0-59, -1 表示每分钟)
+ * @param hour 小时 (0-23, -1 表示每小时)
+ * @param day 日期 (1-31, -1 表示每天)
+ * @param week 星期 (0-6, 0 表示周日, -1 表示每周)
+ * @param month 月份 (1-12, -1 表示每月)
+ */
+COTER_API int ct_cron_reset(ct_cron_t* self, int minute, int hour, int day, int week, int month);
+
+/**
+ * @brief 停止cron任务
+ * @param self cron对象
+ */
+COTER_API int ct_cron_stop(ct_cron_t* self);
+
+/**
+ * @brief 初始化cron管理器
+ * @param realtime_cb 系统时间回调 (为空时使用默认值)
+ * @param monotonic_cb 单调时间回调 (为空时使用默认值)
+ */
+COTER_API void ct_cron_mgr_init(ct_cron_gettime_cb realtime_cb, ct_cron_gettime_cb monotonic_cb);
+
+/**
+ * @brief 运行cron管理器
+ * @note 阻塞运行
+ */
+COTER_API void ct_cron_mgr_run(void);
+
+/**
+ * @brief 停止cron管理器
+ */
+COTER_API void ct_cron_mgr_close(void);
 
 #ifdef __cplusplus
 }
