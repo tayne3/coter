@@ -58,8 +58,3 @@ elseif(UNIX)
     target_link_libraries(coter_compile_dependency INTERFACE rt)
   endif()
 endif()
-
-find_package(Threads QUIET)
-if(CMAKE_USE_PTHREADS_INIT)
-  target_link_libraries(coter_compile_dependency INTERFACE ${CMAKE_THREAD_LIBS_INIT})
-endif()
