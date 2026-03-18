@@ -70,3 +70,77 @@ TEST_CASE("Heap Update Priority", "[heap]") {
 	REQUIRE(((my_item_t*)ct_heap_top(&heap))->val == 10);
 	REQUIRE(ct_heap_pop(&heap) == &items[2].node);
 }
+
+TEST_CASE("Heap Clear", "[heap]") {
+	ct_heap_t heap;
+	ct_heap_init(&heap, my_item_cmp);
+
+	my_item_t items[3];
+	for (int i = 0; i < 3; ++i) {
+		items[i].val = i;
+		ct_heap_insert(&heap, &items[i].node);
+	}
+
+	REQUIRE(ct_heap_size(&heap) == 3);
+	ct_heap_clear(&heap);
+	REQUIRE(ct_heap_size(&heap) == 0);
+	REQUIRE(ct_heap_top(&heap) == nullptr);
+}
+
+TEST_CASE("Heap Move", "[heap]") {
+	my_item_t items_a[3], items_b[3];
+	for (int i = 0; i < 3; ++i) {
+		items_a[i].val = (i + 1) * 10;      // 10, 20, 30
+		items_b[i].val = (i + 1) * 10 + 5;  // 15, 25, 35
+	}
+
+	SECTION("Move to empty heap") {
+		ct_heap_t heap_a, heap_b;
+		ct_heap_init(&heap_a, my_item_cmp);
+		ct_heap_init(&heap_b, my_item_cmp);
+
+		for (int i = 0; i < 3; ++i) ct_heap_insert(&heap_b, &items_b[i].node);
+
+		ct_heap_move(&heap_a, &heap_b);
+
+		REQUIRE(ct_heap_size(&heap_a) == 3);
+		REQUIRE(ct_heap_size(&heap_b) == 0);
+		REQUIRE(((my_item_t*)ct_heap_top(&heap_a))->val == 15);
+	}
+
+	SECTION("Merge two non-empty heaps") {
+		ct_heap_t heap_a, heap_b;
+		ct_heap_init(&heap_a, my_item_cmp);
+		ct_heap_init(&heap_b, my_item_cmp);
+
+		for (int i = 0; i < 3; ++i) {
+			ct_heap_insert(&heap_a, &items_a[i].node);
+			ct_heap_insert(&heap_b, &items_b[i].node);
+		}
+
+		ct_heap_move(&heap_a, &heap_b);
+
+		REQUIRE(ct_heap_size(&heap_a) == 6);
+		REQUIRE(ct_heap_size(&heap_b) == 0);
+
+		int expected[] = {10, 15, 20, 25, 30, 35};
+		for (int i = 0; i < 6; ++i) {
+			ct_heap_node_t* top = ct_heap_pop(&heap_a);
+			REQUIRE(((my_item_t*)top)->val == expected[i]);
+		}
+	}
+
+	SECTION("Move from empty heap") {
+		ct_heap_t heap_a, heap_b;
+		ct_heap_init(&heap_a, my_item_cmp);
+		ct_heap_init(&heap_b, my_item_cmp);
+
+		for (int i = 0; i < 3; ++i) ct_heap_insert(&heap_a, &items_a[i].node);
+
+		ct_heap_move(&heap_a, &heap_b);
+
+		REQUIRE(ct_heap_size(&heap_a) == 3);
+		REQUIRE(ct_heap_size(&heap_b) == 0);
+		REQUIRE(((my_item_t*)ct_heap_top(&heap_a))->val == 10);
+	}
+}

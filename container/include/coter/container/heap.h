@@ -34,6 +34,9 @@ typedef struct ct_heap {
 // Initialize the heap
 COTER_API void ct_heap_init(ct_heap_t* heap, ct_heap_compare_cb cmp);
 
+// Clear the heap
+COTER_API void ct_heap_clear(ct_heap_t* heap);
+
 // Insert a node
 COTER_API void ct_heap_insert(ct_heap_t* heap, ct_heap_node_t* node);
 
@@ -48,6 +51,9 @@ COTER_API void ct_heap_remove(ct_heap_t* heap, ct_heap_node_t* node);
 
 // Update a node's priority (if modified)
 COTER_API void ct_heap_update(ct_heap_t* heap, ct_heap_node_t* node);
+
+// Move all nodes from one heap to another
+COTER_API void ct_heap_move(ct_heap_t* dst, ct_heap_t* src);
 
 #ifdef __cplusplus
 }
