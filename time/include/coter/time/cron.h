@@ -52,29 +52,29 @@ typedef ct_time64_t (*ct_cron_gettime_cb)(void);
 typedef void (*ct_cron_callback_t)(void*);
 
 typedef struct ct_cron {
-	ct_heap_node_t     node;
-	ct_time_t          next_time;
-	ct_cron_callback_t cb;
-	void*              arg;
-	int32_t            minute : 7;
-	int32_t            hour : 6;
-	int32_t            day : 6;
-	int32_t            week : 4;
-	int32_t            month : 5;
-	uint32_t           is_active : 1;
-	uint32_t           is_queued : 1;
-	uint32_t           reserved : 2;
+    ct_heap_node_t     node;
+    ct_cron_callback_t cb;
+    void*              arg;
+    ct_time_t          next_time;
+    int32_t            minute : 7;
+    int32_t            hour : 6;
+    int32_t            day : 6;
+    int32_t            week : 4;
+    int32_t            month : 5;
+    uint32_t           is_active : 1;
+    uint32_t           is_queued : 1;
+    uint32_t           reserved : 2;
 } ct_cron_t;
 
 /**
  * @brief 初始化cron任务
- * @param self cron对象
+ * @param cron cron对象
  */
-COTER_API void ct_cron_init(ct_cron_t* self);
+COTER_API void ct_cron_init(ct_cron_t* cron);
 
 /**
  * @brief 启动cron任务
- * @param self cron对象
+ * @param cron cron对象
  * @param minute 分钟 (0-59, -1 表示每分钟)
  * @param hour 小时 (0-23, -1 表示每小时)
  * @param day 日期 (1-31, -1 表示每天)
@@ -83,24 +83,25 @@ COTER_API void ct_cron_init(ct_cron_t* self);
  * @param callback 任务触发时的回调函数
  * @param arg 传递给回调函数的参数
  */
-COTER_API int ct_cron_start(ct_cron_t* self, int minute, int hour, int day, int week, int month, ct_cron_callback_t callback, void* arg);
+COTER_API int ct_cron_start(ct_cron_t* cron, int minute, int hour, int day, int week, int month,
+                            ct_cron_callback_t callback, void* arg);
 
 /**
  * @brief 重置cron任务
- * @param self cron对象
+ * @param cron cron对象
  * @param minute 分钟 (0-59, -1 表示每分钟)
  * @param hour 小时 (0-23, -1 表示每小时)
  * @param day 日期 (1-31, -1 表示每天)
  * @param week 星期 (0-6, 0 表示周日, -1 表示每周)
  * @param month 月份 (1-12, -1 表示每月)
  */
-COTER_API int ct_cron_reset(ct_cron_t* self, int minute, int hour, int day, int week, int month);
+COTER_API int ct_cron_reset(ct_cron_t* cron, int minute, int hour, int day, int week, int month);
 
 /**
  * @brief 停止cron任务
- * @param self cron对象
+ * @param cron cron对象
  */
-COTER_API int ct_cron_stop(ct_cron_t* self);
+COTER_API int ct_cron_stop(ct_cron_t* cron);
 
 /**
  * @brief 初始化cron管理器
