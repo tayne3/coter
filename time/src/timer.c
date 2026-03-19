@@ -4,188 +4,239 @@
  */
 #include "coter/time/timer.h"
 
-#include <stdint.h>
-#include <stdlib.h>
-
 #include "coter/sync/atomic.h"
 #include "coter/sync/cond.h"
 #include "coter/sync/mutex.h"
-#include "coter/thread/once.h"
-#include "timer_core.h"
-#include "timer_internal.h"
+#include "coter/time/ticker.h"
 
-/**
- * @struct ct_timer_manager
- * @brief 全局任务调度堆与保护锁
- */
-static struct ct_timer_manager {
-	ct_time64_t (*gettime_cb)(void);  // 时间获取回调
+typedef enum node_type {
+    NODE_TYPE_TIMER = 0,
+    NODE_TYPE_TIMEOUT,
+    NODE_TYPE_TICKER,
+} node_type_t;
 
-	ct_timer_core_t core;
-	ct_mutex_t      lock;  // 全局锁
-	ct_cond_t       cv;    // 调度器等待条件变量
+typedef struct timer_node {
+    CT_TIMER_BASE
+} node_t;
 
-	ct_atomic_bool_t shutdown;
-	ct_atomic_bool_t running;
+static struct timer_manager {
+    ct_heap_t  nodes;
+    ct_mutex_t lock;
+    ct_cond_t  cv;
 
-	ct_time64_t recent_time;
+    ct_time64_t (*gettime_cb)(void);
+
+    ct_atomic_bool_t is_shutdown;
+
+    ct_time64_t recent;
 } g_mgr = {
-	.gettime_cb = ct_getuptime_ms,
+    .lock = CT_MUTEX_INITIALIZER,
+    .cv   = CT_COND_INITIALIZER,
 
-	.shutdown = CT_ATOMIC_VAR_INIT(0),
-	.running  = CT_ATOMIC_VAR_INIT(0),
+    .gettime_cb = ct_getuptime_ms,
 
-	.recent_time = 0,
+    .is_shutdown = CT_ATOMIC_VAR_INIT(1),
+
+    .recent = 0,
 };
 
-static ct_once_t g_mgr_once = CT_ONCE_INIT;
+static int  node__compare(const ct_heap_node_t* a, const ct_heap_node_t* b);
+static int  node__ops_start(node_t* node, enum node_type type, ct_time64_t interval_ms, ct_timer_callback_t cb,
+                            void* arg);
+static int  node__ops_stop(node_t* node);
+static void node__reuse(node_t* node);
+static void node__clear(void);
 
-static void timer__dispose_node(ct_timer_node_t *node, void *ctx);
-static void timer__init_runtime(void);
-static void timer__ensure_runtime(void);
-
-static void timer__init_runtime(void) {
-	ct_timer_core_init(&g_mgr.core);
-	ct_mutex_init(&g_mgr.lock);
-	ct_cond_init(&g_mgr.cv);
+void ct_timer_init(ct_timer_t* timer) {
+    if (!timer) { return; }
+    timer->is_active = timer->is_queued = 0;
+    timer->cb                           = NULL;
 }
 
-static void timer__ensure_runtime(void) {
-	ct_once_exec(&g_mgr_once, timer__init_runtime);
+int ct_timer_start(ct_timer_t* timer, ct_time64_t timeout_ms, void (*cb)(void*), void* arg) {
+    if (!timer || !cb) { return -1; }
+    return node__ops_start((node_t*)timer, NODE_TYPE_TIMER, timeout_ms, cb, arg);
 }
 
-void ct_timer_mgr_run(ct_time64_t (*gettime_cb)(void)) {
-	timer__ensure_runtime();
-	if (ct_atomic_bool_load(&g_mgr.running)) { return; }
-	ct_atomic_bool_store(&g_mgr.running, true);
-	ct_atomic_bool_store(&g_mgr.shutdown, false);
+int ct_timer_reset(ct_timer_t* timer, ct_time64_t timeout_ms) {
+    if (!timer || !timer->cb) { return -1; }
+    return node__ops_start((node_t*)timer, NODE_TYPE_TIMER, timeout_ms, timer->cb, timer->arg);
+}
 
-	g_mgr.gettime_cb  = gettime_cb ? gettime_cb : ct_getuptime_ms;
-	g_mgr.recent_time = 0;
+int ct_timer_stop(ct_timer_t* timer) {
+    if (!timer) { return -1; }
+    return node__ops_stop((node_t*)timer);
+}
 
-	ct_mutex_lock(&g_mgr.lock);
-	while (!ct_atomic_bool_load(&g_mgr.shutdown)) {
-		ct_time64_t now = g_mgr.gettime_cb();
-		if (ct_timer_core_is_empty(&g_mgr.core)) {
-			g_mgr.recent_time = 0;
-			ct_cond_wait(&g_mgr.cv, &g_mgr.lock);
-			continue;
-		}
+int ct_set_timeout(ct_time64_t timeout_ms, void (*cb)(void*), void* arg) {
+    if (!cb) { return -1; }
 
-		ct_time64_t deadline = ct_timer_core_next_deadline(&g_mgr.core);
-		if (now < deadline) {
-			const ct_time64_t wait_ms    = deadline - now;
-			const uint32_t    timeout_ms = wait_ms > UINT32_MAX ? UINT32_MAX : (uint32_t)wait_ms;
-			g_mgr.recent_time            = deadline;
-			ct_cond_timedwait(&g_mgr.cv, &g_mgr.lock, timeout_ms);
-			continue;
-		}
-		ct_timer_node_t *node = ct_timer_core_pop_expired(&g_mgr.core, now);
-		if (!node) { continue; }
-		ct_timer_callback_t cb  = node->cb;
-		void               *arg = node->arg;
-		ct_timer_core_prepare_fire(&g_mgr.core, node);
+    ct_timer_t* timer = (ct_timer_t*)calloc(1, sizeof(ct_timer_t));
+    if (!timer) { return -1; }
 
-		if (node->type == CT_TIMER_NODE_TIMEOUT) {
-			ct_mutex_unlock(&g_mgr.lock);
-			free(node);
-			if (cb) { cb(arg); }
-			ct_mutex_lock(&g_mgr.lock);
-			continue;
-		}
+    int ret = node__ops_start((node_t*)timer, NODE_TYPE_TIMEOUT, timeout_ms, cb, arg);
+    if (ret != 0) { free(timer); }
+    return ret;
+}
 
-		ct_mutex_unlock(&g_mgr.lock);
-		if (cb) { cb(arg); }
-		ct_mutex_lock(&g_mgr.lock);
-	}
+int ct_ticker_start(ct_ticker_t* ticker, ct_time64_t interval_ms, ct_ticker_callback_t cb, void* arg) {
+    if (!ticker || !cb) { return -1; }
+    return node__ops_start((node_t*)ticker, NODE_TYPE_TICKER, interval_ms, cb, arg);
+}
 
-	ct_timer_core_clear(&g_mgr.core, timer__dispose_node, NULL);
-	ct_mutex_unlock(&g_mgr.lock);
-	ct_atomic_bool_store(&g_mgr.running, false);
+int ct_ticker_reset(ct_ticker_t* ticker, ct_time64_t interval_ms) {
+    if (!ticker || !ticker->cb) { return -1; }
+    return node__ops_start((node_t*)ticker, NODE_TYPE_TICKER, interval_ms, ticker->cb, ticker->arg);
+}
+
+int ct_ticker_stop(ct_ticker_t* ticker) {
+    if (!ticker) { return -1; }
+    return node__ops_stop((node_t*)ticker);
+}
+
+void ct_ticker_init(ct_ticker_t* ticker) {
+    if (!ticker) { return; }
+    ticker->is_active = ticker->is_queued = 0;
+    ticker->cb                            = NULL;
+}
+
+void ct_timer_mgr_init(ct_time64_t (*gettime_cb)(void)) {
+    g_mgr.gettime_cb = gettime_cb ? gettime_cb : ct_getuptime_ms;
+    g_mgr.recent     = 0;
+
+    ct_heap_init(&g_mgr.nodes, node__compare);
+    ct_atomic_bool_store(&g_mgr.is_shutdown, false);
+}
+
+void ct_timer_mgr_run(void) {
+    ct_mutex_lock(&g_mgr.lock);
+    while (!ct_atomic_bool_load(&g_mgr.is_shutdown)) {
+        node_t* node = (node_t*)ct_heap_top(&g_mgr.nodes);
+        if (!node) {
+            g_mgr.recent = 0;
+            ct_cond_wait(&g_mgr.cv, &g_mgr.lock);
+            continue;
+        }
+        ct_time64_t now = g_mgr.gettime_cb();
+        if (node->next_time > now) {
+            ct_time64_t wait = node->next_time - now;
+            if (wait > 1000) { wait = 1000; }
+            if (wait < 0) { wait = 0; }
+            g_mgr.recent = node->next_time;
+            // printf("[%s:%d] ---- run, now: %lld, next_time: %lld, wait: %lld\n", __ct_file__, __ct_line__, now,
+            // node->next_time, wait);
+            ct_cond_timedwait(&g_mgr.cv, &g_mgr.lock, (uint32_t)wait);
+            continue;
+        }
+
+        ct_timer_callback_t cb  = node->cb;
+        void*               arg = node->arg;
+
+        node->is_queued = 0;
+        ct_heap_pop(&g_mgr.nodes);
+        node__reuse(node);
+
+        ct_mutex_unlock(&g_mgr.lock);
+        if (cb) { cb(arg); }
+        ct_mutex_lock(&g_mgr.lock);
+    }
+    node__clear();
+    ct_mutex_unlock(&g_mgr.lock);
 }
 
 void ct_timer_mgr_close(void) {
-	timer__ensure_runtime();
-	if (ct_atomic_bool_load(&g_mgr.shutdown)) { return; }
-	ct_atomic_bool_store(&g_mgr.shutdown, true);
+    if (ct_atomic_bool_load(&g_mgr.is_shutdown)) { return; }
 
-	ct_mutex_lock(&g_mgr.lock);
-	ct_cond_signal(&g_mgr.cv);
-	ct_mutex_unlock(&g_mgr.lock);
+    ct_mutex_lock(&g_mgr.lock);
+    ct_atomic_bool_store(&g_mgr.is_shutdown, true);
+    ct_cond_broadcast(&g_mgr.cv);
+    ct_mutex_unlock(&g_mgr.lock);
 }
 
-void ct_timer_start(ct_timer_t *timer, ct_time64_t timeout_ms, void (*cb)(void *), void *arg) {
-	if (!timer || !cb || ct_atomic_bool_load(&g_mgr.shutdown)) { return; }
-
-	timer__ensure_runtime();
-	ct_mutex_lock(&g_mgr.lock);
-	ct_timer_core_start_timer(&g_mgr.core, timer, g_mgr.gettime_cb(), timeout_ms, cb, arg);
-	if (g_mgr.recent_time > timer->trigger_time || g_mgr.recent_time == 0) { ct_cond_signal(&g_mgr.cv); }
-	ct_mutex_unlock(&g_mgr.lock);
+static int node__compare(const ct_heap_node_t* a, const ct_heap_node_t* b) {
+    const node_t* l = (const node_t*)a;
+    const node_t* r = (const node_t*)b;
+    if (l->next_time < r->next_time) { return -1; }
+    if (l->next_time > r->next_time) { return 1; }
+    return 0;
 }
 
-void ct_timer_reset(ct_timer_t *timer, ct_time64_t timeout_ms) {
-	if (!timer || ct_atomic_bool_load(&g_mgr.shutdown)) { return; }
+static int node__ops_start(node_t* node, enum node_type type, ct_time64_t interval_ms, ct_timer_callback_t cb,
+                           void* arg) {
+    if (ct_atomic_bool_load(&g_mgr.is_shutdown)) { return -1; }
 
-	timer__ensure_runtime();
-	ct_mutex_lock(&g_mgr.lock);
-	ct_timer_core_reset_timer(&g_mgr.core, timer, g_mgr.gettime_cb(), timeout_ms);
-	if (g_mgr.recent_time > timer->trigger_time || g_mgr.recent_time == 0) { ct_cond_signal(&g_mgr.cv); }
-	ct_mutex_unlock(&g_mgr.lock);
+    const ct_time64_t now = g_mgr.gettime_cb();
+    ct_mutex_lock(&g_mgr.lock);
+    node->is_active = 0;
+    if (node->is_queued) {
+        node->is_queued = 0;
+        ct_heap_remove(&g_mgr.nodes, &node->node);
+    }
+
+    switch (type) {
+        case NODE_TYPE_TIMER:
+        case NODE_TYPE_TIMEOUT: break;
+        case NODE_TYPE_TICKER: ((ct_ticker_t*)node)->interval = interval_ms; break;
+        default: ct_mutex_unlock(&g_mgr.lock); return -1;
+    }
+
+    node->type      = type;
+    node->next_time = now + interval_ms;
+    node->cb        = cb;
+    node->arg       = arg;
+    node->is_active = 1;
+
+    // printf("[%s:%d] ---- node__ops_start, now: %lld, next_time: %lld, interval: %lld\n", __ct_file__, __ct_line__,
+    // now, node->next_time, interval_ms);
+
+    ct_heap_insert(&g_mgr.nodes, &node->node);
+    node->is_queued = 1;
+    if (g_mgr.recent > node->next_time || g_mgr.recent == 0) { ct_cond_signal(&g_mgr.cv); }
+    ct_mutex_unlock(&g_mgr.lock);
+    return 0;
 }
 
-void ct_timer_stop(ct_timer_t *timer) {
-	if (!timer) { return; }
-	timer__ensure_runtime();
-	ct_mutex_lock(&g_mgr.lock);
-	ct_timer_core_stop(&g_mgr.core, (ct_timer_node_t *)timer);
-	ct_mutex_unlock(&g_mgr.lock);
+static int node__ops_stop(node_t* node) {
+    if (ct_atomic_bool_load(&g_mgr.is_shutdown)) { return -1; }
+
+    ct_mutex_lock(&g_mgr.lock);
+    if (!node->is_active) {
+        ct_mutex_unlock(&g_mgr.lock);
+        return -1;
+    }
+    node->is_active = 0;
+    if (node->is_queued) {
+        node->is_queued = 0;
+        ct_heap_remove(&g_mgr.nodes, &node->node);
+    }
+    ct_mutex_unlock(&g_mgr.lock);
+    return 0;
 }
 
-int ct_set_timeout(ct_time64_t timeout_ms, void (*cb)(void *), void *arg) {
-	if (!cb || ct_atomic_bool_load(&g_mgr.shutdown)) { return -1; }
-
-	timer__ensure_runtime();
-	ct_timer_t *timer = (ct_timer_t *)malloc(sizeof(ct_timer_t));
-	if (!timer) { return -1; }
-
-	ct_mutex_lock(&g_mgr.lock);
-	ct_timer_core_start_timeout(&g_mgr.core, timer, g_mgr.gettime_cb(), timeout_ms, cb, arg);
-	if (g_mgr.recent_time > timer->trigger_time || g_mgr.recent_time == 0) { ct_cond_signal(&g_mgr.cv); }
-	ct_mutex_unlock(&g_mgr.lock);
-	return 0;
+static void node__reuse(node_t* node) {
+    switch (node->type) {
+        case NODE_TYPE_TICKER: {
+            node->next_time += ((ct_ticker_t*)node)->interval;
+            ct_heap_insert(&g_mgr.nodes, &node->node);
+            node->is_queued = 1;
+        } break;
+        case NODE_TYPE_TIMEOUT: {
+            node->is_active = 0;
+            free(node);
+        } break;
+        case NODE_TYPE_TIMER:
+        default: {
+            node->is_active = 0;
+        } break;
+    }
 }
 
-void ct_ticker_start(ct_ticker_t *ticker, ct_time64_t interval_ms, void (*cb)(void *), void *arg) {
-	if (!ticker || !cb || ct_atomic_bool_load(&g_mgr.shutdown)) { return; }
-
-	timer__ensure_runtime();
-	ct_mutex_lock(&g_mgr.lock);
-	ct_timer_core_start_ticker(&g_mgr.core, ticker, g_mgr.gettime_cb(), interval_ms, cb, arg);
-	if (g_mgr.recent_time > ticker->trigger_time || g_mgr.recent_time == 0) { ct_cond_signal(&g_mgr.cv); }
-	ct_mutex_unlock(&g_mgr.lock);
-}
-
-void ct_ticker_reset(ct_ticker_t *ticker, ct_time64_t interval_ms) {
-	if (!ticker || ct_atomic_bool_load(&g_mgr.shutdown)) { return; }
-
-	timer__ensure_runtime();
-	ct_mutex_lock(&g_mgr.lock);
-	ct_timer_core_reset_ticker(&g_mgr.core, ticker, g_mgr.gettime_cb(), interval_ms);
-	if (g_mgr.recent_time > ticker->trigger_time || g_mgr.recent_time == 0) { ct_cond_signal(&g_mgr.cv); }
-	ct_mutex_unlock(&g_mgr.lock);
-}
-
-void ct_ticker_stop(ct_ticker_t *ticker) {
-	if (!ticker) { return; }
-	timer__ensure_runtime();
-	ct_mutex_lock(&g_mgr.lock);
-	ct_timer_core_stop(&g_mgr.core, (ct_timer_node_t *)ticker);
-	ct_mutex_unlock(&g_mgr.lock);
-}
-
-static void timer__dispose_node(ct_timer_node_t *node, void *ctx) {
-	CT_UNUSED(ctx);
-	if (!node) { return; }
-	if (node->type == CT_TIMER_NODE_TIMEOUT) { free(node); }
+static void node__clear(void) {
+    while (1) {
+        node_t* node = (node_t*)ct_heap_pop(&g_mgr.nodes);
+        if (!node) { break; }
+        node->is_active = 0;
+        node->is_queued = 0;
+        if (node->type == NODE_TYPE_TIMEOUT) { free(node); }
+    }
 }
