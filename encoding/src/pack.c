@@ -141,11 +141,11 @@ int ct_pack(void* buf, size_t bufsize, const char* fmt, ...) {
                 switch (c) {
                     case CTPackOpt_Int32:
                         sz = sizeof(int32_t);
-                        vp = &(int32_t){(int32_t)va_arg(ap, int32_t)};
+                        vp = &(int32_t){va_arg(ap, int32_t)};
                         break;
                     case CTPackOpt_UInt32:
                         sz = sizeof(uint32_t);
-                        vp = &(uint32_t){(uint32_t)va_arg(ap, uint32_t)};
+                        vp = &(uint32_t){va_arg(ap, uint32_t)};
                         break;
                     case CTPackOpt_Long:
                         sz = sizeof(long);
@@ -337,7 +337,7 @@ int ct_unpack(void* buf, size_t bufsize, const char* fmt, ...) {
                         break;
                     case CTPackOpt_Pointer:
                         sz = sizeof(void*);
-                        vp = va_arg(ap, void**);
+                        vp = va_arg(ap, void*);
                         break;
                     default: goto error;
                 }
