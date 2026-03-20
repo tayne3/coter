@@ -21,7 +21,11 @@
  *    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  *    SOFTWARE.
  *
- * @note The `mb_pack` module is inspired by [LuatOS](https://github.com/openLuat/LuatOS.git)
+ * @note The format specifiers of this module are aligned with Python's struct module.
+ *       Reference: https://docs.python.org/3/library/struct.html
+ *
+ *       Notable extensions compared to Python struct:
+ *       - '+' / '-' : enable/disable byte swapping (custom extension)
  */
 #ifndef COTER_ENCODING_PACK_H
 #define COTER_ENCODING_PACK_H
@@ -34,61 +38,109 @@ extern "C" {
 
 /**
  * @brief Pack data into a buffer
- * @param format Format string
- * @param ... Variable arguments
+ * @param buf      Output buffer
+ * @param bufsize  Size of output buffer
+ * @param fmt      Format string
+ * @param ...      Variable arguments
  * @return Success returns the number of bytes written, failure returns -1
- * @note Format string
+ *
+ * @note Format string (aligned with Python struct):
+ * @note https://docs.python.org/3/library/struct.html
+ *
+ * Byte order, size, and alignment:
  * [[
- '<' Set to little-endian encoding
- '>' Set to big-endian encoding
- '=' Follow native endianness
- '+' Enable byte swapping
- '-' Disable byte swapping
- 'z' Zero-terminated string
- 'a' size_t string, first 4 bytes indicate length, followed by N bytes of data
- 'A' Fixed-length string, e.g., A8 represents 8 bytes of data
- 'f' float, 4 bytes
- 'd' double, 8 bytes
- 'c' char, 1 byte
- 'b' unsigned char, 1 byte
- 'h' short, 2 bytes
- 'H' unsigned short, 2 bytes
- 'i' int, 4 bytes
- 'I' unsigned int, 4 bytes
- 'l' long, 8 bytes, only correctly handled in 64-bit firmware
- 'L' unsigned long, 8 bytes, only correctly handled in 64-bit firmware
- ]]
+ *  '<'  little-endian
+ *  '>'  big-endian (also '!', network byte order)
+ *  '='  native byte order (standard size, no alignment)
+ *  '@'  native byte order (with native size and alignment)
+ *  '+'  enable byte swapping (custom extension, applies to multi-byte types)
+ *  '-'  disable byte swapping (default)
+ *  ' '  (space) ignored, does not consume arguments
+ *  ','  (comma) ignored, does not consume arguments
+ * ]]
+ *
+ * Format characters:
+ * [[
+ *  'c'  char             1 byte
+ *  'b'  int8_t           1 byte
+ *  'B'  uint8_t          1 byte
+ *  '?'  bool             1 byte
+ *  'h'  int16_t          2 bytes
+ *  'H'  uint16_t         2 bytes
+ *  'i'  int32_t          4 bytes
+ *  'I'  uint32_t         4 bytes
+ *  'l'  long             platform dependent
+ *  'L'  unsigned long    platform dependent
+ *  'q'  int64_t          8 bytes
+ *  'Q'  uint64_t         8 bytes
+ *  'n'  ssize_t          platform dependent
+ *  'N'  size_t           platform dependent
+ *  'P'  void*            platform dependent
+ *  'f'  float            4 bytes
+ *  'd'  double           8 bytes
+ *  's'  byte string      N bytes, must follow with a decimal number, e.g. s10
+ *  'p'  pascal string    1 byte length + N bytes data
+ *  'z'  zero-terminated  string
+ * ]]
+ *
+ * @note The '+'/'-' modifiers only affect multi-byte types (2, 4, 8 bytes).
+ *       It swaps adjacent bytes, useful for middle-endian ( PDP-11 ) conversion.
  */
-COTER_API int ct_pack(void *buf, size_t bufsize, const char *fmt, ...);
+COTER_API int ct_pack(void* buf, size_t bufsize, const char* fmt, ...);
 
 /**
  * @brief Unpack data from a buffer
- * @param format Format string
- * @param ... Variable arguments
- * @return Success returns the number of bytes unpacked, failure returns -1
- * @note Format string
+ * @param buf      Input buffer
+ * @param bufsize  Size of input buffer
+ * @param fmt      Format string
+ * @param ...      Variable arguments (pointers to store unpacked values)
+ * @return Success returns the number of bytes consumed, failure returns -1
+ *
+ * @note Format string (aligned with Python struct):
+ * @note https://docs.python.org/3/library/struct.html
+ *
+ * Byte order, size, and alignment:
  * [[
- '<' Set to little-endian encoding
- '>' Set to big-endian encoding
- '=' Follow native endianness
- '+' Enable byte swapping
- '-' Disable byte swapping
- 'z' Zero-terminated string
- 'a' size_t string, first 4 bytes indicate length, followed by N bytes of data
- 'A' Fixed-length string, e.g., A8 represents 8 bytes of data
- 'f' float, 4 bytes
- 'd' double, 8 bytes
- 'c' char, 1 byte
- 'b' unsigned char, 1 byte
- 'h' short, 2 bytes
- 'H' unsigned short, 2 bytes
- 'i' int, 4 bytes
- 'I' unsigned int, 4 bytes
- 'l' long, 8 bytes, only correctly handled in 64-bit firmware
- 'L' unsigned long, 8 bytes, only correctly handled in 64-bit firmware
- ]]
+ *  '<'  little-endian
+ *  '>'  big-endian (also '!', network byte order)
+ *  '='  native byte order (standard size, no alignment)
+ *  '@'  native byte order (with native size and alignment)
+ *  '+'  enable byte swapping (custom extension, applies to multi-byte types)
+ *  '-'  disable byte swapping (default)
+ *  ' '  (space) ignored, does not consume arguments
+ *  ','  (comma) ignored, does not consume arguments
+ * ]]
+ *
+ * Format characters:
+ * [[
+ *  'c'  char             1 byte
+ *  'b'  int8_t           1 byte
+ *  'B'  uint8_t          1 byte
+ *  '?'  bool             1 byte
+ *  'h'  int16_t          2 bytes
+ *  'H'  uint16_t         2 bytes
+ *  'i'  int32_t          4 bytes
+ *  'I'  uint32_t         4 bytes
+ *  'l'  long             platform dependent
+ *  'L'  unsigned long    platform dependent
+ *  'q'  int64_t          8 bytes
+ *  'Q'  uint64_t         8 bytes
+ *  'n'  ssize_t          platform dependent
+ *  'N'  size_t           platform dependent
+ *  'P'  void*            platform dependent
+ *  'f'  float            4 bytes
+ *  'd'  double           8 bytes
+ *  's'  byte string      N bytes, must follow with a decimal number, e.g. s10
+ *  'p'  pascal string    1 byte length + N bytes data
+ *  'z'  zero-terminated  string
+ * ]]
+ *
+ * @note For 's' format, the caller must provide a buffer large enough to hold N bytes.
+ *       It does NOT write a null terminator.
+ *
+ * @note The '+'/'-' modifiers only affect multi-byte types (2, 4, 8 bytes).
  */
-COTER_API int ct_unpack(void *buf, size_t bufsize, const char *fmt, ...);
+COTER_API int ct_unpack(void* buf, size_t bufsize, const char* fmt, ...);
 
 #ifdef __cplusplus
 }
