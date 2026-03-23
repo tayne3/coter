@@ -14,7 +14,6 @@ target_link_libraries(coter_container
     coter_compile_dependency
   PUBLIC
     coter::core
-    coter::types
     coter::strings
     coter::crypto
 )
