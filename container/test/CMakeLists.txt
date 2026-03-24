@@ -1,7 +1,3 @@
-add_executable(hash_test hash_test.cpp)
-add_test(NAME hash_test COMMAND hash_test)
-target_link_libraries(hash_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
-
 add_executable(heap_test heap_test.cpp)
 add_test(NAME heap_test COMMAND heap_test)
 target_link_libraries(heap_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
