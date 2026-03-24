@@ -107,12 +107,13 @@ TEST_CASE("pack_int32", "[pack]") {
 
 TEST_CASE("pack_long", "[pack]") {
     setup_buf();
-    const long          l_in  = -1234567890L;
-    const unsigned long L_in  = 3210987654UL;
-    long                l_out = 0;
-    unsigned long       L_out = 0;
-    REQUIRE(ct_pack(test_buffer, TEST_BUFFER_SIZE, "lL", l_in, L_in) == 8);
-    REQUIRE(ct_unpack(test_buffer, TEST_BUFFER_SIZE, "lL", &l_out, &L_out) == 8);
+    const long          l_in         = -1234567890L;
+    const unsigned long L_in         = 3210987654UL;
+    long                l_out        = 0;
+    unsigned long       L_out        = 0;
+    const int           expected_len = (int)(sizeof(l_in) + sizeof(L_in));
+    REQUIRE(ct_pack(test_buffer, TEST_BUFFER_SIZE, "lL", l_in, L_in) == expected_len);
+    REQUIRE(ct_unpack(test_buffer, TEST_BUFFER_SIZE, "lL", &l_out, &L_out) == expected_len);
     REQUIRE(l_out == l_in);
     REQUIRE(L_out == L_in);
 }

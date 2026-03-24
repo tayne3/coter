@@ -52,8 +52,8 @@
 #define CTPackOpt_SSize    'n' /* ssize_t, platform dependent */
 #define CTPackOpt_Size     'N' /* size_t, platform dependent */
 #define CTPackOpt_Pointer  'P' /* void*, platform dependent */
-#define CTPackOpt_Long     'l' /* long, 4 bytes (native) */
-#define CTPackOpt_ULong    'L' /* unsigned long, 4 bytes (native) */
+#define CTPackOpt_Long     'l' /* long, platform dependent */
+#define CTPackOpt_ULong    'L' /* unsigned long, platform dependent */
 #define CTPackOpt_Float    'f' /* float, 4 bytes */
 #define CTPackOpt_Double   'd' /* double, 8 bytes */
 #define CTPackOpt_FString  's' /* fixed-length byte string, followed by decimal number */
