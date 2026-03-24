@@ -16,54 +16,54 @@
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
 void ct_queue_init(ct_queue_buf_t self, void* buffer, size_t byte, size_t max) {
-	if (!self || !buffer || !byte) { return; }
+    if (!self || !buffer || !byte) { return; }
 
-	self->_all  = buffer;
-	self->_byte = byte;
-	self->_max  = max;
+    self->_all  = buffer;
+    self->_byte = byte;
+    self->_max  = max;
 
-	ct_queue_clear(self);
+    ct_queue_clear(self);
 }
 
 bool ct_queue_enqueue(ct_queue_buf_t self, const void* item) {
-	if (!self || !self->_byte || !item) { return false; }
+    if (!self || !self->_byte || !item) { return false; }
 
-	if (ct_queue_isfull(self)) { return false; }
-	memcpy(CT_QUEUE_ITEM(self, self->_tail), item, self->_byte);
-	self->_tail = CT_QUEUE_INDEX_INC(self, self->_tail);
-	self->_size++;
-	return true;
+    if (ct_queue_isfull(self)) { return false; }
+    memcpy(CT_QUEUE_ITEM(self, self->_tail), item, self->_byte);
+    self->_tail = CT_QUEUE_INDEX_INC(self, self->_tail);
+    self->_size++;
+    return true;
 }
 
 bool ct_queue_dequeue(ct_queue_buf_t self, void* item) {
-	if (!self || !self->_byte || !item) { return false; }
+    if (!self || !self->_byte || !item) { return false; }
 
-	if (ct_queue_isempty(self)) { return false; }
-	memcpy(item, CT_QUEUE_ITEM(self, self->_head), self->_byte);
-	self->_head = CT_QUEUE_INDEX_INC(self, self->_head);
-	self->_size--;
-	return true;
+    if (ct_queue_isempty(self)) { return false; }
+    memcpy(item, CT_QUEUE_ITEM(self, self->_head), self->_byte);
+    self->_head = CT_QUEUE_INDEX_INC(self, self->_head);
+    self->_size--;
+    return true;
 }
 
 bool ct_queue_head(ct_queue_buf_t self, void* item) {
-	if (!self || !self->_byte || !item) { return false; }
+    if (!self || !self->_byte || !item) { return false; }
 
-	if (ct_queue_isempty(self)) { return false; }
-	memcpy(item, CT_QUEUE_ITEM(self, self->_head), self->_byte);
-	return true;
+    if (ct_queue_isempty(self)) { return false; }
+    memcpy(item, CT_QUEUE_ITEM(self, self->_head), self->_byte);
+    return true;
 }
 
 int ct_queue_traverse(ct_queue_buf_t self, int (*callback)(void* item, void* arg), void* item, void* arg) {
-	if (!self || !self->_byte || !callback) { return -1; }
+    if (!self || !self->_byte || !callback) { return -1; }
 
-	size_t idx = self->_head;
-	for (size_t i = 0; i < self->_size; ++i) {
-		memcpy(item, CT_QUEUE_ITEM(self, idx), self->_byte);
-		const int ret = callback(item, arg);
-		if (ret) { return ret; }
-		idx = CT_QUEUE_INDEX_INC(self, idx);
-	}
-	return 0;
+    size_t idx = self->_head;
+    for (size_t i = 0; i < self->_size; ++i) {
+        memcpy(item, CT_QUEUE_ITEM(self, idx), self->_byte);
+        const int ret = callback(item, arg);
+        if (ret) { return ret; }
+        idx = CT_QUEUE_INDEX_INC(self, idx);
+    }
+    return 0;
 }
 
 // -------------------------[STATIC DEFINITION]-------------------------

@@ -2,8 +2,8 @@
  * @file heap.h
  * @brief Min-Heap (Pairing Heap)
  */
-#ifndef COTER_HEAP_H
-#define COTER_HEAP_H
+#ifndef COTER_CONTAINER_HEAP_H
+#define COTER_CONTAINER_HEAP_H
 
 #include "coter/core/platform.h"
 
@@ -13,9 +13,9 @@ extern "C" {
 
 // Min-Heap Node
 typedef struct ct_heap_node {
-	struct ct_heap_node* child;  // Pointer to the first child node
-	struct ct_heap_node* left;   // Pointer to the left sibling, or the parent if it's the first child
-	struct ct_heap_node* right;  // Pointer to the right sibling
+    struct ct_heap_node* child;  // Pointer to the first child node
+    struct ct_heap_node* left;   // Pointer to the left sibling, or the parent if it's the first child
+    struct ct_heap_node* right;  // Pointer to the right sibling
 } ct_heap_node_t;
 
 // Min-Heap Compare Callback (<0 indicates that a has a higher priority than b)
@@ -23,9 +23,9 @@ typedef int (*ct_heap_compare_cb)(const ct_heap_node_t* a, const ct_heap_node_t*
 
 // Min-Heap Structure
 typedef struct ct_heap {
-	ct_heap_node_t*    _root;
-	uint32_t           _size;
-	ct_heap_compare_cb _cmp;
+    ct_heap_node_t*    _root;
+    uint32_t           _size;
+    ct_heap_compare_cb _cmp;
 } ct_heap_t;
 
 #define ct_heap_size(h)     ((h)->_size)
@@ -58,4 +58,4 @@ COTER_API void ct_heap_move(ct_heap_t* dst, ct_heap_t* src);
 #ifdef __cplusplus
 }
 #endif
-#endif  // COTER_HEAP_H
+#endif  // COTER_CONTAINER_HEAP_H

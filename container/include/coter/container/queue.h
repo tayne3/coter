@@ -5,8 +5,8 @@
  * 	定义了队列的数据结构和相关操作函数,包含队列的初始化、插入、删除、查询等操作。
  * 	队列是一种先进先出（FIFO）的数据结构，可以用于存储和访问一系列元素。
  */
-#ifndef COTER_QUEUE_H
-#define COTER_QUEUE_H
+#ifndef COTER_CONTAINER_QUEUE_H
+#define COTER_CONTAINER_QUEUE_H
 
 #include "coter/core/platform.h"
 
@@ -18,12 +18,12 @@ extern "C" {
  * @brief 队列结构体
  */
 typedef struct ct_queue {
-	char*  _all;   // 缓存区
-	size_t _byte;  // 元素字节大小
-	size_t _max;   // 缓存区长度
-	size_t _head;  // 头元素索引
-	size_t _tail;  // 尾元素索引
-	size_t _size;  // 元素数量
+    char*  _all;   // 缓存区
+    size_t _byte;  // 元素字节大小
+    size_t _max;   // 缓存区长度
+    size_t _head;  // 头元素索引
+    size_t _tail;  // 尾元素索引
+    size_t _size;  // 元素数量
 } ct_queue_t, ct_queue_buf_t[1];
 
 #define ct_queue_max(self)     ((self)->_max)                                       // 获取 队列 最大容量
@@ -78,4 +78,4 @@ COTER_API int ct_queue_traverse(ct_queue_buf_t self, int (*callback)(void* item,
 #ifdef __cplusplus
 }
 #endif
-#endif  // COTER_QUEUE_H
+#endif  // COTER_CONTAINER_QUEUE_H

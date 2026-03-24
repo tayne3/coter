@@ -6,8 +6,8 @@
  *  链表是一种常见的数据结构，用于存储和访问一系列元素。
  *  本文件定义了链表的节点结构体和链表的基本操作函数。
  */
-#ifndef COTER_LIST_H
-#define COTER_LIST_H
+#ifndef COTER_CONTAINER_LIST_H
+#define COTER_CONTAINER_LIST_H
 
 #include "coter/core/platform.h"
 
@@ -27,8 +27,8 @@ struct ct_list;
  * 尾节点是最后一个节点, 头节点的前驱节点为尾节点，尾节点的后继节点为头节点;
  */
 typedef struct ct_list {
-	struct ct_list* prev;  // 前驱节点
-	struct ct_list* next;  // 后继节点
+    struct ct_list* prev;  // 前驱节点
+    struct ct_list* next;  // 后继节点
 } ct_list_t, ct_list_buf_t[1];
 
 // 计算包含链表节点的对象指针
@@ -48,8 +48,10 @@ typedef struct ct_list {
 #define ct_list_first_entry(__head, __type, __member) ct_list_entry((__head)->next, __type, __member)
 #define ct_list_last_entry(__head, __type, __member)  ct_list_entry((__head)->prev, __type, __member)
 
-#define ct_list_next_entry(__pos, __type, __member) !(__pos) ? NULL : ct_list_entry((__pos)->__member->next, __type, __member)
-#define ct_list_prev_entry(__pos, __type, __member) !(__pos) ? NULL : ct_list_entry((__pos)->__member->prev, __type, __member)
+#define ct_list_next_entry(__pos, __type, __member) \
+    !(__pos) ? NULL : ct_list_entry((__pos)->__member->next, __type, __member)
+#define ct_list_prev_entry(__pos, __type, __member) \
+    !(__pos) ? NULL : ct_list_entry((__pos)->__member->prev, __type, __member)
 
 // 遍历链表节点
 // 	- __pos 用于遍历的节点
@@ -63,8 +65,9 @@ typedef struct ct_list {
 // 	- __type 包含链表节点的条目的类型
 // 	- __member 在结构体@type中表示链表头的成员变量的名称
 // 在遍历链表时，节点和链表头必须保持不变。对链表进行任何修改将导致未定义行为。
-#define ct_list_foreach_entry(__pos, __head, __type, __member) \
-	for (__type* __pos = ct_list_first_entry((__head), __type, __member); __pos->__member != (__head); __pos = ct_list_next_entry(__pos, __type, __member))
+#define ct_list_foreach_entry(__pos, __head, __type, __member)                                         \
+    for (__type* __pos = ct_list_first_entry((__head), __type, __member); __pos->__member != (__head); \
+         __pos         = ct_list_next_entry(__pos, __type, __member))
 
 // 遍历链表节点 (从指定位置开始遍历)
 // 	- __pos 用于遍历的起始节点
@@ -73,7 +76,7 @@ typedef struct ct_list {
 // 	- __member 在结构体@type中表示链表头的成员变量的名称
 // 在遍历链表时，节点和链表头必须保持不变。对链表进行任何修改将导致未定义行为。
 #define ct_list_foreach_entry_from(__pos, __head, __type, __member) \
-	for (; (__pos)->__member != (__head); (__pos) = ct_list_next_entry((__pos), __type, __member))
+    for (; (__pos)->__member != (__head); (__pos) = ct_list_next_entry((__pos), __type, __member))
 
 // 遍历链表节点
 // 	- __pos 用于遍历的节点
@@ -82,9 +85,10 @@ typedef struct ct_list {
 // 	- __member 在结构体@type中表示链表头的成员变量的名称
 // 在遍历链表时，节点和链表头必须保持不变。对链表进行任何修改将导致未定义行为。
 // 此宏允许在遍历链表时安全地删除当前节点。
-#define ct_list_foreach_entry_safe(__pos, __head, __type, __member)                                                          \
-	for (__type* __pos = ct_list_first_entry(__head, __type, __member), *___n = ct_list_next_entry(__pos, __type, __member); \
-		 __pos && __pos->__member != (__head); __pos = ___n, ___n = ct_list_next_entry(___n, __type, __member))
+#define ct_list_foreach_entry_safe(__pos, __head, __type, __member)                                   \
+    for (__type* __pos                               = ct_list_first_entry(__head, __type, __member), \
+                 *___n                               = ct_list_next_entry(__pos, __type, __member);   \
+         __pos && __pos->__member != (__head); __pos = ___n, ___n = ct_list_next_entry(___n, __type, __member))
 
 // 初始化/重置链表
 COTER_API void ct_list_init(ct_list_t* self);
@@ -112,4 +116,4 @@ COTER_API void ct_list_splice_next(ct_list_t* self, ct_list_t* list);
 #ifdef __cplusplus
 }
 #endif
-#endif  // COTER_LIST_H
+#endif  // COTER_CONTAINER_LIST_H

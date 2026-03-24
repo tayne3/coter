@@ -2,8 +2,8 @@
  * @file stack.h
  * @brief LIFO 栈
  */
-#ifndef COTER_STACK_H
-#define COTER_STACK_H
+#ifndef COTER_CONTAINER_STACK_H
+#define COTER_CONTAINER_STACK_H
 
 #include "coter/core/platform.h"
 
@@ -59,4 +59,4 @@ COTER_API bool ct_stack_top(ct_stack_buf_t self, void* item);
 #ifdef __cplusplus
 }
 #endif
-#endif  // COTER_STACK_H
+#endif  // COTER_CONTAINER_STACK_H

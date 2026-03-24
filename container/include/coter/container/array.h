@@ -2,8 +2,8 @@
  * @file array.h
  * @brief 通用动态数组
  */
-#ifndef COTER_ARRAY_H
-#define COTER_ARRAY_H
+#ifndef COTER_CONTAINER_ARRAY_H
+#define COTER_CONTAINER_ARRAY_H
 
 #include "coter/container/vector.h"
 
@@ -15,13 +15,14 @@ extern "C" {
  * @brief 通用动态数组结构体。
  */
 typedef struct ct_array {
-	char*  _ptr;   ///< 指向存储元素的原始内存缓冲区的指针。
-	size_t _byte;  ///< 每个元素的字节大小。
-	size_t _cap;   ///< 当前已分配的容量 (以元素数量计)。
-	size_t _size;  ///< 当前存储的元素数量。
+    char*  _ptr;   ///< 指向存储元素的原始内存缓冲区的指针。
+    size_t _byte;  ///< 每个元素的字节大小。
+    size_t _cap;   ///< 当前已分配的容量 (以元素数量计)。
+    size_t _size;  ///< 当前存储的元素数量。
 } ct_array_t;
 
-#define ct_array_foreach(self, TYPE, it) for (TYPE* it = (TYPE*)(self)->_ptr; it < (TYPE*)(self)->_ptr + (self)->_size; ++it)
+#define ct_array_foreach(self, TYPE, it) \
+    for (TYPE* it = (TYPE*)(self)->_ptr; it < (TYPE*)(self)->_ptr + (self)->_size; ++it)
 
 /**
  * @brief 初始化一个动态数组。
@@ -31,13 +32,13 @@ typedef struct ct_array {
  * @return 成功返回 0, 失败返回 -1
  */
 static inline int ct_array_init(ct_array_t* self, size_t byte, size_t capacity) {
-	if (!self || !byte) { return -1; }
-	self->_ptr  = NULL;
-	self->_byte = byte;
-	self->_cap  = 0;
-	self->_size = 0;
-	if (capacity > 0 && !_ct__vector_reserve((void**)&self->_ptr, &self->_cap, self->_byte, capacity)) { return -1; }
-	return 0;
+    if (!self || !byte) { return -1; }
+    self->_ptr  = NULL;
+    self->_byte = byte;
+    self->_cap  = 0;
+    self->_size = 0;
+    if (capacity > 0 && !_ct__vector_reserve((void**)&self->_ptr, &self->_cap, self->_byte, capacity)) { return -1; }
+    return 0;
 }
 
 /**
@@ -45,12 +46,12 @@ static inline int ct_array_init(ct_array_t* self, size_t byte, size_t capacity) 
  * @param self 动态数组指针。
  */
 static inline void ct_array_destroy(ct_array_t* self) {
-	if (!self) { return; }
-	if (self->_ptr) {
-		free(self->_ptr);
-		self->_ptr = NULL;
-	}
-	self->_byte = self->_cap = self->_size = 0;
+    if (!self) { return; }
+    if (self->_ptr) {
+        free(self->_ptr);
+        self->_ptr = NULL;
+    }
+    self->_byte = self->_cap = self->_size = 0;
 }
 
 /**
@@ -58,8 +59,8 @@ static inline void ct_array_destroy(ct_array_t* self) {
  * @param self 动态数组指针。
  */
 static inline void ct_array_clear(ct_array_t* self) {
-	if (!self) { return; }
-	self->_size = 0;
+    if (!self) { return; }
+    self->_size = 0;
 }
 
 /**
@@ -68,7 +69,7 @@ static inline void ct_array_clear(ct_array_t* self) {
  * @return 当前容量 (以元素数量计)。
  */
 static inline size_t ct_array_capacity(const ct_array_t* self) {
-	return self ? self->_cap : 0;
+    return self ? self->_cap : 0;
 }
 
 /**
@@ -77,7 +78,7 @@ static inline size_t ct_array_capacity(const ct_array_t* self) {
  * @return 元素数量。
  */
 static inline size_t ct_array_size(const ct_array_t* self) {
-	return self ? self->_size : 0;
+    return self ? self->_size : 0;
 }
 
 /**
@@ -86,7 +87,7 @@ static inline size_t ct_array_size(const ct_array_t* self) {
  * @return 为空返回true, 非空返回false
  */
 static inline bool ct_array_empty(const ct_array_t* self) {
-	return !self || self->_size == 0;
+    return !self || self->_size == 0;
 }
 
 /**
@@ -96,8 +97,8 @@ static inline bool ct_array_empty(const ct_array_t* self) {
  * @return 成功返回true, 失败返回false
  */
 static inline bool ct_array_reserve(ct_array_t* self, size_t capacity) {
-	if (!self) { return false; }
-	return _ct__vector_reserve((void**)&self->_ptr, &self->_cap, self->_byte, capacity);
+    if (!self) { return false; }
+    return _ct__vector_reserve((void**)&self->_ptr, &self->_cap, self->_byte, capacity);
 }
 
 /**
@@ -107,8 +108,8 @@ static inline bool ct_array_reserve(ct_array_t* self, size_t capacity) {
  * @return 成功返回true, 失败返回false
  */
 static inline bool ct_array_resize(ct_array_t* self, size_t new_size) {
-	if (!self) { return false; }
-	return _ct__vector_resize((void**)&self->_ptr, &self->_size, &self->_cap, self->_byte, new_size);
+    if (!self) { return false; }
+    return _ct__vector_resize((void**)&self->_ptr, &self->_size, &self->_cap, self->_byte, new_size);
 }
 
 /**
@@ -117,8 +118,8 @@ static inline bool ct_array_resize(ct_array_t* self, size_t new_size) {
  * @return 成功返回true, 失败返回false
  */
 static inline bool ct_array_shrink(ct_array_t* self) {
-	if (!self) { return false; }
-	return _ct__vector_shrink((void**)&self->_ptr, self->_size, &self->_cap, self->_byte);
+    if (!self) { return false; }
+    return _ct__vector_shrink((void**)&self->_ptr, self->_size, &self->_cap, self->_byte);
 }
 
 /**
@@ -129,8 +130,8 @@ static inline bool ct_array_shrink(ct_array_t* self) {
  * @return 成功返回true, 失败返回false
  */
 static inline bool ct_array_insert(ct_array_t* self, size_t idx, const void* data) {
-	if (!self) { return false; }
-	return _ct__vector_insert((void**)&self->_ptr, &self->_size, &self->_cap, self->_byte, idx, data);
+    if (!self) { return false; }
+    return _ct__vector_insert((void**)&self->_ptr, &self->_size, &self->_cap, self->_byte, idx, data);
 }
 
 /**
@@ -140,8 +141,8 @@ static inline bool ct_array_insert(ct_array_t* self, size_t idx, const void* dat
  * @return 成功返回true, 失败返回false
  */
 static inline bool ct_array_push(ct_array_t* self, const void* data) {
-	if (!self) { return false; }
-	return _ct__vector_insert((void**)&self->_ptr, &self->_size, &self->_cap, self->_byte, self->_size, data);
+    if (!self) { return false; }
+    return _ct__vector_insert((void**)&self->_ptr, &self->_size, &self->_cap, self->_byte, self->_size, data);
 }
 
 /**
@@ -151,8 +152,8 @@ static inline bool ct_array_push(ct_array_t* self, const void* data) {
  * @return 成功返回true, 失败返回false
  */
 static inline bool ct_array_erase(ct_array_t* self, size_t idx) {
-	if (!self) { return false; }
-	return _ct__vector_erase(self->_ptr, &self->_size, self->_byte, idx);
+    if (!self) { return false; }
+    return _ct__vector_erase(self->_ptr, &self->_size, self->_byte, idx);
 }
 
 /**
@@ -161,9 +162,9 @@ static inline bool ct_array_erase(ct_array_t* self, size_t idx) {
  * @return 成功返回true, 失败返回false
  */
 static inline bool ct_array_pop(ct_array_t* self) {
-	if (!self || !self->_ptr || self->_size == 0) { return false; }
-	--self->_size;
-	return true;
+    if (!self || !self->_ptr || self->_size == 0) { return false; }
+    --self->_size;
+    return true;
 }
 
 /**
@@ -173,7 +174,7 @@ static inline bool ct_array_pop(ct_array_t* self) {
  * @return 指向元素的指针；如果索引越界，则返回 `NULL`。
  */
 static inline void* ct_array_at(ct_array_t* self, size_t idx) {
-	return !self || !self->_ptr || idx >= self->_size ? NULL : self->_ptr + idx * self->_byte;
+    return !self || !self->_ptr || idx >= self->_size ? NULL : self->_ptr + idx * self->_byte;
 }
 
 /**
@@ -183,7 +184,7 @@ static inline void* ct_array_at(ct_array_t* self, size_t idx) {
  * @return 指向元素的常量指针；如果索引越界，则返回 `NULL`。
  */
 static inline const void* ct_array_value(const ct_array_t* self, size_t idx) {
-	return !self || !self->_ptr || idx >= self->_size ? NULL : self->_ptr + idx * self->_byte;
+    return !self || !self->_ptr || idx >= self->_size ? NULL : self->_ptr + idx * self->_byte;
 }
 
 /**
@@ -192,7 +193,7 @@ static inline const void* ct_array_value(const ct_array_t* self, size_t idx) {
  * @return 指向第一个元素的指针；如果数组为空，则返回 `NULL`。
  */
 static inline void* ct_array_front(ct_array_t* self) {
-	return !self || !self->_ptr || self->_size == 0 ? NULL : self->_ptr;
+    return !self || !self->_ptr || self->_size == 0 ? NULL : self->_ptr;
 }
 
 /**
@@ -201,10 +202,10 @@ static inline void* ct_array_front(ct_array_t* self) {
  * @return 指向最后一个元素的指针；如果数组为空，则返回 `NULL`。
  */
 static inline void* ct_array_back(ct_array_t* self) {
-	return !self || !self->_ptr || self->_size == 0 ? NULL : self->_ptr + (self->_size - 1) * self->_byte;
+    return !self || !self->_ptr || self->_size == 0 ? NULL : self->_ptr + (self->_size - 1) * self->_byte;
 }
 
 #ifdef __cplusplus
 }
 #endif
-#endif  // COTER_ARRAY_H
+#endif  // COTER_CONTAINER_ARRAY_H
