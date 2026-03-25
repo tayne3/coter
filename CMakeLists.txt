@@ -7,7 +7,7 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
   )
 endif()
 
-project(coter VERSION 0.9.4)
+project(coter VERSION 0.9.8)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/ProjectFunctions.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/ProjectConfig.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/SetupPthreads.cmake)

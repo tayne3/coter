@@ -12,11 +12,11 @@
 #pragma warning(push, 0)
 #endif
 #include <expected>
-namespace cxx23 {
+namespace coter {
 using std::expected;
 using std::make_unexpected;
 using std::unexpected;
-}  // namespace cxx23
+}  // namespace coter
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
@@ -100,7 +100,7 @@ using std::unexpected;
 #elif (defined(__GNUC__) && __GNUC__ < 8 && !defined(__clang__))
 #ifndef CT_GCC_LESS_8_TRIVIALLY_COPY_CONSTRUCTIBLE_MUTEX
 #define CT_GCC_LESS_8_TRIVIALLY_COPY_CONSTRUCTIBLE_MUTEX
-namespace cxx23 {
+namespace coter {
 namespace detail {
 	template <class T>
 	struct is_trivially_copy_constructible : std::is_trivially_copy_constructible<T> {};
@@ -109,10 +109,10 @@ namespace detail {
 	struct is_trivially_copy_constructible<std::vector<T, A> > : std::false_type {};
 #endif
 }  // namespace detail
-}  // namespace cxx23
+}  // namespace coter
 #endif
 
-#define CT_EXPECTED_IS_TRIVIALLY_COPY_CONSTRUCTIBLE(T) cxx23::detail::is_trivially_copy_constructible<T>
+#define CT_EXPECTED_IS_TRIVIALLY_COPY_CONSTRUCTIBLE(T) coter::detail::is_trivially_copy_constructible<T>
 #define CT_EXPECTED_IS_TRIVIALLY_COPY_ASSIGNABLE(T)    std::is_trivially_copy_assignable<T>
 #define CT_EXPECTED_IS_TRIVIALLY_DESTRUCTIBLE(T)       std::is_trivially_destructible<T>
 #else
@@ -143,7 +143,7 @@ namespace detail {
 #define CT_EXPECTED_NODISCARD
 #endif
 
-namespace cxx23 {
+namespace coter {
 template <class T, class E>
 class CT_EXPECTED_NODISCARD expected;
 
@@ -374,7 +374,7 @@ namespace detail {
 #endif
 #endif
 
-	// Trait for checking if a type is a cxx23::expected
+	// Trait for checking if a type is a coter::expected
 	template <class T>
 	struct is_expected_impl : std::false_type {};
 	template <class T, class E>
@@ -2041,10 +2041,17 @@ template <class T, class E,
 void swap(expected<T, E> &lhs, expected<T, E> &rhs) noexcept(noexcept(lhs.swap(rhs))) {
 	lhs.swap(rhs);
 }
-}  // namespace cxx23
+}  // namespace coter
 
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
 #endif
+
+namespace cxx23 {
+using coter::expected;
+using coter::make_unexpected;
+using coter::unexpected;
+}  // namespace cxx23
+
 #endif  // COTER_CORE_EXPECTED_HPP

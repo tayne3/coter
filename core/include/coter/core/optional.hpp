@@ -8,11 +8,11 @@
 #pragma warning(push, 0)
 #endif
 #include <optional>
-namespace cxx17 {
+namespace coter {
 using std::make_optional;
 using std::nullopt;
 using std::optional;
-}  // namespace cxx17
+}  // namespace coter
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
@@ -25,7 +25,7 @@ using std::optional;
 // optional - An implementation of std::optional with extensions
 // Written in 2017 by Sy Brand (tartanllama@gmail.com, @TartanLlama)
 //
-// Documentation available at https://cxx17.tartanllama.xyz/
+// Documentation available at https://coter.tartanllama.xyz/
 //
 // To the extent possible under law, the author(s) have dedicated all
 // copyright and related and neighboring rights to this software to the
@@ -74,7 +74,7 @@ using std::optional;
 #elif (defined(__GNUC__) && __GNUC__ < 8 && !defined(__clang__))
 #ifndef CT_GCC_LESS_8_TRIVIALLY_COPY_CONSTRUCTIBLE_MUTEX
 #define CT_GCC_LESS_8_TRIVIALLY_COPY_CONSTRUCTIBLE_MUTEX
-namespace cxx17 {
+namespace coter {
 namespace detail {
 	template <class T>
 	struct is_trivially_copy_constructible : std::is_trivially_copy_constructible<T> {};
@@ -83,10 +83,10 @@ namespace detail {
 	struct is_trivially_copy_constructible<std::vector<T, A> > : std::is_trivially_copy_constructible<T> {};
 #endif
 }  // namespace detail
-}  // namespace cxx17
+}  // namespace coter
 #endif
 
-#define CT_OPTIONAL_IS_TRIVIALLY_COPY_CONSTRUCTIBLE(T) cxx17::detail::is_trivially_copy_constructible<T>::value
+#define CT_OPTIONAL_IS_TRIVIALLY_COPY_CONSTRUCTIBLE(T) coter::detail::is_trivially_copy_constructible<T>::value
 #define CT_OPTIONAL_IS_TRIVIALLY_COPY_ASSIGNABLE(T)    std::is_trivially_copy_assignable<T>::value
 #define CT_OPTIONAL_IS_TRIVIALLY_DESTRUCTIBLE(T)       std::is_trivially_destructible<T>::value
 #else
@@ -106,7 +106,7 @@ namespace detail {
 #define CT_OPTIONAL_11_CONSTEXPR constexpr
 #endif
 
-namespace cxx17 {
+namespace coter {
 #ifndef CT_MONOSTATE_INPLACE_MUTEX
 #define CT_MONOSTATE_INPLACE_MUTEX
 /// Used to represent an optional with no data; essentially a bool
@@ -278,7 +278,7 @@ namespace detail {
 	template <class... Ts>
 	using void_t = typename voider<Ts...>::type;
 
-	// Trait for checking if a type is a cxx17::optional
+	// Trait for checking if a type is a coter::optional
 	template <class T>
 	struct is_optional_impl : std::false_type {};
 	template <class T>
@@ -286,7 +286,7 @@ namespace detail {
 	template <class T>
 	using is_optional = is_optional_impl<decay_t<T> >;
 
-	// Change void to cxx17::monostate
+	// Change void to coter::monostate
 	template <class U>
 	using fixup_void = conditional_t<std::is_void<U>::value, monostate, U>;
 
@@ -1193,7 +1193,7 @@ public:
 			this->m_has_value = false;
 		}
 	}
-};  // namespace cxx17
+};  // namespace coter
 
 /// Compares two optional objects
 template <class T, class U>
@@ -1819,18 +1819,18 @@ public:
 
 private:
 	T *m_value;
-};  // namespace cxx17
+};  // namespace coter
 
-}  // namespace cxx17
+}  // namespace coter
 
 namespace std {
 // TODO SFINAE
 template <class T>
-struct hash<cxx17::optional<T> > {
-	::std::size_t operator()(const cxx17::optional<T> &o) const {
+struct hash<coter::optional<T> > {
+	::std::size_t operator()(const coter::optional<T> &o) const {
 		if (!o.has_value()) return 0;
 
-		return std::hash<cxx17::detail::remove_const_t<T> >()(*o);
+		return std::hash<coter::detail::remove_const_t<T> >()(*o);
 	}
 };
 }  // namespace std
@@ -1839,4 +1839,11 @@ struct hash<cxx17::optional<T> > {
 #pragma warning(pop)
 #endif
 #endif
+
+namespace cxx17 {
+using coter::make_optional;
+using coter::nullopt;
+using coter::optional;
+}  // namespace cxx17
+
 #endif  // COTER_CORE_OPTIONAL_HPP
