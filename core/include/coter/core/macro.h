@@ -44,6 +44,24 @@
    #endif
 # endif
 
+// COMPILER
+#if defined(__clang__)
+#define CT_COMPILER_CLANG
+#elif defined(__GNUC__)
+#define CT_COMPILER_GCC
+#elif defined(_MSC_VER)
+#define CT_COMPILER_MSVC
+#include <sys/timeb.h>
+#elif defined(__MINGW32__) || defined(__MINGW64__)
+#define CT_COMPILER_MINGW
+#elif defined(__MSYS__)
+#define CT_COMPILER_MSYS
+#elif defined(__CYGWIN__)
+#define CT_COMPILER_CYGWIN
+#else
+#warning "Untested compiler!"
+#endif
+
 // OS
 # if defined(WIN64) || defined(_WIN64) || defined(__WIN64__)
 #	define CT_OS_WIN64
