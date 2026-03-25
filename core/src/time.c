@@ -2,25 +2,6 @@
 
 #include "coter/core/platform.h"
 
-#ifdef _MSC_VER
-int gettimeofday(struct timeval* tv, struct timezone* tz) {
-    if (tv) {
-        FILETIME ft;
-        uint64_t ft64;
-        GetSystemTimeAsFileTime(&ft);
-        ft64 = ((uint64_t)ft.dwHighDateTime << 32) | ft.dwLowDateTime;
-        ft64 -= 116444736000000000ULL;
-        tv->tv_sec  = (long)(ft64 / 10000000ULL);
-        tv->tv_usec = (long)((ft64 % 10000000ULL) / 10ULL);
-    }
-    if (tz) {
-        tz->tz_minuteswest = 0;
-        tz->tz_dsttime     = 0;
-    }
-    return 0;
-}
-#endif
-
 ct_time64_t ct_getuptime_ms(void) {
 #ifdef CT_OS_WIN
     return GetTickCount64();
