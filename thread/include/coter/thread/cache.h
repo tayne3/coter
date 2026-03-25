@@ -19,7 +19,7 @@ typedef struct ct_threadcache ct_threadcache_t;
  *
  * @return 线程缓存对象指针
  */
-COTER_API ct_threadcache_t *ct_threadcache_get(void);
+CT_API ct_threadcache_t* ct_threadcache_get(void);
 
 /**
  * @brief 获取线程缓存的缓冲区
@@ -27,7 +27,7 @@ COTER_API ct_threadcache_t *ct_threadcache_get(void);
  * @param self 线程缓存对象
  * @return 缓冲区指针
  */
-COTER_API char *ct_threadcache_get_buffer(ct_threadcache_t *self);
+CT_API char* ct_threadcache_get_buffer(ct_threadcache_t* self);
 
 /**
  * @brief 获取线程缓存的缓冲区大小
@@ -35,7 +35,7 @@ COTER_API char *ct_threadcache_get_buffer(ct_threadcache_t *self);
  * @param self 线程缓存对象
  * @return 缓冲区大小
  */
-COTER_API size_t ct_threadcache_get_buffer_size(ct_threadcache_t *self);
+CT_API size_t ct_threadcache_get_buffer_size(ct_threadcache_t* self);
 
 /**
  * @brief 封装日志消息 (基本样式)
@@ -46,7 +46,7 @@ COTER_API size_t ct_threadcache_get_buffer_size(ct_threadcache_t *self);
  * @return 实际写入的字符数 (不包括结尾的 null)
  * @note 内部使用,仅输出日志内容
  */
-COTER_API int __ct_threadcache_basic(ct_threadcache_t *self, const char *fmt, ...);
+CT_API int __ct_threadcache_basic(ct_threadcache_t* self, const char* fmt, ...);
 
 /**
  * @brief 封装日志消息 (简短样式)
@@ -58,7 +58,7 @@ COTER_API int __ct_threadcache_basic(ct_threadcache_t *self, const char *fmt, ..
  * @return 实际写入的字符数 (不包括结尾的 null)
  * @note 内部使用,输出日志级别和内容
  */
-COTER_API int __ct_threadcache_brief(ct_threadcache_t *self, const char *info, const char *fmt, ...);
+CT_API int __ct_threadcache_brief(ct_threadcache_t* self, const char* info, const char* fmt, ...);
 
 /**
  * @brief 封装日志消息 (详细样式)
@@ -72,8 +72,8 @@ COTER_API int __ct_threadcache_brief(ct_threadcache_t *self, const char *info, c
  * @return 实际写入的字符数 (不包括结尾的 null)
  * @note 内部使用,输出完整的日志信息,包括源文件、行号、级别和内容
  */
-COTER_API int __ct_threadcache_detail(ct_threadcache_t *self, const char *file, int line, const char *info,
-									  const char *fmt, ...);
+CT_API int __ct_threadcache_detail(ct_threadcache_t* self, const char* file, int line, const char* info,
+                                   const char* fmt, ...);
 
 #ifdef __cplusplus
 }

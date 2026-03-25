@@ -46,7 +46,7 @@ extern "C" {
  *  30      1       -1       0      -1          cron.weekly
  *  30      1        1      -1      10          cron.yearly
  */
-COTER_API ct_time_t ct_cron_next_timeout(ct_time_t now, int minute, int hour, int day, int week, int month);
+CT_API ct_time_t ct_cron_next_timeout(ct_time_t now, int minute, int hour, int day, int week, int month);
 
 typedef ct_time64_t (*ct_cron_gettime_cb)(void);
 typedef void (*ct_cron_callback_t)(void*);
@@ -70,7 +70,7 @@ typedef struct ct_cron {
  * @brief 初始化cron任务
  * @param cron cron对象
  */
-COTER_API void ct_cron_init(ct_cron_t* cron);
+CT_API void ct_cron_init(ct_cron_t* cron);
 
 /**
  * @brief 启动cron任务
@@ -83,8 +83,8 @@ COTER_API void ct_cron_init(ct_cron_t* cron);
  * @param callback 任务触发时的回调函数
  * @param arg 传递给回调函数的参数
  */
-COTER_API int ct_cron_start(ct_cron_t* cron, int minute, int hour, int day, int week, int month,
-                            ct_cron_callback_t callback, void* arg);
+CT_API int ct_cron_start(ct_cron_t* cron, int minute, int hour, int day, int week, int month,
+                         ct_cron_callback_t callback, void* arg);
 
 /**
  * @brief 重置cron任务
@@ -95,31 +95,31 @@ COTER_API int ct_cron_start(ct_cron_t* cron, int minute, int hour, int day, int 
  * @param week 星期 (0-6, 0 表示周日, -1 表示每周)
  * @param month 月份 (1-12, -1 表示每月)
  */
-COTER_API int ct_cron_reset(ct_cron_t* cron, int minute, int hour, int day, int week, int month);
+CT_API int ct_cron_reset(ct_cron_t* cron, int minute, int hour, int day, int week, int month);
 
 /**
  * @brief 停止cron任务
  * @param cron cron对象
  */
-COTER_API int ct_cron_stop(ct_cron_t* cron);
+CT_API int ct_cron_stop(ct_cron_t* cron);
 
 /**
  * @brief 初始化cron管理器
  * @param realtime_cb 系统时间回调 (为空时使用默认值)
  * @param monotonic_cb 单调时间回调 (为空时使用默认值)
  */
-COTER_API void ct_cron_mgr_init(ct_cron_gettime_cb realtime_cb, ct_cron_gettime_cb monotonic_cb);
+CT_API void ct_cron_mgr_init(ct_cron_gettime_cb realtime_cb, ct_cron_gettime_cb monotonic_cb);
 
 /**
  * @brief 运行cron管理器
  * @note 阻塞运行
  */
-COTER_API void ct_cron_mgr_run(void);
+CT_API void ct_cron_mgr_run(void);
 
 /**
  * @brief 停止cron管理器
  */
-COTER_API void ct_cron_mgr_close(void);
+CT_API void ct_cron_mgr_close(void);
 
 #ifdef __cplusplus
 }

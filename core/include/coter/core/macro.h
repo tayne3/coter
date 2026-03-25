@@ -13,21 +13,35 @@
 
 // clang-format off
 
-# ifndef COTER_API
+# ifndef CT_API
 #   if defined(_WIN32) || defined(__CYGWIN__)
-#       if defined(COTER_LIB_EXPORT)
-#           define COTER_API __declspec(dllexport)
-#       elif defined(COTER_SHARED)
-#           define COTER_API __declspec(dllimport)
+#       if defined(CT_LIB_EXPORT)
+#           define CT_API __declspec(dllexport)
+#       elif defined(CT_SHARED)
+#           define CT_API __declspec(dllimport)
 #       endif
 #   elif defined(__GNUC__) || defined(__clang__)
-#       if defined(COTER_LIB_EXPORT) || defined(COTER_SHARED)
-#           define COTER_API __attribute__((visibility("default")))
+#       if defined(CT_LIB_EXPORT) || defined(CT_SHARED)
+#           define CT_API __attribute__((visibility("default")))
 #       endif
 #   endif
 # endif
-# ifndef COTER_API
-#   define COTER_API
+# ifndef CT_API
+#   define CT_API
+# endif
+
+# define CT_CXX_11 201103L
+# define CT_CXX_14 201402L
+# define CT_CXX_17 201703L
+# define CT_CXX_20 202002L
+# define CT_CXX_23 202302L
+
+# ifdef __cplusplus
+#   if defined(_MSVC_LANG) && _MSVC_LANG > __cplusplus
+#       define CT_CXX_STANDARD _MSVC_LANG
+#   else
+#       define CT_CXX_STANDARD __cplusplus
+   #endif
 # endif
 
 // OS
@@ -81,7 +95,7 @@
 #		include <stdbool.h>
 #	else
 #		ifndef bool
-#			define bool char
+#			define bool int
 #		endif
 #		ifndef true
 #			define true 1
@@ -112,7 +126,7 @@
 #   define strcasecmp  _stricmp
 #   define strncasecmp _strnicmp
 # else
-#	include <strings.h>
+    #include <strings.h>
 #	define stricmp     strcasecmp
 #	define strnicmp    strncasecmp
 # endif

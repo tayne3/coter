@@ -27,7 +27,7 @@ extern "C" {
  * printf("duration: %s\n", buf); // 输出：duration: 01:01:01
  * @endcode
  */
-COTER_API char* ct_tm_duration_fmt(int sec, char* buf);
+CT_API char* ct_tm_duration_fmt(int sec, char* buf);
 #define CT_TM_DURATION_MAX 12
 
 /**
@@ -46,7 +46,7 @@ COTER_API char* ct_tm_duration_fmt(int sec, char* buf);
  * printf("当前日期时间：%s\n", buf);
  * @endcode
  */
-COTER_API char* ct_tm_fmt(const struct tm* tm, char* buf);
+CT_API char* ct_tm_fmt(const struct tm* tm, char* buf);
 #define CT_TM_FMT_MAX 20
 
 #ifdef __cplusplus

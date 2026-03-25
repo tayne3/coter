@@ -14,7 +14,7 @@ extern "C" {
  * Always owns its internal buffer and must be freed with ct_builder_destroy().
  */
 typedef struct ct_builder {
-	ct_seg_t seg;  ///< Embedded buffer for all operations
+    ct_seg_t seg;  ///< Embedded buffer for all operations
 } ct_builder_t;
 
 /**
@@ -25,13 +25,13 @@ typedef struct ct_builder {
  * The builder owns its internal buffer and will grow automatically as needed.
  * Must be freed with ct_builder_destroy() to avoid memory leaks.
  */
-COTER_API ct_builder_t *ct_builder_create(size_t initial_capacity);
+CT_API ct_builder_t* ct_builder_create(size_t initial_capacity);
 
 /**
  * @brief Destroy builder and free all resources.
  * @param self Builder to destroy (can be NULL)
  */
-COTER_API void ct_builder_destroy(ct_builder_t *self);
+CT_API void ct_builder_destroy(ct_builder_t* self);
 
 /**
  * @brief Grow buffer to ensure n more bytes can be written.
@@ -39,7 +39,7 @@ COTER_API void ct_builder_destroy(ct_builder_t *self);
  * @param n Additional bytes needed beyond current length
  * @return 0 on success, -1 on allocation failure
  */
-COTER_API int ct_builder_grow(ct_builder_t *self, size_t n);
+CT_API int ct_builder_grow(ct_builder_t* self, size_t n);
 
 /**
  * @brief Reserve total capacity.
@@ -49,19 +49,19 @@ COTER_API int ct_builder_grow(ct_builder_t *self, size_t n);
  * @note
  * If current capacity >= requested capacity, this is a no-op.
  */
-COTER_API int ct_builder_reserve(ct_builder_t *self, size_t capacity);
+CT_API int ct_builder_reserve(ct_builder_t* self, size_t capacity);
 
 /**
  * @brief Write bytes to builder (auto-grows if needed).
  * @return Number of bytes written, or -1 on error
  */
-COTER_API int ct_builder_put_bytes(ct_builder_t *self, const uint8_t *p, size_t length);
+CT_API int ct_builder_put_bytes(ct_builder_t* self, const uint8_t* p, size_t length);
 
 /**
  * @brief Fill builder with byte value (auto-grows if needed).
  * @return Number of bytes filled, or -1 on error
  */
-COTER_API int ct_builder_fill(ct_builder_t *self, uint8_t bt, size_t length);
+CT_API int ct_builder_fill(ct_builder_t* self, uint8_t bt, size_t length);
 
 #define ct_builder_capacity(self)   ((size_t)(self)->seg.cap)
 #define ct_builder_count(self)      ((size_t)(self)->seg.len)
@@ -85,8 +85,8 @@ COTER_API int ct_builder_fill(ct_builder_t *self, uint8_t bt, size_t length);
 #define ct_builder_skip(self, length)   ct_seg_skip(&(self)->seg, length)
 #define ct_builder_commit(self, length) ct_seg_commit(&(self)->seg, length)
 
-static inline int ct_builder_seg(ct_builder_t *self, ct_seg_t *seg, size_t start, size_t end) {
-	return ct_seg_since(&self->seg, seg, start, end);
+CT_INLINE int ct_builder_seg(ct_builder_t* self, ct_seg_t* seg, size_t start, size_t end) {
+    return ct_seg_since(&self->seg, seg, start, end);
 }
 #define ct_builder_readable_seg(self, s) ct_seg_since(&(self)->seg, (s), (self)->seg.pos, (self)->seg.len);
 #define ct_builder_writable_seg(self, s) ct_seg_since(&(self)->seg, (s), (self)->seg.pos, (self)->seg.cap);
@@ -119,13 +119,13 @@ static inline int ct_builder_seg(ct_builder_t *self, ct_seg_t *seg, size_t start
 #define ct_builder_set_u64(self, off, v) ct_seg_set_u64(&(self)->seg, off, v)
 
 // Write uint8_t to builder. Auto-grows if needed.
-COTER_API void ct_builder_put_u8(ct_builder_t *self, uint8_t v);
+CT_API void ct_builder_put_u8(ct_builder_t* self, uint8_t v);
 // Write uint16_t to builder. Auto-grows if needed.
-COTER_API void ct_builder_put_u16(ct_builder_t *self, uint16_t v);
+CT_API void ct_builder_put_u16(ct_builder_t* self, uint16_t v);
 // Write uint32_t to builder. Auto-grows if needed.
-COTER_API void ct_builder_put_u32(ct_builder_t *self, uint32_t v);
+CT_API void ct_builder_put_u32(ct_builder_t* self, uint32_t v);
 // Write uint64_t to builder. Auto-grows if needed.
-COTER_API void ct_builder_put_u64(ct_builder_t *self, uint64_t v);
+CT_API void ct_builder_put_u64(ct_builder_t* self, uint64_t v);
 
 #ifdef __cplusplus
 }

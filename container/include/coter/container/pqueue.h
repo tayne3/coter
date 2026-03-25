@@ -41,7 +41,7 @@ typedef struct ct_pqueue {
         };                                                     \
         _ct_pqueue__init_dynamic(self, sizeof(__type), __cmp); \
     } while (0)
-static inline void _ct_pqueue__init_dynamic(ct_pqueue_t* self, size_t item_size, ct_compare_cb cmp) {
+CT_INLINE void _ct_pqueue__init_dynamic(ct_pqueue_t* self, size_t item_size, ct_compare_cb cmp) {
     self->_all        = NULL;
     self->_cap        = 0;
     self->_size       = 0;
@@ -61,8 +61,7 @@ static inline void _ct_pqueue__init_dynamic(ct_pqueue_t* self, size_t item_size,
         };                                                                  \
         _ct_pqueue__init_static(self, sizeof(__type), __buf, __cap, __cmp); \
     } while (0)
-static inline void _ct_pqueue__init_static(ct_pqueue_t* self, size_t item_size, void* buf, size_t cap,
-                                           ct_compare_cb cmp) {
+CT_INLINE void _ct_pqueue__init_static(ct_pqueue_t* self, size_t item_size, void* buf, size_t cap, ct_compare_cb cmp) {
     self->_all        = (char*)buf;
     self->_cap        = (uint32_t)cap;
     self->_size       = 0;
@@ -71,12 +70,12 @@ static inline void _ct_pqueue__init_static(ct_pqueue_t* self, size_t item_size, 
     self->_is_dynamic = 0;
 }
 
-COTER_API void  ct_pqueue_destroy(ct_pqueue_t* self);
-COTER_API bool  ct_pqueue_push(ct_pqueue_t* self, const void* data);
-COTER_API bool  ct_pqueue_pop(ct_pqueue_t* self, void* out);
-COTER_API void* ct_pqueue_top(const ct_pqueue_t* self);
-COTER_API void  ct_pqueue_clear(ct_pqueue_t* self);
-COTER_API bool  ct_pqueue_reserve(ct_pqueue_t* self, uint32_t new_cap);
+CT_API void  ct_pqueue_destroy(ct_pqueue_t* self);
+CT_API bool  ct_pqueue_push(ct_pqueue_t* self, const void* data);
+CT_API bool  ct_pqueue_pop(ct_pqueue_t* self, void* out);
+CT_API void* ct_pqueue_top(const ct_pqueue_t* self);
+CT_API void  ct_pqueue_clear(ct_pqueue_t* self);
+CT_API bool  ct_pqueue_reserve(ct_pqueue_t* self, uint32_t new_cap);
 
 #ifdef __cplusplus
 }

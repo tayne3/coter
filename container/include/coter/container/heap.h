@@ -32,28 +32,28 @@ typedef struct ct_heap {
 #define ct_heap_is_empty(h) ((h)->_size == 0)
 
 // Initialize the heap
-COTER_API void ct_heap_init(ct_heap_t* heap, ct_heap_compare_cb cmp);
+CT_API void ct_heap_init(ct_heap_t* heap, ct_heap_compare_cb cmp);
 
 // Clear the heap
-COTER_API void ct_heap_clear(ct_heap_t* heap);
+CT_API void ct_heap_clear(ct_heap_t* heap);
 
 // Insert a node
-COTER_API void ct_heap_insert(ct_heap_t* heap, ct_heap_node_t* node);
+CT_API void ct_heap_insert(ct_heap_t* heap, ct_heap_node_t* node);
 
 // Get and remove the top node
-COTER_API ct_heap_node_t* ct_heap_pop(ct_heap_t* heap);
+CT_API ct_heap_node_t* ct_heap_pop(ct_heap_t* heap);
 
 // Get the top node (without removing)
-COTER_API ct_heap_node_t* ct_heap_top(const ct_heap_t* heap);
+CT_API ct_heap_node_t* ct_heap_top(const ct_heap_t* heap);
 
 // Remove an arbitrary node (for priority updates)
-COTER_API void ct_heap_remove(ct_heap_t* heap, ct_heap_node_t* node);
+CT_API void ct_heap_remove(ct_heap_t* heap, ct_heap_node_t* node);
 
 // Update a node's priority (if modified)
-COTER_API void ct_heap_update(ct_heap_t* heap, ct_heap_node_t* node);
+CT_API void ct_heap_update(ct_heap_t* heap, ct_heap_node_t* node);
 
 // Move all nodes from one heap to another
-COTER_API void ct_heap_move(ct_heap_t* dst, ct_heap_t* src);
+CT_API void ct_heap_move(ct_heap_t* dst, ct_heap_t* src);
 
 #ifdef __cplusplus
 }

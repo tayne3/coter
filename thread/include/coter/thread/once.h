@@ -21,7 +21,7 @@ typedef pthread_once_t ct_once_t;
  * @return 0=成功，非0=失败
  * @note 同一个 once 对象上的 routine 在进程内只会成功执行一次。
  */
-COTER_API int ct_once_exec(ct_once_t* once, void (*routine)(void));
+CT_API int ct_once_exec(ct_once_t* once, void (*routine)(void));
 
 #ifdef __cplusplus
 }

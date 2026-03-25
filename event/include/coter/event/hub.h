@@ -30,26 +30,26 @@ extern "C" {
  * @brief 事件中枢结构体
  */
 typedef struct ct_evhub {
-	ct_rwlock_t rwlock;    // 读写锁
-	ct_array_t  sub_list;  // 订阅者列表
+    ct_rwlock_t rwlock;    // 读写锁
+    ct_array_t  sub_list;  // 订阅者列表
 } ct_evhub_t;
 
 /**
  * @brief 事件中枢处理函数类型
  */
-typedef void (*ct_evhub_callback_t)(uint32_t type, void *data, void *user_data);
+typedef void (*ct_evhub_callback_t)(uint32_t type, void* data, void* user_data);
 
 /**
  * @brief 初始化事件中枢
  * @param self 事件中枢指针
  */
-COTER_API void ct_evhub_init(ct_evhub_t *self);
+CT_API void ct_evhub_init(ct_evhub_t* self);
 
 /**
  * @brief 反初始化事件中枢
  * @param self 事件中枢指针
  */
-COTER_API void ct_evhub_deinit(ct_evhub_t *self);
+CT_API void ct_evhub_deinit(ct_evhub_t* self);
 
 /**
  * @brief 订阅事件
@@ -59,7 +59,7 @@ COTER_API void ct_evhub_deinit(ct_evhub_t *self);
  * @param user_data 用户数据
  * @return 0=成功, 其他=失败
  */
-COTER_API int ct_evhub_subscribe(ct_evhub_t *self, uint32_t type, ct_evhub_callback_t cb, void *user_data);
+CT_API int ct_evhub_subscribe(ct_evhub_t* self, uint32_t type, ct_evhub_callback_t cb, void* user_data);
 
 /**
  * @brief 取消订阅事件
@@ -68,7 +68,7 @@ COTER_API int ct_evhub_subscribe(ct_evhub_t *self, uint32_t type, ct_evhub_callb
  * @param cb 事件回调函数
  * @return 0=成功, 其他=失败
  */
-COTER_API int ct_evhub_unsubscribe(ct_evhub_t *self, uint32_t type, ct_evhub_callback_t cb);
+CT_API int ct_evhub_unsubscribe(ct_evhub_t* self, uint32_t type, ct_evhub_callback_t cb);
 
 /**
  * @brief 发布事件
@@ -77,7 +77,7 @@ COTER_API int ct_evhub_unsubscribe(ct_evhub_t *self, uint32_t type, ct_evhub_cal
  * @param data 事件数据
  * @return 0=成功, 其他=失败
  */
-COTER_API int ct_evhub_publish(ct_evhub_t *self, uint32_t type, void *data);
+CT_API int ct_evhub_publish(ct_evhub_t* self, uint32_t type, void* data);
 
 #ifdef __cplusplus
 }

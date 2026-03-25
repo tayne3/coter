@@ -22,43 +22,43 @@ extern "C" {
 typedef SRWLOCK ct_rwlock_t;
 #define CT_RWLOCK_INITIALIZER SRWLOCK_INIT
 
-static inline int ct_rwlock_init(ct_rwlock_t* lock, void* attr) {
-	CT_UNUSED(attr);
-	InitializeSRWLock(lock);
-	return 0;
+CT_INLINE int ct_rwlock_init(ct_rwlock_t* lock, void* attr) {
+    CT_UNUSED(attr);
+    InitializeSRWLock(lock);
+    return 0;
 }
 
-static inline int ct_rwlock_rdlock(ct_rwlock_t* lock) {
-	AcquireSRWLockShared(lock);
-	return 0;
+CT_INLINE int ct_rwlock_rdlock(ct_rwlock_t* lock) {
+    AcquireSRWLockShared(lock);
+    return 0;
 }
 
-static inline int ct_rwlock_wrlock(ct_rwlock_t* lock) {
-	AcquireSRWLockExclusive(lock);
-	return 0;
+CT_INLINE int ct_rwlock_wrlock(ct_rwlock_t* lock) {
+    AcquireSRWLockExclusive(lock);
+    return 0;
 }
 
-static inline int ct_rwlock_tryrdlock(ct_rwlock_t* lock) {
-	return TryAcquireSRWLockShared(lock) ? 0 : EBUSY;
+CT_INLINE int ct_rwlock_tryrdlock(ct_rwlock_t* lock) {
+    return TryAcquireSRWLockShared(lock) ? 0 : EBUSY;
 }
 
-static inline int ct_rwlock_trywrlock(ct_rwlock_t* lock) {
-	return TryAcquireSRWLockExclusive(lock) ? 0 : EBUSY;
+CT_INLINE int ct_rwlock_trywrlock(ct_rwlock_t* lock) {
+    return TryAcquireSRWLockExclusive(lock) ? 0 : EBUSY;
 }
 
-static inline int ct_rwlock_rdunlock(ct_rwlock_t* lock) {
-	ReleaseSRWLockShared(lock);
-	return 0;
+CT_INLINE int ct_rwlock_rdunlock(ct_rwlock_t* lock) {
+    ReleaseSRWLockShared(lock);
+    return 0;
 }
 
-static inline int ct_rwlock_wrunlock(ct_rwlock_t* lock) {
-	ReleaseSRWLockExclusive(lock);
-	return 0;
+CT_INLINE int ct_rwlock_wrunlock(ct_rwlock_t* lock) {
+    ReleaseSRWLockExclusive(lock);
+    return 0;
 }
 
-static inline int ct_rwlock_destroy(ct_rwlock_t* lock) {
-	CT_UNUSED(lock);
-	return 0;
+CT_INLINE int ct_rwlock_destroy(ct_rwlock_t* lock) {
+    CT_UNUSED(lock);
+    return 0;
 }
 
 #elif defined(HAVE_PTHREAD_RWLOCK) && HAVE_PTHREAD_RWLOCK

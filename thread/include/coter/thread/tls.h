@@ -21,25 +21,25 @@ typedef pthread_key_t ct_tls_key_t;
  * @brief 创建线程局部存储键
  * @return 0=成功，非0=失败
  */
-COTER_API int ct_tls_create(ct_tls_key_t* key, void (*destructor)(void*));
+CT_API int ct_tls_create(ct_tls_key_t* key, void (*destructor)(void*));
 
 /**
  * @brief 销毁线程局部存储键
  * @return 0=成功，非0=失败
  */
-COTER_API int ct_tls_destroy(ct_tls_key_t key);
+CT_API int ct_tls_destroy(ct_tls_key_t key);
 
 /**
  * @brief 设置线程局部存储值
  * @return 0=成功，非0=失败
  */
-COTER_API int ct_tls_set(ct_tls_key_t key, const void* value);
+CT_API int ct_tls_set(ct_tls_key_t key, const void* value);
 
 /**
  * @brief 获取线程局部存储值
  * @note 返回 NULL 既可能表示未设置，也可能表示平台调用失败。
  */
-COTER_API void* ct_tls_get(ct_tls_key_t key);
+CT_API void* ct_tls_get(ct_tls_key_t key);
 
 #ifdef __cplusplus
 }

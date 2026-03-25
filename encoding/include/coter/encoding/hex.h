@@ -20,7 +20,7 @@ extern "C" {
  * @param max       Size of the output buffer.
  * @return int      The number of characters written to the output buffer, or -1 on error.
  */
-COTER_API int ct_hex_encode(const void *data, size_t data_len, char *out, size_t max);
+CT_API int ct_hex_encode(const void* data, size_t data_len, char* out, size_t max);
 
 /**
  * @brief Decodes a hexadecimal string into binary data.
@@ -31,7 +31,7 @@ COTER_API int ct_hex_encode(const void *data, size_t data_len, char *out, size_t
  * @param max       Size of the output buffer.
  * @return int      The number of bytes written to the output buffer, or -1 on error.
  */
-COTER_API int ct_hex_decode(const char *hex, size_t hex_len, void *out, size_t max);
+CT_API int ct_hex_decode(const char* hex, size_t hex_len, void* out, size_t max);
 
 #ifdef __cplusplus
 }

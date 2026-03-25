@@ -31,7 +31,7 @@ typedef struct ct_array {
  * @param capacity 初始容量 (以元素数量计)。
  * @return 成功返回 0, 失败返回 -1
  */
-static inline int ct_array_init(ct_array_t* self, size_t byte, size_t capacity) {
+CT_INLINE int ct_array_init(ct_array_t* self, size_t byte, size_t capacity) {
     if (!self || !byte) { return -1; }
     self->_ptr  = NULL;
     self->_byte = byte;
@@ -45,7 +45,7 @@ static inline int ct_array_init(ct_array_t* self, size_t byte, size_t capacity) 
  * @brief 销毁动态数组，并释放其占用的内存。
  * @param self 动态数组指针。
  */
-static inline void ct_array_destroy(ct_array_t* self) {
+CT_INLINE void ct_array_destroy(ct_array_t* self) {
     if (!self) { return; }
     if (self->_ptr) {
         free(self->_ptr);
@@ -58,7 +58,7 @@ static inline void ct_array_destroy(ct_array_t* self) {
  * @brief 清空动态数组中的所有元素，但不释放内存。
  * @param self 动态数组指针。
  */
-static inline void ct_array_clear(ct_array_t* self) {
+CT_INLINE void ct_array_clear(ct_array_t* self) {
     if (!self) { return; }
     self->_size = 0;
 }
@@ -68,7 +68,7 @@ static inline void ct_array_clear(ct_array_t* self) {
  * @param self 动态数组指针。
  * @return 当前容量 (以元素数量计)。
  */
-static inline size_t ct_array_capacity(const ct_array_t* self) {
+CT_INLINE size_t ct_array_capacity(const ct_array_t* self) {
     return self ? self->_cap : 0;
 }
 
@@ -77,7 +77,7 @@ static inline size_t ct_array_capacity(const ct_array_t* self) {
  * @param self 动态数组指针。
  * @return 元素数量。
  */
-static inline size_t ct_array_size(const ct_array_t* self) {
+CT_INLINE size_t ct_array_size(const ct_array_t* self) {
     return self ? self->_size : 0;
 }
 
@@ -86,7 +86,7 @@ static inline size_t ct_array_size(const ct_array_t* self) {
  * @param self 动态数组指针。
  * @return 为空返回true, 非空返回false
  */
-static inline bool ct_array_empty(const ct_array_t* self) {
+CT_INLINE bool ct_array_empty(const ct_array_t* self) {
     return !self || self->_size == 0;
 }
 
@@ -96,7 +96,7 @@ static inline bool ct_array_empty(const ct_array_t* self) {
  * @param capacity 期望的最小容量。
  * @return 成功返回true, 失败返回false
  */
-static inline bool ct_array_reserve(ct_array_t* self, size_t capacity) {
+CT_INLINE bool ct_array_reserve(ct_array_t* self, size_t capacity) {
     if (!self) { return false; }
     return _ct__vector_reserve((void**)&self->_ptr, &self->_cap, self->_byte, capacity);
 }
@@ -107,7 +107,7 @@ static inline bool ct_array_reserve(ct_array_t* self, size_t capacity) {
  * @param new_size 新的大小。
  * @return 成功返回true, 失败返回false
  */
-static inline bool ct_array_resize(ct_array_t* self, size_t new_size) {
+CT_INLINE bool ct_array_resize(ct_array_t* self, size_t new_size) {
     if (!self) { return false; }
     return _ct__vector_resize((void**)&self->_ptr, &self->_size, &self->_cap, self->_byte, new_size);
 }
@@ -117,7 +117,7 @@ static inline bool ct_array_resize(ct_array_t* self, size_t new_size) {
  * @param self 动态数组指针。
  * @return 成功返回true, 失败返回false
  */
-static inline bool ct_array_shrink(ct_array_t* self) {
+CT_INLINE bool ct_array_shrink(ct_array_t* self) {
     if (!self) { return false; }
     return _ct__vector_shrink((void**)&self->_ptr, self->_size, &self->_cap, self->_byte);
 }
@@ -129,7 +129,7 @@ static inline bool ct_array_shrink(ct_array_t* self) {
  * @param data 指向要插入元素数据的指针。
  * @return 成功返回true, 失败返回false
  */
-static inline bool ct_array_insert(ct_array_t* self, size_t idx, const void* data) {
+CT_INLINE bool ct_array_insert(ct_array_t* self, size_t idx, const void* data) {
     if (!self) { return false; }
     return _ct__vector_insert((void**)&self->_ptr, &self->_size, &self->_cap, self->_byte, idx, data);
 }
@@ -140,7 +140,7 @@ static inline bool ct_array_insert(ct_array_t* self, size_t idx, const void* dat
  * @param data 指向要添加元素数据的指针。
  * @return 成功返回true, 失败返回false
  */
-static inline bool ct_array_push(ct_array_t* self, const void* data) {
+CT_INLINE bool ct_array_push(ct_array_t* self, const void* data) {
     if (!self) { return false; }
     return _ct__vector_insert((void**)&self->_ptr, &self->_size, &self->_cap, self->_byte, self->_size, data);
 }
@@ -151,7 +151,7 @@ static inline bool ct_array_push(ct_array_t* self, const void* data) {
  * @param idx 要移除的元素的索引。
  * @return 成功返回true, 失败返回false
  */
-static inline bool ct_array_erase(ct_array_t* self, size_t idx) {
+CT_INLINE bool ct_array_erase(ct_array_t* self, size_t idx) {
     if (!self) { return false; }
     return _ct__vector_erase(self->_ptr, &self->_size, self->_byte, idx);
 }
@@ -161,7 +161,7 @@ static inline bool ct_array_erase(ct_array_t* self, size_t idx) {
  * @param self 动态数组指针。
  * @return 成功返回true, 失败返回false
  */
-static inline bool ct_array_pop(ct_array_t* self) {
+CT_INLINE bool ct_array_pop(ct_array_t* self) {
     if (!self || !self->_ptr || self->_size == 0) { return false; }
     --self->_size;
     return true;
@@ -173,7 +173,7 @@ static inline bool ct_array_pop(ct_array_t* self) {
  * @param idx 元素索引。
  * @return 指向元素的指针；如果索引越界，则返回 `NULL`。
  */
-static inline void* ct_array_at(ct_array_t* self, size_t idx) {
+CT_INLINE void* ct_array_at(ct_array_t* self, size_t idx) {
     return !self || !self->_ptr || idx >= self->_size ? NULL : self->_ptr + idx * self->_byte;
 }
 
@@ -183,7 +183,7 @@ static inline void* ct_array_at(ct_array_t* self, size_t idx) {
  * @param idx 元素索引。
  * @return 指向元素的常量指针；如果索引越界，则返回 `NULL`。
  */
-static inline const void* ct_array_value(const ct_array_t* self, size_t idx) {
+CT_INLINE const void* ct_array_value(const ct_array_t* self, size_t idx) {
     return !self || !self->_ptr || idx >= self->_size ? NULL : self->_ptr + idx * self->_byte;
 }
 
@@ -192,7 +192,7 @@ static inline const void* ct_array_value(const ct_array_t* self, size_t idx) {
  * @param self 动态数组指针。
  * @return 指向第一个元素的指针；如果数组为空，则返回 `NULL`。
  */
-static inline void* ct_array_front(ct_array_t* self) {
+CT_INLINE void* ct_array_front(ct_array_t* self) {
     return !self || !self->_ptr || self->_size == 0 ? NULL : self->_ptr;
 }
 
@@ -201,7 +201,7 @@ static inline void* ct_array_front(ct_array_t* self) {
  * @param self 动态数组指针。
  * @return 指向最后一个元素的指针；如果数组为空，则返回 `NULL`。
  */
-static inline void* ct_array_back(ct_array_t* self) {
+CT_INLINE void* ct_array_back(ct_array_t* self) {
     return !self || !self->_ptr || self->_size == 0 ? NULL : self->_ptr + (self->_size - 1) * self->_byte;
 }
 

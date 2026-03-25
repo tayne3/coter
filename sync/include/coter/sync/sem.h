@@ -33,35 +33,35 @@ typedef sem_t ct_sem_t;
  * @param value Initial token count.
  * @return 0 on success, otherwise an error code.
  */
-COTER_API int ct_sem_init(ct_sem_t* sem, uint32_t value);
+CT_API int ct_sem_init(ct_sem_t* sem, uint32_t value);
 
 /**
  * @brief Destroy an unnamed semaphore created by ct_sem_init.
  * @param sem Semaphore object.
  * @return 0 on success, otherwise an error code.
  */
-COTER_API int ct_sem_destroy(ct_sem_t* sem);
+CT_API int ct_sem_destroy(ct_sem_t* sem);
 
 /**
  * @brief Wait until one token becomes available and consume it.
  * @param sem Semaphore object.
  * @return 0 on success, otherwise an error code.
  */
-COTER_API int ct_sem_wait(ct_sem_t* sem);
+CT_API int ct_sem_wait(ct_sem_t* sem);
 
 /**
  * @brief Try to consume one token without blocking.
  * @param sem Semaphore object.
  * @return 0 on success, EAGAIN when no token is available, otherwise an error code.
  */
-COTER_API int ct_sem_trywait(ct_sem_t* sem);
+CT_API int ct_sem_trywait(ct_sem_t* sem);
 
 /**
  * @brief Release one token to the semaphore.
  * @param sem Semaphore object.
  * @return 0 on success, otherwise an error code.
  */
-COTER_API int ct_sem_post(ct_sem_t* sem);
+CT_API int ct_sem_post(ct_sem_t* sem);
 
 /**
  * @brief Wait for a token for at most timeout_ms milliseconds.
@@ -69,7 +69,7 @@ COTER_API int ct_sem_post(ct_sem_t* sem);
  * @param timeout_ms Relative timeout in milliseconds.
  * @return 0 on success, ETIMEDOUT on timeout, otherwise an error code.
  */
-COTER_API int ct_sem_wait_for(ct_sem_t* sem, uint32_t timeout_ms);
+CT_API int ct_sem_wait_for(ct_sem_t* sem, uint32_t timeout_ms);
 
 #ifdef __cplusplus
 }

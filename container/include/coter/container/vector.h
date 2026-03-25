@@ -117,7 +117,7 @@ extern "C" {
  * @param new_cap 请求的新容量
  * @return true 成功, false 失败
  */
-COTER_API bool _ct__vector_reserve(void** p_ptr, size_t* p_cap, size_t elem_size, size_t new_cap);
+CT_API bool _ct__vector_reserve(void** p_ptr, size_t* p_cap, size_t elem_size, size_t new_cap);
 
 /**
  * @brief 核心调整大小逻辑
@@ -129,7 +129,7 @@ COTER_API bool _ct__vector_reserve(void** p_ptr, size_t* p_cap, size_t elem_size
  * @param new_size 请求的新大小
  * @return true 成功, false 失败
  */
-COTER_API bool _ct__vector_resize(void** p_ptr, size_t* p_size, size_t* p_cap, size_t elem_size, size_t new_size);
+CT_API bool _ct__vector_resize(void** p_ptr, size_t* p_size, size_t* p_cap, size_t elem_size, size_t new_size);
 
 /**
  * @brief 核心插入逻辑
@@ -142,8 +142,8 @@ COTER_API bool _ct__vector_resize(void** p_ptr, size_t* p_size, size_t* p_cap, s
  * @param data 要插入的数据指针 (如果是 NULL，则只开辟空间不拷贝)
  * @return true 成功, false 失败
  */
-COTER_API bool _ct__vector_insert(void** p_ptr, size_t* p_size, size_t* p_cap, size_t elem_size, size_t idx,
-                                  const void* data);
+CT_API bool _ct__vector_insert(void** p_ptr, size_t* p_size, size_t* p_cap, size_t elem_size, size_t idx,
+                               const void* data);
 
 /**
  * @brief 核心删除逻辑
@@ -154,7 +154,7 @@ COTER_API bool _ct__vector_insert(void** p_ptr, size_t* p_size, size_t* p_cap, s
  * @param idx 删除位置索引
  * @return true 成功, false 失败
  */
-COTER_API bool _ct__vector_erase(void* ptr, size_t* p_size, size_t elem_size, size_t idx);
+CT_API bool _ct__vector_erase(void* ptr, size_t* p_size, size_t elem_size, size_t idx);
 
 /**
  * @brief 核心收缩逻辑
@@ -165,7 +165,7 @@ COTER_API bool _ct__vector_erase(void* ptr, size_t* p_size, size_t elem_size, si
  * @param elem_size 单个元素的字节大小
  * @return true 成功, false 失败
  */
-COTER_API bool _ct__vector_shrink(void** p_ptr, size_t size, size_t* p_cap, size_t elem_size);
+CT_API bool _ct__vector_shrink(void** p_ptr, size_t size, size_t* p_cap, size_t elem_size);
 
 #ifdef __cplusplus
 }

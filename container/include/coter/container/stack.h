@@ -33,28 +33,28 @@ typedef struct ct_stack {
  * @param max    缓冲区可容纳的元素数量
  * @return 成功返回 0，参数非法返回 -1
  */
-COTER_API int ct_stack_init(ct_stack_buf_t self, void* buffer, size_t byte, size_t max);
+CT_API int ct_stack_init(ct_stack_buf_t self, void* buffer, size_t byte, size_t max);
 
 /**
  * @brief 入栈：将 item 指向的数据拷贝至栈顶
  * @param item 指向待入栈数据的指针
  * @return 栈满或 self 为 NULL 时返回 false
  */
-COTER_API bool ct_stack_push(ct_stack_buf_t self, const void* item);
+CT_API bool ct_stack_push(ct_stack_buf_t self, const void* item);
 
 /**
  * @brief 出栈：移除栈顶元素，若 item 非 NULL 则将数据拷贝至 item
  * @param item 输出缓冲区，可为 NULL（仅移除不取值）
  * @return 栈空或 self 为 NULL 时返回 false
  */
-COTER_API bool ct_stack_pop(ct_stack_buf_t self, void* item);
+CT_API bool ct_stack_pop(ct_stack_buf_t self, void* item);
 
 /**
  * @brief 查看栈顶元素（不移除），数据拷贝至 item
  * @param item 输出缓冲区，可为 NULL（仅查询不取值）
  * @return 栈空或 self 为 NULL 时返回 false
  */
-COTER_API bool ct_stack_top(ct_stack_buf_t self, void* item);
+CT_API bool ct_stack_top(ct_stack_buf_t self, void* item);
 
 #ifdef __cplusplus
 }

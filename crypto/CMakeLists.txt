@@ -19,9 +19,9 @@ target_link_libraries(coter_crypto
 if(BUILD_SHARED_LIBS)
   target_compile_definitions(coter_crypto
     PRIVATE
-      COTER_LIB_EXPORT 
+      CT_LIB_EXPORT 
     INTERFACE
-      COTER_SHARED
+      CT_SHARED
   )
 endif()
 target_link_libraries(coter PUBLIC coter::crypto)

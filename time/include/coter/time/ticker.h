@@ -22,7 +22,7 @@ typedef struct ct_ticker {
  * @brief 初始化定时器
  * @param ticker 定时器指针
  */
-COTER_API void ct_ticker_init(ct_ticker_t* ticker);
+CT_API void ct_ticker_init(ct_ticker_t* ticker);
 
 /**
  * @brief 启动定时器
@@ -31,20 +31,20 @@ COTER_API void ct_ticker_init(ct_ticker_t* ticker);
  * @param cb 回调函数
  * @param arg 回调参数
  */
-COTER_API int ct_ticker_start(ct_ticker_t* ticker, ct_time64_t ms, ct_ticker_callback_t cb, void* arg);
+CT_API int ct_ticker_start(ct_ticker_t* ticker, ct_time64_t ms, ct_ticker_callback_t cb, void* arg);
 
 /**
  * @brief 重置定时器
  * @param ticker 定时器指针
  * @param ms 周期间隔 (ms)
  */
-COTER_API int ct_ticker_reset(ct_ticker_t* ticker, ct_time64_t ms);
+CT_API int ct_ticker_reset(ct_ticker_t* ticker, ct_time64_t ms);
 
 /**
  * @brief 停止定时器
  * @param ticker 定时器指针
  */
-COTER_API int ct_ticker_stop(ct_ticker_t* ticker);
+CT_API int ct_ticker_stop(ct_ticker_t* ticker);
 
 #ifdef __cplusplus
 }

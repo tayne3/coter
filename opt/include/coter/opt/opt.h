@@ -25,19 +25,19 @@ extern "C" {
  *             set 0 to stop at first non-option (POSIX mode)
  */
 typedef struct ct_opt {
-	char   errmsg[64];
-	char*  optarg;
-	char** argv;
-	int    permute;
-	int    optind;
-	int    optopt;
-	int    subopt; /* internal: offset within short-opt cluster */
+    char   errmsg[64];
+    char*  optarg;
+    char** argv;
+    int    permute;
+    int    optind;
+    int    optopt;
+    int    subopt; /* internal: offset within short-opt cluster */
 } ct_opt_t;
 
 typedef enum ct_opt_argtype {
-	CT_OPT_NONE     = 0,
-	CT_OPT_REQUIRED = 1,
-	CT_OPT_OPTIONAL = 2,
+    CT_OPT_NONE     = 0,
+    CT_OPT_REQUIRED = 1,
+    CT_OPT_OPTIONAL = 2,
 } ct_opt_argtype_t;
 
 /**
@@ -47,11 +47,11 @@ typedef enum ct_opt_argtype {
  * Set argdesc to NULL to hide an option from help output.
  */
 typedef struct ct_opt_long {
-	const char*      longname;
-	int              shortname; /* corresponding short char, non-printable-ASCII for long-only */
-	ct_opt_argtype_t argtype;
-	const char*      argdesc;
-	const char*      argname; /* placeholder name, default "ARG" */
+    const char*      longname;
+    int              shortname; /* corresponding short char, non-printable-ASCII for long-only */
+    ct_opt_argtype_t argtype;
+    const char*      argdesc;
+    const char*      argname; /* placeholder name, default "ARG" */
 } ct_opt_long_t;
 
 /**
@@ -59,7 +59,7 @@ typedef struct ct_opt_long {
  * @param options parser state to initialize
  * @param argv    argument vector (typically from main()); argv[0] is skipped
  */
-COTER_API void ct_opt_init(ct_opt_t* options, char** argv);
+CT_API void ct_opt_init(ct_opt_t* options, char** argv);
 
 /**
  * @brief Parse next short option.
@@ -67,7 +67,7 @@ COTER_API void ct_opt_init(ct_opt_t* options, char** argv);
  * @param optstring getopt()-style option string: no colon = no argument, one colon = required, two colons = optional
  * @return option character, -1 when done, '?' on error
  */
-COTER_API int ct_opt_parse(ct_opt_t* options, const char* optstring);
+CT_API int ct_opt_parse(ct_opt_t* options, const char* optstring);
 
 /**
  * @brief Parse next option, supporting both short and GNU-style long options.
@@ -76,14 +76,14 @@ COTER_API int ct_opt_parse(ct_opt_t* options, const char* optstring);
  * @param longindex receives index into longopts, or -1 for short options
  * @return option character / shortname, -1 when done, '?' on error
  */
-COTER_API int ct_opt_long(ct_opt_t* options, const ct_opt_long_t* longopts, int* longindex);
+CT_API int ct_opt_long(ct_opt_t* options, const ct_opt_long_t* longopts, int* longindex);
 
 /**
  * @brief Retrieve next non-option argument; useful for stepping over sub-commands.
  * @param options parser state
  * @return next non-option argument string, or NULL if none remain
  */
-COTER_API char* ct_opt_arg(ct_opt_t* options);
+CT_API char* ct_opt_arg(ct_opt_t* options);
 
 /**
  * @brief Help formatter layout configuration.
@@ -97,9 +97,9 @@ COTER_API char* ct_opt_arg(ct_opt_t* options);
  *   |-------------------------------|
  */
 typedef struct ct_opt_help_config {
-	int width;    /**< total line width */
-	int min_desc; /**< minimum columns reserved for description */
-	int max_left; /**< maximum columns for option part before forcing a line break */
+    int width;    /**< total line width */
+    int min_desc; /**< minimum columns reserved for description */
+    int max_left; /**< maximum columns for option part before forcing a line break */
 } ct_opt_help_config_t;
 
 #define CT_OPT_HELP_CONFIG_INIT {80, 26, 36}
@@ -115,7 +115,8 @@ typedef struct ct_opt_help_config {
  * @param count    element count of @p longopts, or -1 to auto-detect sentinel
  * @param pos_args positional argument synopsis appended after "[options]" (may be NULL, e.g. "SOURCE DEST")
  */
-COTER_API void ct_opt_usage(FILE* out, const char* progname, const ct_opt_long_t* longopts, int count, const char* pos_args);
+CT_API void ct_opt_usage(FILE* out, const char* progname, const ct_opt_long_t* longopts, int count,
+                         const char* pos_args);
 
 /**
  * @brief Print formatted option help via callback.
@@ -127,7 +128,7 @@ COTER_API void ct_opt_usage(FILE* out, const char* progname, const ct_opt_long_t
  * @param count    element count of @p longopts, or -1 to auto-detect sentinel
  * @param cfg      layout config, or NULL for defaults (see CT_OPT_HELP_CONFIG_INIT)
  */
-COTER_API void ct_opt_help(FILE* out, const ct_opt_long_t* longopts, int count, const ct_opt_help_config_t* cfg);
+CT_API void ct_opt_help(FILE* out, const ct_opt_long_t* longopts, int count, const ct_opt_help_config_t* cfg);
 
 #ifdef __cplusplus
 }

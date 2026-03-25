@@ -20,9 +20,9 @@ target_link_libraries(coter_container
 if(BUILD_SHARED_LIBS)
   target_compile_definitions(coter_container
     PRIVATE
-      COTER_LIB_EXPORT 
+      CT_LIB_EXPORT 
     INTERFACE
-      COTER_SHARED
+      CT_SHARED
   )
 endif()
 target_link_libraries(coter PUBLIC coter::container)

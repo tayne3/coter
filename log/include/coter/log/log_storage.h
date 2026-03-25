@@ -28,13 +28,14 @@ typedef struct ct_log_storage ct_log_storage_t;
  * @param config 日志配置
  * @return 返回创建的日志存储器
  */
-ct_log_storage_t *ct_log_storage_create(ct_time64_t tick, struct ct_bytepool *bytepool, const struct ct_log_config *config);
+ct_log_storage_t* ct_log_storage_create(ct_time64_t tick, struct ct_bytepool* bytepool,
+                                        const struct ct_log_config* config);
 
 /**
  * @brief 销毁日志存储器
  * @param self 日志存储器
  */
-COTER_API void ct_log_storage_destroy(ct_log_storage_t *self);
+CT_API void ct_log_storage_destroy(ct_log_storage_t* self);
 
 /**
  * @brief 日志数据推送
@@ -42,21 +43,21 @@ COTER_API void ct_log_storage_destroy(ct_log_storage_t *self);
  * @param buf 日志数据
  * @param size 日志数据大小
  */
-COTER_API void ct_log_storage_handle(ct_log_storage_t *self, const char *buf, size_t size);
+CT_API void ct_log_storage_handle(ct_log_storage_t* self, const char* buf, size_t size);
 
 /**
  * @brief 日志存储器刷新
  *
  * @param self 日志存储器
  */
-COTER_API void ct_log_storage_flush(ct_log_storage_t *self);
+CT_API void ct_log_storage_flush(ct_log_storage_t* self);
 
 /**
  * @brief 日志存储器调度
  *
  * @param self 日志存储器
  */
-COTER_API void ct_log_storage_schedule(ct_log_storage_t *self, ct_time64_t tick);
+CT_API void ct_log_storage_schedule(ct_log_storage_t* self, ct_time64_t tick);
 
 #ifdef __cplusplus
 }

@@ -145,7 +145,7 @@ struct timezone {
 #endif
 
 #ifdef _MSC_VER
-static inline int gettimeofday(struct timeval* tv, struct timezone* tz) {
+CT_INLINE int gettimeofday(struct timeval* tv, struct timezone* tz) {
     if (tv) {
         FILETIME ft;
         uint64_t ft64;
@@ -169,20 +169,20 @@ typedef time_t ct_time_t;
 typedef int64_t ct_time64_t;
 
 // get milliseconds since system startup. (if available)
-COTER_API ct_time64_t ct_getuptime_ms(void);
+CT_API ct_time64_t ct_getuptime_ms(void);
 // get time in milliseconds.
-COTER_API ct_time64_t ct_gettimeofday_ms(void);
+CT_API ct_time64_t ct_gettimeofday_ms(void);
 // get time in microseconds.
-COTER_API ct_time64_t ct_gettimeofday_us(void);
+CT_API ct_time64_t ct_gettimeofday_us(void);
 // get high-resolution time in microseconds.
-COTER_API ct_time64_t ct_gethrtime_us(void);
+CT_API ct_time64_t ct_gethrtime_us(void);
 
 // sleep for seconds.
-COTER_API void ct_sleep(uint32_t s);
+CT_API void ct_sleep(uint32_t s);
 // sleep for milliseconds.
-COTER_API void ct_msleep(uint32_t ms);
+CT_API void ct_msleep(uint32_t ms);
 // sleep for microseconds.
-COTER_API void ct_usleep(uint32_t us);
+CT_API void ct_usleep(uint32_t us);
 
 // 获取当前秒级时间戳 (自纪元时间)
 #define ct_current_second() time(NULL)
@@ -201,7 +201,7 @@ COTER_API void ct_usleep(uint32_t us);
  * tm_min:     [0-59]
  * tm_sec:     [0-60] (1 leap second)
  */
-COTER_API void ct_localtime_now(struct tm* tm);
+CT_API void ct_localtime_now(struct tm* tm);
 
 // 将时间戳转换为本地时间
 #ifdef CT_OS_WIN

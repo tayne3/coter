@@ -2,7 +2,8 @@
 
 #include <catch.hpp>
 
-static inline int traverse_callback(void* item, void* arg) {
+namespace {
+int traverse_callback(void* item, void* arg) {
     typedef struct {
         int sum;
         int count;
@@ -14,6 +15,7 @@ static inline int traverse_callback(void* item, void* arg) {
     }
     return 0;
 }
+}  // namespace
 
 TEST_CASE("queue_init", "[queue]") {
     ct_queue_t   queue;

@@ -18,14 +18,14 @@ extern "C" {
  * @note This component is not thread-safe.
  */
 typedef struct ct_rbuf {
-	uint8_t *data;  ///< Pointer to the externally allocated backing memory.
-	size_t   cap;   ///< Total buffer capacity in bytes.
-	size_t   head;  ///< Read cursor. Points to the oldest readable byte.
-	size_t   tail;  ///< Write cursor. Points to the next writable byte.
-	size_t   len;   ///< Current number of readable bytes in the buffer.
+    uint8_t* data;  ///< Pointer to the externally allocated backing memory.
+    size_t   cap;   ///< Total buffer capacity in bytes.
+    size_t   head;  ///< Read cursor. Points to the oldest readable byte.
+    size_t   tail;  ///< Write cursor. Points to the next writable byte.
+    size_t   len;   ///< Current number of readable bytes in the buffer.
 } ct_rbuf_t;
 
-#define CT_RBUF_INIT(__buf, __cap) {(uint8_t *)(__buf), (__cap), 0, 0, 0}
+#define CT_RBUF_INIT(__buf, __cap) {(uint8_t*)(__buf), (__cap), 0, 0, 0}
 
 #define ct_rbuf_capacity(self) ((self)->cap)
 #define ct_rbuf_count(self)    ((self)->len)
@@ -41,13 +41,13 @@ typedef struct ct_rbuf {
  * @param buffer Pointer to the externally allocated backing memory.
  * @param cap    Total capacity of the buffer in bytes.
  */
-static inline void ct_rbuf_init(ct_rbuf_t *self, uint8_t *buffer, size_t cap) {
-	if (!self) { return; }
-	self->data = buffer;
-	self->cap  = cap;
-	self->head = 0;
-	self->tail = 0;
-	self->len  = 0;
+CT_INLINE void ct_rbuf_init(ct_rbuf_t* self, uint8_t* buffer, size_t cap) {
+    if (!self) { return; }
+    self->data = buffer;
+    self->cap  = cap;
+    self->head = 0;
+    self->tail = 0;
+    self->len  = 0;
 }
 
 /**
@@ -58,7 +58,7 @@ static inline void ct_rbuf_init(ct_rbuf_t *self, uint8_t *buffer, size_t cap) {
  * @param len  The requested number of bytes to write.
  * @return     The actual number of bytes successfully written.
  */
-COTER_API size_t ct_rbuf_write(ct_rbuf_t *self, const uint8_t *src, size_t len);
+CT_API size_t ct_rbuf_write(ct_rbuf_t* self, const uint8_t* src, size_t len);
 
 /**
  * @brief Copies and consumes up to `len` bytes from the ring buffer into `dst`.
@@ -68,7 +68,7 @@ COTER_API size_t ct_rbuf_write(ct_rbuf_t *self, const uint8_t *src, size_t len);
  * @param len  The requested number of bytes to read.
  * @return     The actual number of bytes successfully read and consumed.
  */
-COTER_API size_t ct_rbuf_read(ct_rbuf_t *self, uint8_t *dst, size_t len);
+CT_API size_t ct_rbuf_read(ct_rbuf_t* self, uint8_t* dst, size_t len);
 
 /**
  * @brief Copies up to `len` bytes into `dst` WITHOUT consuming the readable data.
@@ -78,7 +78,7 @@ COTER_API size_t ct_rbuf_read(ct_rbuf_t *self, uint8_t *dst, size_t len);
  * @param len  The requested number of bytes to peek.
  * @return     The actual number of bytes successfully peeked.
  */
-COTER_API size_t ct_rbuf_peek(const ct_rbuf_t *self, uint8_t *dst, size_t len);
+CT_API size_t ct_rbuf_peek(const ct_rbuf_t* self, uint8_t* dst, size_t len);
 
 /**
  * @brief Provides direct zero-copy access to the readable data.
@@ -91,21 +91,21 @@ COTER_API size_t ct_rbuf_peek(const ct_rbuf_t *self, uint8_t *dst, size_t len);
  * @param chunk_len Output pointer that receives the length of the contiguous span returned.
  * @return          A read-only pointer to the contiguous readable data, or NULL if empty.
  */
-static inline const uint8_t *ct_rbuf_read_ptr(const ct_rbuf_t *self, size_t *chunk_len) {
-	if (!self || self->len == 0) {
-		if (chunk_len) { *chunk_len = 0; }
-		return NULL;
-	}
+CT_INLINE const uint8_t* ct_rbuf_read_ptr(const ct_rbuf_t* self, size_t* chunk_len) {
+    if (!self || self->len == 0) {
+        if (chunk_len) { *chunk_len = 0; }
+        return NULL;
+    }
 
-	if (chunk_len) {
-		const size_t until_end = self->cap - self->head;
-		if (self->len <= until_end) {
-			*chunk_len = self->len;
-		} else {
-			*chunk_len = until_end;
-		}
-	}
-	return &self->data[self->head];
+    if (chunk_len) {
+        const size_t until_end = self->cap - self->head;
+        if (self->len <= until_end) {
+            *chunk_len = self->len;
+        } else {
+            *chunk_len = until_end;
+        }
+    }
+    return &self->data[self->head];
 }
 
 /**
@@ -119,27 +119,27 @@ static inline const uint8_t *ct_rbuf_read_ptr(const ct_rbuf_t *self, size_t *chu
  * @param chunk_len Output pointer that receives the length of the contiguous space returned.
  * @return          A pointer to the contiguous writable space, or NULL if full.
  */
-static inline uint8_t *ct_rbuf_write_ptr(ct_rbuf_t *self, size_t *chunk_len) {
-	if (!self) {
-		if (chunk_len) { *chunk_len = 0; }
-		return NULL;
-	}
+CT_INLINE uint8_t* ct_rbuf_write_ptr(ct_rbuf_t* self, size_t* chunk_len) {
+    if (!self) {
+        if (chunk_len) { *chunk_len = 0; }
+        return NULL;
+    }
 
-	const size_t writable = self->cap - self->len;
-	if (writable == 0) {
-		if (chunk_len) { *chunk_len = 0; }
-		return NULL;
-	}
+    const size_t writable = self->cap - self->len;
+    if (writable == 0) {
+        if (chunk_len) { *chunk_len = 0; }
+        return NULL;
+    }
 
-	if (chunk_len) {
-		const size_t until_end = self->cap - self->tail;
-		if (writable <= until_end) {
-			*chunk_len = writable;
-		} else {
-			*chunk_len = until_end;
-		}
-	}
-	return &self->data[self->tail];
+    if (chunk_len) {
+        const size_t until_end = self->cap - self->tail;
+        if (writable <= until_end) {
+            *chunk_len = writable;
+        } else {
+            *chunk_len = until_end;
+        }
+    }
+    return &self->data[self->tail];
 }
 
 /**
@@ -154,15 +154,15 @@ static inline uint8_t *ct_rbuf_write_ptr(ct_rbuf_t *self, size_t *chunk_len) {
  * @note       Typically used as the second step of a zero-copy read operation to
  *             confirm data processing after calling `ct_rbuf_read_ptr()`.
  */
-static inline size_t ct_rbuf_remove(ct_rbuf_t *self, size_t len) {
-	if (!self) { return 0; }
-	if (len > self->len) { len = self->len; }
-	if (len > 0) {
-		self->head += len;
-		if (self->head >= self->cap) { self->head -= self->cap; }
-		self->len -= len;
-	}
-	return len;
+CT_INLINE size_t ct_rbuf_remove(ct_rbuf_t* self, size_t len) {
+    if (!self) { return 0; }
+    if (len > self->len) { len = self->len; }
+    if (len > 0) {
+        self->head += len;
+        if (self->head >= self->cap) { self->head -= self->cap; }
+        self->len -= len;
+    }
+    return len;
 }
 
 /**
@@ -177,15 +177,15 @@ static inline size_t ct_rbuf_remove(ct_rbuf_t *self, size_t len) {
  * @note       Typically used as the second step of a zero-copy write operation to
  *             publish the data written into the span from `ct_rbuf_write_ptr()`.
  */
-static inline size_t ct_rbuf_commit(ct_rbuf_t *self, size_t len) {
-	if (!self) { return 0; }
-	if (len + self->len > self->cap) { len = self->cap - self->len; }
-	if (len > 0) {
-		self->tail += len;
-		if (self->tail >= self->cap) { self->tail -= self->cap; }
-		self->len += len;
-	}
-	return len;
+CT_INLINE size_t ct_rbuf_commit(ct_rbuf_t* self, size_t len) {
+    if (!self) { return 0; }
+    if (len + self->len > self->cap) { len = self->cap - self->len; }
+    if (len > 0) {
+        self->tail += len;
+        if (self->tail >= self->cap) { self->tail -= self->cap; }
+        self->len += len;
+    }
+    return len;
 }
 
 #ifdef __cplusplus

@@ -2,7 +2,8 @@
 
 #include "coter/time/cron.h"
 
-static inline ct_time_t create_test_time(int year, int month, int day, int hour, int min, int sec) {
+namespace {
+ct_time_t create_test_time(int year, int month, int day, int hour, int min, int sec) {
     struct tm tm;
     memset(&tm, 0, sizeof(tm));
     tm.tm_year  = year - 1900;
@@ -14,6 +15,7 @@ static inline ct_time_t create_test_time(int year, int month, int day, int hour,
     tm.tm_isdst = -1;
     return mktime(&tm);
 }
+}  // namespace
 
 TEST_CASE("computes next minutely timeout", "[cron_next]") {
     const ct_time_t before   = create_test_time(2000, 1, 1, 0, 0, 0);
