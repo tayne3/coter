@@ -41,7 +41,7 @@ ct_datetime_t ct_datetime_now(void) {
     return dt;
 #else
     struct timeval tv;
-    ct_gettimeofday(&tv, NULL);
+    gettimeofday(&tv, NULL);
     ct_datetime_t dt = ct_datetime_localtime(tv.tv_sec);
     dt.ms            = tv.tv_usec / 1000;
     return dt;

@@ -222,7 +222,7 @@ static void i2s_3(char** p, int value) {
 
 static void tc__update_tmstr(ct_threadcache_t* self) {
     struct timeval tv;
-    ct_gettimeofday(&tv, NULL);
+    gettimeofday(&tv, NULL);
 
     char* p;
 

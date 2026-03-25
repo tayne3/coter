@@ -97,7 +97,7 @@ int ct_sem_wait_for(ct_sem_t* sem, uint32_t timeout_ms) {
     clock_gettime(CLOCK_REALTIME, &ts);
 #else
     struct timeval tv;
-    ct_gettimeofday(&tv, NULL);
+    gettimeofday(&tv, NULL);
     ts.tv_sec  = tv.tv_sec;
     ts.tv_nsec = (long)tv.tv_usec * 1000L;
 #endif

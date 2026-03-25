@@ -41,6 +41,25 @@
     #include <dirent.h>
 #endif
 
+#ifdef _MSC_VER
+CT_INLINE int gettimeofday(struct timeval* tv, struct timezone* tz) {
+    if (tv) {
+        FILETIME ft;
+        uint64_t ft64;
+        GetSystemTimeAsFileTime(&ft);
+        ft64 = ((uint64_t)ft.dwHighDateTime << 32) | ft.dwLowDateTime;
+        ft64 -= 116444736000000000ULL;
+        tv->tv_sec  = (long)(ft64 / 10000000ULL);
+        tv->tv_usec = (long)((ft64 % 10000000ULL) / 10ULL);
+    }
+    if (tz) {
+        tz->tz_minuteswest = 0;
+        tz->tz_dsttime     = 0;
+    }
+    return 0;
+}
+#endif
+
 #if HAVE_SYS_TYPES_H
 #include <sys/types.h>
 #endif

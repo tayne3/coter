@@ -3,7 +3,7 @@
 #include "coter/core/platform.h"
 
 #ifdef _MSC_VER
-int ct_gettimeofday(struct timeval* tv, struct timezone* tz) {
+int gettimeofday(struct timeval* tv, struct timezone* tz) {
     if (tv) {
         FILETIME ft;
         uint64_t ft64;
@@ -30,20 +30,20 @@ ct_time64_t ct_getuptime_ms(void) {
     return (ct_time64_t)ts.tv_sec * 1000LL + (ct_time64_t)ts.tv_nsec / 1000000LL;
 #else
     struct timeval tv;
-    ct_gettimeofday(&tv, NULL);
+    gettimeofday(&tv, NULL);
     return (ct_time64_t)tv.tv_sec * 1000LL + (ct_time64_t)tv.tv_usec / 1000LL;
 #endif
 }
 
 ct_time64_t ct_gettimeofday_ms(void) {
     struct timeval tv;
-    ct_gettimeofday(&tv, NULL);
+    gettimeofday(&tv, NULL);
     return (ct_time64_t)tv.tv_sec * 1000LL + (ct_time64_t)tv.tv_usec / 1000LL;
 }
 
 ct_time64_t ct_gettimeofday_us(void) {
     struct timeval tv;
-    ct_gettimeofday(&tv, NULL);
+    gettimeofday(&tv, NULL);
     return (ct_time64_t)tv.tv_sec * 1000000LL + (ct_time64_t)tv.tv_usec;
 }
 
@@ -69,7 +69,7 @@ ct_time64_t ct_gethrtime_us(void) {
     return (ct_time64_t)ts.tv_sec * 1000000LL + (ct_time64_t)ts.tv_nsec / 1000LL;
 #else
     struct timeval tv;
-    ct_gettimeofday(&tv, NULL);
+    gettimeofday(&tv, NULL);
     return (ct_time64_t)tv.tv_sec * 1000000LL + (ct_time64_t)tv.tv_usec;
 #endif
 }

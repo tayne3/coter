@@ -36,12 +36,6 @@ typedef time_t ct_time_t;
 // 64-bit timestamp type
 typedef int64_t ct_time64_t;
 
-#ifdef _MSC_VER
-CT_API int ct_gettimeofday(struct timeval* tv, struct timezone* tz);
-#else
-#define ct_gettimeofday gettimeofday
-#endif
-
 // get milliseconds since system startup. (if available)
 CT_API ct_time64_t ct_getuptime_ms(void);
 // get time in milliseconds.
