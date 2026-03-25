@@ -1,125 +1,125 @@
 #include "coter/sync/sem.h"
 
 int ct_sem_init(ct_sem_t* sem, uint32_t value) {
-	if (!sem) { return EINVAL; }
+    if (!sem) { return EINVAL; }
 
 #ifdef CT_OS_WIN
-	*sem = CreateSemaphoreA(NULL, (LONG)value, 0x7fffffff, NULL);
-	return *sem ? 0 : (int)GetLastError();
+    *sem = CreateSemaphoreA(NULL, (LONG)value, 0x7fffffff, NULL);
+    return *sem ? 0 : (int)GetLastError();
 #elif defined(CT_OS_MAC)
-	*sem = dispatch_semaphore_create((long)value);
-	return *sem ? 0 : ENOMEM;
+    *sem = dispatch_semaphore_create((long)value);
+    return *sem ? 0 : ENOMEM;
 #else
-	return sem_init(sem, 0, value) == 0 ? 0 : errno;
+    return sem_init(sem, 0, value) == 0 ? 0 : errno;
 #endif
 }
 
 int ct_sem_destroy(ct_sem_t* sem) {
-	if (!sem) { return EINVAL; }
+    if (!sem) { return EINVAL; }
 
 #ifdef CT_OS_WIN
-	return CloseHandle(*sem) ? 0 : (int)GetLastError();
+    return CloseHandle(*sem) ? 0 : (int)GetLastError();
 #elif defined(CT_OS_MAC)
-	if (!*sem) { return EINVAL; }
+    if (!*sem) { return EINVAL; }
 #if defined(OS_OBJECT_USE_OBJC) && OS_OBJECT_USE_OBJC
-	*sem = NULL;
-	return 0;
+    *sem = NULL;
+    return 0;
 #else
-	dispatch_release(*sem);
-	*sem = NULL;
-	return 0;
+    dispatch_release(*sem);
+    *sem = NULL;
+    return 0;
 #endif
 #else
-	return sem_destroy(sem) == 0 ? 0 : errno;
+    return sem_destroy(sem) == 0 ? 0 : errno;
 #endif
 }
 
 int ct_sem_wait(ct_sem_t* sem) {
-	if (!sem) { return EINVAL; }
+    if (!sem) { return EINVAL; }
 #ifdef CT_OS_WIN
-	DWORD result = WaitForSingleObject(*sem, INFINITE);
-	if (result == WAIT_OBJECT_0) { return 0; }
-	return result == WAIT_FAILED ? (int)GetLastError() : EINVAL;
+    DWORD result = WaitForSingleObject(*sem, INFINITE);
+    if (result == WAIT_OBJECT_0) { return 0; }
+    return result == WAIT_FAILED ? (int)GetLastError() : EINVAL;
 #elif defined(CT_OS_MAC)
-	if (!*sem) { return EINVAL; }
-	return dispatch_semaphore_wait(*sem, DISPATCH_TIME_FOREVER) == 0 ? 0 : EINVAL;
+    if (!*sem) { return EINVAL; }
+    return dispatch_semaphore_wait(*sem, DISPATCH_TIME_FOREVER) == 0 ? 0 : EINVAL;
 #else
-	while (sem_wait(sem) != 0) {
-		if (errno != EINTR) { return errno; }
-	}
-	return 0;
+    while (sem_wait(sem) != 0) {
+        if (errno != EINTR) { return errno; }
+    }
+    return 0;
 #endif
 }
 
 int ct_sem_trywait(ct_sem_t* sem) {
-	if (!sem) { return EINVAL; }
+    if (!sem) { return EINVAL; }
 #ifdef CT_OS_WIN
-	DWORD result = WaitForSingleObject(*sem, 0);
-	if (result == WAIT_OBJECT_0) { return 0; }
-	if (result == WAIT_TIMEOUT) { return EAGAIN; }
-	return result == WAIT_FAILED ? (int)GetLastError() : EINVAL;
+    DWORD result = WaitForSingleObject(*sem, 0);
+    if (result == WAIT_OBJECT_0) { return 0; }
+    if (result == WAIT_TIMEOUT) { return EAGAIN; }
+    return result == WAIT_FAILED ? (int)GetLastError() : EINVAL;
 #elif defined(CT_OS_MAC)
-	if (!*sem) { return EINVAL; }
-	return dispatch_semaphore_wait(*sem, DISPATCH_TIME_NOW) == 0 ? 0 : EAGAIN;
+    if (!*sem) { return EINVAL; }
+    return dispatch_semaphore_wait(*sem, DISPATCH_TIME_NOW) == 0 ? 0 : EAGAIN;
 #else
-	return sem_trywait(sem) == 0 ? 0 : errno;
+    return sem_trywait(sem) == 0 ? 0 : errno;
 #endif
 }
 
 int ct_sem_post(ct_sem_t* sem) {
-	if (!sem) { return EINVAL; }
+    if (!sem) { return EINVAL; }
 #ifdef CT_OS_WIN
-	return ReleaseSemaphore(*sem, 1, NULL) ? 0 : (int)GetLastError();
+    return ReleaseSemaphore(*sem, 1, NULL) ? 0 : (int)GetLastError();
 #elif defined(CT_OS_MAC)
-	if (!*sem) { return EINVAL; }
-	dispatch_semaphore_signal(*sem);
-	return 0;
+    if (!*sem) { return EINVAL; }
+    dispatch_semaphore_signal(*sem);
+    return 0;
 #else
-	return sem_post(sem) == 0 ? 0 : errno;
+    return sem_post(sem) == 0 ? 0 : errno;
 #endif
 }
 
 int ct_sem_wait_for(ct_sem_t* sem, uint32_t timeout_ms) {
-	if (!sem) { return EINVAL; }
+    if (!sem) { return EINVAL; }
 #ifdef CT_OS_WIN
-	DWORD result = WaitForSingleObject(*sem, timeout_ms);
-	if (result == WAIT_OBJECT_0) { return 0; }
-	if (result == WAIT_TIMEOUT) { return ETIMEDOUT; }
-	return result == WAIT_FAILED ? (int)GetLastError() : EINVAL;
+    DWORD result = WaitForSingleObject(*sem, timeout_ms);
+    if (result == WAIT_OBJECT_0) { return 0; }
+    if (result == WAIT_TIMEOUT) { return ETIMEDOUT; }
+    return result == WAIT_FAILED ? (int)GetLastError() : EINVAL;
 #elif defined(CT_OS_MAC)
-	if (!*sem) { return EINVAL; }
-	dispatch_time_t deadline = dispatch_time(DISPATCH_TIME_NOW, (int64_t)timeout_ms * 1000000LL);
-	return dispatch_semaphore_wait(*sem, deadline) == 0 ? 0 : ETIMEDOUT;
+    if (!*sem) { return EINVAL; }
+    dispatch_time_t deadline = dispatch_time(DISPATCH_TIME_NOW, (int64_t)timeout_ms * 1000000LL);
+    return dispatch_semaphore_wait(*sem, deadline) == 0 ? 0 : ETIMEDOUT;
 #else
 #if HAVE_SEM_TIMEDWAIT
-	struct timespec ts;
+    struct timespec ts;
 #if defined(CLOCK_REALTIME)
-	clock_gettime(CLOCK_REALTIME, &ts);
+    clock_gettime(CLOCK_REALTIME, &ts);
 #else
-	struct timeval tv;
-	gettimeofday(&tv, NULL);
-	ts.tv_sec  = tv.tv_sec;
-	ts.tv_nsec = (long)tv.tv_usec * 1000L;
+    struct timeval tv;
+    ct_gettimeofday(&tv, NULL);
+    ts.tv_sec  = tv.tv_sec;
+    ts.tv_nsec = (long)tv.tv_usec * 1000L;
 #endif
-	ts.tv_sec += timeout_ms / 1000U;
-	ts.tv_nsec += (long)(timeout_ms % 1000U) * 1000000L;
-	ts.tv_sec += ts.tv_nsec / 1000000000L;
-	ts.tv_nsec %= 1000000000L;
+    ts.tv_sec += timeout_ms / 1000U;
+    ts.tv_nsec += (long)(timeout_ms % 1000U) * 1000000L;
+    ts.tv_sec += ts.tv_nsec / 1000000000L;
+    ts.tv_nsec %= 1000000000L;
 
-	while (sem_timedwait(sem, &ts) != 0) {
-		if (errno == EINTR) { continue; }
-		return errno;
-	}
-	return 0;
+    while (sem_timedwait(sem, &ts) != 0) {
+        if (errno == EINTR) { continue; }
+        return errno;
+    }
+    return 0;
 #else
-	ct_time64_t deadline = ct_getuptime_ms() + (ct_time64_t)timeout_ms;
-	for (;;) {
-		int result = ct_sem_trywait(sem);
-		if (result == 0) { return 0; }
-		if (result != EAGAIN) { return result; }
-		if (ct_getuptime_ms() >= deadline) { return ETIMEDOUT; }
-		ct_msleep(1);
-	}
+    ct_time64_t deadline = ct_getuptime_ms() + (ct_time64_t)timeout_ms;
+    for (;;) {
+        int result = ct_sem_trywait(sem);
+        if (result == 0) { return 0; }
+        if (result != EAGAIN) { return result; }
+        if (ct_getuptime_ms() >= deadline) { return ETIMEDOUT; }
+        ct_msleep(1);
+    }
 #endif
 #endif
 }

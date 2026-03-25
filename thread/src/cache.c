@@ -21,9 +21,9 @@
  * 用于优化日志信息的生成，减少频繁调用系统时间函数的开销
  */
 struct ct_threadcache {
-    time_t accect_sec;  // 上次访问时间 (秒)
-    time_t _sys_sec;    // 缓存的系统时间 (秒)
-    time_t _sys_min;    // 缓存的系统时间 (分钟)
+    ct_time_t accect_sec;  // 上次访问时间 (秒)
+    ct_time_t _sys_sec;    // 缓存的系统时间 (秒)
+    ct_time_t _sys_min;    // 缓存的系统时间 (分钟)
 
     const char* last_file;         // 最后一次访问的文件路径
     const char* _filename;         // 最后一次访问的文件名
@@ -222,7 +222,7 @@ static void i2s_3(char** p, int value) {
 
 static void tc__update_tmstr(ct_threadcache_t* self) {
     struct timeval tv;
-    gettimeofday(&tv, NULL);
+    ct_gettimeofday(&tv, NULL);
 
     char* p;
 
@@ -233,7 +233,7 @@ static void tc__update_tmstr(ct_threadcache_t* self) {
 
             return;  // 同一秒内，只更新毫秒部分 (%02d.%02d.%02d-%02d:%02d:%02d.[%03d])
         } else if (tv.tv_sec > self->accect_sec) {
-            const time_t diff_sec = tv.tv_sec - self->accect_sec;
+            const ct_time_t diff_sec = tv.tv_sec - self->accect_sec;
             if (diff_sec + self->_sys_sec < 60) {
                 self->accect_sec = tv.tv_sec;
                 self->_sys_sec += diff_sec;
@@ -248,8 +248,8 @@ static void tc__update_tmstr(ct_threadcache_t* self) {
         }
     }
 
-    const time_t sys_sec = (time_t)tv.tv_sec;
-    struct tm    tm;
+    const ct_time_t sys_sec = (ct_time_t)tv.tv_sec;
+    struct tm       tm;
     ct_localtime_r(&sys_sec, &tm);
     self->_sys_sec   = tm.tm_sec;
     self->_sys_min   = tm.tm_min;

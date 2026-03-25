@@ -60,7 +60,7 @@ TEST_CASE("computes next yearly timeout", "[cron_next]") {
 }
 
 TEST_CASE("returns -1 for invalid parameters", "[cron_next]") {
-    const ct_time_t now = time(nullptr);
+    const ct_time_t now = ct_time(nullptr);
     REQUIRE(-1 == ct_cron_next_timeout(now, 60, -1, -1, -1, -1));
     REQUIRE(-1 == ct_cron_next_timeout(now, -1, 24, -1, -1, -1));
     REQUIRE(-1 == ct_cron_next_timeout(now, -1, -1, 32, -1, -1));

@@ -5,7 +5,7 @@
 #ifndef COTER_TIME_DATETIME_H
 #define COTER_TIME_DATETIME_H
 
-#include "coter/core/platform.h"
+#include "coter/core/time.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -23,7 +23,7 @@ typedef struct ct_datetime {
     int min;    ///< 分钟 (0-59)
     int sec;    ///< 秒 (0-59)
     int ms;     ///< 毫秒 (0-999)
-} ct_datetime_t, ct_datetime_buf_t[1];
+} ct_datetime_t;
 
 /**
  * @brief 获取当前日期时间
@@ -45,28 +45,28 @@ CT_API ct_datetime_t ct_datetime_now(void);
  * @return ct_datetime_t 转换后的本地日期时间
  *
  * @code
- * const time_t timestamp = time(NULL);
+ * const ct_time_t timestamp = ct_time(NULL);
  * const ct_datetime_t local_time = ct_datetime_localtime(timestamp);
  * printf("local datetime: %04d-%02d-%02d %02d:%02d:%02d\n",
  *        local_time.year, local_time.month, local_time.day,
  *        local_time.hour, local_time.min, local_time.sec);
  * @endcode
  */
-CT_API ct_datetime_t ct_datetime_localtime(time_t seconds);
+CT_API ct_datetime_t ct_datetime_localtime(ct_time_t seconds);
 
 /**
  * @brief 将日期时间结构体转换为时间戳
  *
  * @param dt 指向日期时间结构体的指针
- * @return time_t 转换后的 UNIX 时间戳
+ * @return ct_time_t 转换后的 UNIX 时间戳
  *
  * @code
  * const ct_datetime_t dt = {2023, 12, 31, 23, 59, 59, 0};
- * const time_t timestamp = ct_datetime_mktime(&dt);
+ * const ct_time_t timestamp = ct_datetime_mktime(&dt);
  * printf("timestamp: %ld\n", timestamp);
  * @endcode
  */
-CT_API time_t ct_datetime_mktime(const ct_datetime_t* dt);
+CT_API ct_time_t ct_datetime_mktime(const ct_datetime_t* dt);
 
 /**
  * @brief 计算过去的日期
@@ -169,13 +169,13 @@ CT_API char* ct_datetime_fmt_iso(const ct_datetime_t* dt, char* buf);
  * @return char* 指向格式化后字符串的指针(与 buf 相同)
  *
  * @code
- * const time_t now = time(NULL);
+ * const ct_time_t now = ct_time(NULL);
  * char buf[CT_GMTIME_FMT_BUFLEN];
  * ct_datetime_gmtime_fmt(now, buf);
  * printf("GMT time: %s\n", buf);
  * @endcode
  */
-CT_API char* ct_datetime_gmtime_fmt(time_t t, char* buf);
+CT_API char* ct_datetime_gmtime_fmt(ct_time_t t, char* buf);
 
 /**
  * @brief 计算指定月份的天数

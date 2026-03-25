@@ -25,7 +25,7 @@ static uint64_t ct_random_xoroshiro_next(ct_random_t* self);
 
 void ct_random_init(ct_random_t* self) {
     if (!self) { return; }
-    const time_t t = time(NULL);
+    const ct_time_t t = ct_time(NULL);
     srand((unsigned)t);
     self->_s[0] = t;
     self->_s[1] = rand();

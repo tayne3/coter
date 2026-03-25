@@ -53,8 +53,8 @@ TEST_CASE("timeofday_consistency", "[timing]") {
 TEST_CASE("localtime_now_consistency", "[concurrency]") {
     struct tm tmv{};
     ct_localtime_now(&tmv);
-    const time_t t_now = ct_current_second();
-    const time_t t_mk  = ct_mktime(&tmv);
+    const ct_time_t t_now = ct_current_second();
+    const ct_time_t t_mk  = ct_mktime(&tmv);
     REQUIRE(std::llabs((long long)t_mk - (long long)t_now) <= 1);
     REQUIRE(tmv.tm_mon >= 0);
     REQUIRE(tmv.tm_mon <= 11);
@@ -78,8 +78,8 @@ TEST_CASE("localtime_now_concurrent", "[concurrency]") {
             for (int i = 0; i < loops; ++i) {
                 struct tm tmv{};
                 ct_localtime_now(&tmv);
-                const time_t now = ct_current_second();
-                const time_t mk  = ct_mktime(&tmv);
+                const ct_time_t now = ct_current_second();
+                const ct_time_t mk  = ct_mktime(&tmv);
                 REQUIRE(std::llabs((long long)mk - (long long)now) <= 1);
             }
         });

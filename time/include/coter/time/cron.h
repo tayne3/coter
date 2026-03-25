@@ -6,7 +6,7 @@
 #define COTER_TIME_CRON_H
 
 #include "coter/container/heap.h"
-#include "coter/core/platform.h"
+#include "coter/core/time.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -27,7 +27,7 @@ extern "C" {
  *
  * @code
  * // 设置每天凌晨1:30执行
- * time_t next_run = ct_datetime_cron_next_timeout(30, 1, -1, -1, -1);
+ * ct_time_t next_run = ct_datetime_cron_next_timeout(30, 1, -1, -1, -1);
  * if (next_run != -1) {
  *     char buf[CT_DATETIME_FMT_BUFLEN];
  *     ct_datetime_t dt = ct_datetime_datetime_localtime(next_run);
