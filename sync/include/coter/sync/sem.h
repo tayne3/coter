@@ -9,8 +9,10 @@
 
 #if defined(CT_OS_WIN)
 #include <windows.h>
-#elif defined(CT_OS_MAC)
+#elif defined(CT_OS_MAC) && defined(CT_COMPILER_CLANG)
 #include <dispatch/dispatch.h>
+#elif defined(CT_OS_MAC) && !defined(CT_COMPILER_CLANG)
+#include <pthread.h>
 #else
 #include <semaphore.h>
 #endif
@@ -21,8 +23,14 @@ extern "C" {
 
 #ifdef CT_OS_WIN
 typedef HANDLE ct_sem_t;
-#elif defined(CT_OS_MAC)
+#elif defined(CT_OS_MAC) && defined(CT_COMPILER_CLANG)
 typedef dispatch_semaphore_t ct_sem_t;
+#elif defined(CT_OS_MAC) && !defined(CT_COMPILER_CLANG)
+typedef struct ct_sem {
+    pthread_mutex_t mutex;
+    pthread_cond_t  cond;
+    uint32_t        count;
+} ct_sem_t;
 #else
 typedef sem_t ct_sem_t;
 #endif
