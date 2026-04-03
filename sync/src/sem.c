@@ -38,8 +38,11 @@ int ct_sem_destroy(ct_sem_t* sem) {
     return 0;
 #endif
 #elif defined(CT_OS_MAC) && !defined(CT_COMPILER_CLANG)
-    if (pthread_cond_destroy(&sem->cond) != 0) { return EINVAL; }
-    return pthread_mutex_destroy(&sem->mutex) == 0 ? 0 : EINVAL;
+    int ret = pthread_cond_destroy(&sem->cond);
+    if (ret != 0) { return ret == EBUSY ? EBUSY : EINVAL; }
+    ret = pthread_mutex_destroy(&sem->mutex);
+    if (ret != 0) { return ret == EBUSY ? EBUSY : EINVAL; }
+    return 0;
 #else
     return sem_destroy(sem) == 0 ? 0 : errno;
 #endif
