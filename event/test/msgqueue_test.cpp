@@ -29,7 +29,9 @@ void run_msgqueue(size_t data_size, size_t buffer_size) {
     REQUIRE(test_buffer != nullptr);
     ct_random_t rng;
     ct_random_init(&rng);
-    for (size_t i = 0; i < test_data_size; ++i) { test_data[i] = ct_random_int32(&rng, INT32_MIN, INT32_MAX); }
+    for (size_t i = 0; i < test_data_size; ++i) {
+        test_data[i] = (int)ct_random_i64_range(&rng, INT32_MIN, (int64_t)INT32_MAX + 1);
+    }
     ct_msgqueue_t msgqueue[1];
     ct_msgqueue_init(msgqueue, test_buffer, sizeof(int), buffer_size);
     REQUIRE(ct_msgqueue_isempty(msgqueue));

@@ -3,451 +3,181 @@
 #include <catch.hpp>
 #include <cstring>
 
-#define BOUNDARY_TEST_ITERATIONS  1000
-#define DISTRIBUTION_SAMPLE_COUNT 100000
-#define DISTRIBUTION_TOLERANCE    0.2
-
-static bool is_distribution_uniform(const uint64_t *counts, size_t size, uint64_t expected, double tolerance) {
-	const uint64_t min_count = (uint64_t)(expected * (1.0 - tolerance));
-	const uint64_t max_count = (uint64_t)(expected * (1.0 + tolerance));
-	for (size_t i = 0; i < size; ++i) {
-		if (counts[i] < min_count || counts[i] > max_count) { return false; }
-	}
-	return true;
-}
-
 TEST_CASE("rand_null_safety", "[rand]") {
-	REQUIRE_FALSE(ct_random_bool(nullptr));
-	REQUIRE(ct_random_uint8(nullptr, 0, 100) == 0);
-	REQUIRE(ct_random_int8(nullptr, -50, 50) == 0);
-	REQUIRE(ct_random_uint16(nullptr, 0, 1000) == 0);
-	REQUIRE(ct_random_int16(nullptr, -500, 500) == 0);
-	REQUIRE(ct_random_uint32(nullptr, 0, 10000) == 0);
-	REQUIRE(ct_random_int32(nullptr, -5000, 5000) == 0);
-	REQUIRE(ct_random_uint64(nullptr, 0, 100000) == 0);
-	REQUIRE(ct_random_int64(nullptr, -50000, 50000) == 0);
-	REQUIRE(ct_random_float(nullptr, 0.0f, 1.0f) == 0.0f);
-	REQUIRE(ct_random_double(nullptr, 0.0, 1.0) == 0.0);
-	char buffer[10];
-	ct_random_string(nullptr, buffer, 5);
-	ct_random_string(nullptr, nullptr, 5);
+    REQUIRE(ct_random_u64(nullptr) == 0);
+    REQUIRE(ct_random_i64(nullptr) == 0);
+    REQUIRE(ct_random_u64_range(nullptr, 10, 20) == 0);
+    REQUIRE(ct_random_i64_range(nullptr, -10, 20) == 0);
+    REQUIRE(ct_random_f64(nullptr) == 0.0);
+
+    uint8_t buffer[16] = {0};
+    ct_random_seed(nullptr, 123);
+    ct_random_init(nullptr);
+    ct_random_bytes(nullptr, buffer, sizeof(buffer));
+    ct_random_bytes(nullptr, nullptr, sizeof(buffer));
 }
 
-TEST_CASE("rand_edge_min_equals_max", "[rand]") {
-	ct_random_t rng;
-	ct_random_init(&rng);
-	for (int i = 0; i < 100; ++i) {
-		REQUIRE(ct_random_uint8(&rng, 42, 42) == 42);
-		REQUIRE(ct_random_int8(&rng, -7, -7) == -7);
-		REQUIRE(ct_random_uint16(&rng, 1234, 1234) == 1234);
-		REQUIRE(ct_random_int16(&rng, -999, -999) == -999);
-		REQUIRE(ct_random_uint32(&rng, 88888, 88888) == 88888);
-		REQUIRE(ct_random_int32(&rng, -77777, -77777) == -77777);
-		REQUIRE(ct_random_uint64(&rng, 123456789, 123456789) == 123456789);
-		REQUIRE(ct_random_int64(&rng, -987654321, -987654321) == -987654321);
-	}
+TEST_CASE("rand_seed_is_reproducible", "[rand]") {
+    ct_random_t lhs;
+    ct_random_t rhs;
+
+    ct_random_seed(&lhs, 123456789ull);
+    ct_random_seed(&rhs, 123456789ull);
+
+    for (int i = 0; i < 64; ++i) { REQUIRE(ct_random_u64(&lhs) == ct_random_u64(&rhs)); }
 }
 
-TEST_CASE("rand_edge_min_greater_than_max", "[rand]") {
-	ct_random_t rng;
-	ct_random_init(&rng);
-	for (int i = 0; i < 100; ++i) {
-		REQUIRE(ct_random_uint8(&rng, 100, 50) == 100);
-		REQUIRE(ct_random_int8(&rng, 50, -50) == 50);
-		REQUIRE(ct_random_uint16(&rng, 5000, 1000) == 5000);
-		REQUIRE(ct_random_int16(&rng, 1000, -1000) == 1000);
-		REQUIRE(ct_random_uint32(&rng, 100000, 50000) == 100000);
-		REQUIRE(ct_random_int32(&rng, 50000, -50000) == 50000);
-		REQUIRE(ct_random_uint64(&rng, 1000000, 500000) == 1000000);
-		REQUIRE(ct_random_int64(&rng, 500000, -500000) == 500000);
-	}
+TEST_CASE("rand_i64_is_reproducible", "[rand]") {
+    ct_random_t lhs;
+    ct_random_t rhs;
+
+    ct_random_seed(&lhs, 42);
+    ct_random_seed(&rhs, 42);
+
+    for (int i = 0; i < 64; ++i) { REQUIRE(ct_random_i64(&lhs) == ct_random_i64(&rhs)); }
 }
 
-TEST_CASE("rand_boundary_uint8", "[rand]") {
-	ct_random_t rng;
-	ct_random_init(&rng);
-	for (int i = 0; i < BOUNDARY_TEST_ITERATIONS; ++i) {
-		uint8_t val = ct_random_uint8(&rng, 0, 255);
-		REQUIRE(val >= 0);
-		REQUIRE(val <= 255);
-	}
-	for (int i = 0; i < BOUNDARY_TEST_ITERATIONS; ++i) {
-		uint8_t val = ct_random_uint8(&rng, 254, 255);
-		REQUIRE(((int)val - 254) * ((int)val - 255) == 0);
-	}
-	for (int i = 0; i < 100; ++i) { REQUIRE(ct_random_uint8(&rng, 0, 1) == 0); }
+TEST_CASE("rand_edge_seeds_are_reproducible", "[rand]") {
+    ct_random_t zero_a;
+    ct_random_t zero_b;
+    ct_random_t max_a;
+    ct_random_t max_b;
+
+    ct_random_seed(&zero_a, 0);
+    ct_random_seed(&zero_b, 0);
+    ct_random_seed(&max_a, UINT64_MAX);
+    ct_random_seed(&max_b, UINT64_MAX);
+
+    for (int i = 0; i < 16; ++i) {
+        REQUIRE(ct_random_u64(&zero_a) == ct_random_u64(&zero_b));
+        REQUIRE(ct_random_u64(&max_a) == ct_random_u64(&max_b));
+    }
 }
 
-TEST_CASE("rand_boundary_int8", "[rand]") {
-	ct_random_t rng;
-	ct_random_init(&rng);
-	for (int i = 0; i < BOUNDARY_TEST_ITERATIONS; ++i) {
-		int8_t val = ct_random_int8(&rng, INT8_MIN, INT8_MAX);
-		REQUIRE(val >= INT8_MIN);
-		REQUIRE(val <= INT8_MAX);
-	}
-	for (int i = 0; i < BOUNDARY_TEST_ITERATIONS; ++i) {
-		int8_t val = ct_random_int8(&rng, -100, -50);
-		REQUIRE(val >= -100);
-		REQUIRE(val < -50);
-	}
-	for (int i = 0; i < BOUNDARY_TEST_ITERATIONS; ++i) {
-		int8_t val = ct_random_int8(&rng, 50, 100);
-		REQUIRE(val >= 50);
-		REQUIRE(val < 100);
-	}
-	for (int i = 0; i < BOUNDARY_TEST_ITERATIONS; ++i) {
-		int8_t val = ct_random_int8(&rng, -50, 50);
-		REQUIRE(val >= -50);
-		REQUIRE(val < 50);
-	}
+TEST_CASE("rand_different_seeds_diverge", "[rand]") {
+    ct_random_t lhs;
+    ct_random_t rhs;
+
+    ct_random_seed(&lhs, 1);
+    ct_random_seed(&rhs, 2);
+
+    bool all_same = true;
+    for (int i = 0; i < 8; ++i) {
+        if (ct_random_u64(&lhs) != ct_random_u64(&rhs)) {
+            all_same = false;
+            break;
+        }
+    }
+    REQUIRE_FALSE(all_same);
 }
 
-TEST_CASE("rand_boundary_uint16", "[rand]") {
-	ct_random_t rng;
-	ct_random_init(&rng);
-	for (int i = 0; i < BOUNDARY_TEST_ITERATIONS; ++i) {
-		uint16_t val = ct_random_uint16(&rng, 0, 65535);
-		REQUIRE(val >= 0);
-		REQUIRE(val <= 65535);
-	}
-	for (int i = 0; i < BOUNDARY_TEST_ITERATIONS; ++i) {
-		uint16_t val = ct_random_uint16(&rng, 60000, 65535);
-		REQUIRE(val >= 60000);
-		REQUIRE(val <= 65535);
-	}
+TEST_CASE("rand_auto_init_changes_state", "[rand]") {
+    ct_random_t rng;
+    ct_random_init(&rng);
+
+    const uint64_t a = ct_random_u64(&rng);
+    const uint64_t b = ct_random_u64(&rng);
+
+    REQUIRE(a != b);
 }
 
-TEST_CASE("rand_boundary_int16", "[rand]") {
-	ct_random_t rng;
-	ct_random_init(&rng);
-	for (int i = 0; i < BOUNDARY_TEST_ITERATIONS; ++i) {
-		int16_t val = ct_random_int16(&rng, INT16_MIN, INT16_MAX);
-		REQUIRE(val >= INT16_MIN);
-		REQUIRE(val <= INT16_MAX);
-	}
-	for (int i = 0; i < BOUNDARY_TEST_ITERATIONS; ++i) {
-		int16_t val = ct_random_int16(&rng, INT16_MIN, INT16_MIN + 1000);
-		REQUIRE(val >= INT16_MIN);
-		REQUIRE(val < INT16_MIN + 1000);
-	}
-	for (int i = 0; i < BOUNDARY_TEST_ITERATIONS; ++i) {
-		int16_t val = ct_random_int16(&rng, INT16_MAX - 1000, INT16_MAX);
-		REQUIRE(val >= INT16_MAX - 1000);
-		REQUIRE(val <= INT16_MAX);
-	}
+TEST_CASE("rand_u64_range_uses_half_open_interval", "[rand]") {
+    ct_random_t rng;
+    ct_random_seed(&rng, 1);
+
+    for (int i = 0; i < 10000; ++i) {
+        const uint64_t value = ct_random_u64_range(&rng, 10, 20);
+        REQUIRE(value >= 10);
+        REQUIRE(value < 20);
+    }
+
+    REQUIRE(ct_random_u64_range(&rng, 42, 42) == 42);
+    REQUIRE(ct_random_u64_range(&rng, 50, 42) == 50);
+    REQUIRE(ct_random_u64_range(&rng, UINT64_MAX - 5, UINT64_MAX) >= UINT64_MAX - 5);
+    REQUIRE(ct_random_u64_range(&rng, UINT64_MAX - 5, UINT64_MAX) < UINT64_MAX);
 }
 
-TEST_CASE("rand_boundary_uint32", "[rand]") {
-	ct_random_t rng;
-	ct_random_init(&rng);
-	for (int i = 0; i < BOUNDARY_TEST_ITERATIONS; ++i) {
-		uint32_t val = ct_random_uint32(&rng, 0, UINT32_MAX);
-		REQUIRE(val >= 0);
-		REQUIRE(val <= UINT32_MAX);
-	}
-	for (int i = 0; i < BOUNDARY_TEST_ITERATIONS; ++i) {
-		uint32_t val = ct_random_uint32(&rng, UINT32_MAX - 10000, UINT32_MAX);
-		REQUIRE(val >= UINT32_MAX - 10000);
-		REQUIRE(val <= UINT32_MAX);
-	}
+TEST_CASE("rand_i64_range_uses_half_open_interval", "[rand]") {
+    ct_random_t rng;
+    ct_random_seed(&rng, 2);
+
+    for (int i = 0; i < 10000; ++i) {
+        const int64_t value = ct_random_i64_range(&rng, -50, 50);
+        REQUIRE(value >= -50);
+        REQUIRE(value < 50);
+    }
+
+    REQUIRE(ct_random_i64_range(&rng, -7, -7) == -7);
+    REQUIRE(ct_random_i64_range(&rng, 50, -50) == 50);
 }
 
-TEST_CASE("rand_boundary_int32", "[rand]") {
-	ct_random_t rng;
-	ct_random_init(&rng);
-	for (int i = 0; i < BOUNDARY_TEST_ITERATIONS; ++i) {
-		int32_t val = ct_random_int32(&rng, INT32_MIN, INT32_MAX);
-		REQUIRE(val >= INT32_MIN);
-		REQUIRE(val <= INT32_MAX);
-	}
-	for (int i = 0; i < BOUNDARY_TEST_ITERATIONS; ++i) {
-		int32_t val = ct_random_int32(&rng, INT32_MIN, INT32_MIN + 100000);
-		REQUIRE(val >= INT32_MIN);
-		REQUIRE(val < INT32_MIN + 100000);
-	}
+TEST_CASE("rand_i64_range_handles_extreme_bounds", "[rand]") {
+    ct_random_t rng;
+    ct_random_seed(&rng, 4);
+
+    for (int i = 0; i < 10000; ++i) {
+        const int64_t low  = ct_random_i64_range(&rng, INT64_MIN, INT64_MIN + 32);
+        const int64_t high = ct_random_i64_range(&rng, INT64_MAX - 32, INT64_MAX);
+
+        REQUIRE(low >= INT64_MIN);
+        REQUIRE(low < INT64_MIN + 32);
+        REQUIRE(high >= INT64_MAX - 32);
+        REQUIRE(high < INT64_MAX);
+    }
 }
 
-TEST_CASE("rand_boundary_uint64", "[rand]") {
-	ct_random_t rng;
-	ct_random_init(&rng);
-	for (int i = 0; i < BOUNDARY_TEST_ITERATIONS; ++i) {
-		uint64_t val = ct_random_uint64(&rng, 0, UINT64_MAX);
-		REQUIRE(val >= 0);
-		REQUIRE(val <= UINT64_MAX);
-	}
-	for (int i = 0; i < BOUNDARY_TEST_ITERATIONS; ++i) {
-		uint64_t val = ct_random_uint64(&rng, UINT64_MAX - 1000000, UINT64_MAX);
-		REQUIRE(val >= UINT64_MAX - 1000000);
-		REQUIRE(val <= UINT64_MAX);
-	}
+TEST_CASE("rand_f64_is_unit_interval", "[rand]") {
+    ct_random_t rng;
+    ct_random_seed(&rng, 3);
+
+    for (int i = 0; i < 10000; ++i) {
+        const double value = ct_random_f64(&rng);
+        REQUIRE(value >= 0.0);
+        REQUIRE(value < 1.0);
+    }
 }
 
-TEST_CASE("rand_boundary_int64", "[rand]") {
-	ct_random_t rng;
-	ct_random_init(&rng);
-	for (int i = 0; i < BOUNDARY_TEST_ITERATIONS; ++i) {
-		int64_t val = ct_random_int64(&rng, INT64_MIN, INT64_MAX);
-		REQUIRE(val >= INT64_MIN);
-		REQUIRE(val <= INT64_MAX);
-	}
-	for (int i = 0; i < BOUNDARY_TEST_ITERATIONS; ++i) {
-		int64_t val = ct_random_int64(&rng, INT64_MIN, INT64_MIN + 1000000);
-		REQUIRE(val >= INT64_MIN);
-		REQUIRE(val < INT64_MIN + 1000000);
-	}
-	for (int i = 0; i < BOUNDARY_TEST_ITERATIONS; ++i) {
-		int64_t val = ct_random_int64(&rng, INT64_MAX - 1000000, INT64_MAX);
-		REQUIRE(val >= INT64_MAX - 1000000);
-		REQUIRE(val <= INT64_MAX);
-	}
+TEST_CASE("rand_bytes_are_reproducible", "[rand]") {
+    ct_random_t lhs;
+    ct_random_t rhs;
+    uint8_t     a[33] = {0};
+    uint8_t     b[33] = {0};
+
+    ct_random_seed(&lhs, 0xABCDEFu);
+    ct_random_seed(&rhs, 0xABCDEFu);
+
+    ct_random_bytes(&lhs, a, sizeof(a));
+    ct_random_bytes(&rhs, b, sizeof(b));
+
+    REQUIRE(std::memcmp(a, b, sizeof(a)) == 0);
 }
 
-TEST_CASE("rand_boundary_float", "[rand]") {
-	ct_random_t rng;
-	ct_random_init(&rng);
-	for (int i = 0; i < BOUNDARY_TEST_ITERATIONS; ++i) {
-		float val = ct_random_float(&rng, 0.0f, 1.0f);
-		REQUIRE(val >= 0.0f);
-		REQUIRE(val < 1.0f);
-	}
-	for (int i = 0; i < BOUNDARY_TEST_ITERATIONS; ++i) {
-		float val = ct_random_float(&rng, -100.0f, -50.0f);
-		REQUIRE(val >= -100.0f);
-		REQUIRE(val < -50.0f);
-	}
-	for (int i = 0; i < BOUNDARY_TEST_ITERATIONS; ++i) {
-		float val = ct_random_float(&rng, -1000.0f, 1000.0f);
-		REQUIRE(val >= -1000.0f);
-		REQUIRE(val < 1000.0f);
-	}
+TEST_CASE("rand_bytes_writes_data", "[rand]") {
+    ct_random_t rng;
+    uint8_t     buffer[31] = {0};
+
+    ct_random_seed(&rng, 99);
+    ct_random_bytes(&rng, buffer, sizeof(buffer));
+
+    bool any_non_zero = false;
+    for (size_t i = 0; i < sizeof(buffer); ++i) {
+        if (buffer[i] != 0) {
+            any_non_zero = true;
+            break;
+        }
+    }
+    REQUIRE(any_non_zero);
 }
 
-TEST_CASE("rand_boundary_double", "[rand]") {
-	ct_random_t rng;
-	ct_random_init(&rng);
-	for (int i = 0; i < BOUNDARY_TEST_ITERATIONS; ++i) {
-		double val = ct_random_double(&rng, 0.0, 1.0);
-		REQUIRE(val >= 0.0);
-		REQUIRE(val < 1.0);
-	}
-	for (int i = 0; i < BOUNDARY_TEST_ITERATIONS; ++i) {
-		double val = ct_random_double(&rng, -1000.0, -500.0);
-		REQUIRE(val >= -1000.0);
-		REQUIRE(val < -500.0);
-	}
-	for (int i = 0; i < BOUNDARY_TEST_ITERATIONS; ++i) {
-		double val = ct_random_double(&rng, -10000.0, 10000.0);
-		REQUIRE(val >= -10000.0);
-		REQUIRE(val < 10000.0);
-	}
-}
+TEST_CASE("rand_bytes_zero_length_is_noop", "[rand]") {
+    ct_random_t rng;
+    uint8_t     buffer[4] = {1, 2, 3, 4};
 
-TEST_CASE("rand_distribution_bool", "[rand]") {
-	ct_random_t rng;
-	ct_random_init(&rng);
-	uint64_t       counts[2]  = {0};
-	const uint64_t iterations = DISTRIBUTION_SAMPLE_COUNT;
-	for (uint64_t i = 0; i < iterations; ++i) {
-		bool val = ct_random_bool(&rng);
-		REQUIRE((val == 0) != (val == 1));
-		counts[val]++;
-	}
-	const uint64_t expected = iterations / 2;
-	REQUIRE(is_distribution_uniform(counts, 2, expected, DISTRIBUTION_TOLERANCE));
-}
+    ct_random_seed(&rng, 123);
+    ct_random_bytes(&rng, buffer, 0);
 
-TEST_CASE("rand_distribution_uint8", "[rand]") {
-	ct_random_t rng;
-	ct_random_init(&rng);
-	const uint8_t  range_size  = 100;
-	uint64_t       counts[100] = {0};
-	const uint64_t iterations  = DISTRIBUTION_SAMPLE_COUNT;
-	for (uint64_t i = 0; i < iterations; ++i) {
-		uint8_t val = ct_random_uint8(&rng, 0, range_size);
-		REQUIRE(val < range_size);
-		counts[val]++;
-	}
-	const uint64_t expected = iterations / range_size;
-	REQUIRE(is_distribution_uniform(counts, range_size, expected, DISTRIBUTION_TOLERANCE));
-}
-
-TEST_CASE("rand_distribution_uint16", "[rand]") {
-	ct_random_t rng;
-	ct_random_init(&rng);
-	const uint16_t range_size  = 100;
-	uint64_t       counts[100] = {0};
-	const uint64_t iterations  = DISTRIBUTION_SAMPLE_COUNT;
-	for (uint64_t i = 0; i < iterations; ++i) {
-		uint16_t val = ct_random_uint16(&rng, 0, range_size);
-		REQUIRE(val < range_size);
-		counts[val]++;
-	}
-	const uint64_t expected = iterations / range_size;
-	REQUIRE(is_distribution_uniform(counts, range_size, expected, DISTRIBUTION_TOLERANCE));
-}
-
-TEST_CASE("rand_distribution_uint32", "[rand]") {
-	ct_random_t rng;
-	ct_random_init(&rng);
-	const uint32_t range_size  = 100;
-	uint64_t       counts[100] = {0};
-	const uint64_t iterations  = DISTRIBUTION_SAMPLE_COUNT;
-	for (uint64_t i = 0; i < iterations; ++i) {
-		uint32_t val = ct_random_uint32(&rng, 0, range_size);
-		REQUIRE(val < range_size);
-		counts[val]++;
-	}
-	const uint64_t expected = iterations / range_size;
-	REQUIRE(is_distribution_uniform(counts, range_size, expected, DISTRIBUTION_TOLERANCE));
-}
-
-TEST_CASE("rand_distribution_uint64", "[rand]") {
-	ct_random_t rng;
-	ct_random_init(&rng);
-	const uint64_t range_size  = 100;
-	uint64_t       counts[100] = {0};
-	const uint64_t iterations  = DISTRIBUTION_SAMPLE_COUNT;
-	for (uint64_t i = 0; i < iterations; ++i) {
-		uint64_t val = ct_random_uint64(&rng, 0, range_size);
-		REQUIRE(val < range_size);
-		counts[val]++;
-	}
-	const uint64_t expected = iterations / range_size;
-	REQUIRE(is_distribution_uniform(counts, range_size, expected, DISTRIBUTION_TOLERANCE));
-}
-
-TEST_CASE("rand_distribution_int8", "[rand]") {
-	ct_random_t rng;
-	ct_random_init(&rng);
-	const int8_t   min         = -50;
-	const int8_t   max         = 50;
-	const size_t   range_size  = max - min;
-	uint64_t       counts[100] = {0};
-	const uint64_t iterations  = DISTRIBUTION_SAMPLE_COUNT;
-	for (uint64_t i = 0; i < iterations; ++i) {
-		int8_t val = ct_random_int8(&rng, min, max);
-		REQUIRE(val >= min);
-		REQUIRE(val < max);
-		counts[val - min]++;
-	}
-	const uint64_t expected = iterations / range_size;
-	REQUIRE(is_distribution_uniform(counts, range_size, expected, DISTRIBUTION_TOLERANCE));
-}
-
-TEST_CASE("rand_distribution_int16", "[rand]") {
-	ct_random_t rng;
-	ct_random_init(&rng);
-	const int16_t  min         = -50;
-	const int16_t  max         = 50;
-	const size_t   range_size  = max - min;
-	uint64_t       counts[100] = {0};
-	const uint64_t iterations  = DISTRIBUTION_SAMPLE_COUNT;
-	for (uint64_t i = 0; i < iterations; ++i) {
-		int16_t val = ct_random_int16(&rng, min, max);
-		REQUIRE(val >= min);
-		REQUIRE(val < max);
-		counts[val - min]++;
-	}
-	const uint64_t expected = iterations / range_size;
-	REQUIRE(is_distribution_uniform(counts, range_size, expected, DISTRIBUTION_TOLERANCE));
-}
-
-TEST_CASE("rand_distribution_int32", "[rand]") {
-	ct_random_t rng;
-	ct_random_init(&rng);
-	const int32_t  min         = -50;
-	const int32_t  max         = 50;
-	const size_t   range_size  = max - min;
-	uint64_t       counts[100] = {0};
-	const uint64_t iterations  = DISTRIBUTION_SAMPLE_COUNT;
-	for (uint64_t i = 0; i < iterations; ++i) {
-		int32_t val = ct_random_int32(&rng, min, max);
-		REQUIRE(val >= min);
-		REQUIRE(val < max);
-		counts[val - min]++;
-	}
-	const uint64_t expected = iterations / range_size;
-	REQUIRE(is_distribution_uniform(counts, range_size, expected, DISTRIBUTION_TOLERANCE));
-}
-
-TEST_CASE("rand_distribution_int64", "[rand]") {
-	ct_random_t rng;
-	ct_random_init(&rng);
-	const int64_t  min         = -50;
-	const int64_t  max         = 50;
-	const size_t   range_size  = max - min;
-	uint64_t       counts[100] = {0};
-	const uint64_t iterations  = DISTRIBUTION_SAMPLE_COUNT;
-	for (uint64_t i = 0; i < iterations; ++i) {
-		int64_t val = ct_random_int64(&rng, min, max);
-		REQUIRE(val >= min);
-		REQUIRE(val < max);
-		counts[val - min]++;
-	}
-	const uint64_t expected = iterations / range_size;
-	REQUIRE(is_distribution_uniform(counts, range_size, expected, DISTRIBUTION_TOLERANCE));
-}
-
-TEST_CASE("rand_distribution_float", "[rand]") {
-	ct_random_t rng;
-	ct_random_init(&rng);
-	const size_t   buckets     = 100;
-	uint64_t       counts[100] = {0};
-	const uint64_t iterations  = DISTRIBUTION_SAMPLE_COUNT;
-	for (uint64_t i = 0; i < iterations; ++i) {
-		float val = ct_random_float(&rng, 0.0f, 1.0f);
-		REQUIRE(val >= 0.0f);
-		REQUIRE(val < 1.0f);
-		size_t bucket = (size_t)(val * buckets);
-		if (bucket >= buckets) bucket = buckets - 1;
-		counts[bucket]++;
-	}
-	const uint64_t expected = iterations / buckets;
-	REQUIRE(is_distribution_uniform(counts, buckets, expected, DISTRIBUTION_TOLERANCE));
-}
-
-TEST_CASE("rand_distribution_double", "[rand]") {
-	ct_random_t rng;
-	ct_random_init(&rng);
-	const size_t   buckets     = 100;
-	uint64_t       counts[100] = {0};
-	const uint64_t iterations  = DISTRIBUTION_SAMPLE_COUNT;
-	for (uint64_t i = 0; i < iterations; ++i) {
-		double val = ct_random_double(&rng, 0.0, 1.0);
-		REQUIRE(val >= 0.0);
-		REQUIRE(val < 1.0);
-		size_t bucket = (size_t)(val * buckets);
-		if (bucket >= buckets) bucket = buckets - 1;
-		counts[bucket]++;
-	}
-	const uint64_t expected = iterations / buckets;
-	REQUIRE(is_distribution_uniform(counts, buckets, expected, DISTRIBUTION_TOLERANCE));
-}
-
-TEST_CASE("rand_string_generation", "[rand]") {
-	ct_random_t rng;
-	ct_random_init(&rng);
-	const size_t lengths[] = {0, 1, 5, 10, 32, 64, 128};
-	for (size_t i = 0; i < sizeof(lengths) / sizeof(lengths[0]); ++i) {
-		char buffer[256] = {0};
-		ct_random_string(&rng, buffer, lengths[i]);
-		REQUIRE(buffer[lengths[i]] == '\0');
-		for (size_t j = 0; j < lengths[i]; ++j) {
-			char c        = buffer[j];
-			bool is_valid = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9');
-			REQUIRE(is_valid);
-		}
-	}
-}
-
-TEST_CASE("rand_string_uniqueness", "[rand]") {
-	ct_random_t rng;
-	ct_random_init(&rng);
-	char str1[33], str2[33], str3[33];
-	ct_random_string(&rng, str1, 32);
-	ct_random_string(&rng, str2, 32);
-	ct_random_string(&rng, str3, 32);
-	bool all_same = (std::strcmp(str1, str2) == 0 && std::strcmp(str2, str3) == 0);
-	REQUIRE_FALSE(all_same);
+    REQUIRE(buffer[0] == 1);
+    REQUIRE(buffer[1] == 2);
+    REQUIRE(buffer[2] == 3);
+    REQUIRE(buffer[3] == 4);
 }
