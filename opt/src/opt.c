@@ -2,61 +2,27 @@
 
 #include <string.h>
 
-#define CT_OPT_MSG_INVALID "invalid option"
-#define CT_OPT_MSG_MISSING "option requires an argument"
-#define CT_OPT_MSG_TOOMANY "option takes no arguments"
-
-static int ct_opt__error(ct_opt_t* options, const char* msg, const char* data) {
-    unsigned int p   = 0;
-    const char*  sep = " -- '";
-
-    while (*msg && p < sizeof(options->errmsg) - 1) { options->errmsg[p++] = *msg++; }
-    while (*sep && p < sizeof(options->errmsg) - 1) { options->errmsg[p++] = *sep++; }
-    while (*data && p < sizeof(options->errmsg) - 2) { options->errmsg[p++] = *data++; }
-
-    if (p < sizeof(options->errmsg) - 1) { options->errmsg[p++] = '\''; }
-    options->errmsg[p] = '\0';
-
-    return '?';
-}
-
-static int ct_opt__is_dashdash(const char* arg) {
-    return arg && arg[0] == '-' && arg[1] == '-' && arg[2] == '\0';
-}
-
-static int ct_opt__is_short(const char* arg) {
-    return arg && arg[0] == '-' && arg[1] != '-' && arg[1] != '\0';
-}
-
-static int ct_opt__is_long(const char* arg) {
-    return arg && arg[0] == '-' && arg[1] == '-' && arg[2] != '\0';
-}
-
-static int ct_opt__is_end(const ct_opt_long_t* opt) {
-    return !opt->longname && !opt->shortname;
-}
-
-static int ct_opt__type_short(const char* optstring, char c) {
-    if (c == ':') { return -1; }
-    for (; *optstring && c != *optstring; ++optstring) {}
-    if (optstring[0] == '\0') { return -1; }
-    if (optstring[1] == ':') { return optstring[2] == ':' ? 2 : 1; }
-    return 0;
-}
-
-static int ct_opt__type_long(const ct_opt_long_t* longopts, int shortname) {
-    for (int i = 0; !ct_opt__is_end(&longopts[i]); ++i) {
-        if (longopts[i].shortname == shortname) { return (int)longopts[i].argtype; }
+const char* ct_opt_strerror(ct_opt_status_t s) {
+    switch (s) {
+#define F(code, name, label, desc) \
+    case code: return desc;
+        CT_OPT_STATUS_FOREACH(F)
+#undef F
+        default: return "unknown status";
     }
-    return -1;
 }
 
-static void ct_opt__permute(char** argv, int from, int to, int count) {
-    for (int k = 0; k < count; ++k) {
-        char* tmp = argv[from + k];
-        for (int j = from + k; j > to + k; --j) { argv[j] = argv[j - 1]; }
-        argv[to + k] = tmp;
-    }
+static int ct_opt__is_dashdash(const char* a) {
+    return a && a[0] == '-' && a[1] == '-' && a[2] == '\0';
+}
+static int ct_opt__is_short(const char* a) {
+    return a && a[0] == '-' && a[1] != '-' && a[1] != '\0';
+}
+static int ct_opt__is_long(const char* a) {
+    return a && a[0] == '-' && a[1] == '-' && a[2] != '\0';
+}
+static int ct_opt__is_end(const ct_opt_def_t* d) {
+    return !d->longname && !d->shortname;
 }
 
 static int ct_opt__match(const char* longname, const char* option) {
@@ -68,236 +34,182 @@ static int ct_opt__match(const char* longname, const char* option) {
     return *n == '\0' && (*a == '\0' || *a == '=');
 }
 
-static char* ct_opt__get_value(char* option) {
-    for (; *option && *option != '='; ++option) {}
-    return *option == '=' ? option + 1 : NULL;
-}
-
-static int ct_opt__find_short(const ct_opt_long_t* longopts, int shortname) {
-    for (int i = 0; !ct_opt__is_end(&longopts[i]); ++i) {
-        if (longopts[i].shortname == shortname) { return i; }
+static void ct_opt__permute(char** argv, int from, int to, int count) {
+    for (int k = 0; k < count; ++k) {
+        char* tmp = argv[from + k];
+        for (int j = from + k; j > to + k; --j) { argv[j] = argv[j - 1]; }
+        argv[to + k] = tmp;
     }
-    return -1;
 }
 
-static int ct_opt__parse_short(ct_opt_t* options, const char* optstring, const ct_opt_long_t* longopts) {
-    char* option;
-    int   type;
-    char* next;
+static ct_opt_status_t ct_opt__parse_short(ct_opt_t* opts, const ct_opt_def_t* defs, int* out_id) {
+    opts->optopt = 0;
+    opts->optarg = NULL;
 
-    options->errmsg[0] = '\0';
-    options->optopt    = 0;
-    options->optarg    = NULL;
-
-    option = options->argv[options->optind];
-    if (!option) { return -1; }
+    char* option = opts->argv[opts->optind];
+    if (!option) { return CT_OPT_DONE; }
     if (ct_opt__is_dashdash(option)) {
-        ++options->optind;
-        return -1;
+        ++opts->optind;
+        return CT_OPT_DONE;
     }
-    if (!ct_opt__is_short(option)) { return -1; }
+    if (!ct_opt__is_short(option)) { return CT_OPT_DONE; }
 
-    option += options->subopt + 1;
-    options->optopt = option[0];
-    type            = optstring ? ct_opt__type_short(optstring, option[0]) : ct_opt__type_long(longopts, option[0]);
-    next            = options->argv[options->optind + 1];
+    option += opts->subind + 1;
+    opts->optopt = option[0];
+    if (out_id) { *out_id = option[0]; } /* record before returning */
+
+    char* next = opts->argv[opts->optind + 1];
+
+    int type = -1;
+    if (option[0] >= 33 && option[0] < 127) {
+        for (int i = 0; !ct_opt__is_end(&defs[i]); ++i) {
+            if (defs[i].shortname == (int)option[0]) { type = (int)defs[i].argtype; }
+        }
+    }
 
     switch (type) {
         case CT_OPT_NONE:
             if (option[1]) {
-                ++options->subopt;
+                ++opts->subind;
             } else {
-                options->subopt = 0;
-                ++options->optind;
+                opts->subind = 0;
+                ++opts->optind;
             }
-            return option[0];
+            return CT_OPT_OK;
 
         case CT_OPT_REQUIRED:
-            options->subopt = 0;
-            ++options->optind;
+            opts->subind = 0;
+            ++opts->optind;
             if (option[1]) {
-                options->optarg = option + 1;
-            } else if (next != NULL) {
-                options->optarg = next;
-                ++options->optind;
+                opts->optarg = option + 1;
+            } else if (next) {
+                opts->optarg = next;
+                ++opts->optind;
             } else {
-                char str[2]     = {option[0], 0};
-                options->optarg = NULL;
-                return ct_opt__error(options, CT_OPT_MSG_MISSING, str);
+                return CT_OPT_ERR_MISSING;
             }
-            return option[0];
+            return CT_OPT_OK;
 
         case CT_OPT_OPTIONAL:
-            options->subopt = 0;
-            ++options->optind;
-            options->optarg = option[1] ? option + 1 : NULL;
-            return option[0];
+            opts->subind = 0;
+            ++opts->optind;
+            opts->optarg = option[1] ? option + 1 : NULL;
+            return CT_OPT_OK;
 
-        case -1:
-        default: {
-            char str[2] = {option[0], 0};
-            ++options->optind;
-            options->subopt = 0;
-            return ct_opt__error(options, CT_OPT_MSG_INVALID, str);
-        }
+        default:
+            opts->subind = 0;
+            ++opts->optind;
+            return CT_OPT_ERR_INVALID;
     }
 }
 
-static int ct_opt__parse_long(ct_opt_t* options, const ct_opt_long_t* longopts, int* longindex) {
-    char* option = options->argv[options->optind];
+static ct_opt_status_t ct_opt__parse_long(ct_opt_t* opts, const ct_opt_def_t* defs, int* out_id) {
+    opts->optopt = 0;
+    opts->optarg = NULL;
 
-    options->errmsg[0] = '\0';
-    options->optopt    = 0;
-    options->optarg    = NULL;
-    option += 2;
-    ++options->optind;
+    char* option = opts->argv[opts->optind] + 2; /* skip "--" */
+    ++opts->optind;
 
-    for (int i = 0; !ct_opt__is_end(&longopts[i]); ++i) {
-        const char* name = longopts[i].longname;
-        if (!ct_opt__match(name, option)) { continue; }
+    for (int i = 0; !ct_opt__is_end(&defs[i]); ++i) {
+        if (!ct_opt__match(defs[i].longname, option)) { continue; }
 
-        if (longindex) { *longindex = i; }
+        opts->optopt = defs[i].shortname;
+        if (out_id) { *out_id = defs[i].shortname; }
 
-        options->optopt = longopts[i].shortname;
-        char* val       = ct_opt__get_value(option);
-
-        if (longopts[i].argtype == CT_OPT_NONE && val != NULL) {
-            return ct_opt__error(options, CT_OPT_MSG_TOOMANY, name);
+        char* val = strchr(option, '=');
+        if (defs[i].argtype == CT_OPT_NONE && val) { return CT_OPT_ERR_TOOMANY; }
+        if (val) {
+            opts->optarg = val + 1;
+        } else if (defs[i].argtype == CT_OPT_REQUIRED) {
+            opts->optarg = opts->argv[opts->optind];
+            if (!opts->optarg) { return CT_OPT_ERR_MISSING; }
+            ++opts->optind;
         }
-
-        if (val != NULL) {
-            options->optarg = val;
-        } else if (longopts[i].argtype == CT_OPT_REQUIRED) {
-            options->optarg = options->argv[options->optind];
-            if (options->optarg == NULL) {
-                return ct_opt__error(options, CT_OPT_MSG_MISSING, name);
-            } else {
-                ++options->optind;
-            }
-        }
-
-        return options->optopt;
+        return CT_OPT_OK;
     }
-
-    return ct_opt__error(options, CT_OPT_MSG_INVALID, option);
+    return CT_OPT_ERR_INVALID;
 }
 
-void ct_opt_init(ct_opt_t* options, char** argv) {
-    options->errmsg[0] = '\0';
-    options->optarg    = NULL;
-    options->argv      = argv;
-    options->permute   = 1;
-    options->optind    = argv[0] ? 1 : 0;
-    options->optopt    = 0;
-    options->subopt    = 0;
+void ct_opt_init(ct_opt_t* opts, char** argv) {
+    opts->optarg  = NULL;
+    opts->argv    = argv;
+    opts->permute = 1;
+    opts->optind  = argv[0] ? 1 : 0;
+    opts->optopt  = 0;
+    opts->subind  = 0;
 }
 
-int ct_opt_parse(ct_opt_t* options, const char* optstring) {
-    for (int i = options->optind; options->argv[i]; ++i) {
-        if (ct_opt__is_dashdash(options->argv[i])) {
-            const int target = options->optind;
-            if (i > target) { ct_opt__permute(options->argv, i, target, 1); }
-            options->optind = target + 1;
-            return -1;
-        }
-        if (ct_opt__is_short(options->argv[i])) {
-            const int target   = options->optind;
-            options->optind    = i;
-            const int r        = ct_opt__parse_short(options, optstring, NULL);
-            const int consumed = options->optind - i;
-            if (i > target) { ct_opt__permute(options->argv, i, target, consumed); }
-            options->optind = target + consumed;
-            return r;
-        }
-        if (!options->permute) {
-            options->optind = i;
-            return -1;
-        }
-    }
-    return -1;
+char* ct_opt_shift(ct_opt_t* opts) {
+    char* arg    = opts->argv[opts->optind];
+    opts->subind = 0;
+    if (arg) { ++opts->optind; }
+    return arg;
 }
 
-char* ct_opt_arg(ct_opt_t* options) {
-    char* option    = options->argv[options->optind];
-    options->subopt = 0;
-    if (option != NULL) { ++options->optind; }
-    return option;
-}
+/*
+ * Scan forward from optind. When an option is found at index i, permute
+ * the non-option tokens in [optind, i) to after the consumed option tokens,
+ * then advance optind past all consumed tokens.
+ */
+ct_opt_status_t ct_opt_next(ct_opt_t* opts, const ct_opt_def_t* defs, int* out_id) {
+    for (int i = opts->optind; opts->argv[i]; ++i) {
+        char* arg = opts->argv[i];
 
-int ct_opt_long(ct_opt_t* options, const ct_opt_long_t* longopts, int* longindex) {
-    for (int i = options->optind; options->argv[i]; ++i) {
-        char* arg = options->argv[i];
         if (ct_opt__is_dashdash(arg)) {
-            const int target = options->optind;
-            if (i > target) { ct_opt__permute(options->argv, i, target, 1); }
-            options->optind = target + 1;
-            return -1;
+            int target = opts->optind;
+            if (i > target) { ct_opt__permute(opts->argv, i, target, 1); }
+            opts->optind = target + 1;
+            return CT_OPT_DONE;
         }
 
-        const int is_short = ct_opt__is_short(arg);
-        const int is_long  = ct_opt__is_long(arg);
-
-        if (is_short || is_long) {
-            const int target = options->optind;
-            options->optind  = i;
-            int r;
-            if (is_short) {
-                r = ct_opt__parse_short(options, NULL, longopts);
-                if (r != -1 && longindex != NULL) { *longindex = ct_opt__find_short(longopts, options->optopt); }
-            } else {
-                r = ct_opt__parse_long(options, longopts, longindex);
+        int is_short = ct_opt__is_short(arg);
+        int is_long  = ct_opt__is_long(arg);
+        if (!is_short && !is_long) {
+            if (!opts->permute) {
+                opts->optind = i;
+                return CT_OPT_DONE;
             }
-
-            const int consumed = options->optind - i;
-            if (i > target) { ct_opt__permute(options->argv, i, target, consumed); }
-            options->optind = target + consumed;
-            return r;
+            continue;
         }
 
-        if (!options->permute) {
-            options->optind = i;
-            return -1;
-        }
+        int target        = opts->optind;
+        opts->optind      = i;
+        ct_opt_status_t r = is_short ? ct_opt__parse_short(opts, defs, out_id) : ct_opt__parse_long(opts, defs, out_id);
+        int             consumed = opts->optind - i;
+        if (i > target) ct_opt__permute(opts->argv, i, target, consumed);
+        opts->optind = target + consumed;
+        return r;
     }
-    return -1;
+    return CT_OPT_DONE;
 }
 
 static ct_opt_help_config_t ct_opt__resolve_config(const ct_opt_help_config_t* cfg) {
     ct_opt_help_config_t r = CT_OPT_HELP_CONFIG_INIT;
-    if (cfg) {
-        r.width    = cfg->width > 0 ? cfg->width : 80;
-        r.min_desc = cfg->min_desc > 0 ? cfg->min_desc : 26;
-        r.max_left = cfg->max_left > 0 ? cfg->max_left : 36;
-    }
+    if (!cfg) { return r; }
+    if (cfg->width > 0) { r.width = cfg->width; }
+    if (cfg->min_desc > 0) { r.min_desc = cfg->min_desc; }
+    if (cfg->max_left > 0) { r.max_left = cfg->max_left; }
     return r;
 }
 
-static int ct_opt__help_width(const ct_opt_long_t* opt) {
+static int ct_opt__help_width(const ct_opt_def_t* opt) {
     const int   has_short = (opt->shortname >= 33 && opt->shortname < 127);
     const int   has_long  = (opt->longname && opt->longname[0]);
-    const char* argname   = opt->argname ? opt->argname : "ARG";
-
-    int w = 0;
-    if (has_long) {
-        w = 8 + (int)strlen(opt->longname);  // "  -x, --longname" / "      --longname"
-    } else if (has_short) {
-        w = 4;  // "  -x"
-    }
-
+    const char* metavar   = opt->metavar ? opt->metavar : "ARG";
+    int         w         = has_long ? 8 + (int)strlen(opt->longname) : has_short ? 4 : 0;
     switch (opt->argtype) {
-        case CT_OPT_REQUIRED: w += 1 + (int)strlen(argname); break;  // =ARG
-        case CT_OPT_OPTIONAL: w += 3 + (int)strlen(argname); break;  // [=ARG]
+        case CT_OPT_REQUIRED: w += 1 + (int)strlen(metavar); break; /* =ARG   */
+        case CT_OPT_OPTIONAL: w += 3 + (int)strlen(metavar); break; /* [=ARG] */
         default: break;
     }
     return w;
 }
 
-static int ct_opt__help_option(const ct_opt_long_t* opt, int col, FILE* out) {
+static int ct_opt__help_option(const ct_opt_def_t* opt, int col, FILE* out) {
     const int   has_short = (opt->shortname >= 33 && opt->shortname < 127);
     const int   has_long  = (opt->longname && opt->longname[0]);
-    const char* argname   = opt->argname ? opt->argname : "ARG";
-
-    int printed = 0;
+    const char* metavar   = opt->metavar ? opt->metavar : "ARG";
+    int         printed;
     if (has_short && has_long) {
         printed = fprintf(out, "  -%c, --%s", (char)opt->shortname, opt->longname);
     } else if (has_short) {
@@ -305,10 +217,9 @@ static int ct_opt__help_option(const ct_opt_long_t* opt, int col, FILE* out) {
     } else {
         printed = fprintf(out, "      --%s", has_long ? opt->longname : "");
     }
-
     switch (opt->argtype) {
-        case CT_OPT_REQUIRED: printed += fprintf(out, "=%s", argname); break;
-        case CT_OPT_OPTIONAL: printed += fprintf(out, "[=%s]", argname); break;
+        case CT_OPT_REQUIRED: printed += fprintf(out, "=%s", metavar); break;
+        case CT_OPT_OPTIONAL: printed += fprintf(out, "[=%s]", metavar); break;
         default: break;
     }
     while (printed < col) {
@@ -321,8 +232,7 @@ static int ct_opt__help_option(const ct_opt_long_t* opt, int col, FILE* out) {
 static void ct_opt__help_desc(const char* desc, int col, int width, FILE* out) {
     int avail = width - col;
     int pos   = 0;
-    if (avail < 10) { avail = 10; }
-
+    if (avail < 10) avail = 10;
     while (*desc) {
         if (*desc == '\n') {
             fputc('\n', out);
@@ -333,7 +243,6 @@ static void ct_opt__help_desc(const char* desc, int col, int width, FILE* out) {
         }
         int wlen = 0;
         for (const char* w = desc; *w && *w != ' ' && *w != '\n'; ++w, ++wlen) {}
-
         if (pos > 0 && pos + 1 + wlen > avail) {
             fputc('\n', out);
             fprintf(out, "%*s", col, "");
@@ -351,13 +260,13 @@ static void ct_opt__help_desc(const char* desc, int col, int width, FILE* out) {
     fputc('\n', out);
 }
 
-void ct_opt_usage(FILE* out, const char* progname, const ct_opt_long_t* longopts, int count, const char* pos_args) {
+void ct_opt_usage(FILE* out, const char* progname, const ct_opt_def_t* defs, int count, const char* pos_args) {
     if (!out || !progname) { return; }
     fprintf(out, "Usage: %s", progname);
-    if (longopts) {
+    if (defs) {
         int has_opts = 0;
-        for (int i = 0; (count < 0 || i < count) && !ct_opt__is_end(&longopts[i]); ++i) {
-            if (longopts[i].longname || (longopts[i].shortname >= 33 && longopts[i].shortname < 127)) {
+        for (int i = 0; (count < 0 || i < count) && !ct_opt__is_end(&defs[i]); ++i) {
+            if (defs[i].longname || (defs[i].shortname >= 33 && defs[i].shortname < 127)) {
                 has_opts = 1;
                 break;
             }
@@ -368,36 +277,32 @@ void ct_opt_usage(FILE* out, const char* progname, const ct_opt_long_t* longopts
     fputc('\n', out);
 }
 
-void ct_opt_help(FILE* out, const ct_opt_long_t* longopts, int count, const ct_opt_help_config_t* cfg) {
-    if (!out || !longopts || !count || ct_opt__is_end(&longopts[0])) { return; }
-    ct_opt_help_config_t c = ct_opt__resolve_config(cfg);
+void ct_opt_help(FILE* out, const ct_opt_def_t* defs, int count, const ct_opt_help_config_t* cfg) {
+    if (!out || !defs || !count || ct_opt__is_end(&defs[0])) { return; }
+    ct_opt_help_config_t c        = ct_opt__resolve_config(cfg);
+    const int            desc_max = c.min_desc >= c.width ? c.width / 2 : c.width - c.min_desc;
 
-    const int desc_max = c.min_desc >= c.width ? c.width / 2 : c.width - c.min_desc;
-    int       desc_col = 0, actual_max = 0;
-    for (int i = 0; (count < 0 || i < count) && !ct_opt__is_end(&longopts[i]); ++i) {
-        if (!longopts[i].argdesc || !longopts[i].argdesc[0]) { continue; }
-        int lw = ct_opt__help_width(&longopts[i]) + 2;
+    int desc_col = 0, actual_max = 0;
+    for (int i = 0; (count < 0 || i < count) && !ct_opt__is_end(&defs[i]); ++i) {
+        if (!defs[i].desc || !defs[i].desc[0]) { continue; }
+        int lw = ct_opt__help_width(&defs[i]) + 2;
         if (lw > actual_max) { actual_max = lw; }
-        if (lw <= c.max_left && lw <= desc_max) {
-            if (lw > desc_col) { desc_col = lw; }
-        }
+        if (lw <= c.max_left && lw <= desc_max && lw > desc_col) { desc_col = lw; }
     }
     if (desc_col == 0 && actual_max > 0) { desc_col = actual_max < desc_max ? actual_max : desc_max; }
     if (desc_col > desc_max) { desc_col = desc_max; }
     if (desc_col < 2) { desc_col = 2; }
 
-    for (int i = 0; (count < 0 || i < count) && !ct_opt__is_end(&longopts[i]); ++i) {
-        const ct_opt_long_t* opt = &longopts[i];
-        if (!opt->argdesc || !opt->argdesc[0]) { continue; }
-
-        int lw = ct_opt__help_width(opt);
-        if (lw >= desc_col) {
+    for (int i = 0; (count < 0 || i < count) && !ct_opt__is_end(&defs[i]); ++i) {
+        const ct_opt_def_t* opt = &defs[i];
+        if (!opt->desc || !opt->desc[0]) { continue; }
+        if (ct_opt__help_width(opt) >= desc_col) {
             ct_opt__help_option(opt, 0, out);
             fputc('\n', out);
             fprintf(out, "%*s", desc_col, "");
         } else {
             ct_opt__help_option(opt, desc_col, out);
         }
-        ct_opt__help_desc(opt->argdesc, desc_col, c.width, out);
+        ct_opt__help_desc(opt->desc, desc_col, c.width, out);
     }
 }

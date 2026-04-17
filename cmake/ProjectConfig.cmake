@@ -12,6 +12,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
   option(COTER_BUILD_TEST "build test program" OFF)
+  option(COTER_BUILD_EXAMPLE "build examples" OFF)
 
   get_property(isMultiConfig GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
   if(NOT isMultiConfig
