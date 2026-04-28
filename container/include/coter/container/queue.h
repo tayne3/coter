@@ -26,11 +26,11 @@ typedef struct ct_queue {
     size_t _size;  // 元素数量
 } ct_queue_t, ct_queue_buf_t[1];
 
-#define ct_queue_max(self)     ((self)->_max)                                       // 获取 队列 最大容量
-#define ct_queue_size(self)    ((self)->_size)                                      // 获取 队列 大小
-#define ct_queue_isempty(self) ((self)->_size == 0)                                 // 判断 队列 是否为空
-#define ct_queue_isfull(self)  ((self)->_size == (self)->_max)                      // 判断 队列 是否已满
-#define ct_queue_clear(self)   ((self)->_size = (self)->_head = (self)->_tail = 0)  // 清空 队列 所有元素
+#define ct_queue_max(self)      ((self)->_max)                                       // 获取 队列 最大容量
+#define ct_queue_size(self)     ((self)->_size)                                      // 获取 队列 大小
+#define ct_queue_is_empty(self) ((self)->_size == 0)                                 // 判断 队列 是否为空
+#define ct_queue_is_full(self)  ((self)->_size == (self)->_max)                      // 判断 队列 是否已满
+#define ct_queue_clear(self)    ((self)->_size = (self)->_head = (self)->_tail = 0)  // 清空 队列 所有元素
 
 /**
  * @brief 初始化队列

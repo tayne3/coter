@@ -25,8 +25,8 @@ TEST_CASE("queue_init", "[queue]") {
         ct_queue_init(&queue, buffer, sizeof(uint32_t), i);
         REQUIRE((size_t)ct_queue_max(&queue) == i);
         REQUIRE(ct_queue_size(&queue) == 0);
-        REQUIRE(ct_queue_isempty(&queue));
-        REQUIRE(!ct_queue_isfull(&queue));
+        REQUIRE(ct_queue_is_empty(&queue));
+        REQUIRE(!ct_queue_is_full(&queue));
     }
 }
 
@@ -39,17 +39,17 @@ TEST_CASE("queue_enqueue", "[queue]") {
         ct_queue_enqueue(&queue, &i);
         REQUIRE((int32_t)ct_queue_max(&queue) == max);
         REQUIRE(ct_queue_size(&queue) == (size_t)i);
-        REQUIRE(!ct_queue_isempty(&queue));
+        REQUIRE(!ct_queue_is_empty(&queue));
         if (i == max)
-            REQUIRE(ct_queue_isfull(&queue));
+            REQUIRE(ct_queue_is_full(&queue));
         else
-            REQUIRE(!ct_queue_isfull(&queue));
+            REQUIRE(!ct_queue_is_full(&queue));
     }
     ct_queue_clear(&queue);
     REQUIRE((int32_t)ct_queue_max(&queue) == max);
     REQUIRE(ct_queue_size(&queue) == 0);
-    REQUIRE(ct_queue_isempty(&queue));
-    REQUIRE(!ct_queue_isfull(&queue));
+    REQUIRE(ct_queue_is_empty(&queue));
+    REQUIRE(!ct_queue_is_full(&queue));
 }
 
 TEST_CASE("queue_dequeue", "[queue]") {
@@ -69,17 +69,17 @@ TEST_CASE("queue_dequeue", "[queue]") {
         REQUIRE(it == i);
         REQUIRE((uint32_t)ct_queue_max(&queue) == max);
         REQUIRE((uint32_t)ct_queue_size(&queue) == (uint32_t)(max - i));
-        REQUIRE(!ct_queue_isfull(&queue));
+        REQUIRE(!ct_queue_is_full(&queue));
         if (i == max)
-            REQUIRE(ct_queue_isempty(&queue));
+            REQUIRE(ct_queue_is_empty(&queue));
         else
-            REQUIRE(!ct_queue_isempty(&queue));
+            REQUIRE(!ct_queue_is_empty(&queue));
     }
     ct_queue_clear(&queue);
     REQUIRE((uint32_t)ct_queue_max(&queue) == max);
     REQUIRE(ct_queue_size(&queue) == 0);
-    REQUIRE(ct_queue_isempty(&queue));
-    REQUIRE(!ct_queue_isfull(&queue));
+    REQUIRE(ct_queue_is_empty(&queue));
+    REQUIRE(!ct_queue_is_full(&queue));
 }
 
 TEST_CASE("queue_head", "[queue]") {
@@ -96,11 +96,11 @@ TEST_CASE("queue_head", "[queue]") {
         REQUIRE(item_prev == i);
         REQUIRE((size_t)ct_queue_max(&queue) == max);
         REQUIRE((size_t)ct_queue_size(&queue) == max - i);
-        REQUIRE(!ct_queue_isfull(&queue));
+        REQUIRE(!ct_queue_is_full(&queue));
         if (i == max) {
-            REQUIRE(ct_queue_isempty(&queue));
+            REQUIRE(ct_queue_is_empty(&queue));
         } else {
-            REQUIRE(!ct_queue_isempty(&queue));
+            REQUIRE(!ct_queue_is_empty(&queue));
             ct_queue_head(&queue, &item_next);
             REQUIRE(item_next == i + 1);
         }
@@ -108,8 +108,8 @@ TEST_CASE("queue_head", "[queue]") {
     ct_queue_clear(&queue);
     REQUIRE((size_t)ct_queue_max(&queue) == max);
     REQUIRE(ct_queue_size(&queue) == 0);
-    REQUIRE(ct_queue_isempty(&queue));
-    REQUIRE(!ct_queue_isfull(&queue));
+    REQUIRE(ct_queue_is_empty(&queue));
+    REQUIRE(!ct_queue_is_full(&queue));
 }
 
 TEST_CASE("queue_traverse", "[queue]") {
@@ -175,8 +175,8 @@ TEST_CASE("queue_traverse", "[queue]") {
     ct_queue_clear(&queue);
     REQUIRE((size_t)ct_queue_max(&queue) == max);
     REQUIRE(ct_queue_size(&queue) == 0);
-    REQUIRE(ct_queue_isempty(&queue));
-    REQUIRE(!ct_queue_isfull(&queue));
+    REQUIRE(ct_queue_is_empty(&queue));
+    REQUIRE(!ct_queue_is_full(&queue));
     {
         int item;
         struct {

@@ -28,7 +28,7 @@ void ct_queue_init(ct_queue_buf_t self, void* buffer, size_t byte, size_t max) {
 bool ct_queue_enqueue(ct_queue_buf_t self, const void* item) {
     if (!self || !self->_byte || !item) { return false; }
 
-    if (ct_queue_isfull(self)) { return false; }
+    if (ct_queue_is_full(self)) { return false; }
     memcpy(CT_QUEUE_ITEM(self, self->_tail), item, self->_byte);
     self->_tail = CT_QUEUE_INDEX_INC(self, self->_tail);
     self->_size++;
@@ -38,7 +38,7 @@ bool ct_queue_enqueue(ct_queue_buf_t self, const void* item) {
 bool ct_queue_dequeue(ct_queue_buf_t self, void* item) {
     if (!self || !self->_byte || !item) { return false; }
 
-    if (ct_queue_isempty(self)) { return false; }
+    if (ct_queue_is_empty(self)) { return false; }
     memcpy(item, CT_QUEUE_ITEM(self, self->_head), self->_byte);
     self->_head = CT_QUEUE_INDEX_INC(self, self->_head);
     self->_size--;
@@ -48,7 +48,7 @@ bool ct_queue_dequeue(ct_queue_buf_t self, void* item) {
 bool ct_queue_head(ct_queue_buf_t self, void* item) {
     if (!self || !self->_byte || !item) { return false; }
 
-    if (ct_queue_isempty(self)) { return false; }
+    if (ct_queue_is_empty(self)) { return false; }
     memcpy(item, CT_QUEUE_ITEM(self, self->_head), self->_byte);
     return true;
 }
