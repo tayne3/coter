@@ -20,276 +20,280 @@
 #define logFH(__buf, __len) CTLogger_HandleHex(Fatal, 0, __buf, __len)
 
 static ct_thread_t g_thread_logger;
-static bool      is_exit = false;
+static bool        is_exit = false;
 
 // 日志调度线程函数
 static int thread_log_schedule(void* arg) {
-	CT_UNUSED(arg);
-	for (; !is_exit;) {
-		ct_log_schedule(ct_getuptime_ms());
-		ct_msleep(10);
-	}
-	return 0;
+    CT_UNUSED(arg);
+    for (; !is_exit;) {
+        ct_log_schedule(ct_getuptime_ms());
+        ct_msleep(10);
+    }
+    return 0;
 }
 
 static void test_log_hex(void) {
-	ct_time64_t start, end;
+    ct_time64_t start, end;
 
-	// 检查当前文件夹下是否存在 test_log_out 文件夹
-	if (ct_access("test_log_out", 0) == -1) { ct_mkdir("test_log_out"); }
-	REQUIRE(ct_access("test_log_out", 0) == 0);
+    // 检查当前文件夹下是否存在 test_log_out 文件夹
+    if (ct_access("test_log_out", 0) == -1) { ct_mkdir("test_log_out"); }
+    REQUIRE(ct_access("test_log_out", 0) == 0);
 
-	FILE* file_without_log = fopen("test_log_out/without_log.log", "w");
-	REQUIRE(file_without_log != nullptr);
+    FILE* file_without_log = fopen("test_log_out/without_log.log", "w");
+    REQUIRE(file_without_log != nullptr);
 
-	remove("test_log_out/with_log.log0");
+    remove("test_log_out/with_log.log0");
 
-	// 创建 Logger
-	{
-		ct_log_config_t config;
-		memset(&config, 0, sizeof(config));
-		config.level         = CTLog_LevelVerbose;
-		config.disable_print = true;
-		config.disable_save  = false;
-		strncpy(config.file_dir, "test_log_out", sizeof(config.file_dir) - 1);
-		strncpy(config.file_name, "with_log", sizeof(config.file_name) - 1);
-		config.file_cache_size   = 10 * 1024;
-		config.file_size_max     = 1024 * 1024 * 1024;
-		config.file_count_max    = 1;
-		config.autosave_interval = 3600;
-		config.callback_routine  = nullptr;
-		config.callback_userdata = nullptr;
+    // 创建 Logger
+    {
+        ct_log_config_t config;
+        memset(&config, 0, sizeof(config));
+        config.level         = CTLog_LevelVerbose;
+        config.disable_print = true;
+        config.disable_save  = false;
+        strncpy(config.file_dir, "test_log_out", sizeof(config.file_dir) - 1);
+        strncpy(config.file_name, "with_log", sizeof(config.file_name) - 1);
+        config.file_cache_size   = 10 * 1024;
+        config.file_size_max     = 1024 * 1024 * 1024;
+        config.file_count_max    = 1;
+        config.autosave_interval = 3600;
+        config.callback_routine  = nullptr;
+        config.callback_userdata = nullptr;
 
-		ct_log_init(ct_getuptime_ms(), 1, &config);
-	}
+        ct_log_init(ct_getuptime_ms(), 1, &config);
+    }
 
-	REQUIRE(ct_thread_create(&g_thread_logger, nullptr, thread_log_schedule, nullptr) == 0);
+    REQUIRE(ct_thread_create(&g_thread_logger, nullptr, thread_log_schedule, nullptr) == 0);
 
-	// 写入日志
-	const uint8_t buf[16] = {0x12, 0x23, 0x34, 0x45, 0x56, 0x67, 0x78, 0x89, 0x9A, 0xAB, 0xBC, 0xCD, 0xDE, 0xEF, 0xF0, 0x01};
+    // 写入日志
+    const uint8_t buf[16] = {0x12, 0x23, 0x34, 0x45, 0x56, 0x67, 0x78, 0x89,
+                             0x9A, 0xAB, 0xBC, 0xCD, 0xDE, 0xEF, 0xF0, 0x01};
 
-	// 测试带日志回调的性能
-	start = ct_getuptime_ms();
-	for (int i = 0; i < 10000; ++i) {
-		logVH(buf, 16);
-		logVN("\n");
-		logDH(buf, 16);
-		logDN("\n");
-		logTH(buf, 16);
-		logTN("\n");
-		logWH(buf, 16);
-		logWN("\n");
-		logEH(buf, 16);
-		logEN("\n");
-		logFH(buf, 16);
-		logFN("\n");
-	}
-	end                     = ct_getuptime_ms();
-	const int time_with_log = (int)(end - start);
+    // 测试带日志回调的性能
+    start = ct_getuptime_ms();
+    for (int i = 0; i < 10000; ++i) {
+        logVH(buf, 16);
+        logVN("\n");
+        logDH(buf, 16);
+        logDN("\n");
+        logTH(buf, 16);
+        logTN("\n");
+        logWH(buf, 16);
+        logWN("\n");
+        logEH(buf, 16);
+        logEN("\n");
+        logFH(buf, 16);
+        logFN("\n");
+    }
+    end                     = ct_getuptime_ms();
+    const int time_with_log = (int)(end - start);
 
-	// 测试不带日志回调的性能
-	start = ct_getuptime_ms();
-	for (int i = 0; i < 60000; ++i) {
-		fprintf(file_without_log,
-				"%02X %02X %02X %02X %02X %02X %02X %02X "
-				"%02X %02X %02X %02X %02X %02X %02X %02X\n",
-				buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6], buf[7], buf[8], buf[9], buf[10], buf[11], buf[12], buf[13], buf[14], buf[15]);
-	}
-	end                        = ct_getuptime_ms();
-	const int time_without_log = (int)(end - start);
+    // 测试不带日志回调的性能
+    start = ct_getuptime_ms();
+    for (int i = 0; i < 60000; ++i) {
+        fprintf(file_without_log,
+                "%02X %02X %02X %02X %02X %02X %02X %02X "
+                "%02X %02X %02X %02X %02X %02X %02X %02X\n",
+                buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6], buf[7], buf[8], buf[9], buf[10], buf[11],
+                buf[12], buf[13], buf[14], buf[15]);
+    }
+    end                        = ct_getuptime_ms();
+    const int time_without_log = (int)(end - start);
 
-	is_exit = true;
-	REQUIRE(ct_thread_join(g_thread_logger, nullptr) == 0);
+    is_exit = true;
+    REQUIRE(ct_thread_join(g_thread_logger, nullptr) == 0);
 
-	fclose(file_without_log);
-	file_without_log = nullptr;
+    fclose(file_without_log);
+    file_without_log = nullptr;
 
-	printf("Execution time: with log %d ms, without log %d ms\n", time_with_log, time_without_log);
+    printf("Execution time: with log %d ms, without log %d ms\n", time_with_log, time_without_log);
 
-	ct_log_destroy();
+    ct_log_destroy();
 
-	// 打开文件
-	FILE* file_log_hex = fopen("test_log_out/with_log.log0", "r");
-	file_without_log   = fopen("test_log_out/without_log.log", "r");
-	REQUIRE(file_log_hex != nullptr);
-	REQUIRE(file_without_log != nullptr);
+    // 打开文件
+    FILE* file_log_hex = fopen("test_log_out/with_log.log0", "r");
+    file_without_log   = fopen("test_log_out/without_log.log", "r");
+    REQUIRE(file_log_hex != nullptr);
+    REQUIRE(file_without_log != nullptr);
 
-	// 获取文件大小
-	fseek(file_log_hex, 0, SEEK_END);
-	fseek(file_without_log, 0, SEEK_END);
-	int64_t size_log_hex     = ftell(file_log_hex);
-	int64_t size_without_log = ftell(file_without_log);
-	REQUIRE(size_log_hex > 0);
-	REQUIRE(size_without_log > 0);
-	REQUIRE(size_log_hex == size_without_log);
+    // 获取文件大小
+    fseek(file_log_hex, 0, SEEK_END);
+    fseek(file_without_log, 0, SEEK_END);
+    int64_t size_log_hex     = ftell(file_log_hex);
+    int64_t size_without_log = ftell(file_without_log);
+    REQUIRE(size_log_hex > 0);
+    REQUIRE(size_without_log > 0);
+    REQUIRE(size_log_hex == size_without_log);
 
-	// 将文件指针重置到文件开头
-	rewind(file_log_hex);
-	rewind(file_without_log);
+    // 将文件指针重置到文件开头
+    rewind(file_log_hex);
+    rewind(file_without_log);
 
-	char buffer_log_hex[128]     = {0};
-	char buffer_without_log[128] = {0};
+    char buffer_log_hex[128]     = {0};
+    char buffer_without_log[128] = {0};
 
-	// 比较文件内容是否一致
-	while (1) {
-		const size_t bytes_read_log_hex     = fread(buffer_log_hex, 1, sizeof(buffer_log_hex), file_log_hex);
-		const size_t bytes_read_without_log = fread(buffer_without_log, 1, sizeof(buffer_without_log), file_without_log);
-		if (bytes_read_log_hex == 0 || bytes_read_without_log == 0) { break; }
-		REQUIRE(bytes_read_log_hex == bytes_read_without_log);
-		REQUIRE(std::memcmp(buffer_log_hex, buffer_without_log, bytes_read_log_hex) == 0);
-	}
+    // 比较文件内容是否一致
+    while (1) {
+        const size_t bytes_read_log_hex = fread(buffer_log_hex, 1, sizeof(buffer_log_hex), file_log_hex);
+        const size_t bytes_read_without_log =
+            fread(buffer_without_log, 1, sizeof(buffer_without_log), file_without_log);
+        if (bytes_read_log_hex == 0 || bytes_read_without_log == 0) { break; }
+        REQUIRE(bytes_read_log_hex == bytes_read_without_log);
+        REQUIRE(std::memcmp(buffer_log_hex, buffer_without_log, bytes_read_log_hex) == 0);
+    }
 
-	// 确保两个文件都已读取完毕
-	REQUIRE(feof(file_log_hex));
-	REQUIRE(feof(file_without_log));
+    // 确保两个文件都已读取完毕
+    REQUIRE(feof(file_log_hex));
+    REQUIRE(feof(file_without_log));
 
-	fclose(file_log_hex);
-	fclose(file_without_log);
+    fclose(file_log_hex);
+    fclose(file_without_log);
 
-	remove("test_log_out/with_log.log0");
-	remove("test_log_out/without_log.log");
-	ct_rmdir("test_log_out");
+    remove("test_log_out/with_log.log0");
+    remove("test_log_out/without_log.log");
+    ct_rmdir("test_log_out");
 }
 
 static void test_log_long_text(const size_t text_size) {
-	ct_time64_t start, end;
+    ct_time64_t start, end;
 
-	// 检查当前文件夹下是否存在 test_log_out 文件夹
-	if (ct_access("test_log_out", 0) == -1) { ct_mkdir("test_log_out"); }
-	REQUIRE(ct_access("test_log_out", 0) == 0);
+    // 检查当前文件夹下是否存在 test_log_out 文件夹
+    if (ct_access("test_log_out", 0) == -1) { ct_mkdir("test_log_out"); }
+    REQUIRE(ct_access("test_log_out", 0) == 0);
 
-	FILE* file_without_log = fopen("test_log_out/without_log.log", "w");
-	REQUIRE(file_without_log != nullptr);
+    FILE* file_without_log = fopen("test_log_out/without_log.log", "w");
+    REQUIRE(file_without_log != nullptr);
 
-	remove("test_log_out/with_log.log0");
+    remove("test_log_out/with_log.log0");
 
-	// 创建 Logger
-	{
-		ct_log_config_t config;
-		memset(&config, 0, sizeof(config));
-		config.level         = CTLog_LevelVerbose;
-		config.disable_print = true;
-		config.disable_save  = false;
-		strncpy(config.file_dir, "test_log_out", sizeof(config.file_dir) - 1);
-		strncpy(config.file_name, "with_log", sizeof(config.file_name) - 1);
-		config.file_cache_size   = 10 * 1024;
-		config.file_size_max     = 1024 * 1024 * 1024;
-		config.file_count_max    = 1;
-		config.autosave_interval = 3600;
-		config.callback_routine  = nullptr;
-		config.callback_userdata = nullptr;
+    // 创建 Logger
+    {
+        ct_log_config_t config;
+        memset(&config, 0, sizeof(config));
+        config.level         = CTLog_LevelVerbose;
+        config.disable_print = true;
+        config.disable_save  = false;
+        strncpy(config.file_dir, "test_log_out", sizeof(config.file_dir) - 1);
+        strncpy(config.file_name, "with_log", sizeof(config.file_name) - 1);
+        config.file_cache_size   = 10 * 1024;
+        config.file_size_max     = 1024 * 1024 * 1024;
+        config.file_count_max    = 1;
+        config.autosave_interval = 3600;
+        config.callback_routine  = nullptr;
+        config.callback_userdata = nullptr;
 
-		ct_log_init(ct_getuptime_ms(), 1, &config);
-	}
+        ct_log_init(ct_getuptime_ms(), 1, &config);
+    }
 
-	// 创建日志线程
-	is_exit = false;
-	REQUIRE(ct_thread_create(&g_thread_logger, nullptr, thread_log_schedule, nullptr) == 0);
+    // 创建日志线程
+    is_exit = false;
+    REQUIRE(ct_thread_create(&g_thread_logger, nullptr, thread_log_schedule, nullptr) == 0);
 
-	// 创建超长文本
-	uint8_t* long_text = (uint8_t*)malloc(text_size + 1);
-	for (size_t i = 0; i < text_size; ++i) { long_text[i] = i % 0xFE + 1; }
-	long_text[text_size] = '\0';
+    // 创建超长文本
+    uint8_t* long_text = (uint8_t*)malloc(text_size + 1);
+    for (size_t i = 0; i < text_size; ++i) { long_text[i] = i % 0xFE + 1; }
+    long_text[text_size] = '\0';
 
-	// 测试带日志回调的性能
-	start = ct_getuptime_ms();
-	for (int i = 0; i < 10; ++i) {
-		logVH(long_text, text_size);
-		logVN("\n");
-		logDH(long_text, text_size);
-		logDN("\n");
-		logTH(long_text, text_size);
-		logTN("\n");
-		logWH(long_text, text_size);
-		logWN("\n");
-		logEH(long_text, text_size);
-		logEN("\n");
-		logFH(long_text, text_size);
-		logFN("\n");
-	}
-	end                     = ct_getuptime_ms();
-	const int time_with_log = (int)(end - start);
+    // 测试带日志回调的性能
+    start = ct_getuptime_ms();
+    for (int i = 0; i < 10; ++i) {
+        logVH(long_text, text_size);
+        logVN("\n");
+        logDH(long_text, text_size);
+        logDN("\n");
+        logTH(long_text, text_size);
+        logTN("\n");
+        logWH(long_text, text_size);
+        logWN("\n");
+        logEH(long_text, text_size);
+        logEN("\n");
+        logFH(long_text, text_size);
+        logFN("\n");
+    }
+    end                     = ct_getuptime_ms();
+    const int time_with_log = (int)(end - start);
 
-	// 测试不带日志回调的性能
-	start = ct_getuptime_ms();
-	for (int i = 0; i < 60; ++i) {
-		for (size_t j = 0; j < text_size; ++j) {
-			if (j != text_size - 1) {
-				fprintf(file_without_log, "%02X ", long_text[j]);
-			} else {
-				fprintf(file_without_log, "%02X\n", long_text[j]);
-			}
-		}
-	}
-	end                        = ct_getuptime_ms();
-	const int time_without_log = (int)(end - start);
+    // 测试不带日志回调的性能
+    start = ct_getuptime_ms();
+    for (int i = 0; i < 60; ++i) {
+        for (size_t j = 0; j < text_size; ++j) {
+            if (j != text_size - 1) {
+                fprintf(file_without_log, "%02X ", long_text[j]);
+            } else {
+                fprintf(file_without_log, "%02X\n", long_text[j]);
+            }
+        }
+    }
+    end                        = ct_getuptime_ms();
+    const int time_without_log = (int)(end - start);
 
-	// 清理
-	is_exit = true;
-	REQUIRE(ct_thread_join(g_thread_logger, nullptr) == 0);
+    // 清理
+    is_exit = true;
+    REQUIRE(ct_thread_join(g_thread_logger, nullptr) == 0);
 
-	free(long_text);
-	long_text = nullptr;
-	fclose(file_without_log);
-	file_without_log = nullptr;
+    free(long_text);
+    long_text = nullptr;
+    fclose(file_without_log);
+    file_without_log = nullptr;
 
-	printf("Execution time: with log %d ms, without log %d ms\n", time_with_log, time_without_log);
+    printf("Execution time: with log %d ms, without log %d ms\n", time_with_log, time_without_log);
 
-	ct_log_destroy();
+    ct_log_destroy();
 
-	// 打开文件
-	FILE* file_log_hex = fopen("test_log_out/with_log.log0", "r");
-	file_without_log   = fopen("test_log_out/without_log.log", "r");
-	REQUIRE(file_log_hex != nullptr);
-	REQUIRE(file_without_log != nullptr);
+    // 打开文件
+    FILE* file_log_hex = fopen("test_log_out/with_log.log0", "r");
+    file_without_log   = fopen("test_log_out/without_log.log", "r");
+    REQUIRE(file_log_hex != nullptr);
+    REQUIRE(file_without_log != nullptr);
 
-	// 获取文件大小
-	fseek(file_log_hex, 0, SEEK_END);
-	fseek(file_without_log, 0, SEEK_END);
-	int64_t size_log_hex     = ftell(file_log_hex);
-	int64_t size_without_log = ftell(file_without_log);
-	REQUIRE(size_log_hex > 0);
-	REQUIRE(size_without_log > 0);
-	REQUIRE(size_log_hex == size_without_log);
+    // 获取文件大小
+    fseek(file_log_hex, 0, SEEK_END);
+    fseek(file_without_log, 0, SEEK_END);
+    int64_t size_log_hex     = ftell(file_log_hex);
+    int64_t size_without_log = ftell(file_without_log);
+    REQUIRE(size_log_hex > 0);
+    REQUIRE(size_without_log > 0);
+    REQUIRE(size_log_hex == size_without_log);
 
-	// 将文件指针重置到文件开头
-	rewind(file_log_hex);
-	rewind(file_without_log);
+    // 将文件指针重置到文件开头
+    rewind(file_log_hex);
+    rewind(file_without_log);
 
-	// 比较文件内容是否一致
-	while (1) {
-		char         buffer_log_hex[128]     = {0};
-		char         buffer_without_log[128] = {0};
-		const size_t bytes_read_log_hex      = fread(buffer_log_hex, 1, sizeof(buffer_log_hex), file_log_hex);
-		const size_t bytes_read_without_log  = fread(buffer_without_log, 1, sizeof(buffer_without_log), file_without_log);
-		if (bytes_read_log_hex == 0 || bytes_read_without_log == 0) { break; }
-		REQUIRE(bytes_read_log_hex == bytes_read_without_log);
-		REQUIRE(std::memcmp(buffer_log_hex, buffer_without_log, bytes_read_log_hex) == 0);
-	}
+    // 比较文件内容是否一致
+    while (1) {
+        char         buffer_log_hex[128]     = {0};
+        char         buffer_without_log[128] = {0};
+        const size_t bytes_read_log_hex      = fread(buffer_log_hex, 1, sizeof(buffer_log_hex), file_log_hex);
+        const size_t bytes_read_without_log =
+            fread(buffer_without_log, 1, sizeof(buffer_without_log), file_without_log);
+        if (bytes_read_log_hex == 0 || bytes_read_without_log == 0) { break; }
+        REQUIRE(bytes_read_log_hex == bytes_read_without_log);
+        REQUIRE(std::memcmp(buffer_log_hex, buffer_without_log, bytes_read_log_hex) == 0);
+    }
 
-	// 确保两个文件都已读取完毕
-	REQUIRE(feof(file_log_hex));
-	REQUIRE(feof(file_without_log));
+    // 确保两个文件都已读取完毕
+    REQUIRE(feof(file_log_hex));
+    REQUIRE(feof(file_without_log));
 
-	fclose(file_log_hex);
-	fclose(file_without_log);
+    fclose(file_log_hex);
+    fclose(file_without_log);
 
-	remove("test_log_out/with_log.log0");
-	remove("test_log_out/without_log.log");
-	ct_rmdir("test_log_out");
+    remove("test_log_out/with_log.log0");
+    remove("test_log_out/without_log.log");
+    ct_rmdir("test_log_out");
 }
 
 TEST_CASE("log_hex", "[log]") {
-	SECTION("hex") {
-		test_log_hex();
-	}
-	SECTION("long_text_512") {
-		test_log_long_text(512);
-	}
-	SECTION("long_text_1024") {
-		test_log_long_text(1024);
-	}
-	SECTION("long_text_2048") {
-		test_log_long_text(2048);
-	}
+    SECTION("hex") {
+        test_log_hex();
+    }
+    SECTION("long_text_512") {
+        test_log_long_text(512);
+    }
+    SECTION("long_text_1024") {
+        test_log_long_text(1024);
+    }
+    SECTION("long_text_2048") {
+        test_log_long_text(2048);
+    }
 }

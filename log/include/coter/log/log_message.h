@@ -14,8 +14,8 @@ extern "C" {
 #endif
 
 typedef struct ct_log_message {
-	ct_bytes_t      *bytes;     /**< 字节数组 */
-	ct_atomic_long_t reference; /**< 引用计数 */
+    ct_bytes_t*      bytes;     /**< 字节数组 */
+    ct_atomic_long_t reference; /**< 引用计数 */
 } ct_log_message_t;
 
 #ifdef __cplusplus
