@@ -302,7 +302,7 @@ static int ctl_worker_thread(void* arg) {
     if (!pool) { return 0; }
 
     task_t task;
-    while (ct_msgqueue_dequeue(worker->tasks, &task)) {
+    while (ct_msgqueue_pop(worker->tasks, &task) == 0) {
         task.routine(task.arg);
         if (!ctl_revert_worker(worker->thpool, worker)) {
             ct_thread_detach(worker->thread);
@@ -323,7 +323,7 @@ static int ctl_worker_thread(void* arg) {
 static void ctl_worker_input(worker_t* worker, ct_thpool_routine_t routine, void* arg) {
     if (!worker || !routine) { return; }
     const task_t task = TASK_INIT(routine, arg);
-    ct_msgqueue_enqueue(worker->tasks, &task);
+    ct_msgqueue_push(worker->tasks, &task);
 }
 
 static void ctl_worker_finish(worker_t* worker) {

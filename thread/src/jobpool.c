@@ -121,7 +121,7 @@ int ct_jobpool_submit(ct_jobpool_t* self, ct_jobpool_routine_t routine, void* ar
     if (!self || !routine) { return -1; }
     // 将工作加入消息队列
     const job_t job = CT_JOBPOOL_JOB_INIT(routine, arg);
-    if (!ct_msgqueue_enqueue(self->job_queue, &job)) { return -1; }
+    if (ct_msgqueue_push(self->job_queue, &job) != 0) { return -1; }
     return 0;
 }
 
@@ -132,7 +132,7 @@ static int ct_jobpool_thread_do_regular(void* arg) {
     job_t*  job  = unit->job;
 
     for (;;) {
-        if (!ct_msgqueue_dequeue(unit->job_queue, job)) {
+        if (ct_msgqueue_pop(unit->job_queue, job) != 0) {
             break;  // 等待工作, 失败则代表任务池已关闭
         }
         if (job->routine) { job->routine(job->arg); }

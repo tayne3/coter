@@ -53,48 +53,66 @@ CT_API void ct_msgqueue_destroy(ct_msgqueue_t* self);
 /**
  * @brief 判断消息队列是否为空
  * @param self 消息队列
- * @return 如果消息队列为空则返回true，否则返回false
+ * @return true=为空，false=不为空
  */
-CT_API bool ct_msgqueue_isempty(ct_msgqueue_t* self);
+CT_API bool ct_msgqueue_is_empty(ct_msgqueue_t* self);
 
 /**
  * @brief 判断消息队列是否已满
  * @param self 消息队列
- * @return 如果消息队列已满则返回true，否则返回false
+ * @return true=已满，false=未满
  */
-CT_API bool ct_msgqueue_isfull(ct_msgqueue_t* self);
+CT_API bool ct_msgqueue_is_full(ct_msgqueue_t* self);
 
 /**
- * @brief 将事件消息入队 (阻塞)
+ * @brief 阻塞入队
  * @param self 消息队列
- * @param item 事件消息
- * @return 如果消息队列可用则返回true，否则返回false
+ * @param item 消息
+ * @return 0=成功，其它=错误码
  */
-CT_API bool ct_msgqueue_enqueue(ct_msgqueue_t* self, const void* item);
+CT_API int ct_msgqueue_push(ct_msgqueue_t* self, const void* item);
 
 /**
- * @brief 将事件消息出队 (阻塞)
+ * @brief 阻塞出对
  * @param self 消息队列
- * @param item 事件消息
- * @return 如果消息队列可用则返回true，否则返回false
+ * @param item 消息
+ * @return 0=成功，其它=错误码
  */
-CT_API bool ct_msgqueue_dequeue(ct_msgqueue_t* self, void* item);
+CT_API int ct_msgqueue_pop(ct_msgqueue_t* self, void* item);
 
 /**
- * @brief 尝试将事件消息入队
+ * @brief 尝试入队
  * @param self 消息队列
- * @param item 事件消息
- * @return 如果入队成功，则返回true；否则返回false
+ * @param item 消息
+ * @return 0=成功，其它=错误码
  */
-CT_API bool ct_msgqueue_try_enqueue(ct_msgqueue_t* self, const void* item);
+CT_API int ct_msgqueue_try_push(ct_msgqueue_t* self, const void* item);
 
 /**
- * @brief 尝试将事件消息出队
+ * @brief 尝试出队
  * @param self 消息队列
- * @param item 事件消息
- * @return 如果出队成功，则返回true；否则返回false
+ * @param item 消息
+ * @return 0=成功，其它=错误码
  */
-CT_API bool ct_msgqueue_try_dequeue(ct_msgqueue_t* self, void* item);
+CT_API int ct_msgqueue_try_pop(ct_msgqueue_t* self, void* item);
+
+/**
+ * @brief 入队
+ * @param self 消息队列
+ * @param item 消息
+ * @param timeout_ms 等待时间 (单位: ms; 为0代表不等待, 负数代表无限等待)
+ * @return 0=成功，其它=错误码
+ */
+CT_API int ct_msgqueue_push_for(ct_msgqueue_t* self, const void* item, ct_time64_t timeout_ms);
+
+/**
+ * @brief 出队
+ * @param self 消息队列
+ * @param item 消息
+ * @param timeout_ms 等待时间 (单位: ms; 为0代表不等待, 负数代表无限等待)
+ * @return 0=成功，其它=错误码
+ */
+CT_API int ct_msgqueue_pop_for(ct_msgqueue_t* self, void* item, ct_time64_t timeout_ms);
 
 #ifdef __cplusplus
 }
