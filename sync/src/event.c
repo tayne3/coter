@@ -74,7 +74,7 @@ int ct_event_timedwait(ct_event_t* event, uint32_t timeout_ms) {
             result = ETIMEDOUT;
             break;
         }
-        result = ct_cond_timedwait(&event->cond, &event->mutex, (uint32_t)(deadline - now));
+        result = ct_cond_wait_for(&event->cond, &event->mutex, deadline - now);
         if (result == ETIMEDOUT) { break; }
         if (result != 0) { break; }
     }

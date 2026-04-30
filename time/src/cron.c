@@ -108,7 +108,7 @@ void ct_cron_mgr_run(void) {
             ct_time64_t wait = (ct_time64_t)cron->next_time * 1000 - g_mgr.last_realtime;
             if (wait > 1000) { wait = 1000; }
             if (wait < 0) { wait = 0; }
-            ct_cond_timedwait(&g_mgr.cv, &g_mgr.lock, (uint32_t)wait);
+            ct_cond_wait_for(&g_mgr.cv, &g_mgr.lock, wait);
             continue;
         }
 

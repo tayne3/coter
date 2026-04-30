@@ -123,9 +123,7 @@ void ct_timer_mgr_run(void) {
             if (wait > 1000) { wait = 1000; }
             if (wait < 0) { wait = 0; }
             g_mgr.recent = node->next_time;
-            // printf("[%s:%d] ---- run, now: %lld, next_time: %lld, wait: %lld\n", __ct_file__, __ct_line__, now,
-            // node->next_time, wait);
-            ct_cond_timedwait(&g_mgr.cv, &g_mgr.lock, (uint32_t)wait);
+            ct_cond_wait_for(&g_mgr.cv, &g_mgr.lock, wait);
             continue;
         }
 
@@ -185,9 +183,6 @@ static int node__ops_start(node_t* node, enum node_type type, ct_time64_t interv
     node->cb        = cb;
     node->arg       = arg;
     node->is_active = 1;
-
-    // printf("[%s:%d] ---- node__ops_start, now: %lld, next_time: %lld, interval: %lld\n", __ct_file__, __ct_line__,
-    // now, node->next_time, interval_ms);
 
     ct_heap_insert(&g_mgr.nodes, &node->node);
     node->is_queued = 1;

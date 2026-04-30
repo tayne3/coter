@@ -168,16 +168,14 @@ static int mq__wait_not_full(ct_msgqueue_t* self, ct_time64_t timeout_ms) {
     while (ct_queue_is_full(self->queue)) {
         if (self->is_shut) { return EPIPE; }
 
-        int result;
-        if (timeout_ms < 0) {
-            result = ct_cond_wait(&self->not_full, &self->mutex);
-        } else if (timeout_ms == 0) {
-            return ETIMEDOUT;
-        } else {
+        ct_time64_t wait_ms = timeout_ms;
+        if (wait_ms > 0) {
             const ct_time64_t now = ct_getuptime_ms();
             if (now >= deadline) { return ETIMEDOUT; }
-            result = ct_cond_timedwait(&self->not_full, &self->mutex, (uint32_t)(deadline - now));
+            wait_ms = deadline - now;
         }
+
+        int result = ct_cond_wait_for(&self->not_full, &self->mutex, wait_ms);
         if (result != 0) { return result; }
     }
     return self->is_shut ? EPIPE : 0;
@@ -189,16 +187,14 @@ static int mq__wait_not_empty(ct_msgqueue_t* self, ct_time64_t timeout_ms) {
     while (ct_queue_is_empty(self->queue)) {
         if (self->is_shut) { return EPIPE; }
 
-        int result;
-        if (timeout_ms < 0) {
-            result = ct_cond_wait(&self->not_empty, &self->mutex);
-        } else if (timeout_ms == 0) {
-            return ETIMEDOUT;
-        } else {
+        ct_time64_t wait_ms = timeout_ms;
+        if (wait_ms > 0) {
             const ct_time64_t now = ct_getuptime_ms();
             if (now >= deadline) { return ETIMEDOUT; }
-            result = ct_cond_timedwait(&self->not_empty, &self->mutex, (uint32_t)(deadline - now));
+            wait_ms = deadline - now;
         }
+
+        int result = ct_cond_wait_for(&self->not_empty, &self->mutex, wait_ms);
         if (result != 0) { return result; }
     }
     return self->is_shut ? EPIPE : 0;
