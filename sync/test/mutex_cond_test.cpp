@@ -52,6 +52,22 @@ static int mutex_waiter(void* arg) {
     ct_mutex_unlock(&env->mutex);
     return 0;
 }
+
+static int cond_wait_for_worker(void* arg) {
+    cond_env* env = (cond_env*)arg;
+    ct_mutex_lock(&env->mutex);
+    ct_atomic_int_store(&env->waiter_ready, 1);
+    while (!ct_atomic_int_load(&env->should_exit)) {
+        int result = ct_cond_wait_for(&env->cond, &env->mutex, -1);
+        if (result != 0) {
+            ct_mutex_unlock(&env->mutex);
+            return result;
+        }
+    }
+    ct_atomic_int_add(&env->awakened, 1);
+    ct_mutex_unlock(&env->mutex);
+    return 0;
+}
 }  // namespace
 
 TEST_CASE("mutex blocks other threads from entering", "[sync][mutex]") {
@@ -100,10 +116,68 @@ TEST_CASE("condition signal wakes waiter", "[sync][cond]") {
     REQUIRE(ct_atomic_int_load(&env.awakened) == 1);
 }
 
-TEST_CASE("condition timedwait times out", "[sync][cond]") {
+TEST_CASE("condition wait_for times out immediately when timeout is zero", "[sync][cond]") {
     cond_env env;
 
     REQUIRE(ct_mutex_lock(&env.mutex) == 0);
-    REQUIRE(ct_cond_timedwait(&env.cond, &env.mutex, 20) == ETIMEDOUT);
+    REQUIRE(ct_cond_wait_for(&env.cond, &env.mutex, 0) == ETIMEDOUT);
     REQUIRE(ct_mutex_unlock(&env.mutex) == 0);
+}
+
+TEST_CASE("condition wait_for times out after positive timeout", "[sync][cond]") {
+    cond_env env;
+
+    REQUIRE(ct_mutex_lock(&env.mutex) == 0);
+    REQUIRE(ct_cond_wait_for(&env.cond, &env.mutex, 20) == ETIMEDOUT);
+    REQUIRE(ct_mutex_unlock(&env.mutex) == 0);
+}
+
+TEST_CASE("condition wait_for with negative timeout waits until signaled", "[sync][cond]") {
+    cond_env    env;
+    ct_thread_t thread;
+
+    REQUIRE(ct_thread_create(&thread, NULL, cond_wait_for_worker, &env) == 0);
+
+    for (int i = 0; i < 20 && ct_atomic_int_load(&env.waiter_ready) == 0; ++i) { ct_msleep(5); }
+
+    REQUIRE(ct_atomic_int_load(&env.waiter_ready) == 1);
+    REQUIRE(ct_mutex_lock(&env.mutex) == 0);
+    ct_atomic_int_store(&env.should_exit, 1);
+    REQUIRE(ct_cond_signal(&env.cond) == 0);
+    REQUIRE(ct_mutex_unlock(&env.mutex) == 0);
+    REQUIRE(ct_thread_join(thread, NULL) == 0);
+    REQUIRE(ct_atomic_int_load(&env.awakened) == 1);
+}
+
+TEST_CASE("condition wait_for handles timeouts larger than uint32 max", "[sync][cond]") {
+    cond_env    env;
+    ct_thread_t thread;
+
+    auto long_wait_worker = [](void* arg) -> int {
+        cond_env* env = (cond_env*)arg;
+        ct_mutex_lock(&env->mutex);
+        ct_atomic_int_store(&env->waiter_ready, 1);
+        while (!ct_atomic_int_load(&env->should_exit)) {
+            int result = ct_cond_wait_for(&env->cond, &env->mutex, (ct_time64_t)UINT32_MAX + 1000);
+            if (result != 0) {
+                ct_mutex_unlock(&env->mutex);
+                return result;
+            }
+        }
+        ct_atomic_int_add(&env->awakened, 1);
+        ct_mutex_unlock(&env->mutex);
+        return 0;
+    };
+
+    REQUIRE(ct_thread_create(&thread, NULL, long_wait_worker, &env) == 0);
+
+    for (int i = 0; i < 20 && ct_atomic_int_load(&env.waiter_ready) == 0; ++i) { ct_msleep(5); }
+
+    REQUIRE(ct_atomic_int_load(&env.waiter_ready) == 1);
+    REQUIRE(ct_mutex_lock(&env.mutex) == 0);
+    ct_atomic_int_store(&env.should_exit, 1);
+    REQUIRE(ct_cond_signal(&env.cond) == 0);
+    REQUIRE(ct_mutex_unlock(&env.mutex) == 0);
+    REQUIRE(ct_thread_join(thread, NULL) == 0);
+    REQUIRE(ct_atomic_int_load(&env.awakened) == 1);
 }
