@@ -31,7 +31,7 @@ typedef struct {
  * @param state 当前SHA1状态变量数组
  * @param buffer 输入的512位（64字节）数据块
  */
-CT_API void ct_sha1_transform(uint32_t state[5], const unsigned char buffer[64]);
+CT_API void ct_sha1_transform(uint32_t state[5], const unsigned char* buffer);
 
 /**
  * @brief 初始化SHA1上下文

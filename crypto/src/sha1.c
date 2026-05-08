@@ -16,9 +16,6 @@
  */
 #include "coter/crypto/sha1.h"
 
-/* Copies data before messing with it. */
-#define SHA1HANDSOFF
-
 #define rol(value, bits) (((value) << (bits)) | ((value) >> (32 - (bits))))
 
 /* blk0() and blk() perform the initial expand. */
@@ -55,7 +52,7 @@
 
 /* Hash a single 512-bit block. This is the core of the algorithm. */
 
-void ct_sha1_transform(uint32_t state[5], const unsigned char buffer[64]) {
+void ct_sha1_transform(uint32_t state[5], const unsigned char* buffer) {
     uint32_t a, b, c, d, e;
 
     typedef union {
@@ -63,18 +60,9 @@ void ct_sha1_transform(uint32_t state[5], const unsigned char buffer[64]) {
         uint32_t      l[16];
     } CHAR64LONG16;
 
-#ifdef SHA1HANDSOFF
-    CHAR64LONG16 block[1]; /* use array to appear as a pointer */
-
+    CHAR64LONG16 block[1];
     memcpy(block, buffer, 64);
-#else
-    /* The following had better never be used because it causes the
-     * pointer-to-const buffer to be cast into a pointer to non-const.
-     * And the result is written through.  I threw a "const" in, hoping
-     * this will cause a diagnostic.
-     */
-    CHAR64LONG16* block = (const CHAR64LONG16*)buffer;
-#endif
+
     /* Copy context->state[] to working vars */
     a = state[0];
     b = state[1];
@@ -170,9 +158,8 @@ void ct_sha1_transform(uint32_t state[5], const unsigned char buffer[64]) {
     state[4] += e;
     /* Wipe variables */
     a = b = c = d = e = 0;
-#ifdef SHA1HANDSOFF
+
     memset(block, '\0', sizeof(block));
-#endif
 }
 
 /* ct_sha1_init - Initialize new context */
@@ -199,7 +186,7 @@ void ct_sha1_update(ct_sha1_ctx_t* context, const unsigned char* data, uint32_t 
     if ((j + len) > 63) {
         memcpy(&context->buffer[j], data, (size_t)(i = 64 - j));
         ct_sha1_transform(context->state, context->buffer);
-        for (; i + 63 < len; i += 64) { ct_sha1_transform(context->state, &data[i]); }
+        for (; i + 64 <= len; i += 64) { ct_sha1_transform(context->state, &data[i]); }
         j = 0;
     } else {
         i = 0;
