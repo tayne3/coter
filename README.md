@@ -1,23 +1,38 @@
 # coter
 
-coter 是一个简化开发的C语言库，旨在为需要高性能和高可靠性的C语言项目提供强大的支持。
+![CMake](https://img.shields.io/badge/CMake-3.14%2B-brightgreen?logo=cmake&logoColor=white)
+[![Release](https://img.shields.io/github/v/release/tayne3/coter?include_prereleases&label=release&logo=github&logoColor=white)](https://github.com/tayne3/coter/releases)
+[![Tag](https://img.shields.io/github/v/tag/tayne3/coter?color=%23ff8936&style=flat-square&logo=git&logoColor=white)](https://github.com/tayne3/coter/tags)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/tayne3/coter)
 
-## ✨ 特性
+`coter` 是一个轻量级的 C 语言基础库。它将 C 语言开发中常用的基础设施进行了模块化封装，旨在提供一套接口清晰、性能稳定且易于集成的工具库。
 
-- **轻量可靠**: 轻量级实现，不占用过多资源, 并提供了完整的单元测试
-- **标准兼容性**: 严格遵循ANSI C (C99) 标准，确保最大程度的兼容性和可移植性
-- **多种基础设施**: 提供了多种基础设施的实现, 满足项目中常见的功能需求
-- **简洁API设计**: 直观易用的接口，降低学习曲线和开发复杂度
+`coter` 按功能划分为多个模块：
 
-## ⌛️ 构建
+- **core**: 基础核心功能。
+- **sync**: 并发同步原语。
+- **container**: 常用容器与数据结构。
+- **bytes**: 字节处理与缓存管理。
+- **log**: 灵活的日志系统。
+- **opt**: 命令行参数解析。
+- **encoding**: 常用编解码工具。
+- **crypto**: 基础加密算法。
 
-ctbin 使用 CMake 作为构建系统，支持跨平台编译。
+## 🔨 项目集成
 
-```sh
-mkdir build
-cd build
-cmake ..
-cmake --build .
+`coter` 使用 CMake 构建，可以通过 `FetchContent` 将其集成到你的工程中。
+
+在你的 `CMakeLists.txt` 中添加：
+
+```cmake
+include(FetchContent)
+
+FetchContent_Declare(
+  coter
+  GIT_REPOSITORY https://github.com/tayne3/coter.git
+  GIT_TAG v0.10.4
+)
+FetchContent_MakeAvailable(coter)
+
+target_link_libraries(your_project PRIVATE coter::coter)
 ```
-
-详见 [docs/BUILD.md](docs/BUILD.md)
