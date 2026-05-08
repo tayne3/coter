@@ -33,7 +33,7 @@ int ct_thread_create(ct_thread_t* thread, const ct_thread_attr_t* attr, ct_threa
 
 #ifdef CT_OS_WIN
     thread->handle = (HANDLE)_beginthreadex(NULL, (unsigned)(attr ? attr->stack_size : 0),
-                                            (ct_thread__win_entry_t)routine, arg, 0, (unsigned*)&thread->id);
+                                            (ct_thread__win_entry_t)(void (*)(void))routine, arg, 0, (unsigned*)&thread->id);
     if (!thread->handle) {
         thread->id = 0;
         return (int)GetLastError();
@@ -56,7 +56,7 @@ int ct_thread_create(ct_thread_t* thread, const ct_thread_attr_t* attr, ct_threa
         }
     }
 
-    ret = pthread_create(thread, native_attr_ptr, (ct_thread__posix_entry_t)routine, arg);
+    ret = pthread_create(thread, native_attr_ptr, (ct_thread__posix_entry_t)(void (*)(void))routine, arg);
     if (native_attr_ptr) { pthread_attr_destroy(&native_attr); }
     return ret;
 #endif
