@@ -6,7 +6,8 @@
 #define COTER_TIME_TIMER_H
 
 #include "coter/container/heap.h"
-#include "coter/core/platform.h"
+#include "coter/core/macro.h"
+#include "coter/core/time.h"
 
 #ifdef __cplusplus
 extern "C" {

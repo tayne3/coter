@@ -1,7 +1,8 @@
 #include <catch.hpp>
 #include <cstring>
 
-#include "coter/core/platform.h"
+#include "coter/core/fs.h"
+#include "coter/core/macro.h"
 #include "coter/log/log.h"
 #include "coter/sync/mutex.h"
 #include "coter/thread/thread.h"

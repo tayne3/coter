@@ -7,6 +7,7 @@
 #include <cinttypes>
 
 #include "coter/core/platform.h"
+#include "coter/core/time.h"
 #include "coter/sync/mutex.h"
 #include "coter/thread/jobpool.h"
 #include "coter/thread/thread.h"

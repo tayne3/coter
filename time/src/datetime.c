@@ -4,48 +4,35 @@
  */
 #include "coter/time/datetime.h"
 
-#include "coter/core/platform.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "coter/core/macro.h"
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
 #define IS_LEAP_YEAR(year) (((year) % 4 == 0 && (year) % 100 != 0) || (year) % 400 == 0)
 
-static const char* s_weekdays[] = {
+static const char* s_weekdays[7] = {
     "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday",
 };
 
-static const char* s_months[] = {
+static const char* s_months[12] = {
     "January", "February", "March",     "April",   "May",      "June",
     "July",    "August",   "September", "October", "November", "December",
 };
 
-//                               1   2   3   4   5   6   7   8   9   10  11  12
-static const uint8_t s_days[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+//                                 1   2   3   4   5   6   7   8   9   10  11  12
+static const uint8_t s_days[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
 ct_datetime_t ct_datetime_now(void) {
-#ifdef CT_OS_WIN
-    SYSTEMTIME tm;
-    GetLocalTime(&tm);
-    ct_datetime_t dt = {
-        .year  = tm.wYear,
-        .month = tm.wMonth,
-        .day   = tm.wDay,
-        .wday  = tm.wDayOfWeek,
-        .hour  = tm.wHour,
-        .min   = tm.wMinute,
-        .sec   = tm.wSecond,
-        .ms    = tm.wMilliseconds,
-    };
+    ct_time64_t   now_ms = ct_gettimeofday_ms();
+    ct_datetime_t dt     = ct_datetime_localtime((ct_time_t)(now_ms / 1000));
+    dt.ms                = (int)(now_ms % 1000);
     return dt;
-#else
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    ct_datetime_t dt = ct_datetime_localtime(tv.tv_sec);
-    dt.ms            = tv.tv_usec / 1000;
-    return dt;
-#endif
 }
 
 ct_datetime_t ct_datetime_localtime(ct_time_t seconds) {
@@ -157,10 +144,11 @@ char* ct_datetime_fmt_iso(const ct_datetime_t* dt, char* buf) {
 
 char* ct_datetime_gmtime_fmt(ct_time_t t, char* buf) {
     if (!buf) { return NULL; }
-    struct tm* tm = gmtime(&t);
+    struct tm tm;
+    ct_gmtime_r(&t, &tm);
     // strftime(buf, CT_GMTIME_FMT_BUFLEN, "%a, %d %b %Y %H:%M:%S GMT", tm);
-    sprintf(buf, CT_GMTIME_FMT, s_weekdays[tm->tm_wday], tm->tm_mday, s_months[tm->tm_mon], tm->tm_year + 1900,
-            tm->tm_hour, tm->tm_min, tm->tm_sec);
+    sprintf(buf, CT_GMTIME_FMT, s_weekdays[tm.tm_wday], tm.tm_mday, s_months[tm.tm_mon], tm.tm_year + 1900, tm.tm_hour,
+            tm.tm_min, tm.tm_sec);
     return buf;
 }
 

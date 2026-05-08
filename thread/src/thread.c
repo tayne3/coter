@@ -1,6 +1,11 @@
 #include "coter/thread/thread.h"
 
+#include <errno.h>
+
+#include "coter/core/platform.h"
+
 #ifdef CT_OS_WIN
+#include <process.h>
 typedef unsigned(__stdcall* ct_thread__win_entry_t)(void*);
 #else
 #include <sched.h>

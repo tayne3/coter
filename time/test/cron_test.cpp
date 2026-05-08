@@ -2,7 +2,7 @@
 
 #include <catch.hpp>
 
-#include "coter/core/platform.h"
+#include "coter/core/macro.h"
 #include "coter/sync/atomic.h"
 #include "coter/sync/event.h"
 #include "coter/thread/thread.h"

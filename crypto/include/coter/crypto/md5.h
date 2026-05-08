@@ -5,7 +5,7 @@
 #ifndef COTER_CRYPTO_MD5_H
 #define COTER_CRYPTO_MD5_H
 
-#include "coter/core/platform.h"
+#include "coter/core/macro.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -1,16 +1,15 @@
+add_executable(coter_encoding_base64_test base64_test.cpp)
+add_test(NAME coter_encoding_base64_test COMMAND coter_encoding_base64_test)
+target_link_libraries(coter_encoding_base64_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
 
-add_executable(base64_test base64_test.cpp)
-add_test(NAME base64_test COMMAND base64_test)
-target_link_libraries(base64_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
+add_executable(coter_encoding_binary_test binary_test.cpp)
+add_test(NAME coter_encoding_binary_test COMMAND coter_encoding_binary_test)
+target_link_libraries(coter_encoding_binary_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
 
-add_executable(binary_test binary_test.cpp)
-add_test(NAME binary_test COMMAND binary_test)
-target_link_libraries(binary_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
+add_executable(coter_encoding_hex_test hex_test.cpp)
+add_test(NAME coter_encoding_hex_test COMMAND coter_encoding_hex_test)
+target_link_libraries(coter_encoding_hex_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
 
-add_executable(hex_test hex_test.cpp)
-add_test(NAME hex_test COMMAND hex_test)
-target_link_libraries(hex_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
-
-add_executable(bcd_test bcd_test.cpp)
-add_test(NAME bcd_test COMMAND bcd_test)
-target_link_libraries(bcd_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
+add_executable(coter_encoding_bcd_test bcd_test.cpp)
+add_test(NAME coter_encoding_bcd_test COMMAND coter_encoding_bcd_test)
+target_link_libraries(coter_encoding_bcd_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)

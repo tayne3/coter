@@ -1,4 +1,12 @@
+/**
+ * @file once.c
+ * @brief Once-initialization implementation
+ */
 #include "coter/thread/once.h"
+
+#include <errno.h>
+
+#include "coter/core/platform.h"
 
 #ifdef CT_OS_WIN
 static BOOL CALLBACK ct_once__bridge(PINIT_ONCE once, PVOID param, PVOID* context) {
@@ -12,7 +20,7 @@ static BOOL CALLBACK ct_once__bridge(PINIT_ONCE once, PVOID param, PVOID* contex
 int ct_once_exec(ct_once_t* once, void (*routine)(void)) {
     if (!once || !routine) { return EINVAL; }
 #ifdef CT_OS_WIN
-    if (InitOnceExecuteOnce(once, ct_once__bridge, (PVOID)routine, NULL)) { return 0; }
+    if (InitOnceExecuteOnce((PINIT_ONCE)once, ct_once__bridge, (PVOID)routine, NULL)) { return 0; }
     return GetLastError() ? (int)GetLastError() : EINVAL;
 #else
     return pthread_once(once, routine);

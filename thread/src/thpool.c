@@ -4,6 +4,8 @@
  */
 #include "coter/thread/thpool.h"
 
+#include <stdlib.h>
+
 #include "coter/container/list.h"
 #include "coter/event/msgqueue.h"
 #include "coter/sync/atomic.h"

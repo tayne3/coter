@@ -5,7 +5,7 @@
 #ifndef COTER_THREAD_CACHE_H
 #define COTER_THREAD_CACHE_H
 
-#include "coter/core/platform.h"
+#include "coter/core/macro.h"
 
 #ifdef __cplusplus
 extern "C" {

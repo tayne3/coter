@@ -6,7 +6,8 @@
 #define COTER_LOG_LOG_STORAGE_H
 
 #include "coter/bytes/bytes.h"
-#include "coter/core/platform.h"
+#include "coter/core/macro.h"
+#include "coter/core/time.h"
 
 #ifdef __cplusplus
 extern "C" {

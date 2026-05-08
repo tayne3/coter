@@ -1,5 +1,7 @@
 #include "coter/bytes/builder.h"
 
+#include <stdlib.h>
+
 /**
  * @brief Ensure the stream has at least the required capacity
  * @param self Stream object

@@ -5,7 +5,7 @@
 #ifndef COTER_CRYPTO_SHA1_H
 #define COTER_CRYPTO_SHA1_H
 
-#include "coter/core/platform.h"
+#include "coter/core/macro.h"
 
 #ifdef __cplusplus
 extern "C" {

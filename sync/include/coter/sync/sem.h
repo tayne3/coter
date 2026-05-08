@@ -1,6 +1,6 @@
 /**
  * @file sem.h
- * @brief Cross-platform unnamed semaphore wrapper.
+ * @brief Cross-platform unnamed semaphore wrapper
  */
 #ifndef COTER_SYNC_SEM_H
 #define COTER_SYNC_SEM_H
@@ -8,7 +8,6 @@
 #include "coter/core/platform.h"
 
 #if defined(CT_OS_WIN)
-#include <windows.h>
 #elif defined(CT_OS_MAC) && defined(CT_COMPILER_CLANG)
 #include <dispatch/dispatch.h>
 #elif defined(CT_OS_MAC) && !defined(CT_COMPILER_CLANG)
@@ -22,7 +21,7 @@ extern "C" {
 #endif
 
 #ifdef CT_OS_WIN
-typedef HANDLE ct_sem_t;
+typedef void* ct_sem_t;
 #elif defined(CT_OS_MAC) && defined(CT_COMPILER_CLANG)
 typedef dispatch_semaphore_t ct_sem_t;
 #elif defined(CT_OS_MAC) && !defined(CT_COMPILER_CLANG)

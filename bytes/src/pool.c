@@ -4,10 +4,10 @@
  */
 #include "coter/bytes/pool.h"
 
+#include <stdlib.h>
+
 #include "coter/sync/atomic.h"
 #include "coter/sync/mutex.h"
-
-// -------------------------[STATIC DECLARATION]-------------------------
 
 struct ct_bytepool {
     ct_list_t        bytes_list[1];   // 字节数组链表
@@ -16,8 +16,6 @@ struct ct_bytepool {
     ct_atomic_long_t size;            // 池大小
     ct_mutex_t       lock;            // 保护锁
 };
-
-// -------------------------[GLOBAL DEFINITION]-------------------------
 
 ct_bytepool_t* ct_bytepool_create(size_t max_size, size_t bytes_capacity) {
     struct ct_bytepool* self = (struct ct_bytepool*)malloc(sizeof(struct ct_bytepool));
@@ -81,5 +79,3 @@ void ct_bytepool_put(ct_bytepool_t* self, ct_bytes_t* bytes) {
 
     if (!added) { ct_bytes_destroy(bytes); }
 }
-
-// -------------------------[STATIC DEFINITION]-------------------------

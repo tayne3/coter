@@ -6,7 +6,7 @@
 #define COTER_LOG_LOG_MESSAGE_H
 
 #include "coter/bytes/bytes.h"
-#include "coter/core/platform.h"
+#include "coter/core/macro.h"
 #include "coter/sync/atomic.h"
 
 #ifdef __cplusplus

@@ -5,7 +5,7 @@
 #ifndef COTER_HASH_HASH_H
 #define COTER_HASH_HASH_H
 
-#include "coter/core/platform.h"
+#include "coter/core/macro.h"
 
 #ifdef __cplusplus
 extern "C" {

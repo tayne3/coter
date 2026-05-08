@@ -4,8 +4,11 @@
  */
 #include "coter/thread/jobpool.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "coter/container/list.h"
-#include "coter/core/platform.h"
+#include "coter/core/macro.h"
 #include "coter/event/msgqueue.h"
 #include "coter/thread/thread.h"
 

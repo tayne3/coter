@@ -5,7 +5,7 @@
 #ifndef COTER_CONTAINER_STACK_H
 #define COTER_CONTAINER_STACK_H
 
-#include "coter/core/platform.h"
+#include "coter/core/macro.h"
 
 #ifdef __cplusplus
 extern "C" {

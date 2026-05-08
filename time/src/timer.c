@@ -4,6 +4,8 @@
  */
 #include "coter/time/timer.h"
 
+#include <stdlib.h>
+
 #include "coter/sync/atomic.h"
 #include "coter/sync/cond.h"
 #include "coter/sync/mutex.h"

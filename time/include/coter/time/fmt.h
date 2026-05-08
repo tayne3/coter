@@ -5,7 +5,7 @@
 #ifndef COTER_TIME_FMT_H
 #define COTER_TIME_FMT_H
 
-#include "coter/core/platform.h"
+#include "coter/core/time.h"
 
 #ifdef __cplusplus
 extern "C" {

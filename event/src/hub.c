@@ -13,7 +13,7 @@ typedef struct {
 
 void ct_evhub_init(ct_evhub_t* self) {
     if (!self) { return; }
-    ct_rwlock_init(&self->rwlock, NULL);
+    ct_rwlock_init(&self->rwlock);
     ct_array_init(&self->sub_list, sizeof(evhub__sub_t), 0);
 }
 

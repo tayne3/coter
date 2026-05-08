@@ -1,8 +1,10 @@
-#ifndef _WIN32
+#include "coter/core/macro.h"
+#include "coter/core/platform.h"
+#include "coter/opt/opt.h"
+
+#ifndef CT_OS_WIN
 #include <sys/ioctl.h>
 #endif
-
-#include "coter/opt/opt.h"
 
 #define OPTIDX_INPUT   4
 #define OPTIDX_OUTPUT  4

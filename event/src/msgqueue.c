@@ -4,6 +4,10 @@
  */
 #include "coter/event/msgqueue.h"
 
+#include <errno.h>
+
+#include "coter/core/platform.h"
+
 static int mq__wait_not_full(ct_msgqueue_t* self, ct_time64_t timeout_ms);
 static int mq__wait_not_empty(ct_msgqueue_t* self, ct_time64_t timeout_ms);
 

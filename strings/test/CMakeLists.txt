@@ -1,4 +1,3 @@
-
-add_executable(strings_test strings_test.cpp)
-add_test(NAME strings_test COMMAND strings_test)
-target_link_libraries(strings_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
+add_executable(coter_strings_test strings_test.cpp)
+add_test(NAME coter_strings_test COMMAND coter_strings_test)
+target_link_libraries(coter_strings_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)

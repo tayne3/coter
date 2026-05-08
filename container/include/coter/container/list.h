@@ -9,7 +9,7 @@
 #ifndef COTER_CONTAINER_LIST_H
 #define COTER_CONTAINER_LIST_H
 
-#include "coter/core/platform.h"
+#include "coter/core/macro.h"
 
 #ifdef __cplusplus
 extern "C" {

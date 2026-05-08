@@ -4,12 +4,14 @@
  */
 #include "coter/thread/cache.h"
 
+#include "coter/core/platform.h"
+#include "coter/core/time.h"
 #include "coter/strings/strings.h"
 #include "coter/thread/once.h"
 #include "coter/thread/thread.h"
 #include "coter/thread/tls.h"
 
-#if defined(CT_OS_LINUX)
+#ifdef CT_OS_LINUX
 #include <sys/syscall.h>
 #endif
 
@@ -221,39 +223,39 @@ static void i2s_3(char** p, int value) {
 }
 
 static void tc__update_tmstr(ct_threadcache_t* self) {
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
+    const ct_time64_t now_us   = ct_gettimeofday_us();
+    const ct_time_t   now_sec  = (ct_time_t)(now_us / INT64_C(1000000));
+    const int         now_usec = (int)(now_us % INT64_C(1000000));
 
     char* p;
 
     if (self->accect_sec > 0) {
-        if (tv.tv_sec == self->accect_sec) {
+        if (now_sec == self->accect_sec) {
             p = &self->tm_str[18];
-            i2s_3(&p, (int)(tv.tv_usec / 1000));
+            i2s_3(&p, now_usec / 1000);
 
             return;  // 同一秒内，只更新毫秒部分 (%02d.%02d.%02d-%02d:%02d:%02d.[%03d])
-        } else if (tv.tv_sec > self->accect_sec) {
-            const ct_time_t diff_sec = tv.tv_sec - self->accect_sec;
+        } else if (now_sec > self->accect_sec) {
+            const ct_time_t diff_sec = now_sec - self->accect_sec;
             if (diff_sec + self->_sys_sec < 60) {
-                self->accect_sec = tv.tv_sec;
+                self->accect_sec = now_sec;
                 self->_sys_sec += diff_sec;
 
                 p = &self->tm_str[15];
                 i2s_2(&p, (int)self->_sys_sec);
                 p = &self->tm_str[18];
-                i2s_3(&p, (int)(tv.tv_usec / 1000));
+                i2s_3(&p, now_usec / 1000);
 
                 return;  // 同一分钟内，更新秒和毫秒部分 (%02d.%02d.%02d-%02d:%02d:[%02d.%03d])
             }
         }
     }
 
-    const ct_time_t sys_sec = (ct_time_t)tv.tv_sec;
-    struct tm       tm;
-    ct_localtime_r(&sys_sec, &tm);
-    self->_sys_sec   = tm.tm_sec;
-    self->_sys_min   = tm.tm_min;
-    self->accect_sec = tv.tv_sec;
+    self->accect_sec = now_sec;
+    struct tm tm;
+    ct_localtime_r(&now_sec, &tm);
+    self->_sys_sec = tm.tm_sec;
+    self->_sys_min = tm.tm_min;
 
     p = self->tm_str;
     i2s_2(&p, tm.tm_year % 100);
@@ -268,7 +270,7 @@ static void tc__update_tmstr(ct_threadcache_t* self) {
     *p++ = ':';
     i2s_2(&p, tm.tm_sec);
     *p++ = '.';
-    i2s_3(&p, (int)(tv.tv_usec / 1000));
+    i2s_3(&p, now_usec / 1000);
 
     return;  // 跨分钟或首次调用，重新生成完整时间字符串 ([%02d.%02d.%02d-%02d:%02d:%02d.%03d])
 }

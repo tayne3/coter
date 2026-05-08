@@ -4,7 +4,7 @@
 #include <catch.hpp>
 #include <cstring>
 
-#include "coter/core/platform.h"
+#include "coter/core/macro.h"
 
 TEST_CASE("strings_snprintf", "[strings]") {
     char       buf[100];

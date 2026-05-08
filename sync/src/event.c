@@ -1,11 +1,14 @@
 #include "coter/sync/event.h"
 
+#include <errno.h>
+#include <stdlib.h>
+
 int ct_event_init(ct_event_t* event) {
     if (!event) { return EINVAL; }
 #ifdef CT_OS_WIN
     HANDLE handle = CreateEvent(NULL, FALSE, FALSE, NULL);
     if (handle == NULL) { return (int)GetLastError(); }
-    *event = handle;
+    *event = (void*)handle;
     return 0;
 #else
     int result = ct_mutex_init(&event->mutex);
@@ -23,7 +26,7 @@ int ct_event_init(ct_event_t* event) {
 int ct_event_destroy(ct_event_t* event) {
     if (!event) { return EINVAL; }
 #ifdef CT_OS_WIN
-    return CloseHandle(*event) ? 0 : (int)GetLastError();
+    return CloseHandle((HANDLE)*event) ? 0 : (int)GetLastError();
 #else
     while (1) {
         int result = ct_cond_destroy(&event->cond);
@@ -40,7 +43,7 @@ int ct_event_destroy(ct_event_t* event) {
 int ct_event_wait(ct_event_t* event) {
     if (!event) { return EINVAL; }
 #ifdef CT_OS_WIN
-    DWORD result = WaitForSingleObjectEx(*event, INFINITE, TRUE);
+    DWORD result = WaitForSingleObjectEx((HANDLE)*event, INFINITE, TRUE);
     if (result == WAIT_OBJECT_0) { return 0; }
     return result == WAIT_FAILED ? (int)GetLastError() : (int)result;
 #else
@@ -59,7 +62,7 @@ int ct_event_wait(ct_event_t* event) {
 int ct_event_timedwait(ct_event_t* event, uint32_t timeout_ms) {
     if (!event) { return EINVAL; }
 #ifdef CT_OS_WIN
-    DWORD result = WaitForSingleObjectEx(*event, timeout_ms, TRUE);
+    DWORD result = WaitForSingleObjectEx((HANDLE)*event, timeout_ms, TRUE);
     if (result == WAIT_OBJECT_0) { return 0; }
     if (result == WAIT_TIMEOUT) { return ETIMEDOUT; }
     return result == WAIT_FAILED ? (int)GetLastError() : (int)result;
@@ -87,7 +90,7 @@ int ct_event_timedwait(ct_event_t* event, uint32_t timeout_ms) {
 int ct_event_signal(ct_event_t* event) {
     if (!event) { return EINVAL; }
 #ifdef CT_OS_WIN
-    return SetEvent(*event) ? 0 : (int)GetLastError();
+    return SetEvent((HANDLE)*event) ? 0 : (int)GetLastError();
 #else
     int result;
     ct_mutex_lock(&event->mutex);
@@ -101,7 +104,7 @@ int ct_event_signal(ct_event_t* event) {
 int ct_event_reset(ct_event_t* event) {
     if (!event) { return EINVAL; }
 #ifdef CT_OS_WIN
-    return ResetEvent(*event) ? 0 : (int)GetLastError();
+    return ResetEvent((HANDLE)*event) ? 0 : (int)GetLastError();
 #else
     ct_mutex_lock(&event->mutex);
     event->count = 0;

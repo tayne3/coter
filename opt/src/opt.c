@@ -1,5 +1,6 @@
 #include "coter/opt/opt.h"
 
+#include <stdlib.h>
 #include <string.h>
 
 const char* ct_opt_strerror(ct_opt_status_t s) {

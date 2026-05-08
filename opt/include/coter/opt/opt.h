@@ -5,7 +5,9 @@
 #ifndef COTER_OPT_OPT_H
 #define COTER_OPT_OPT_H
 
-#include "coter/core/platform.h"
+#include <stdio.h>
+
+#include "coter/core/macro.h"
 
 #ifdef __cplusplus
 extern "C" {

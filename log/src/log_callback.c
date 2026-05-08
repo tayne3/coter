@@ -4,6 +4,8 @@
  */
 #include "coter/log/log_callback.h"
 
+#include <stdlib.h>
+
 #include "coter/bytes/pool.h"
 #include "coter/log/log_config.h"
 #include "coter/strings/strings.h"

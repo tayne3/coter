@@ -6,6 +6,9 @@
 
 #include <string.h>
 
+#include "coter/core/fs.h"
+#include "coter/core/time.h"
+
 // -------------------------[STATIC DECLARATION]-------------------------
 
 static uint64_t ct_random_rotl(uint64_t x, int k);

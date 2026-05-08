@@ -2,6 +2,7 @@
 
 #include <catch.hpp>
 
+#include "coter/core/time.h"
 #include "coter/sync/atomic.h"
 #include "coter/thread/thread.h"
 
@@ -13,7 +14,7 @@ struct rwlock_env {
     ct_atomic_int_t writer_acquired = CT_ATOMIC_VAR_INIT(0);
     ct_atomic_int_t try_result      = CT_ATOMIC_VAR_INIT(0);
 
-    rwlock_env() { ct_rwlock_init(&lock, NULL); }
+    rwlock_env() { ct_rwlock_init(&lock); }
 
     ~rwlock_env() { ct_rwlock_destroy(&lock); }
 };

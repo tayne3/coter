@@ -1,11 +1,11 @@
+/**
+ * @file thread.h
+ * @brief Cross-platform Thread management
+ */
 #ifndef COTER_THREAD_THREAD_H
 #define COTER_THREAD_THREAD_H
 
 #include "coter/core/platform.h"
-
-#ifndef CT_OS_WIN
-#include <pthread.h>
-#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -55,7 +55,6 @@ typedef pthread_t ct_thread_t;
 /**
  * @brief 线程执行函数
  * @return 线程退出码
- * @note 该返回值用于线程退出状态，不应用于传递对象所有权。
  */
 typedef int (*ct_thread_routine_t)(void*);
 
@@ -70,14 +69,12 @@ CT_API int ct_thread_create(ct_thread_t* thread, const ct_thread_attr_t* attr, c
  * @brief 等待线程结束
  * @param result 可选线程退出码输出
  * @return 0=成功，非0=失败
- * @note 同一个线程对象只能成功 join 一次；detach 后不能再 join。
  */
 CT_API int ct_thread_join(ct_thread_t thread, int* result);
 
 /**
  * @brief 分离线程
  * @return 0=成功，非0=失败
- * @note detach 后线程结束时由系统回收资源，之后不能再 join。
  */
 CT_API int ct_thread_detach(ct_thread_t thread);
 
@@ -88,15 +85,11 @@ CT_API int ct_thread_yield(void);
 
 /**
  * @brief 设置 Windows 线程优先级
- * @return 0=成功；ENOTSUP=当前平台不支持；其它值=平台错误
- * @note 该接口是平台增强能力，不保证跨平台语义一致。
  */
 CT_API int ct_thread_set_win_priority(ct_thread_t thread, int priority);
 
 /**
  * @brief 设置 POSIX 线程调度策略与优先级
- * @return 0=成功；ENOTSUP=当前平台不支持；其它值=平台错误
- * @note 该接口是平台增强能力，不保证跨平台语义一致。
  */
 CT_API int ct_thread_set_posix_sched(ct_thread_t thread, int policy, int priority);
 

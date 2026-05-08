@@ -1,7 +1,7 @@
 #ifndef COTER_BYTES_RBUF_H
 #define COTER_BYTES_RBUF_H
 
-#include "coter/core/platform.h"
+#include "coter/core/macro.h"
 
 #ifdef __cplusplus
 extern "C" {

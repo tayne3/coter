@@ -4,7 +4,7 @@
  */
 #include <catch.hpp>
 
-#include "coter/core/platform.h"
+#include "coter/core/macro.h"
 #include "coter/log/log.h"
 #include "coter/thread/thread.h"
 

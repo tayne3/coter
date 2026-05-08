@@ -1,3 +1,7 @@
+/**
+ * @file once.h
+ * @brief Cross-platform Once-initialization
+ */
 #ifndef COTER_THREAD_ONCE_H
 #define COTER_THREAD_ONCE_H
 
@@ -11,7 +15,6 @@ extern "C" {
 typedef INIT_ONCE ct_once_t;
 #define CT_ONCE_INIT INIT_ONCE_STATIC_INIT
 #else
-#include <pthread.h>
 typedef pthread_once_t ct_once_t;
 #define CT_ONCE_INIT PTHREAD_ONCE_INIT
 #endif

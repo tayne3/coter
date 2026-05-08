@@ -2,6 +2,7 @@
 
 #include <catch.hpp>
 
+#include "coter/core/time.h"
 #include "coter/thread/thread.h"
 
 static constexpr int TEST_THREADS    = 24;

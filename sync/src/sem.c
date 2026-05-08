@@ -1,5 +1,7 @@
 #include "coter/sync/sem.h"
 
+#include <errno.h>
+
 int ct_sem_init(ct_sem_t* sem, uint32_t value) {
     if (!sem) { return EINVAL; }
 

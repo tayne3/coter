@@ -1,5 +1,9 @@
 #include "coter/thread/tls.h"
 
+#include <errno.h>
+
+#include "coter/core/platform.h"
+
 int ct_tls_create(ct_tls_key_t* key, void (*destructor)(void*)) {
     if (!key) { return EINVAL; }
 #ifdef CT_OS_WIN

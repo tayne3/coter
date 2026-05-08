@@ -4,9 +4,7 @@
  */
 #include "coter/bytes/bytes.h"
 
-// -------------------------[STATIC DECLARATION]-------------------------
-
-// -------------------------[GLOBAL DEFINITION]-------------------------
+#include <stdlib.h>
 
 ct_bytes_t* ct_bytes_create(size_t capacity) {
     capacity         = (capacity ? capacity : 1024UL);
@@ -35,5 +33,3 @@ size_t ct_bytes_write(ct_bytes_t* self, const void* data, size_t length) {
     self->write_pos += length;
     return length;
 }
-
-// -------------------------[STATIC DEFINITION]-------------------------

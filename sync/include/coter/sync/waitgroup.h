@@ -5,7 +5,7 @@
 #ifndef COTER_SYNC_WAITGROUP_H
 #define COTER_SYNC_WAITGROUP_H
 
-#include "coter/core/platform.h"
+#include "coter/core/macro.h"
 #include "coter/sync/cond.h"
 #include "coter/sync/mutex.h"
 

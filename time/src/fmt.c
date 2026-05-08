@@ -4,6 +4,9 @@
  */
 #include "coter/time/fmt.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+
 char* ct_tm_duration_fmt(int sec, char* buf) {
     if (!buf) { return NULL; }
     int m = sec / 60;

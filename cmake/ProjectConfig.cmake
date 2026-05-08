@@ -78,6 +78,11 @@ if(WIN32)
     _WINSOCK_DEPRECATED_NO_WARNINGS  # Suppress Winsock deprecation warnings
     NOMINMAX                         # Prevent min/max macro definitions
   )
+  if(MINGW)
+    target_compile_definitions(coter_compile_dependency INTERFACE
+      __USE_MINGW_ANSI_STDIO=1
+    )
+  endif()
 endif()
 
 if(CMAKE_C_COMPILER_ID STREQUAL "MSVC")

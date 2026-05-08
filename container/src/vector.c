@@ -1,5 +1,7 @@
 #include "coter/container/vector.h"
 
+#include <stdlib.h>
+
 bool _ct__vector_reserve(void** p_ptr, size_t* p_cap, size_t elem_size, size_t new_cap) {
     if (!p_ptr || !p_cap || elem_size == 0) { return false; }
     if (*p_cap >= new_cap) { return true; }

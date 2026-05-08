@@ -5,6 +5,8 @@
 #include "coter/log/log_storage.h"
 
 #include "coter/bytes/pool.h"
+#include "coter/core/fs.h"
+#include "coter/core/macro.h"
 #include "coter/core/platform.h"
 #include "coter/log/log_config.h"
 #include "coter/strings/strings.h"

@@ -5,7 +5,7 @@
 #ifndef COTER_MATH_RAND_H
 #define COTER_MATH_RAND_H
 
-#include "coter/core/platform.h"
+#include "coter/core/macro.h"
 
 #ifdef __cplusplus
 extern "C" {

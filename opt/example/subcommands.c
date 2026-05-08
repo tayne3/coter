@@ -1,3 +1,8 @@
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "coter/core/time.h"
 #include "coter/opt/opt.h"
 
 static int cmd_echo(char** argv) {

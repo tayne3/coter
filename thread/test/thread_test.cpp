@@ -2,6 +2,7 @@
 
 #include <catch.hpp>
 
+#include "coter/core/time.h"
 #include "coter/sync/atomic.h"
 #include "coter/thread/once.h"
 #include "coter/thread/tls.h"

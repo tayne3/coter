@@ -5,7 +5,7 @@
 #ifndef COTER_THREAD_THPOOL_H
 #define COTER_THREAD_THPOOL_H
 
-#include "coter/core/platform.h"
+#include "coter/core/macro.h"
 #include "coter/thread/thread.h"
 
 #ifdef __cplusplus

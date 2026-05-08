@@ -6,7 +6,7 @@
 #define COTER_EVENT_MSGQUEUE_H
 
 #include "coter/container/queue.h"
-#include "coter/core/platform.h"
+#include "coter/core/macro.h"
 #include "coter/sync/cond.h"
 #include "coter/sync/mutex.h"
 

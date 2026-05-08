@@ -1,7 +1,7 @@
 #ifndef COTER_MATH_BIT_CAST_H
 #define COTER_MATH_BIT_CAST_H
 
-#include "coter/core/platform.h"
+#include "coter/core/macro.h"
 
 #ifdef __cplusplus
 extern "C" {

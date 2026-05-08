@@ -1,18 +1,18 @@
+/**
+ * @file tls.h
+ * @brief Cross-platform Thread Local Storage
+ */
 #ifndef COTER_THREAD_TLS_H
 #define COTER_THREAD_TLS_H
 
 #include "coter/core/platform.h"
-
-#ifndef CT_OS_WIN
-#include <pthread.h>
-#endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #ifdef CT_OS_WIN
-typedef DWORD ct_tls_key_t;
+typedef uint32_t ct_tls_key_t;
 #else
 typedef pthread_key_t ct_tls_key_t;
 #endif

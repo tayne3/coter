@@ -1,6 +1,12 @@
+/**
+ * @file cond.h
+ * @brief Cross-platform Condition Variable
+ */
 #ifndef COTER_SYNC_COND_H
 #define COTER_SYNC_COND_H
 
+#include "coter/core/platform.h"
+#include "coter/core/time.h"
 #include "coter/sync/mutex.h"
 
 #ifdef __cplusplus
@@ -10,79 +16,25 @@ extern "C" {
 #ifdef CT_OS_WIN
 typedef CONDITION_VARIABLE ct_cond_t;
 #define CT_COND_INITIALIZER CONDITION_VARIABLE_INIT
+
+CT_API int ct_cond_init(ct_cond_t* cond);
+CT_API int ct_cond_destroy(ct_cond_t* cond);
+CT_API int ct_cond_signal(ct_cond_t* cond);
+CT_API int ct_cond_broadcast(ct_cond_t* cond);
+CT_API int ct_cond_wait(ct_cond_t* cond, ct_mutex_t* mutex);
 #else
 typedef pthread_cond_t ct_cond_t;
 #define CT_COND_INITIALIZER PTHREAD_COND_INITIALIZER
+
+#define ct_cond_init(c)      pthread_cond_init(c, NULL)
+#define ct_cond_destroy(c)   pthread_cond_destroy(c)
+#define ct_cond_signal(c)    pthread_cond_signal(c)
+#define ct_cond_broadcast(c) pthread_cond_broadcast(c)
+#define ct_cond_wait(c, m)   pthread_cond_wait(c, m)
 #endif
 
 /**
- * @brief Initialize a condition variable.
- * @param cond Condition variable object.
- * @return 0 on success, otherwise an error code.
- */
-CT_INLINE int ct_cond_init(ct_cond_t* cond) {
-#ifdef CT_OS_WIN
-    InitializeConditionVariable(cond);
-    return 0;
-#else
-    return pthread_cond_init(cond, NULL);
-#endif
-}
-
-/**
- * @brief Destroy a condition variable.
- * @param cond Condition variable object.
- * @return 0 on success, otherwise an error code.
- */
-CT_INLINE int ct_cond_destroy(ct_cond_t* cond) {
-#ifdef CT_OS_WIN
-    CT_UNUSED(cond);
-    return 0;
-#else
-    return pthread_cond_destroy(cond);
-#endif
-}
-
-/**
- * @brief Wake one waiting thread.
- * @param cond Condition variable object.
- * @return 0 on success, otherwise an error code.
- */
-CT_INLINE int ct_cond_signal(ct_cond_t* cond) {
-#ifdef CT_OS_WIN
-    WakeConditionVariable(cond);
-    return 0;
-#else
-    return pthread_cond_signal(cond);
-#endif
-}
-
-/**
- * @brief Wake all waiting threads.
- * @param cond Condition variable object.
- * @return 0 on success, otherwise an error code.
- */
-CT_INLINE int ct_cond_broadcast(ct_cond_t* cond) {
-#ifdef CT_OS_WIN
-    WakeAllConditionVariable(cond);
-    return 0;
-#else
-    return pthread_cond_broadcast(cond);
-#endif
-}
-
-/**
- * @brief Wait on a condition variable without a timeout.
- * @param cond Condition variable object.
- * @param mutex Locked mutex associated with cond.
- * @return 0 on success, otherwise an error code.
- */
-CT_API int ct_cond_wait(ct_cond_t* cond, ct_mutex_t* mutex);
-
-/**
- * @brief Wait on a condition variable using the unified timeout policy.
- * @param cond Condition variable object.
- * @param mutex Locked mutex associated with cond.
+ * @brief Wait on a condition variable with a timeout.
  * @param timeout_ms Wait time in milliseconds.
  * @return 0 on success, ETIMEDOUT on timeout, otherwise an error code.
  * @note timeout_ms < 0 waits forever.

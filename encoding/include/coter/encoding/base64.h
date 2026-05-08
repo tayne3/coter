@@ -5,7 +5,7 @@
 #ifndef COTER_ENCODING_BASE64_H
 #define COTER_ENCODING_BASE64_H
 
-#include "coter/core/platform.h"
+#include "coter/core/macro.h"
 
 #ifdef __cplusplus
 extern "C" {

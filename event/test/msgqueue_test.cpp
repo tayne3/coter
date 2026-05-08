@@ -3,7 +3,7 @@
 #include <catch.hpp>
 #include <vector>
 
-#include "coter/core/platform.h"
+#include "coter/core/macro.h"
 #include "coter/math/rand.h"
 #include "coter/sync/atomic.h"
 #include "coter/thread/thread.h"
