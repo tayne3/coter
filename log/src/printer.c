@@ -1,14 +1,14 @@
 /**
- * @file log_printer.c
+ * @file printer.c
  * @brief 日志打印器
  */
-#include "coter/log/log_printer.h"
+#include "coter/log/printer.h"
 
 #include <stdlib.h>
 
 #include "coter/bytes/pool.h"
-#include "coter/log/log_config.h"
 #include "coter/core/strings.h"
+#include "coter/log/config.h"
 #include "coter/sync/atomic.h"
 #include "coter/sync/mutex.h"
 

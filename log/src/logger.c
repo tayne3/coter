@@ -7,11 +7,11 @@
 #include <stdlib.h>
 
 #include "coter/bytes/pool.h"
-#include "coter/log/log_callback.h"
-#include "coter/log/log_config.h"
-#include "coter/log/log_contant.h"
-#include "coter/log/log_printer.h"
-#include "coter/log/log_storage.h"
+#include "coter/log/callback.h"
+#include "coter/log/config.h"
+#include "coter/log/constant.h"
+#include "coter/log/printer.h"
+#include "coter/log/storage.h"
 #include "coter/sync/atomic.h"
 
 // -------------------------[STATIC DECLARATION]-------------------------

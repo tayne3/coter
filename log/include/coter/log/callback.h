@@ -1,9 +1,9 @@
 /**
- * @file log_callback.h
- * @brief 日志回调器
+ * @file callback.h
+ * @brief 日志回调接口
  */
-#ifndef COTER_LOG_LOG_CALLBACK_H
-#define COTER_LOG_LOG_CALLBACK_H
+#ifndef COTER_LOG_CALLBACK_H
+#define COTER_LOG_CALLBACK_H
 
 #include "coter/bytes/bytes.h"
 #include "coter/core/macro.h"
@@ -60,4 +60,4 @@ CT_API void ct_log_callback_schedule(ct_log_callback_t* self);
 #ifdef __cplusplus
 }
 #endif
-#endif  // COTER_LOG_LOG_CALLBACK_H
+#endif  // COTER_LOG_CALLBACK_H

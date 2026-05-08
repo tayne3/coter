@@ -2,8 +2,8 @@
 #define COTER_BYTES_SEG_HPP
 
 #include "coter/bytes/seg.h"
-#include "coter/core/optional.hpp"
 #include "coter/core/bit.hpp"
+#include "coter/core/optional.hpp"
 
 namespace coter {
 

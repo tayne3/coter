@@ -1,15 +1,15 @@
 /**
- * @file log_storage.c
+ * @file storage.c
  * @brief 日志存储器
  */
-#include "coter/log/log_storage.h"
+#include "coter/log/storage.h"
 
 #include "coter/bytes/pool.h"
 #include "coter/core/fs.h"
 #include "coter/core/macro.h"
 #include "coter/core/platform.h"
-#include "coter/log/log_config.h"
 #include "coter/core/strings.h"
+#include "coter/log/config.h"
 #include "coter/sync/atomic.h"
 #include "coter/sync/mutex.h"
 

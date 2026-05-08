@@ -1,9 +1,9 @@
 /**
- * @file log_message.h
- * @brief 日志消息
+ * @file message.h
+ * @brief 日志消息定义
  */
-#ifndef COTER_LOG_LOG_MESSAGE_H
-#define COTER_LOG_LOG_MESSAGE_H
+#ifndef COTER_LOG_MESSAGE_H
+#define COTER_LOG_MESSAGE_H
 
 #include "coter/bytes/bytes.h"
 #include "coter/core/macro.h"
@@ -21,4 +21,4 @@ typedef struct ct_log_message {
 #ifdef __cplusplus
 }
 #endif
-#endif  // COTER_LOG_LOG_MESSAGE_H
+#endif  // COTER_LOG_MESSAGE_H

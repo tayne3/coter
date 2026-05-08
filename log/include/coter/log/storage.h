@@ -1,9 +1,9 @@
 /**
- * @file log_storage.h
- * @brief 日志存储器
+ * @file storage.h
+ * @brief 日志存储接口
  */
-#ifndef COTER_LOG_LOG_STORAGE_H
-#define COTER_LOG_LOG_STORAGE_H
+#ifndef COTER_LOG_STORAGE_H
+#define COTER_LOG_STORAGE_H
 
 #include "coter/bytes/bytes.h"
 #include "coter/core/macro.h"
@@ -63,4 +63,4 @@ CT_API void ct_log_storage_schedule(ct_log_storage_t* self, ct_time64_t tick);
 #ifdef __cplusplus
 }
 #endif
-#endif  // COTER_LOG_LOG_STORAGE_H
+#endif  // COTER_LOG_STORAGE_H

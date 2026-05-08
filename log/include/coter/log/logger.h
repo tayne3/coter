@@ -6,7 +6,7 @@
 #define COTER_LOG_LOGGER_H
 
 #include "coter/core/time.h"
-#include "coter/log/log_config.h"
+#include "coter/log/config.h"
 
 #ifdef __cplusplus
 extern "C" {

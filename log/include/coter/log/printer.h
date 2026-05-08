@@ -1,9 +1,9 @@
 /**
- * @file log_printer.h
- * @brief 日志打印器
+ * @file printer.h
+ * @brief 日志打印接口
  */
-#ifndef COTER_LOG_LOG_PRINTER_H
-#define COTER_LOG_LOG_PRINTER_H
+#ifndef COTER_LOG_PRINTER_H
+#define COTER_LOG_PRINTER_H
 
 #include "coter/core/macro.h"
 
@@ -60,4 +60,4 @@ CT_API void ct_log_printer_schedule(ct_log_printer_t* self);
 #ifdef __cplusplus
 }
 #endif
-#endif  // COTER_LOG_LOG_PRINTER_H
+#endif  // COTER_LOG_PRINTER_H

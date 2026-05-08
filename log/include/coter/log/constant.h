@@ -1,9 +1,9 @@
 /**
- * @file log_contant.h
- * @brief 日志常量
+ * @file constant.h
+ * @brief 日志常量定义
  */
-#ifndef COTER_LOG_LOG_CONSTANT_H
-#define COTER_LOG_LOG_CONSTANT_H
+#ifndef COTER_LOG_CONSTANT_H
+#define COTER_LOG_CONSTANT_H
 
 #include "coter/core/macro.h"
 
@@ -40,4 +40,4 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#endif  // COTER_LOG_LOG_CONSTANT_H
+#endif  // COTER_LOG_CONSTANT_H

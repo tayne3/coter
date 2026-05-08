@@ -1,5 +1,5 @@
 /**
- * @file log_print_test.cpp
+ * @file print_test.cpp
  * @brief 日志打印测试
  */
 #include <catch.hpp>

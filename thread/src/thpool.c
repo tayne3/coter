@@ -7,8 +7,8 @@
 #include <stdlib.h>
 
 #include "coter/container/list.h"
-#include "coter/sync/msgqueue.h"
 #include "coter/sync/atomic.h"
+#include "coter/sync/msgqueue.h"
 #include "coter/thread/thread.h"
 
 // -------------------------[STATIC DECLARATION]-------------------------

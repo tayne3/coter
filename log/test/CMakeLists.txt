@@ -1,15 +1,15 @@
-add_executable(coter_log_callback_test log_callback_test.cpp)
+add_executable(coter_log_callback_test callback_test.cpp)
 add_test(NAME coter_log_callback_test COMMAND coter_log_callback_test)
 target_link_libraries(coter_log_callback_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
 
-add_executable(coter_log_hex_test log_hex_test.cpp)
+add_executable(coter_log_hex_test hex_test.cpp)
 add_test(NAME coter_log_hex_test COMMAND coter_log_hex_test)
 target_link_libraries(coter_log_hex_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
 
-add_executable(coter_log_print_test log_print_test.cpp)
+add_executable(coter_log_print_test print_test.cpp)
 add_test(NAME coter_log_print_test COMMAND coter_log_print_test)
 target_link_libraries(coter_log_print_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
 
-add_executable(coter_log_write_test log_write_test.cpp)
+add_executable(coter_log_write_test write_test.cpp)
 add_test(NAME coter_log_write_test COMMAND coter_log_write_test)
 target_link_libraries(coter_log_write_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)

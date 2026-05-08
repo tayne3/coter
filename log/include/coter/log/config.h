@@ -1,9 +1,9 @@
 /**
- * @file log_config.h
+ * @file config.h
  * @brief 日志配置
  */
-#ifndef COTER_LOG_LOG_CONFIG_H
-#define COTER_LOG_LOG_CONFIG_H
+#ifndef COTER_LOG_CONFIG_H
+#define COTER_LOG_CONFIG_H
 
 #include "coter/core/macro.h"
 
@@ -39,4 +39,4 @@ CT_API void ct_log_config_default(ct_log_config_t* config);
 #ifdef __cplusplus
 }
 #endif
-#endif  // COTER_LOG_LOG_CONFIG_H
+#endif  // COTER_LOG_CONFIG_H

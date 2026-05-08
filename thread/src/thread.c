@@ -32,8 +32,9 @@ int ct_thread_create(ct_thread_t* thread, const ct_thread_attr_t* attr, ct_threa
     memset(thread, 0, sizeof(ct_thread_t));
 
 #ifdef CT_OS_WIN
-    thread->handle = (HANDLE)_beginthreadex(NULL, (unsigned)(attr ? attr->stack_size : 0),
-                                            (ct_thread__win_entry_t)(void (*)(void))routine, arg, 0, (unsigned*)&thread->id);
+    thread->handle =
+        (HANDLE)_beginthreadex(NULL, (unsigned)(attr ? attr->stack_size : 0),
+                               (ct_thread__win_entry_t)(void (*)(void))routine, arg, 0, (unsigned*)&thread->id);
     if (!thread->handle) {
         thread->id = 0;
         return (int)GetLastError();

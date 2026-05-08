@@ -1,14 +1,14 @@
 /**
- * @file log_callback.c
+ * @file callback.c
  * @brief 日志回调器
  */
-#include "coter/log/log_callback.h"
+#include "coter/log/callback.h"
 
 #include <stdlib.h>
 
 #include "coter/bytes/pool.h"
-#include "coter/log/log_config.h"
 #include "coter/core/strings.h"
+#include "coter/log/config.h"
 #include "coter/sync/atomic.h"
 #include "coter/sync/mutex.h"
 

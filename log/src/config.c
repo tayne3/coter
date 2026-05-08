@@ -1,10 +1,10 @@
 /**
- * @file log_config.c
+ * @file config.c
  * @brief 日志配置
  */
-#include "coter/log/log_config.h"
+#include "coter/log/config.h"
 
-#include "coter/log/log_contant.h"
+#include "coter/log/constant.h"
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
