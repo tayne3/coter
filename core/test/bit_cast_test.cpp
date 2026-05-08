@@ -1,4 +1,4 @@
-#include "coter/math/bit_cast.h"
+#include "coter/core/bit_cast.h"
 
 #include <catch.hpp>
 

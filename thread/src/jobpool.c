@@ -9,7 +9,7 @@
 
 #include "coter/container/list.h"
 #include "coter/core/macro.h"
-#include "coter/event/msgqueue.h"
+#include "coter/sync/msgqueue.h"
 #include "coter/thread/thread.h"
 
 // -------------------------[STATIC DECLARATION]-------------------------

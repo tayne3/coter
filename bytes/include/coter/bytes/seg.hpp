@@ -3,7 +3,7 @@
 
 #include "coter/bytes/seg.h"
 #include "coter/core/optional.hpp"
-#include "coter/math/bit.hpp"
+#include "coter/core/bit.hpp"
 
 namespace coter {
 

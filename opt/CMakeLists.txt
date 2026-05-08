@@ -14,7 +14,6 @@ target_link_libraries(coter_opt
     coter_compile_dependency
   PUBLIC
     coter::core
-    coter::strings
 )
 if(BUILD_SHARED_LIBS)
   target_compile_definitions(coter_opt

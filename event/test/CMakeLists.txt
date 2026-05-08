@@ -1,7 +1,0 @@
-add_executable(coter_event_hub_test hub_test.cpp)
-add_test(NAME coter_event_hub_test COMMAND coter_event_hub_test)
-target_link_libraries(coter_event_hub_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
-
-add_executable(coter_event_msgqueue_test msgqueue_test.cpp)
-add_test(NAME coter_event_msgqueue_test COMMAND coter_event_msgqueue_test)
-target_link_libraries(coter_event_msgqueue_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)

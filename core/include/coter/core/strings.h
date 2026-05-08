@@ -2,8 +2,8 @@
  * @file strings.h
  * @brief Safe string manipulation and formatting utilities
  */
-#ifndef COTER_STRINGS_STRINGS_H
-#define COTER_STRINGS_STRINGS_H
+#ifndef COTER_CORE_STRINGS_H
+#define COTER_CORE_STRINGS_H
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -86,4 +86,4 @@ CT_INLINE const char* ct_basename(const char* path) {
 #ifdef __cplusplus
 }
 #endif
-#endif  // COTER_STRINGS_STRINGS_H
+#endif  // COTER_CORE_STRINGS_H

@@ -25,3 +25,11 @@ target_link_libraries(coter_sync_event_test PRIVATE coter_compile_dependency cot
 add_executable(coter_sync_sem_test sem_test.cpp)
 add_test(NAME coter_sync_sem_test COMMAND coter_sync_sem_test)
 target_link_libraries(coter_sync_sem_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
+
+add_executable(coter_sync_msgqueue_test msgqueue_test.cpp)
+add_test(NAME coter_sync_msgqueue_test COMMAND coter_sync_msgqueue_test)
+target_link_libraries(coter_sync_msgqueue_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
+
+add_executable(coter_sync_pubsub_test pubsub_test.cpp)
+add_test(NAME coter_sync_pubsub_test COMMAND coter_sync_pubsub_test)
+target_link_libraries(coter_sync_pubsub_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)

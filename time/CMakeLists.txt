@@ -16,7 +16,6 @@ target_link_libraries(coter_time
     coter::core
     coter::container
     coter::thread
-    coter::event
 )
 if(BUILD_SHARED_LIBS)
   target_compile_definitions(coter_time

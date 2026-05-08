@@ -1,5 +1,5 @@
-#ifndef COTER_MATH_BIT_HPP
-#define COTER_MATH_BIT_HPP
+#ifndef COTER_CORE_BIT_HPP
+#define COTER_CORE_BIT_HPP
 
 #include <cstdint>
 #include <cstring>
@@ -38,4 +38,4 @@ namespace cxx20 {
 using coter::bit_cast;
 }  // namespace cxx20
 
-#endif  // COTER_MATH_BIT_HPP
+#endif  // COTER_CORE_BIT_HPP

@@ -1,10 +1,10 @@
-#include "coter/event/msgqueue.h"
+#include "coter/sync/msgqueue.h"
 
 #include <catch.hpp>
 #include <vector>
 
 #include "coter/core/macro.h"
-#include "coter/math/rand.h"
+#include "coter/core/rand.h"
 #include "coter/sync/atomic.h"
 #include "coter/thread/thread.h"
 

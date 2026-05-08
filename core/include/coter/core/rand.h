@@ -2,8 +2,8 @@
  * @file rand.h
  * @brief random number generator.
  */
-#ifndef COTER_MATH_RAND_H
-#define COTER_MATH_RAND_H
+#ifndef COTER_CORE_RAND_H
+#define COTER_CORE_RAND_H
 
 #include "coter/core/macro.h"
 
@@ -68,4 +68,4 @@ CT_API void ct_random_bytes(ct_random_t* self, void* buffer, size_t size) __ct_t
 #ifdef __cplusplus
 }
 #endif
-#endif  // COTER_MATH_RAND_H
+#endif  // COTER_CORE_RAND_H

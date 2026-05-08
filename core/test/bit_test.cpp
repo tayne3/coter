@@ -1,4 +1,4 @@
-#include "coter/math/bit.hpp"
+#include "coter/core/bit.hpp"
 
 #include <catch.hpp>
 #include <cmath>

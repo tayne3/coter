@@ -1,4 +1,4 @@
-#include "coter/strings/strings.h"
+#include "coter/core/strings.h"
 
 #include <algorithm>
 #include <catch.hpp>

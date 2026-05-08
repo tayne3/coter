@@ -4,7 +4,7 @@
  */
 #include "coter/container/packet.h"
 
-#include "coter/strings/strings.h"
+#include "coter/core/strings.h"
 
 void ct_packet_init(ct_packet_buf_t self, uint8_t* _buffer, uint16_t _max) {
     if (!self) { return; }

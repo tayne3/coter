@@ -2,7 +2,7 @@
  * @file msgqueue.c
  * @brief 消息队列
  */
-#include "coter/event/msgqueue.h"
+#include "coter/sync/msgqueue.h"
 
 #include <errno.h>
 

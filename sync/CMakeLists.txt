@@ -14,6 +14,7 @@ target_link_libraries(coter_sync
     coter_compile_dependency
   PUBLIC
     coter::core
+    coter::container
 )
 if(BUILD_SHARED_LIBS)
   target_compile_definitions(coter_sync

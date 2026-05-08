@@ -2,7 +2,7 @@
  * @file strings.c
  * @brief Safe string manipulation and formatting utilities
  */
-#include "coter/strings/strings.h"
+#include "coter/core/strings.h"
 
 int ct_snprintf(char* __s, size_t __maxlen, const char* __format, ...) {
     if (!__format) { return -1; }

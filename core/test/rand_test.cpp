@@ -1,4 +1,4 @@
-#include "coter/math/rand.h"
+#include "coter/core/rand.h"
 
 #include <catch.hpp>
 #include <cstring>

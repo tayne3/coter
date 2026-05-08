@@ -9,7 +9,7 @@
 #include "coter/core/macro.h"
 #include "coter/core/platform.h"
 #include "coter/log/log_config.h"
-#include "coter/strings/strings.h"
+#include "coter/core/strings.h"
 #include "coter/sync/atomic.h"
 #include "coter/sync/mutex.h"
 

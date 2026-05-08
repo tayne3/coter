@@ -1,5 +1,5 @@
-#ifndef COTER_MATH_BIT_CAST_H
-#define COTER_MATH_BIT_CAST_H
+#ifndef COTER_CORE_BIT_CAST_H
+#define COTER_CORE_BIT_CAST_H
 
 #include "coter/core/macro.h"
 
@@ -66,4 +66,4 @@ CT_INLINE double ct_bits_to_float64(uint64_t u) {
 #ifdef __cplusplus
 }
 #endif
-#endif  // COTER_MATH_BIT_CAST_H
+#endif  // COTER_CORE_BIT_CAST_H

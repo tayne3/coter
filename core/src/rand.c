@@ -2,7 +2,7 @@
  * @file rand.c
  * @brief random number generator implementation.
  */
-#include "coter/math/rand.h"
+#include "coter/core/rand.h"
 
 #include <string.h>
 

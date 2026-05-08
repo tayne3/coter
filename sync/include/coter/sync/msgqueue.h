@@ -2,8 +2,8 @@
  * @file msgqueue.h
  * @brief 消息队列
  */
-#ifndef COTER_EVENT_MSGQUEUE_H
-#define COTER_EVENT_MSGQUEUE_H
+#ifndef COTER_SYNC_MSGQUEUE_H
+#define COTER_SYNC_MSGQUEUE_H
 
 #include "coter/container/queue.h"
 #include "coter/core/macro.h"
@@ -22,11 +22,11 @@ extern "C" {
  * @param not_full 条件变量，表示队列非满
  */
 typedef struct ct_msgqueue {
-    ct_queue_buf_t queue;      // 队列
-    ct_mutex_t     mutex;      // 互斥锁
-    ct_cond_t      not_empty;  // 条件变量，表示队列非空
-    ct_cond_t      not_full;   // 条件变量，表示队列非满
-    bool           is_shut;    // 是否关闭
+    ct_queue_t queue[1];   // 队列
+    ct_mutex_t mutex;      // 互斥锁
+    ct_cond_t  not_empty;  // 条件变量，表示队列非空
+    ct_cond_t  not_full;   // 条件变量，表示队列非满
+    bool       is_shut;    // 是否关闭
 } ct_msgqueue_t;
 
 /**
@@ -117,4 +117,4 @@ CT_API int ct_msgqueue_pop_for(ct_msgqueue_t* self, void* item, ct_time64_t time
 #ifdef __cplusplus
 }
 #endif
-#endif  // COTER_EVENT_MSGQUEUE_H
+#endif  // COTER_SYNC_MSGQUEUE_H

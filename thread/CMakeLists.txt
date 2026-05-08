@@ -15,7 +15,6 @@ target_link_libraries(coter_thread
   PUBLIC
     coter::core
     coter::container
-    coter::event
     coter::sync
 )
 target_link_libraries(coter PUBLIC coter::thread)

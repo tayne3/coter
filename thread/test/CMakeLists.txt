@@ -9,3 +9,5 @@ target_link_libraries(coter_thread_thpool_test PRIVATE coter_compile_dependency 
 add_executable(coter_thread_test thread_test.cpp)
 add_test(NAME coter_thread_test COMMAND coter_thread_test)
 target_link_libraries(coter_thread_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
+
+

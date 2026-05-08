@@ -7,15 +7,11 @@
  */
 #include "coter/container/queue.h"
 
-// -------------------------[STATIC DECLARATION]-------------------------
-
 #define CT_QUEUE_INDEX_INC(self, x) ((x) + 1 >= (self)->_max ? 0 : (x) + 1)  // 队列-索引 递增
 #define CT_QUEUE_INDEX_DEC(self, x) ((x) == 0 ? (self)->_max - 1 : (x) - 1)  // 队列-索引 递减
 #define CT_QUEUE_ITEM(self, idx)    (&(self)->_all[(idx) * (self)->_byte])   // 队列-数据
 
-// -------------------------[GLOBAL DEFINITION]-------------------------
-
-void ct_queue_init(ct_queue_buf_t self, void* buffer, size_t byte, size_t max) {
+void ct_queue_init(ct_queue_t* self, void* buffer, size_t byte, size_t max) {
     if (!self || !buffer || !byte) { return; }
 
     self->_all  = buffer;
@@ -25,7 +21,7 @@ void ct_queue_init(ct_queue_buf_t self, void* buffer, size_t byte, size_t max) {
     ct_queue_clear(self);
 }
 
-bool ct_queue_enqueue(ct_queue_buf_t self, const void* item) {
+bool ct_queue_enqueue(ct_queue_t* self, const void* item) {
     if (!self || !self->_byte || !item) { return false; }
 
     if (ct_queue_is_full(self)) { return false; }
@@ -35,7 +31,7 @@ bool ct_queue_enqueue(ct_queue_buf_t self, const void* item) {
     return true;
 }
 
-bool ct_queue_dequeue(ct_queue_buf_t self, void* item) {
+bool ct_queue_dequeue(ct_queue_t* self, void* item) {
     if (!self || !self->_byte || !item) { return false; }
 
     if (ct_queue_is_empty(self)) { return false; }
@@ -45,7 +41,7 @@ bool ct_queue_dequeue(ct_queue_buf_t self, void* item) {
     return true;
 }
 
-bool ct_queue_head(ct_queue_buf_t self, void* item) {
+bool ct_queue_head(ct_queue_t* self, void* item) {
     if (!self || !self->_byte || !item) { return false; }
 
     if (ct_queue_is_empty(self)) { return false; }
@@ -53,7 +49,7 @@ bool ct_queue_head(ct_queue_buf_t self, void* item) {
     return true;
 }
 
-int ct_queue_traverse(ct_queue_buf_t self, int (*callback)(void* item, void* arg), void* item, void* arg) {
+int ct_queue_traverse(ct_queue_t* self, int (*callback)(void* item, void* arg), void* item, void* arg) {
     if (!self || !self->_byte || !callback) { return -1; }
 
     size_t idx = self->_head;
@@ -65,5 +61,3 @@ int ct_queue_traverse(ct_queue_buf_t self, int (*callback)(void* item, void* arg
     }
     return 0;
 }
-
-// -------------------------[STATIC DEFINITION]-------------------------
