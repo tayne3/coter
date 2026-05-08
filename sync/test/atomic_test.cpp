@@ -5,6 +5,7 @@
 #include "coter/sync/atomic.h"
 
 #include <catch.hpp>
+#include <climits>
 
 TEST_CASE("atomic flag can be set, tested, and cleared", "[atomic]") {
     ct_atomic_flag_t flag = CT_ATOMIC_FLAG_INIT;
