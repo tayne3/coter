@@ -108,6 +108,39 @@
 #   endif
 # endif
 
+# ifndef CT_CLANG_HAS_EXTENSION
+#   if defined(__clang__) && defined(__has_extension)
+#     define CT_CLANG_HAS_EXTENSION(_x) __has_extension(_x)
+#   else
+#     define CT_CLANG_HAS_EXTENSION(_x) 0
+#   endif
+# endif
+
+# ifndef CT_STATIC_ASSERT
+#   if defined(__cplusplus) && \
+       ((defined(CT_CXX_STANDARD) && CT_CXX_STANDARD >= CT_CXX_11) || (defined(_MSC_VER) && _MSC_VER >= 1600))
+#     define CT_STATIC_ASSERT(_expr) static_assert((_expr), #_expr)
+#   elif !defined(__cplusplus) && defined(__STDC_VERSION__) && __STDC_VERSION__ >= 202311L
+#     define CT_STATIC_ASSERT(_expr) static_assert((_expr), #_expr)
+#   elif !defined(__cplusplus) && defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
+#     define CT_STATIC_ASSERT(_expr) _Static_assert((_expr), #_expr)
+#   elif !defined(__cplusplus) && CT_CLANG_HAS_EXTENSION(c_static_assert)
+#     define CT_STATIC_ASSERT(_expr) __extension__ _Static_assert((_expr), #_expr)
+#   elif !defined(__cplusplus) && __GNUC_PREREQ(4, 6)
+#     define CT_STATIC_ASSERT(_expr) __extension__ _Static_assert((_expr), #_expr)
+#   else
+#     define CT__STATIC_ASSERT_CONCAT_IMPL(_a, _b) _a##_b
+#     define CT__STATIC_ASSERT_CONCAT(_a, _b)      CT__STATIC_ASSERT_CONCAT_IMPL(_a, _b)
+#     if defined(__COUNTER__)
+#       define CT_STATIC_ASSERT(_expr) \
+            typedef char CT__STATIC_ASSERT_CONCAT(ct_static_assert_, __COUNTER__)[(_expr) ? 1 : -1]
+#     else
+#       define CT_STATIC_ASSERT(_expr) \
+            typedef char CT__STATIC_ASSERT_CONCAT(ct_static_assert_, __LINE__)[(_expr) ? 1 : -1]
+#     endif
+#   endif
+# endif
+
 # ifndef __cplusplus
 #	if HAVE_STDBOOL_H
 #		include <stdbool.h>
