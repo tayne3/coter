@@ -2,6 +2,14 @@ add_executable(coter_core_macro_test macro_test.cpp)
 add_test(NAME coter_core_macro_test COMMAND coter_core_macro_test)
 target_link_libraries(coter_core_macro_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
 
+add_executable(coter_core_static_assert_c_test static_assert_c_test.c)
+add_test(NAME coter_core_static_assert_c_test COMMAND coter_core_static_assert_c_test)
+target_link_libraries(coter_core_static_assert_c_test PRIVATE coter_compile_dependency coter::coter)
+
+add_executable(coter_core_static_assert_cpp_test static_assert_cpp_test.cpp)
+add_test(NAME coter_core_static_assert_cpp_test COMMAND coter_core_static_assert_cpp_test)
+target_link_libraries(coter_core_static_assert_cpp_test PRIVATE coter_compile_dependency coter::coter)
+
 add_executable(coter_core_fs_test fs_test.cpp)
 add_test(NAME coter_core_fs_test COMMAND coter_core_fs_test)
 target_link_libraries(coter_core_fs_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
