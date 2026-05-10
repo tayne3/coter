@@ -36,9 +36,7 @@ typedef struct ct_pqueue {
  */
 #define ct_pqueue_init(self, __type, __cmp)                    \
     do {                                                       \
-        struct _ {                                             \
-            int _[(sizeof(__type) <= 512) ? 1 : -1];           \
-        };                                                     \
+        CT_STATIC_ASSERT(sizeof(__type) <= 512);               \
         _ct_pqueue__init_dynamic(self, sizeof(__type), __cmp); \
     } while (0)
 CT_INLINE void _ct_pqueue__init_dynamic(ct_pqueue_t* self, size_t item_size, ct_compare_cb cmp) {
@@ -56,9 +54,7 @@ CT_INLINE void _ct_pqueue__init_dynamic(ct_pqueue_t* self, size_t item_size, ct_
  */
 #define ct_pqueue_init_s(self, __type, __buf, __cap, __cmp)                 \
     do {                                                                    \
-        struct _ {                                                          \
-            int _[(sizeof(__type) <= 512) ? 1 : -1];                        \
-        };                                                                  \
+        CT_STATIC_ASSERT(sizeof(__type) <= 512);                            \
         _ct_pqueue__init_static(self, sizeof(__type), __buf, __cap, __cmp); \
     } while (0)
 CT_INLINE void _ct_pqueue__init_static(ct_pqueue_t* self, size_t item_size, void* buf, size_t cap, ct_compare_cb cmp) {
