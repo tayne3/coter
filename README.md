@@ -30,7 +30,7 @@ include(FetchContent)
 FetchContent_Declare(
   coter
   GIT_REPOSITORY https://github.com/tayne3/coter.git
-  GIT_TAG v0.10.4
+  GIT_TAG v0.10.5
 )
 FetchContent_MakeAvailable(coter)
 
