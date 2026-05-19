@@ -28,6 +28,10 @@ if(BUILD_SHARED_LIBS)
 endif()
 target_link_libraries(coter PUBLIC coter::log)
 
+if(COTER_BUILD_EXAMPLE)
+  add_subdirectory(example)
+endif()
+
 if(COTER_BUILD_TEST)
   add_subdirectory(test)
 endif()

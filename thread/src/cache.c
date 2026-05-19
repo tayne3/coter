@@ -46,6 +46,8 @@ static ct_once_t timecache_key_once = CT_ONCE_INIT;
 static void tc__thread_destroy(void* ptr);
 /// 创建线程本地存储键
 static void tc__thread_create_key(void);
+/// 计算足够容纳格式化结果的缓冲区大小
+static size_t tc__buffer_size_for(int result);
 /// 更新时间字符串
 static void tc__update_tmstr(ct_threadcache_t* self);
 /// 获取当前线程 ID 字符串
@@ -57,7 +59,8 @@ ct_threadcache_t* ct_threadcache_get(void) {
     ct_once_exec(&timecache_key_once, tc__thread_create_key);
     ct_threadcache_t* self = ct_tls_get(timecache_key);
     if (!self) {
-        self         = calloc(1, sizeof(ct_threadcache_t));
+        self = calloc(1, sizeof(ct_threadcache_t));
+        if (!self) { return NULL; }
         self->buffer = malloc(1024);
         if (!self->buffer) {
             self->buffer_size = 0;
@@ -80,7 +83,7 @@ size_t ct_threadcache_get_buffer_size(ct_threadcache_t* self) {
 }
 
 int __ct_threadcache_basic(ct_threadcache_t* self, const char* fmt, ...) {
-    if (!self) { return -1; }
+    if (!self || !self->buffer || self->buffer_size == 0 || !fmt) { return -1; }
     int     result;
     va_list args;
     va_start(args, fmt);
@@ -97,23 +100,30 @@ int __ct_threadcache_basic(ct_threadcache_t* self, const char* fmt, ...) {
     result = vsnprintf(self->buffer, self->buffer_size, fmt, args);
     va_end(args);
 #endif
-    if (result == -1) { return -1; }
+    if (result == -1) {
+        va_end(args1);
+        return -1;
+    }
     if (result >= (int)self->buffer_size) {
-        const size_t new_size   = result >= 10240 ? result + 1 : ((result + 1023) / 1024) * 1024;
+        const size_t new_size   = tc__buffer_size_for(result);
         char*        new_buffer = realloc(self->buffer, new_size);
-        if (!new_buffer) { return -1; }
+        if (!new_buffer) {
+            va_end(args1);
+            return -1;
+        }
         self->buffer      = new_buffer;
         self->buffer_size = new_size;
-        vsprintf(self->buffer, fmt, args1);
-        va_end(args1);
+        (void)vsnprintf(self->buffer, self->buffer_size, fmt, args1);
     }
+    va_end(args1);
     return result;
 }
 
 int __ct_threadcache_brief(ct_threadcache_t* self, const char* info, const char* fmt, ...) {
-    if (!self) { return -1; }
+    if (!self || !self->buffer || self->buffer_size == 0 || !info || !fmt) { return -1; }
     tc__update_tmstr(self);
-    const int prefix_size = sprintf(self->buffer, info, self->tm_str, self->tid_str);
+    const int prefix_size = snprintf(self->buffer, self->buffer_size, info, self->tm_str, self->tid_str);
+    if (prefix_size < 0 || prefix_size >= (int)self->buffer_size) { return -1; }
 
     int     result;
     va_list args;
@@ -131,24 +141,30 @@ int __ct_threadcache_brief(ct_threadcache_t* self, const char* info, const char*
     result = vsnprintf(self->buffer + prefix_size, self->buffer_size - prefix_size, fmt, args);
     va_end(args);
 #endif
-    if (result == -1) { return -1; }
+    if (result == -1) {
+        va_end(args1);
+        return -1;
+    }
     result += prefix_size;
     if (result >= (int)self->buffer_size) {
-        const size_t new_size   = result >= 10240 ? result + 1 : ((result + 1023) / 1024) * 1024;
+        const size_t new_size   = tc__buffer_size_for(result);
         char*        new_buffer = realloc(self->buffer, new_size);
-        if (!new_buffer) { return -1; }
+        if (!new_buffer) {
+            va_end(args1);
+            return -1;
+        }
         self->buffer      = new_buffer;
         self->buffer_size = new_size;
-        sprintf(self->buffer, info, self->tm_str, self->tid_str);
-        vsprintf(self->buffer + prefix_size, fmt, args1);
-        va_end(args1);
+        (void)snprintf(self->buffer, self->buffer_size, info, self->tm_str, self->tid_str);
+        (void)vsnprintf(self->buffer + prefix_size, self->buffer_size - (size_t)prefix_size, fmt, args1);
     }
+    va_end(args1);
     return result;
 }
 
 int __ct_threadcache_detail(ct_threadcache_t* self, const char* file, int line, const char* info, const char* fmt,
                             ...) {
-    if (!self) { return -1; }
+    if (!self || !self->buffer || self->buffer_size == 0 || !file || !info || !fmt) { return -1; }
     tc__update_tmstr(self);
     if (self->last_file != file) {
         size_t      _file_length = strlen(file);
@@ -160,8 +176,9 @@ int __ct_threadcache_detail(ct_threadcache_t* self, const char* file, int line, 
         self->_filename_length = _dot ? (int)(_dot - _filename) : (int)strlen(_filename);
         self->_filename        = _filename;
     }
-    const int prefix_size =
-        sprintf(self->buffer, info, self->tm_str, self->tid_str, self->_filename_length, self->_filename, line);
+    const int prefix_size = snprintf(self->buffer, self->buffer_size, info, self->tm_str, self->tid_str,
+                                     self->_filename_length, self->_filename, line);
+    if (prefix_size < 0 || prefix_size >= (int)self->buffer_size) { return -1; }
 
     int     result;
     va_list args;
@@ -179,18 +196,25 @@ int __ct_threadcache_detail(ct_threadcache_t* self, const char* file, int line, 
     result = vsnprintf(self->buffer + prefix_size, self->buffer_size - prefix_size, fmt, args);
     va_end(args);
 #endif
-    if (result == -1) { return -1; }
+    if (result == -1) {
+        va_end(args1);
+        return -1;
+    }
     result += prefix_size;
     if (result >= (int)self->buffer_size) {
-        const size_t new_size   = result >= 10240 ? result + 1 : ((result + 1023) / 1024) * 1024;
+        const size_t new_size   = tc__buffer_size_for(result);
         char*        new_buffer = realloc(self->buffer, new_size);
-        if (!new_buffer) { return -1; }
+        if (!new_buffer) {
+            va_end(args1);
+            return -1;
+        }
         self->buffer      = new_buffer;
         self->buffer_size = new_size;
-        sprintf(self->buffer, info, self->tm_str, self->tid_str, self->_filename_length, self->_filename, line);
-        vsprintf(self->buffer + prefix_size, fmt, args1);
-        va_end(args1);
+        (void)snprintf(self->buffer, self->buffer_size, info, self->tm_str, self->tid_str, self->_filename_length,
+                       self->_filename, line);
+        (void)vsnprintf(self->buffer + prefix_size, self->buffer_size - (size_t)prefix_size, fmt, args1);
     }
+    va_end(args1);
     return result;
 }
 
@@ -209,6 +233,11 @@ static void tc__thread_create_key(void) {
     ct_tls_create(&timecache_key, tc__thread_destroy);
 }
 
+static size_t tc__buffer_size_for(int result) {
+    const size_t required = (size_t)result + 1;
+    return required >= 10240 ? required : ((required + 1023) / 1024) * 1024;
+}
+
 /// 整数转字符串 (两位数)
 static void i2s_2(char** p, int value) {
     *(*p)++ = '0' + value / 10;
@@ -222,6 +251,14 @@ static void i2s_3(char** p, int value) {
     *(*p)++ = '0' + value % 10;
 }
 
+/// 整数转字符串 (四位数)
+static void i2s_4(char** p, int value) {
+    *(*p)++ = '0' + value / 1000;
+    *(*p)++ = '0' + (value / 100) % 10;
+    *(*p)++ = '0' + (value / 10) % 10;
+    *(*p)++ = '0' + value % 10;
+}
+
 static void tc__update_tmstr(ct_threadcache_t* self) {
     const ct_time64_t now_us   = ct_gettimeofday_us();
     const ct_time_t   now_sec  = (ct_time_t)(now_us / INT64_C(1000000));
@@ -231,22 +268,22 @@ static void tc__update_tmstr(ct_threadcache_t* self) {
 
     if (self->accect_sec > 0) {
         if (now_sec == self->accect_sec) {
-            p = &self->tm_str[18];
+            p = &self->tm_str[20];
             i2s_3(&p, now_usec / 1000);
 
-            return;  // 同一秒内，只更新毫秒部分 (%02d.%02d.%02d-%02d:%02d:%02d.[%03d])
+            return;  // 同一秒内，只更新毫秒部分 (%04d-%02d-%02d %02d:%02d:%02d.[%03d])
         } else if (now_sec > self->accect_sec) {
             const ct_time_t diff_sec = now_sec - self->accect_sec;
             if (diff_sec + self->_sys_sec < 60) {
                 self->accect_sec = now_sec;
                 self->_sys_sec += diff_sec;
 
-                p = &self->tm_str[15];
+                p = &self->tm_str[17];
                 i2s_2(&p, (int)self->_sys_sec);
-                p = &self->tm_str[18];
+                p = &self->tm_str[20];
                 i2s_3(&p, now_usec / 1000);
 
-                return;  // 同一分钟内，更新秒和毫秒部分 (%02d.%02d.%02d-%02d:%02d:[%02d.%03d])
+                return;  // 同一分钟内，更新秒和毫秒部分 (%04d-%02d-%02d %02d:%02d:[%02d.%03d])
             }
         }
     }
@@ -258,12 +295,12 @@ static void tc__update_tmstr(ct_threadcache_t* self) {
     self->_sys_min = tm.tm_min;
 
     p = self->tm_str;
-    i2s_2(&p, tm.tm_year % 100);
-    *p++ = '.';
-    i2s_2(&p, tm.tm_mon + 1);
-    *p++ = '.';
-    i2s_2(&p, tm.tm_mday);
+    i2s_4(&p, tm.tm_year + 1900);
     *p++ = '-';
+    i2s_2(&p, tm.tm_mon + 1);
+    *p++ = '-';
+    i2s_2(&p, tm.tm_mday);
+    *p++ = ' ';
     i2s_2(&p, tm.tm_hour);
     *p++ = ':';
     i2s_2(&p, tm.tm_min);
@@ -272,7 +309,7 @@ static void tc__update_tmstr(ct_threadcache_t* self) {
     *p++ = '.';
     i2s_3(&p, now_usec / 1000);
 
-    return;  // 跨分钟或首次调用，重新生成完整时间字符串 ([%02d.%02d.%02d-%02d:%02d:%02d.%03d])
+    return;  // 跨分钟或首次调用，重新生成完整时间字符串 ([%04d-%02d-%02d %02d:%02d:%02d.%03d])
 }
 
 static void tc__gettid_str(char* str, size_t max) {

@@ -13,3 +13,15 @@ target_link_libraries(coter_log_print_test PRIVATE coter_compile_dependency cote
 add_executable(coter_log_write_test write_test.cpp)
 add_test(NAME coter_log_write_test COMMAND coter_log_write_test)
 target_link_libraries(coter_log_write_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
+
+add_executable(coter_log_logger_test logger_test.cpp)
+add_test(NAME coter_log_logger_test COMMAND coter_log_logger_test)
+target_link_libraries(coter_log_logger_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
+
+add_executable(coter_log_async_bridge_test async_bridge_test.cpp)
+add_test(NAME coter_log_async_bridge_test COMMAND coter_log_async_bridge_test)
+target_link_libraries(coter_log_async_bridge_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
+
+add_executable(coter_log_rotator_test rotator_test.cpp)
+add_test(NAME coter_log_rotator_test COMMAND coter_log_rotator_test)
+target_link_libraries(coter_log_rotator_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)

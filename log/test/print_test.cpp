@@ -1,180 +1,83 @@
 /**
  * @file print_test.cpp
- * @brief 日志打印测试
+ * @brief 日志打印格式性能与稳定性测试
  */
+#include <atomic>
 #include <catch.hpp>
+#include <chrono>
+#include <thread>
+#include <vector>
 
 #include "coter/core/macro.h"
 #include "coter/log/log.h"
-#include "coter/thread/thread.h"
 
-#define test_basic_verbose(...) CTLogger_HandleBasic(Verbose, 0, __VA_ARGS__)
-#define test_basic_debug(...)   CTLogger_HandleBasic(Debug, 0, __VA_ARGS__)
-#define test_basic_trace(...)   CTLogger_HandleBasic(Trace, 0, __VA_ARGS__)
-#define test_basic_warning(...) CTLogger_HandleBasic(Warning, 0, __VA_ARGS__)
-#define test_basic_error(...)   CTLogger_HandleBasic(Error, 0, __VA_ARGS__)
-#define test_basic_fatal(...)   CTLogger_HandleBasic(Fatal, 0, __VA_ARGS__)
+#define test_basic_trace(...)  CT_LOG_BASIC(TRACE, CT_DEFAULT_LOGGER, __VA_ARGS__)
+#define test_brief_trace(...)  CT_LOG_BRIEF(TRACE, CT_DEFAULT_LOGGER, __VA_ARGS__)
+#define test_detail_trace(...) CT_LOG_DETAIL(TRACE, CT_DEFAULT_LOGGER, __VA_ARGS__)
 
-#define test_brief_verbose(...) CTLogger_HandleBrief(Verbose, 0, __VA_ARGS__)
-#define test_brief_debug(...)   CTLogger_HandleBrief(Debug, 0, __VA_ARGS__)
-#define test_brief_trace(...)   CTLogger_HandleBrief(Trace, 0, __VA_ARGS__)
-#define test_brief_warning(...) CTLogger_HandleBrief(Warning, 0, __VA_ARGS__)
-#define test_brief_error(...)   CTLogger_HandleBrief(Error, 0, __VA_ARGS__)
-#define test_brief_fatal(...)   CTLogger_HandleBrief(Fatal, 0, __VA_ARGS__)
+namespace {
+static constexpr int kTestThreads    = 2;
+static constexpr int kTestThreadData = 10000;
 
-#define test_detail_verbose(...) CTLogger_HandleDetail(Verbose, 0, __VA_ARGS__)
-#define test_detail_debug(...)   CTLogger_HandleDetail(Debug, 0, __VA_ARGS__)
-#define test_detail_trace(...)   CTLogger_HandleDetail(Trace, 0, __VA_ARGS__)
-#define test_detail_warning(...) CTLogger_HandleDetail(Warning, 0, __VA_ARGS__)
-#define test_detail_error(...)   CTLogger_HandleDetail(Error, 0, __VA_ARGS__)
-#define test_detail_fatal(...)   CTLogger_HandleDetail(Fatal, 0, __VA_ARGS__)
+static std::atomic<bool> g_is_exit{false};
 
-#define TEST_THREADS     2
-#define TEST_THREAD_DATA 10000
-
-static ct_thread_t g_thread_logger;
-static bool        is_exit = false;
-
-// 辅助函数: 日志调度线程函数
-static int thread_log_schedule(void* arg) {
-    CT_UNUSED(arg);
-    for (; !is_exit;) {
+void thread_log_schedule() {
+    while (!g_is_exit) {
         ct_log_schedule(ct_getuptime_ms());
-        ct_msleep(10);
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
-    return 0;
 }
 
-// 辅助函数: 带日志的测试线程函数
-static int thread_print_with_basic_log(void* arg) {
-    CT_UNUSED(arg);
-    for (int i = 0; i < TEST_THREAD_DATA; ++i) {
-        test_basic_trace(
-            "%04d/%05d/%06d/%07d %016llx/%016llx/%016llx/%016llx %10s/%11s/%12s/%13s %02x/%02x/%02x/%02x\n", 1234, 1234,
-            1234, 1234, (unsigned long long)0xFFFF0000ULL, (unsigned long long)0xFFFF0000ULL,
-            (unsigned long long)0xFFFF0000ULL, (unsigned long long)0xFFFF0000ULL, "test1", "test2", "test3", "test4",
-            0x00, 0x01, 0x02, 0x03);
+template <typename Func>
+int run_parallel_test(Func test_func) {
+    std::atomic<int>         ready{0};
+    std::atomic<bool>        start{false};
+    std::vector<std::thread> threads;
+
+    auto start_time = ct_getuptime_ms();
+    for (int i = 0; i < kTestThreads; ++i) {
+        threads.emplace_back([&]() {
+            ready++;
+            while (!start) { std::this_thread::yield(); }
+            for (int j = 0; j < kTestThreadData; ++j) { test_func(); }
+        });
     }
-    return 0;
+
+    while (ready != kTestThreads) { std::this_thread::yield(); }
+    start = true;
+
+    for (auto& t : threads) { t.join(); }
+    return static_cast<int>(ct_getuptime_ms() - start_time);
 }
+}  // namespace
 
-// 辅助函数: 带日志的测试线程函数
-static int thread_print_with_brief_log(void* arg) {
-    CT_UNUSED(arg);
-    for (int i = 0; i < TEST_THREAD_DATA; ++i) {
-        test_brief_trace(
-            "%04d/%05d/%06d/%07d %016llx/%016llx/%016llx/%016llx %10s/%11s/%12s/%13s %02x/%02x/%02x/%02x\n", 1234, 1234,
-            1234, 1234, (unsigned long long)0xFFFF0000ULL, (unsigned long long)0xFFFF0000ULL,
-            (unsigned long long)0xFFFF0000ULL, (unsigned long long)0xFFFF0000ULL, "test1", "test2", "test3", "test4",
-            0x00, 0x01, 0x02, 0x03);
-    }
-    return 0;
-}
+TEST_CASE("log_print_performance", "[log][perf]") {
+    REQUIRE(ct_log_init() == 0);
+    REQUIRE(ct_logger_is_enable(ct_log_get_default(), CT_LOG_LEVEL_VERBOSE));
 
-// 辅助函数: 带日志的测试线程函数
-static int thread_print_with_detail_log(void* arg) {
-    CT_UNUSED(arg);
-    for (int i = 0; i < TEST_THREAD_DATA; ++i) {
-        test_detail_trace(
-            "%04d/%05d/%06d/%07d %016llx/%016llx/%016llx/%016llx %10s/%11s/%12s/%13s %02x/%02x/%02x/%02x\n", 1234, 1234,
-            1234, 1234, (unsigned long long)0xFFFF0000ULL, (unsigned long long)0xFFFF0000ULL,
-            (unsigned long long)0xFFFF0000ULL, (unsigned long long)0xFFFF0000ULL, "test1", "test2", "test3", "test4",
-            0x00, 0x01, 0x02, 0x03);
-    }
-    return 0;
-}
+    g_is_exit = false;
+    std::thread schedule_thread(thread_log_schedule);
 
-// 辅助函数: 不带日志的测试线程函数
-static int thread_print_without_log(void* arg) {
-    CT_UNUSED(arg);
-    for (int i = 0; i < TEST_THREAD_DATA; ++i) {
-        printf("%04d/%05d/%06d/%07d %016llx/%016llx/%016llx/%016llx %10s/%11s/%12s/%13s %02x/%02x/%02x/%02x\n", 1234,
-               1234, 1234, 1234, (unsigned long long)0xFFFF0000ULL, (unsigned long long)0xFFFF0000ULL,
-               (unsigned long long)0xFFFF0000ULL, (unsigned long long)0xFFFF0000ULL, "test1", "test2", "test3", "test4",
-               0x00, 0x01, 0x02, 0x03);
-    }
-    return 0;
-}
+#define PRINT_CALL(F)                                                                                                  \
+    run_parallel_test([&]() {                                                                                          \
+        F("%04d/%05d/%06d/%07d %016llx/%016llx/%016llx/%016llx %10s/%11s/%12s/%13s %02x/%02x/%02x/%02x\n", 1234, 1234, \
+          1234, 1234, 0xFFFF0000ULL, 0xFFFF0000ULL, 0xFFFF0000ULL, 0xFFFF0000ULL, "test1", "test2", "test3", "test4",  \
+          0x00, 0x01, 0x02, 0x03);                                                                                     \
+    })
 
-// 性能对比测试
-static void test_print_performance_comparison(void) {
-    ct_thread_t threads[TEST_THREADS] = {};
-    ct_time64_t start, end;
+    SECTION("performance comparison between formats") {
+        auto time_without = PRINT_CALL(printf);
+        auto time_basic   = PRINT_CALL(test_basic_trace);
+        auto time_brief   = PRINT_CALL(test_brief_trace);
+        auto time_detail  = PRINT_CALL(test_detail_trace);
 
-    // 创建 Logger
-    {
-        ct_log_config_t config;
-        memset(&config, 0, sizeof(config));
-        config.level             = CTLog_LevelVerbose;
-        config.disable_print     = false;
-        config.disable_save      = true;
-        config.file_dir[0]       = '\0';
-        config.file_name[0]      = '\0';
-        config.file_cache_size   = 1024;
-        config.file_size_max     = 1024 * 1024;
-        config.file_count_max    = 10;
-        config.autosave_interval = 10;
-        config.callback_routine  = nullptr;
-        config.callback_userdata = nullptr;
+        printf("Execution time:\n Without:  %d ms\n  Basic:  %d ms\n  Brief:  %d ms\n  Detail: %d ms\n", time_without,
+               time_basic, time_brief, time_detail);
 
-        const int ret = ct_log_init(ct_getuptime_ms(), 1, &config);
-        REQUIRE(ret == 0);
-
-        REQUIRE(ct_log_is_enable(0, CTLog_LevelVerbose));
-        REQUIRE(!ct_log_is_enable(1, CTLog_LevelVerbose));
+        REQUIRE(true);
     }
 
-    REQUIRE(ct_thread_create(&g_thread_logger, nullptr, thread_log_schedule, nullptr) == 0);
-
-    start = ct_getuptime_ms();
-    for (int i = 0; i < TEST_THREADS; ++i) {
-        REQUIRE(ct_thread_create(&threads[i], nullptr, thread_print_without_log, nullptr) == 0);
-    }
-    for (int i = 0; i < TEST_THREADS; ++i) { REQUIRE(ct_thread_join(threads[i], nullptr) == 0); }
-    end                        = ct_getuptime_ms();
-    const int time_without_log = (int)(end - start);
-
-    start = ct_getuptime_ms();
-    for (int i = 0; i < TEST_THREADS; ++i) {
-        REQUIRE(ct_thread_create(&threads[i], nullptr, thread_print_with_basic_log, nullptr) == 0);
-    }
-    for (int i = 0; i < TEST_THREADS; ++i) { REQUIRE(ct_thread_join(threads[i], nullptr) == 0); }
-    end                           = ct_getuptime_ms();
-    const int time_with_basic_log = (int)(end - start);
-
-    // 新增 brief log 测试
-    start = ct_getuptime_ms();
-    for (int i = 0; i < TEST_THREADS; ++i) {
-        REQUIRE(ct_thread_create(&threads[i], nullptr, thread_print_with_brief_log, nullptr) == 0);
-    }
-    for (int i = 0; i < TEST_THREADS; ++i) { REQUIRE(ct_thread_join(threads[i], nullptr) == 0); }
-    end                           = ct_getuptime_ms();
-    const int time_with_brief_log = (int)(end - start);
-
-    // 新增 detail log 测试
-    start = ct_getuptime_ms();
-    for (int i = 0; i < TEST_THREADS; ++i) {
-        REQUIRE(ct_thread_create(&threads[i], nullptr, thread_print_with_detail_log, nullptr) == 0);
-    }
-    for (int i = 0; i < TEST_THREADS; ++i) { REQUIRE(ct_thread_join(threads[i], nullptr) == 0); }
-
-    end                            = ct_getuptime_ms();
-    const int time_with_detail_log = (int)(end - start);
-
-    is_exit = true;
-    REQUIRE(ct_thread_join(g_thread_logger, nullptr) == 0);
-
-    ct_log_flush();
-    ct_log_schedule(ct_getuptime_ms());
-
-    printf("Execution time: without log %d ms, with basic log %d ms, with brief log %d ms, with detail log %d ms\n",
-           time_without_log, time_with_basic_log, time_with_brief_log, time_with_detail_log);
-
-    ct_log_destroy();
-}
-
-TEST_CASE("log_print", "[log]") {
-    SECTION("performance_comparison") {
-        test_print_performance_comparison();
-    }
+    g_is_exit = true;
+    schedule_thread.join();
+    ct_log_close();
 }

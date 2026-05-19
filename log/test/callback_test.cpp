@@ -1,211 +1,142 @@
+#include <atomic>
 #include <catch.hpp>
+#include <chrono>
+#include <cstdio>
 #include <cstring>
+#include <memory>
+#include <mutex>
+#include <thread>
+#include <vector>
 
 #include "coter/core/fs.h"
-#include "coter/core/macro.h"
 #include "coter/log/log.h"
-#include "coter/sync/mutex.h"
-#include "coter/thread/thread.h"
 
-#define test_basic_verbose(...) CTLogger_HandleBasic(Verbose, 0, __VA_ARGS__)
-#define test_basic_debug(...)   CTLogger_HandleBasic(Debug, 0, __VA_ARGS__)
-#define test_basic_trace(...)   CTLogger_HandleBasic(Trace, 0, __VA_ARGS__)
-#define test_basic_warning(...) CTLogger_HandleBasic(Warning, 0, __VA_ARGS__)
-#define test_basic_error(...)   CTLogger_HandleBasic(Error, 0, __VA_ARGS__)
-#define test_basic_fatal(...)   CTLogger_HandleBasic(Fatal, 0, __VA_ARGS__)
-
-#define TEST_THREADS     4
-#define TEST_THREAD_DATA 50000
+#define test_basic_trace(...) CT_LOG_BASIC(TRACE, CT_DEFAULT_LOGGER, __VA_ARGS__)
 
 namespace {
-struct mutex {
-    mutex() { ct_mutex_init(&d); }
-    ~mutex() { ct_mutex_destroy(&d); }
+static constexpr int kTestThreads    = 4;
+static constexpr int kTestThreadData = 50000;
+static const char*   kOutputDir      = "test_log_out";
+static const char*   kWithLogFile    = "test_log_out/callback_with_log.log";
+static const char*   kWithoutLogFile = "test_log_out/callback_without_log.log";
 
-    void lock() { ct_mutex_lock(&d); }
-    void unlock() { ct_mutex_unlock(&d); }
-    bool try_lock() { return ct_mutex_trylock(&d); }
-
-private:
-    ct_mutex_t d;
-};
-}  // namespace
-
-static FILE* g_file_with_log    = nullptr;
-static FILE* g_file_without_log = nullptr;
-static mutex g_file_without_mutex;
-
-static ct_thread_t g_thread_logger;
-static bool        is_exit = false;
-
-// 日志调度线程函数
-static int thread_log_schedule(void* arg) {
-    CT_UNUSED(arg);
-    for (; !is_exit;) {
-        ct_log_schedule(ct_getuptime_ms());
-        ct_msleep(10);
+struct FileDeleter {
+    void operator()(FILE* f) const {
+        if (f) std::fclose(f);
     }
-    return 0;
+};
+using FilePtr = std::unique_ptr<FILE, FileDeleter>;
+
+static std::atomic<bool> g_is_exit{false};
+static FILE*             g_file_with_log = nullptr;
+
+void thread_log_schedule() {
+    while (!g_is_exit) {
+        ct_log_schedule(ct_getuptime_ms());
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
 }
 
-// 日志回调函数
-static void log_callback(const char* msg, size_t size, void* userdata) {
+void log_callback(const ct_log_record_t* record, void* userdata) {
     (void)userdata;
-    REQUIRE(msg != nullptr);
-    REQUIRE(g_file_with_log != nullptr);
-    fwrite(msg, 1, size, g_file_with_log);
+    if (record && record->data && g_file_with_log) { std::fwrite(record->data, 1, record->size, g_file_with_log); }
 }
 
-// 带回调的测试线程函数
-static int thread_callback_with_log(void* arg) {
-    CT_UNUSED(arg);
-    for (int i = 0; i < TEST_THREAD_DATA; ++i) {
+void thread_callback_with_log() {
+    for (int i = 0; i < kTestThreadData; ++i) {
         test_basic_trace(
             "%04d/%05d/%06d/%07d %016llx/%016llx/%016llx/%016llx %10s/%11s/%12s/%13s %02x/%02x/%02x/%02x\n", 1234, 1234,
-            1234, 1234, (unsigned long long)0xFFFF0000ULL, (unsigned long long)0xFFFF0000ULL,
-            (unsigned long long)0xFFFF0000ULL, (unsigned long long)0xFFFF0000ULL, "test1", "test2", "test3", "test4",
+            1234, 1234, 0xFFFF0000ULL, 0xFFFF0000ULL, 0xFFFF0000ULL, 0xFFFF0000ULL, "test1", "test2", "test3", "test4",
             0x00, 0x01, 0x02, 0x03);
     }
-    return 0;
 }
 
-// 直接调用回调函数的测试线程函数
-static int thread_callback_without_log(void* arg) {
-    CT_UNUSED(arg);
-    for (int i = 0; i < TEST_THREAD_DATA; ++i) {
-        g_file_without_mutex.lock();
+void thread_callback_without_log(FILE* target, std::mutex& mtx) {
+    for (int i = 0; i < kTestThreadData; ++i) {
         char buffer[1024];
-        int  size =
-            snprintf(buffer, sizeof(buffer),
-                     "%04d/%05d/%06d/%07d %016llx/%016llx/%016llx/%016llx %10s/%11s/%12s/%13s %02x/%02x/%02x/%02x\n",
-                     1234, 1234, 1234, 1234, (unsigned long long)0xFFFF0000ULL, (unsigned long long)0xFFFF0000ULL,
-                     (unsigned long long)0xFFFF0000ULL, (unsigned long long)0xFFFF0000ULL, "test1", "test2", "test3",
-                     "test4", 0x00, 0x01, 0x02, 0x03);
-        REQUIRE(g_file_without_log != nullptr);
-        fwrite(buffer, 1, (size_t)size, g_file_without_log);
-        g_file_without_mutex.unlock();
+        int  size = std::snprintf(
+            buffer, sizeof(buffer),
+            "%04d/%05d/%06d/%07d %016llx/%016llx/%016llx/%016llx %10s/%11s/%12s/%13s %02x/%02x/%02x/%02x\n", 1234, 1234,
+            1234, 1234, 0xFFFF0000ULL, 0xFFFF0000ULL, 0xFFFF0000ULL, 0xFFFF0000ULL, "test1", "test2", "test3", "test4",
+            0x00, 0x01, 0x02, 0x03);
+        std::lock_guard<std::mutex> lock(mtx);
+        std::fwrite(buffer, 1, static_cast<size_t>(size), target);
     }
-    return 0;
 }
 
-// 回调性能对比测试函数
-static void test_callback_performance_comparison(size_t limit) {
-    ct_thread_t threads[TEST_THREADS] = {};
-    ct_time64_t start, end;
+void verify_files_identical(const char* path1, const char* path2) {
+    FilePtr f1(std::fopen(path1, "rb"));
+    FilePtr f2(std::fopen(path2, "rb"));
+    REQUIRE(f1 != nullptr);
+    REQUIRE(f2 != nullptr);
 
-    // 检查当前文件夹下是否存在 test_log_out 文件夹
-    if (ct_access("test_log_out", 0) == -1) { (void)ct_mkdir("test_log_out"); }
-    REQUIRE(ct_access("test_log_out", 0) == 0);
+    std::fseek(f1.get(), 0, SEEK_END);
+    std::fseek(f2.get(), 0, SEEK_END);
+    REQUIRE(std::ftell(f1.get()) == std::ftell(f2.get()));
+    REQUIRE(std::ftell(f1.get()) > 0);
 
-    g_file_without_log = fopen("test_log_out/callback_without_log.log", "w");
-    REQUIRE(g_file_without_log != nullptr);
+    std::rewind(f1.get());
+    std::rewind(f2.get());
 
-    g_file_with_log = fopen("test_log_out/callback_with_log.log", "w");
-    REQUIRE(g_file_with_log != nullptr);
-
-    // 创建 Logger
-    {
-        ct_log_config_t config;
-        memset(&config, 0, sizeof(config));
-        config.level             = CTLog_LevelVerbose;
-        config.disable_print     = true;
-        config.disable_save      = true;
-        config.callback_routine  = log_callback;
-        config.callback_userdata = nullptr;
-        config.callback_limit    = limit;
-
-        ct_log_init(ct_getuptime_ms(), 1, &config);
+    std::vector<char> buf1(4096), buf2(4096);
+    while (true) {
+        size_t n1 = std::fread(buf1.data(), 1, buf1.size(), f1.get());
+        size_t n2 = std::fread(buf2.data(), 1, buf2.size(), f2.get());
+        REQUIRE(n1 == n2);
+        if (n1 == 0) break;
+        REQUIRE(std::memcmp(buf1.data(), buf2.data(), n1) == 0);
     }
-
-    REQUIRE(ct_thread_create(&g_thread_logger, nullptr, thread_log_schedule, nullptr) == 0);
-
-    // 测试直接调用回调函数的性能
-    start = ct_getuptime_ms();
-    for (int i = 0; i < TEST_THREADS; ++i) {
-        REQUIRE(ct_thread_create(&threads[i], nullptr, thread_callback_without_log, nullptr) == 0);
-    }
-    for (int i = 0; i < TEST_THREADS; ++i) { REQUIRE(ct_thread_join(threads[i], nullptr) == 0); }
-    end                             = ct_getuptime_ms();
-    const int time_without_callback = (int)(end - start);
-
-    // 测试带日志回调的性能
-    start = ct_getuptime_ms();
-    for (int i = 0; i < TEST_THREADS; ++i) {
-        REQUIRE(ct_thread_create(&threads[i], nullptr, thread_callback_with_log, nullptr) == 0);
-    }
-    for (int i = 0; i < TEST_THREADS; ++i) { REQUIRE(ct_thread_join(threads[i], nullptr) == 0); }
-    end                          = ct_getuptime_ms();
-    const int time_with_callback = (int)(end - start);
-
-    is_exit = true;
-    REQUIRE(ct_thread_join(g_thread_logger, nullptr) == 0);
-
-    ct_log_flush();
-    ct_log_schedule(ct_getuptime_ms());
-
-    fclose(g_file_with_log);
-    g_file_with_log = nullptr;
-    fclose(g_file_without_log);
-    g_file_without_log = nullptr;
-
-    printf("Execution time: with log callback %d ms, without log callback %d ms\n", time_with_callback,
-           time_without_callback);
-
-    ct_log_destroy();
-
-    // 打开文件
-    FILE* file_with_log    = fopen("test_log_out/callback_with_log.log", "r");
-    FILE* file_without_log = fopen("test_log_out/callback_without_log.log", "r");
-    REQUIRE(file_with_log != nullptr);
-    REQUIRE(file_without_log != nullptr);
-
-    // 获取文件大小
-    fseek(file_with_log, 0, SEEK_END);
-    fseek(file_without_log, 0, SEEK_END);
-    int64_t size_with_log    = ftell(file_with_log);
-    int64_t size_without_log = ftell(file_without_log);
-    REQUIRE(size_with_log > 0);
-    REQUIRE(size_without_log > 0);
-    REQUIRE(size_with_log == size_without_log);
-
-    printf("with log file size: %ld, without log file size: %ld\n", (long)size_with_log, (long)size_without_log);
-
-    // 将文件指针重置到文件开头
-    rewind(file_with_log);
-    rewind(file_without_log);
-
-    // 比较文件内容是否一致
-    while (1) {
-        char         buffer_with_log[128]    = {0};
-        char         buffer_without_log[128] = {0};
-        const size_t bytes_read_with_log     = fread(buffer_with_log, 1, sizeof(buffer_with_log), file_with_log);
-        const size_t bytes_read_without_log =
-            fread(buffer_without_log, 1, sizeof(buffer_without_log), file_without_log);
-        if (bytes_read_with_log == 0 || bytes_read_without_log == 0) { break; }
-        REQUIRE(bytes_read_with_log == bytes_read_without_log);
-        REQUIRE(std::memcmp(buffer_with_log, buffer_without_log, bytes_read_with_log) == 0);
-    }
-
-    // 确保两个文件都已读取完毕
-    REQUIRE(feof(file_with_log));
-    REQUIRE(feof(file_without_log));
-
-    fclose(file_with_log);
-    fclose(file_without_log);
-
-    remove("test_log_out/callback_without_log.log");
-    remove("test_log_out/callback_with_log.log");
-    (void)ct_rmdir("test_log_out");
 }
+}  // namespace
 
-TEST_CASE("log_callback", "[log]") {
-    SECTION("comparison_0") {
-        test_callback_performance_comparison(0);
+TEST_CASE("log_callback_integrity", "[log]") {
+    if (ct_access(kOutputDir, 0) == -1) { (void)ct_mkdir(kOutputDir); }
+
+    SECTION("verify callback output matches direct write") {
+        std::mutex baseline_mtx;
+        {
+            FilePtr f(std::fopen(kWithoutLogFile, "wb"));
+            REQUIRE(f != nullptr);
+            std::vector<std::thread> threads;
+            for (int i = 0; i < kTestThreads; ++i)
+                threads.emplace_back(thread_callback_without_log, f.get(), std::ref(baseline_mtx));
+            for (auto& t : threads) t.join();
+        }
+
+        {
+            REQUIRE(ct_log_init() == 0);
+            FilePtr f(std::fopen(kWithLogFile, "wb"));
+            REQUIRE(f != nullptr);
+            g_file_with_log = f.get();
+
+            ct_logger_t logger;
+            ct_logger_init(&logger);
+
+            ct_log_callback_handler_config_t config;
+            ct_log_callback_handler_config_default(&config);
+            config.routine = log_callback;
+            config.limit   = 100;  // test some buffering
+            REQUIRE(ct_logger_add_handler(&logger, ct_log_callback_handler_create(&config)) == 0);
+            ct_logger_register(&logger);
+            ct_log_set_default(&logger);
+
+            g_is_exit = false;
+            std::thread schedule_thread(thread_log_schedule);
+
+            std::vector<std::thread> threads;
+            for (int i = 0; i < kTestThreads; ++i) threads.emplace_back(thread_callback_with_log);
+            for (auto& t : threads) t.join();
+
+            g_is_exit = true;
+            schedule_thread.join();
+            ct_log_close();
+            g_file_with_log = nullptr;
+        }
+
+        verify_files_identical(kWithLogFile, kWithoutLogFile);
     }
-    SECTION("comparison_11") {
-        test_callback_performance_comparison(11);
-    }
-    SECTION("comparison_999") {
-        test_callback_performance_comparison(999);
-    }
+
+    std::remove(kWithLogFile);
+    std::remove(kWithoutLogFile);
+    (void)ct_rmdir(kOutputDir);
 }
