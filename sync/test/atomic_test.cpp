@@ -145,3 +145,34 @@ TEST_CASE("CAS allows ABA value reuse", "[atomic]") {
     REQUIRE(success);
     REQUIRE(ct_atomic_ptr_load(&ptr) == &val3);
 }
+
+TEST_CASE("atomic exchange for integers", "[atomic]") {
+    ct_atomic_int_t val = CT_ATOMIC_VAR_INIT(10);
+    REQUIRE(ct_atomic_int_exchange(&val, 20) == 10);
+    REQUIRE(ct_atomic_int_load(&val) == 20);
+
+    ct_atomic_llong_t lval = CT_ATOMIC_VAR_INIT(100LL);
+    REQUIRE(ct_atomic_llong_exchange(&lval, 200LL) == 100LL);
+    REQUIRE(ct_atomic_llong_load(&lval) == 200LL);
+
+    ct_atomic_bool_t bval = CT_ATOMIC_VAR_INIT(false);
+    REQUIRE(ct_atomic_bool_exchange(&bval, true) == false);
+    REQUIRE(ct_atomic_bool_load(&bval) == true);
+}
+
+TEST_CASE("atomic compare exchange for integers", "[atomic]") {
+    ct_atomic_int_t val = CT_ATOMIC_VAR_INIT(10);
+    int             exp = 10;
+    REQUIRE(ct_atomic_int_compare_exchange(&val, &exp, 20));
+    REQUIRE(ct_atomic_int_load(&val) == 20);
+
+    exp = 10;
+    REQUIRE(!ct_atomic_int_compare_exchange(&val, &exp, 30));
+    REQUIRE(exp == 20);
+    REQUIRE(ct_atomic_int_load(&val) == 20);
+
+    ct_atomic_llong_t lval = CT_ATOMIC_VAR_INIT(1000LL);
+    long long         lexp = 1000LL;
+    REQUIRE(ct_atomic_llong_compare_exchange(&lval, &lexp, 2000LL));
+    REQUIRE(ct_atomic_llong_load(&lval) == 2000LL);
+}

@@ -39,8 +39,8 @@ typedef volatile long               ct_atomic_int_t;
 typedef volatile unsigned long      ct_atomic_uint_t;
 typedef volatile long               ct_atomic_long_t;
 typedef volatile unsigned long      ct_atomic_ulong_t;
-typedef volatile long long          ct_atomic_llong_t;
-typedef volatile unsigned long long ct_atomic_ullong_t;
+typedef volatile long long          __ct_aligned__(8) ct_atomic_llong_t;
+typedef volatile unsigned long long __ct_aligned__(8) ct_atomic_ullong_t;
 typedef void* volatile ct_atomic_ptr_t;
 
 #define CT_ATOMIC_VAR_INIT(value) (value)
@@ -50,6 +50,9 @@ CT_INLINE bool ct_atomic_bool_load(ct_atomic_bool_t* p) {
 }
 CT_INLINE void ct_atomic_bool_store(ct_atomic_bool_t* p, bool v) {
     _InterlockedExchange8(p, v ? 1 : 0);
+}
+CT_INLINE bool ct_atomic_bool_exchange(ct_atomic_bool_t* p, bool v) {
+    return _InterlockedExchange8(p, v ? 1 : 0) != 0;
 }
 CT_INLINE bool ct_atomic_bool_compare_exchange(ct_atomic_bool_t* p, bool* expected, bool desired) {
     char exp = *expected ? 1 : 0;
@@ -64,6 +67,9 @@ CT_INLINE char ct_atomic_char_load(ct_atomic_char_t* p) {
 }
 CT_INLINE void ct_atomic_char_store(ct_atomic_char_t* p, char v) {
     _InterlockedExchange8(p, v);
+}
+CT_INLINE char ct_atomic_char_exchange(ct_atomic_char_t* p, char v) {
+    return _InterlockedExchange8(p, v);
 }
 CT_INLINE char ct_atomic_char_add(ct_atomic_char_t* p, char n) {
     return _InterlockedExchangeAdd8(p, n);
@@ -83,6 +89,9 @@ CT_INLINE signed char ct_atomic_schar_load(ct_atomic_schar_t* p) {
 }
 CT_INLINE void ct_atomic_schar_store(ct_atomic_schar_t* p, signed char v) {
     _InterlockedExchange8(p, (char)v);
+}
+CT_INLINE signed char ct_atomic_schar_exchange(ct_atomic_schar_t* p, signed char v) {
+    return (signed char)_InterlockedExchange8(p, (char)v);
 }
 CT_INLINE signed char ct_atomic_schar_add(ct_atomic_schar_t* p, signed char n) {
     return (signed char)_InterlockedExchangeAdd8(p, (char)n);
@@ -104,6 +113,9 @@ CT_INLINE unsigned char ct_atomic_uchar_load(ct_atomic_uchar_t* p) {
 CT_INLINE void ct_atomic_uchar_store(ct_atomic_uchar_t* p, unsigned char v) {
     _InterlockedExchange8((volatile char*)p, (char)v);
 }
+CT_INLINE unsigned char ct_atomic_uchar_exchange(ct_atomic_uchar_t* p, unsigned char v) {
+    return (unsigned char)_InterlockedExchange8((volatile char*)p, (char)v);
+}
 CT_INLINE unsigned char ct_atomic_uchar_add(ct_atomic_uchar_t* p, unsigned char n) {
     return (unsigned char)_InterlockedExchangeAdd8((volatile char*)p, (char)n);
 }
@@ -124,6 +136,9 @@ CT_INLINE short ct_atomic_short_load(ct_atomic_short_t* p) {
 CT_INLINE void ct_atomic_short_store(ct_atomic_short_t* p, short v) {
     _InterlockedExchange16(p, v);
 }
+CT_INLINE short ct_atomic_short_exchange(ct_atomic_short_t* p, short v) {
+    return _InterlockedExchange16(p, v);
+}
 CT_INLINE short ct_atomic_short_add(ct_atomic_short_t* p, short n) {
     return _InterlockedExchangeAdd16(p, n);
 }
@@ -142,6 +157,9 @@ CT_INLINE unsigned short ct_atomic_ushort_load(ct_atomic_ushort_t* p) {
 }
 CT_INLINE void ct_atomic_ushort_store(ct_atomic_ushort_t* p, unsigned short v) {
     _InterlockedExchange16((volatile short*)p, (short)v);
+}
+CT_INLINE unsigned short ct_atomic_ushort_exchange(ct_atomic_ushort_t* p, unsigned short v) {
+    return (unsigned short)_InterlockedExchange16((volatile short*)p, (short)v);
 }
 CT_INLINE unsigned short ct_atomic_ushort_add(ct_atomic_ushort_t* p, unsigned short n) {
     return (unsigned short)_InterlockedExchangeAdd16((volatile short*)p, (short)n);
@@ -164,6 +182,9 @@ CT_INLINE int ct_atomic_int_load(ct_atomic_int_t* p) {
 CT_INLINE void ct_atomic_int_store(ct_atomic_int_t* p, int v) {
     _InterlockedExchange(p, (long)v);
 }
+CT_INLINE int ct_atomic_int_exchange(ct_atomic_int_t* p, int v) {
+    return (int)_InterlockedExchange(p, (long)v);
+}
 CT_INLINE int ct_atomic_int_add(ct_atomic_int_t* p, int n) {
     return (int)_InterlockedExchangeAdd(p, (long)n);
 }
@@ -183,6 +204,9 @@ CT_INLINE unsigned ct_atomic_uint_load(ct_atomic_uint_t* p) {
 }
 CT_INLINE void ct_atomic_uint_store(ct_atomic_uint_t* p, unsigned v) {
     _InterlockedExchange((volatile long*)p, (long)v);
+}
+CT_INLINE unsigned ct_atomic_uint_exchange(ct_atomic_uint_t* p, unsigned v) {
+    return (unsigned)_InterlockedExchange((volatile long*)p, (long)v);
 }
 CT_INLINE unsigned ct_atomic_uint_add(ct_atomic_uint_t* p, unsigned n) {
     return (unsigned)_InterlockedExchangeAdd((volatile long*)p, (long)n);
@@ -204,6 +228,9 @@ CT_INLINE long ct_atomic_long_load(ct_atomic_long_t* p) {
 CT_INLINE void ct_atomic_long_store(ct_atomic_long_t* p, long v) {
     _InterlockedExchange(p, v);
 }
+CT_INLINE long ct_atomic_long_exchange(ct_atomic_long_t* p, long v) {
+    return _InterlockedExchange(p, v);
+}
 CT_INLINE long ct_atomic_long_add(ct_atomic_long_t* p, long n) {
     return _InterlockedExchangeAdd(p, n);
 }
@@ -222,6 +249,9 @@ CT_INLINE unsigned long ct_atomic_ulong_load(ct_atomic_ulong_t* p) {
 }
 CT_INLINE void ct_atomic_ulong_store(ct_atomic_ulong_t* p, unsigned long v) {
     _InterlockedExchange((volatile long*)p, (long)v);
+}
+CT_INLINE unsigned long ct_atomic_ulong_exchange(ct_atomic_ulong_t* p, unsigned long v) {
+    return (unsigned long)_InterlockedExchange((volatile long*)p, (long)v);
 }
 CT_INLINE unsigned long ct_atomic_ulong_add(ct_atomic_ulong_t* p, unsigned long n) {
     return (unsigned long)_InterlockedExchangeAdd((volatile long*)p, (long)n);
@@ -243,6 +273,9 @@ CT_INLINE long long ct_atomic_llong_load(ct_atomic_llong_t* p) {
 CT_INLINE void ct_atomic_llong_store(ct_atomic_llong_t* p, long long v) {
     _InterlockedExchange64(p, v);
 }
+CT_INLINE long long ct_atomic_llong_exchange(ct_atomic_llong_t* p, long long v) {
+    return _InterlockedExchange64(p, v);
+}
 CT_INLINE long long ct_atomic_llong_add(ct_atomic_llong_t* p, long long n) {
     return _InterlockedExchangeAdd64(p, n);
 }
@@ -262,6 +295,9 @@ CT_INLINE unsigned long long ct_atomic_ullong_load(ct_atomic_ullong_t* p) {
 CT_INLINE void ct_atomic_ullong_store(ct_atomic_ullong_t* p, unsigned long long v) {
     _InterlockedExchange64((volatile long long*)p, (long long)v);
 }
+CT_INLINE unsigned long long ct_atomic_ullong_exchange(ct_atomic_ullong_t* p, unsigned long long v) {
+    return (unsigned long long)_InterlockedExchange64((volatile long long*)p, (long long)v);
+}
 CT_INLINE unsigned long long ct_atomic_ullong_add(ct_atomic_ullong_t* p, unsigned long long n) {
     return (unsigned long long)_InterlockedExchangeAdd64((volatile long long*)p, (long long)n);
 }
@@ -274,22 +310,6 @@ CT_INLINE bool ct_atomic_ullong_compare_exchange(ct_atomic_ullong_t* p, unsigned
     long long old = _InterlockedCompareExchange64((volatile long long*)p, (long long)desired, exp);
     if (old == exp) { return true; }
     *expected = (unsigned long long)old;
-    return false;
-}
-
-CT_INLINE void* ct_atomic_ptr_load(ct_atomic_ptr_t* p) {
-    return _InterlockedCompareExchangePointer(p, NULL, NULL);
-}
-CT_INLINE void ct_atomic_ptr_store(ct_atomic_ptr_t* p, void* v) {
-    _InterlockedExchangePointer(p, v);
-}
-CT_INLINE void* ct_atomic_ptr_exchange(ct_atomic_ptr_t* p, void* v) {
-    return _InterlockedExchangePointer(p, v);
-}
-CT_INLINE bool ct_atomic_ptr_compare_exchange(ct_atomic_ptr_t* p, void** expected, void* desired) {
-    void* old = _InterlockedCompareExchangePointer(p, desired, *expected);
-    if (old == *expected) { return true; }
-    *expected = old;
     return false;
 }
 
