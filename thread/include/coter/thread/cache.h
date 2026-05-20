@@ -75,6 +75,54 @@ CT_API int __ct_threadcache_brief(ct_threadcache_t* self, const char* info, cons
 CT_API int __ct_threadcache_detail(ct_threadcache_t* self, const char* file, int line, const char* info,
                                    const char* fmt, ...);
 
+/**
+ * @brief 遍历所有活跃的线程缓存
+ *
+ * @param fn 回调函数
+ * @param arg 传递给回调函数的参数
+ * @param force 是否强制拉取 (用于 flush)
+ */
+CT_API void ct_threadcache_foreach(void (*fn)(ct_threadcache_t* tc, void* arg, bool force), void* arg, bool force);
+
+/**
+ * @brief 设置线程缓存的异步数据及清理回调
+ *
+ * @param self 线程缓存对象
+ * @param data 异步数据指针
+ * @param cleanup 线程退出时的清理函数
+ */
+CT_API void ct_threadcache_set_async_data(ct_threadcache_t* self, void* data, void (*cleanup)(void*));
+
+/**
+ * @brief 获取线程缓存的异步数据
+ *
+ * @param self 线程缓存对象
+ * @return void* 异步数据指针
+ */
+CT_API void* ct_threadcache_get_async_data(ct_threadcache_t* self);
+
+/**
+ * @brief 锁定线程缓存对象
+ *
+ * @param self 线程缓存对象
+ */
+CT_API void ct_threadcache_lock(ct_threadcache_t* self);
+
+/**
+ * @brief 解锁线程缓存对象
+ *
+ * @param self 线程缓存对象
+ */
+CT_API void ct_threadcache_unlock(ct_threadcache_t* self);
+
+/**
+ * @brief 尝试锁定线程缓存对象
+ *
+ * @param self 线程缓存对象
+ * @return int 成功返回 0，失败返回非 0
+ */
+CT_API int ct_threadcache_trylock(ct_threadcache_t* self);
+
 #ifdef __cplusplus
 }
 #endif

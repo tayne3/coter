@@ -4,9 +4,13 @@
  */
 #include "coter/thread/cache.h"
 
+#include <stdlib.h>
+
+#include "coter/container/list.h"
 #include "coter/core/platform.h"
 #include "coter/core/strings.h"
 #include "coter/core/time.h"
+#include "coter/sync/mutex.h"
 #include "coter/thread/once.h"
 #include "coter/thread/thread.h"
 #include "coter/thread/tls.h"
@@ -35,6 +39,11 @@ struct ct_threadcache {
     char   tid_str[19];  // 线程ID字符串
     char*  buffer;       // 输出缓冲区
     size_t buffer_size;  // 缓冲区大小
+
+    ct_list_t  node;                   // 全局注册节点
+    ct_mutex_t lock;                   // 保护锁
+    void*      async_data;             // 异步数据指针
+    void (*async_cleanup)(void* ptr);  // 异步数据清理回调
 };
 
 // 线程本地存储键
@@ -42,12 +51,25 @@ static ct_tls_key_t timecache_key;
 // 线程本地存储键初始化标志
 static ct_once_t timecache_key_once = CT_ONCE_INIT;
 
+// 全局注册表
+static ct_list_t  g_tc_registry;
+static ct_mutex_t g_tc_lock;
+static ct_once_t  g_tc_init_once = CT_ONCE_INIT;
+
 /// 线程退出时清理缓存的回调函数
 static void tc__thread_destroy(void* ptr);
 /// 创建线程本地存储键
 static void tc__thread_create_key(void);
+/// 初始化全局注册表
+static void tc__init_registry(void);
 /// 计算足够容纳格式化结果的缓冲区大小
 static size_t tc__buffer_size_for(int result);
+/// 整数转字符串 (两位数)
+static void i2s_2(char** p, int value);
+/// 整数转字符串 (三位数)
+static void i2s_3(char** p, int value);
+/// 整数转字符串 (四位数)
+static void i2s_4(char** p, int value);
 /// 更新时间字符串
 static void tc__update_tmstr(ct_threadcache_t* self);
 /// 获取当前线程 ID 字符串
@@ -57,6 +79,8 @@ static void tc__gettid_str(char* str, size_t max);
 
 ct_threadcache_t* ct_threadcache_get(void) {
     ct_once_exec(&timecache_key_once, tc__thread_create_key);
+    ct_once_exec(&g_tc_init_once, tc__init_registry);
+
     ct_threadcache_t* self = ct_tls_get(timecache_key);
     if (!self) {
         self = calloc(1, sizeof(ct_threadcache_t));
@@ -68,6 +92,12 @@ ct_threadcache_t* ct_threadcache_get(void) {
             self->buffer_size = 1024;
         }
         tc__gettid_str(self->tid_str, sizeof(self->tid_str));
+
+        ct_mutex_init(&self->lock);
+        ct_mutex_lock(&g_tc_lock);
+        ct_list_append(&g_tc_registry, &self->node);
+        ct_mutex_unlock(&g_tc_lock);
+
         ct_tls_set(timecache_key, self);
     }
     return self;
@@ -80,6 +110,39 @@ char* ct_threadcache_get_buffer(ct_threadcache_t* self) {
 
 size_t ct_threadcache_get_buffer_size(ct_threadcache_t* self) {
     return self ? self->buffer_size : 0;
+}
+
+void ct_threadcache_foreach(void (*fn)(ct_threadcache_t* tc, void* arg, bool force), void* arg, bool force) {
+    if (!fn) { return; }
+    ct_once_exec(&g_tc_init_once, tc__init_registry);
+
+    ct_mutex_lock(&g_tc_lock);
+    ct_list_foreach_entry(tc, &g_tc_registry, ct_threadcache_t, node) {
+        fn(tc, arg, force);
+    }
+    ct_mutex_unlock(&g_tc_lock);
+}
+
+void ct_threadcache_set_async_data(ct_threadcache_t* self, void* data, void (*cleanup)(void*)) {
+    if (!self) { return; }
+    self->async_data    = data;
+    self->async_cleanup = cleanup;
+}
+
+void* ct_threadcache_get_async_data(ct_threadcache_t* self) {
+    return self ? self->async_data : NULL;
+}
+
+void ct_threadcache_lock(ct_threadcache_t* self) {
+    if (self) { ct_mutex_lock(&self->lock); }
+}
+
+void ct_threadcache_unlock(ct_threadcache_t* self) {
+    if (self) { ct_mutex_unlock(&self->lock); }
+}
+
+int ct_threadcache_trylock(ct_threadcache_t* self) {
+    return self ? ct_mutex_trylock(&self->lock) : -1;
 }
 
 int __ct_threadcache_basic(ct_threadcache_t* self, const char* fmt, ...) {
@@ -222,10 +285,19 @@ int __ct_threadcache_detail(ct_threadcache_t* self, const char* file, int line, 
 
 static void tc__thread_destroy(void* ptr) {
     ct_threadcache_t* self = (ct_threadcache_t*)ptr;
+    if (!self) { return; }
+
+    ct_mutex_lock(&g_tc_lock);
+    ct_list_remove(&self->node);
+    ct_mutex_unlock(&g_tc_lock);
+
+    if (self->async_data && self->async_cleanup) { self->async_cleanup(self->async_data); }
+
     if (self->buffer) {
         free(self->buffer);
         self->buffer = NULL;
     }
+    ct_mutex_destroy(&self->lock);
     free(self);
 }
 
@@ -233,25 +305,27 @@ static void tc__thread_create_key(void) {
     ct_tls_create(&timecache_key, tc__thread_destroy);
 }
 
+static void tc__init_registry(void) {
+    ct_list_init(&g_tc_registry);
+    ct_mutex_init(&g_tc_lock);
+}
+
 static size_t tc__buffer_size_for(int result) {
     const size_t required = (size_t)result + 1;
     return required >= 10240 ? required : ((required + 1023) / 1024) * 1024;
 }
 
-/// 整数转字符串 (两位数)
 static void i2s_2(char** p, int value) {
     *(*p)++ = '0' + value / 10;
     *(*p)++ = '0' + value % 10;
 }
 
-/// 整数转字符串 (三位数)
 static void i2s_3(char** p, int value) {
     *(*p)++ = '0' + value / 100;
     *(*p)++ = '0' + (value / 10) % 10;
     *(*p)++ = '0' + value % 10;
 }
 
-/// 整数转字符串 (四位数)
 static void i2s_4(char** p, int value) {
     *(*p)++ = '0' + value / 1000;
     *(*p)++ = '0' + (value / 100) % 10;

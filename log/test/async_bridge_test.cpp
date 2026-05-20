@@ -35,10 +35,6 @@ TEST_CASE("log_async_bridge", "[log]") {
 
         ct_log_async_bridge_push(bridge, "d\nef", 4);
         ct_log_async_bridge_schedule(bridge);
-        REQUIRE(out.data == "abcd\n");
-
-        ct_log_async_bridge_flush(bridge);
-        ct_log_async_bridge_schedule(bridge);
         REQUIRE(out.data == "abcd\nef");
 
         ct_log_async_bridge_destroy(bridge);
@@ -65,10 +61,6 @@ TEST_CASE("log_async_bridge", "[log]") {
         REQUIRE(out.data.empty());
 
         ct_log_async_bridge_push(bridge, "def", 3);
-        ct_log_async_bridge_schedule(bridge);
-        REQUIRE(out.data == "abcd");
-
-        ct_log_async_bridge_flush(bridge);
         ct_log_async_bridge_schedule(bridge);
         REQUIRE(out.data == "abcdef");
 

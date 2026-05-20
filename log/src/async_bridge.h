@@ -39,6 +39,9 @@ void ct_log_async_bridge_push(ct_log_async_bridge_t* self, const char* buf, size
 void ct_log_async_bridge_flush(ct_log_async_bridge_t* self);
 void ct_log_async_bridge_schedule(ct_log_async_bridge_t* self);
 
+ct_bytes_t* ct_log_async_bridge_acquire(ct_log_async_bridge_t* self);
+ct_bytes_t* ct_log_async_bridge_submit(ct_log_async_bridge_t* self, ct_bytes_t* bytes);
+
 #ifdef __cplusplus
 }
 #endif

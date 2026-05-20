@@ -53,10 +53,7 @@ ct_log_handler_t* ct_log_callback_handler_create(const ct_log_callback_handler_c
     self->limit             = config->limit;
     self->max_pending_bytes = config->max_pending_bytes;
 
-    // 使用默认池用于回调项。
-    // 我们存储级别(int) + 数据在字节中。
-    // 容量1024通常足以容纳大多数日志行。
-    self->pool = ct_bytepool_create(64 * 1024, 1024);
+    self->pool = ct_bytepool_create(64, 1024);
     if (!self->pool) {
         free(self);
         return NULL;

@@ -41,7 +41,7 @@ ct_log_handler_t* ct_log_console_handler_create(const ct_log_console_handler_con
 
     ct_list_init(&self->base.node);
     self->base.vtable = &console_vtable;
-    self->bytepool    = ct_bytepool_create(128, 1024);
+    self->bytepool    = ct_bytepool_create(64, 1024);
     if (!self->bytepool) {
         free(self);
         return NULL;

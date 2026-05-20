@@ -64,7 +64,7 @@ ct_log_handler_t* ct_log_file_handler_create(const ct_log_file_handler_config_t*
         return NULL;
     }
 
-    self->bytepool = ct_bytepool_create(config->cache_size, 4);
+    self->bytepool = ct_bytepool_create(64, config->cache_size);
     if (!self->bytepool) {
         ct_log_rotator_destroy(self->rotator);
         free(self);
