@@ -18,6 +18,8 @@ typedef struct ct_ticker {
     ct_time64_t interval;
 } ct_ticker_t;
 
+#define CT_TICKER_INITIALIZER {{NULL, NULL, NULL}, NULL, NULL, 0, 0, 0, 0, 0, 0}
+
 /**
  * @brief 初始化定时器
  * @param ticker 定时器指针

@@ -111,8 +111,7 @@ TEST_CASE("one-shot timer fires exactly once", "[timer]") {
     start();
 
     callback_ctx ctx;
-    ct_timer_t   timer;
-    ct_timer_init(&timer);
+    ct_timer_t   timer = CT_TIMER_INITIALIZER;
 
     REQUIRE(ct_timer_start(&timer, 100, event_count_cb, &ctx) == 0);
 
@@ -230,6 +229,7 @@ TEST_CASE("stopping a timer before expiry prevents its callback", "[timer]") {
     callback_ctx ctx;
     ct_timer_t   timer;
     ct_timer_init(&timer);
+    REQUIRE(ct_timer_stop(&timer) == -1);
 
     REQUIRE(ct_timer_start(&timer, 100, event_count_cb, &ctx) == 0);
 
@@ -265,10 +265,12 @@ TEST_CASE("stopping a timer that already fired returns error", "[timer]") {
 }
 
 TEST_CASE("stopping an unstarted timer returns error", "[timer]") {
-    ct_timer_t timer;
-    ct_timer_init(&timer);
+    ct_timer_t t1 = CT_TIMER_INITIALIZER;
+    REQUIRE(ct_timer_stop(&t1) == -1);
 
-    REQUIRE(ct_timer_stop(&timer) == -1);
+    ct_timer_t t2;
+    ct_timer_init(&t2);
+    REQUIRE(ct_timer_stop(&t2) == -1);
 }
 
 TEST_CASE("stopping a ticker prevents future callbacks", "[timer]") {
@@ -324,8 +326,8 @@ TEST_CASE("stopped ticker can be restarted with a new interval", "[timer]") {
     start();
 
     callback_ctx ctx;
-    ct_ticker_t  ticker;
-    ct_ticker_init(&ticker);
+    ct_ticker_t  ticker = CT_TICKER_INITIALIZER;
+    REQUIRE(ct_ticker_stop(&ticker) == -1);
 
     REQUIRE(ct_ticker_start(&ticker, 100, event_count_cb, &ctx) == 0);
 

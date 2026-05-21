@@ -29,6 +29,8 @@ typedef struct ct_timer {
     CT_TIMER_BASE
 } ct_timer_t;
 
+#define CT_TIMER_INITIALIZER {{NULL, NULL, NULL}, NULL, NULL, 0, 0, 0, 0, 0}
+
 /**
  * @brief 初始化定时器
  * @param timer 定时器指针
