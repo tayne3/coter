@@ -313,6 +313,22 @@ CT_INLINE bool ct_atomic_ullong_compare_exchange(ct_atomic_ullong_t* p, unsigned
     return false;
 }
 
+CT_INLINE void* ct_atomic_ptr_load(ct_atomic_ptr_t* p) {
+    return _InterlockedCompareExchangePointer(p, NULL, NULL);
+}
+CT_INLINE void ct_atomic_ptr_store(ct_atomic_ptr_t* p, void* v) {
+    _InterlockedExchangePointer(p, v);
+}
+CT_INLINE void* ct_atomic_ptr_exchange(ct_atomic_ptr_t* p, void* v) {
+    return _InterlockedExchangePointer(p, v);
+}
+CT_INLINE bool ct_atomic_ptr_compare_exchange(ct_atomic_ptr_t* p, void** expected, void* desired) {
+    void* old = _InterlockedCompareExchangePointer(p, desired, *expected);
+    if (old == *expected) { return true; }
+    *expected = old;
+    return false;
+}
+
 #ifdef __cplusplus
 }
 #endif

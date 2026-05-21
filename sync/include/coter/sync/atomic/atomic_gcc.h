@@ -8,7 +8,7 @@
 #include "coter/core/macro.h"
 
 #if CT_ATOMIC_USE_GCC
-#if defined(__GNUC__) || defined(__clang__)
+#ifndef __cplusplus
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wint-conversion"
 #endif
@@ -156,7 +156,7 @@ CT_INLINE bool ct_atomic_ptr_compare_exchange(ct_atomic_ptr_t* p, void** expecte
 #ifdef __cplusplus
 }
 #endif
-#if defined(__GNUC__) || defined(__clang__)
+#ifndef __cplusplus
 #pragma GCC diagnostic pop
 #endif
 #endif
