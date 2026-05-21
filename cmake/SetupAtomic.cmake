@@ -106,17 +106,17 @@ if(NOT CT_ATOMIC_IMPL_SELECTED AND WIN32)
   set(CMAKE_REQUIRED_FLAGS "${_SAVED_CMAKE_REQUIRED_FLAGS}")
   set(CMAKE_REQUIRED_LIBRARIES "${_SAVED_CMAKE_REQUIRED_LIBRARIES}")
   check_c_source_compiles("
-    #include <windows.h>
+    #include <intrin.h>
     int main(void) {
-      volatile LONG x = 0;
-      volatile LONGLONG y = 0;
-      InterlockedExchange(&x, 1);
-      InterlockedCompareExchange(&x, 2, 1);
-      InterlockedExchangeAdd(&x, 1);
-      InterlockedExchange64(&y, 1LL);
-      InterlockedCompareExchange64(&y, 2LL, 1LL);
-      InterlockedExchangeAdd64(&y, 1LL);
-      return (int)(x + y);
+      volatile long x = 0;
+      volatile long long y = 0;
+      _InterlockedExchange(&x, 1);
+      _InterlockedCompareExchange(&x, 2, 1);
+      _InterlockedExchangeAdd(&x, 1);
+      _InterlockedExchange64(&y, 1LL);
+      _InterlockedCompareExchange64(&y, 2LL, 1LL);
+      _InterlockedExchangeAdd64(&y, 1LL);
+      return (int)(x + (int)y);
     }
   " CT_HAVE_WIN_INTERLOCKED)
 
