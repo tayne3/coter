@@ -2,6 +2,7 @@
 #include <catch.hpp>
 #include <chrono>
 #include <cstring>
+#include <mutex>
 #include <thread>
 #include <vector>
 
