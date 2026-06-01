@@ -360,7 +360,7 @@ ct_ini_key_t* ct_ini_section_get_key(ct_ini_section_t* section, const char* key)
     return ct_ini_section_add_key(section, key, "");
 }
 
-ct_ini_key_t* ct_ini_section_find_key(ct_ini_section_t* section, const char* key) {
+ct_ini_key_t* ct_ini_section_find_key(const ct_ini_section_t* section, const char* key) {
     if (!section || !key) { return NULL; }
 
     ct_ini_key_t* curr = section->keys;
@@ -371,7 +371,7 @@ ct_ini_key_t* ct_ini_section_find_key(ct_ini_section_t* section, const char* key
     return NULL;
 }
 
-bool ct_ini_section_has_key(ct_ini_section_t* section, const char* key) {
+bool ct_ini_section_has_key(const ct_ini_section_t* section, const char* key) {
     return ct_ini_section_find_key(section, key) != NULL;
 }
 

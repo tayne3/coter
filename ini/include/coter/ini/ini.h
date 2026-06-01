@@ -184,7 +184,7 @@ CT_API ct_ini_key_t* ct_ini_section_get_key(ct_ini_section_t* section, const cha
  * @param key key name
  * @return key, or NULL if not found
  */
-CT_API ct_ini_key_t* ct_ini_section_find_key(ct_ini_section_t* section, const char* key);
+CT_API ct_ini_key_t* ct_ini_section_find_key(const ct_ini_section_t* section, const char* key);
 
 /**
  * @brief Check if key exists in section
@@ -192,7 +192,7 @@ CT_API ct_ini_key_t* ct_ini_section_find_key(ct_ini_section_t* section, const ch
  * @param key key name
  * @return true if exists
  */
-CT_API bool ct_ini_section_has_key(ct_ini_section_t* section, const char* key);
+CT_API bool ct_ini_section_has_key(const ct_ini_section_t* section, const char* key);
 
 /**
  * @brief Add or update key with value
