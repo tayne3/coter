@@ -1,13 +1,8 @@
-add_executable(coter_thread_jobpool_test jobpool_test.cpp)
-add_test(NAME coter_thread_jobpool_test COMMAND coter_thread_jobpool_test)
-target_link_libraries(coter_thread_jobpool_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
-
-add_executable(coter_thread_thpool_test thpool_test.cpp)
-add_test(NAME coter_thread_thpool_test COMMAND coter_thread_thpool_test)
-target_link_libraries(coter_thread_thpool_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
-
-add_executable(coter_thread_test thread_test.cpp)
+file(GLOB_RECURSE SRCS_G CONFIGURE_DEPENDS "*.cpp")
+add_executable(coter_thread_test ${SRCS_G})
 add_test(NAME coter_thread_test COMMAND coter_thread_test)
-target_link_libraries(coter_thread_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
-
-
+target_link_libraries(coter_thread_test PRIVATE
+  coter_compile_dependency
+  coter::testing_main
+  coter::coter
+)

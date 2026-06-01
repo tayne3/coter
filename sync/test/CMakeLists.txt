@@ -1,35 +1,8 @@
-add_executable(coter_sync_atomic_stress_test atomic_stress_test.cpp)
-add_test(NAME coter_sync_atomic_stress_test COMMAND coter_sync_atomic_stress_test)
-target_link_libraries(coter_sync_atomic_stress_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
-
-add_executable(coter_sync_atomic_test atomic_test.cpp)
-add_test(NAME coter_sync_atomic_test COMMAND coter_sync_atomic_test)
-target_link_libraries(coter_sync_atomic_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
-
-add_executable(coter_sync_waitgroup_test waitgroup_test.cpp)
-add_test(NAME coter_sync_waitgroup_test COMMAND coter_sync_waitgroup_test)
-target_link_libraries(coter_sync_waitgroup_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
-
-add_executable(coter_sync_mutex_cond_test mutex_cond_test.cpp)
-add_test(NAME coter_sync_mutex_cond_test COMMAND coter_sync_mutex_cond_test)
-target_link_libraries(coter_sync_mutex_cond_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
-
-add_executable(coter_sync_rwlock_test rwlock_test.cpp)
-add_test(NAME coter_sync_rwlock_test COMMAND coter_sync_rwlock_test)
-target_link_libraries(coter_sync_rwlock_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
-
-add_executable(coter_sync_event_test event_test.cpp)
-add_test(NAME coter_sync_event_test COMMAND coter_sync_event_test)
-target_link_libraries(coter_sync_event_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
-
-add_executable(coter_sync_sem_test sem_test.cpp)
-add_test(NAME coter_sync_sem_test COMMAND coter_sync_sem_test)
-target_link_libraries(coter_sync_sem_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
-
-add_executable(coter_sync_msgqueue_test msgqueue_test.cpp)
-add_test(NAME coter_sync_msgqueue_test COMMAND coter_sync_msgqueue_test)
-target_link_libraries(coter_sync_msgqueue_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
-
-add_executable(coter_sync_pubsub_test pubsub_test.cpp)
-add_test(NAME coter_sync_pubsub_test COMMAND coter_sync_pubsub_test)
-target_link_libraries(coter_sync_pubsub_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
+file(GLOB_RECURSE SRCS_G CONFIGURE_DEPENDS "*.cpp")
+add_executable(coter_sync_test ${SRCS_G})
+add_test(NAME coter_sync_test COMMAND coter_sync_test)
+target_link_libraries(coter_sync_test PRIVATE
+  coter_compile_dependency
+  coter::testing_main
+  coter::coter
+)

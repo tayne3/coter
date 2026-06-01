@@ -1,15 +1,8 @@
-add_executable(coter_encoding_base64_test base64_test.cpp)
-add_test(NAME coter_encoding_base64_test COMMAND coter_encoding_base64_test)
-target_link_libraries(coter_encoding_base64_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
-
-add_executable(coter_encoding_binary_test binary_test.cpp)
-add_test(NAME coter_encoding_binary_test COMMAND coter_encoding_binary_test)
-target_link_libraries(coter_encoding_binary_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
-
-add_executable(coter_encoding_hex_test hex_test.cpp)
-add_test(NAME coter_encoding_hex_test COMMAND coter_encoding_hex_test)
-target_link_libraries(coter_encoding_hex_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
-
-add_executable(coter_encoding_bcd_test bcd_test.cpp)
-add_test(NAME coter_encoding_bcd_test COMMAND coter_encoding_bcd_test)
-target_link_libraries(coter_encoding_bcd_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
+file(GLOB_RECURSE SRCS_G CONFIGURE_DEPENDS "*.cpp")
+add_executable(coter_encoding_test ${SRCS_G})
+add_test(NAME coter_encoding_test COMMAND coter_encoding_test)
+target_link_libraries(coter_encoding_test PRIVATE
+  coter_compile_dependency
+  coter::testing_main
+  coter::coter
+)

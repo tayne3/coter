@@ -1,11 +1,8 @@
-add_executable(coter_opt_basic_test basic_test.cpp)
-add_test(NAME coter_opt_basic_test COMMAND coter_opt_basic_test)
-target_link_libraries(coter_opt_basic_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
-
-add_executable(coter_opt_help_test help_test.cpp)
-add_test(NAME coter_opt_help_test COMMAND coter_opt_help_test)
-target_link_libraries(coter_opt_help_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
-
-add_executable(coter_opt_stress_test stress_test.cpp)
-add_test(NAME coter_opt_stress_test COMMAND coter_opt_stress_test)
-target_link_libraries(coter_opt_stress_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
+file(GLOB_RECURSE SRCS_G CONFIGURE_DEPENDS "*.cpp")
+add_executable(coter_opt_test ${SRCS_G})
+add_test(NAME coter_opt_test COMMAND coter_opt_test)
+target_link_libraries(coter_opt_test PRIVATE
+  coter_compile_dependency
+  coter::testing_main
+  coter::coter
+)

@@ -1,31 +1,8 @@
-add_executable(coter_bytes_builder_test builder_test.cpp)
-add_test(NAME coter_bytes_builder_test COMMAND coter_bytes_builder_test)
-target_link_libraries(coter_bytes_builder_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
-
-add_executable(coter_bytes_bytes_test bytes_test.cpp)
-add_test(NAME coter_bytes_bytes_test COMMAND coter_bytes_bytes_test)
-target_link_libraries(coter_bytes_bytes_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
-
-add_executable(coter_bytes_bytes_concurrent_test bytes_concurrent_test.cpp)
-add_test(NAME coter_bytes_bytes_concurrent_test COMMAND coter_bytes_bytes_concurrent_test)
-target_link_libraries(coter_bytes_bytes_concurrent_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
-
-add_executable(coter_bytes_pool_test pool_test.cpp)
-add_test(NAME coter_bytes_pool_test COMMAND coter_bytes_pool_test)
-target_link_libraries(coter_bytes_pool_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
-
-add_executable(coter_bytes_seg_test seg_test.cpp)
-add_test(NAME coter_bytes_seg_test COMMAND coter_bytes_seg_test)
-target_link_libraries(coter_bytes_seg_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
-
-add_executable(coter_bytes_seg_hpp_test seg_hpp_test.cpp)
-add_test(NAME coter_bytes_seg_hpp_test COMMAND coter_bytes_seg_hpp_test)
-target_link_libraries(coter_bytes_seg_hpp_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
-
-add_executable(coter_bytes_segment_test segment_test.cpp)
-add_test(NAME coter_bytes_segment_test COMMAND coter_bytes_segment_test)
-target_link_libraries(coter_bytes_segment_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
-
-add_executable(coter_bytes_rbuf_test rbuf_test.cpp)
-add_test(NAME coter_bytes_rbuf_test COMMAND coter_bytes_rbuf_test)
-target_link_libraries(coter_bytes_rbuf_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
+file(GLOB_RECURSE SRCS_G CONFIGURE_DEPENDS "*.cpp")
+add_executable(coter_bytes_test ${SRCS_G})
+add_test(NAME coter_bytes_test COMMAND coter_bytes_test)
+target_link_libraries(coter_bytes_test PRIVATE
+  coter_compile_dependency
+  coter::testing_main
+  coter::coter
+)

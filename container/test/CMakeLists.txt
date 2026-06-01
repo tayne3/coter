@@ -1,31 +1,8 @@
-add_executable(coter_container_heap_test heap_test.cpp)
-add_test(NAME coter_container_heap_test COMMAND coter_container_heap_test)
-target_link_libraries(coter_container_heap_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
-
-add_executable(coter_container_pqueue_test pqueue_test.cpp)
-add_test(NAME coter_container_pqueue_test COMMAND coter_container_pqueue_test)
-target_link_libraries(coter_container_pqueue_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
-
-add_executable(coter_container_list_test list_test.cpp)
-add_test(NAME coter_container_list_test COMMAND coter_container_list_test)
-target_link_libraries(coter_container_list_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
-
-add_executable(coter_container_packet_test packet_test.cpp)
-add_test(NAME coter_container_packet_test COMMAND coter_container_packet_test)
-target_link_libraries(coter_container_packet_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
-
-add_executable(coter_container_queue_test queue_test.cpp)
-add_test(NAME coter_container_queue_test COMMAND coter_container_queue_test)
-target_link_libraries(coter_container_queue_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
-
-add_executable(coter_container_stack_test stack_test.cpp)
-add_test(NAME coter_container_stack_test COMMAND coter_container_stack_test)
-target_link_libraries(coter_container_stack_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
-
-add_executable(coter_container_array_test array_test.cpp)
-add_test(NAME coter_container_array_test COMMAND coter_container_array_test)
-target_link_libraries(coter_container_array_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
-
-add_executable(coter_container_vector_test vector_test.cpp)
-add_test(NAME coter_container_vector_test COMMAND coter_container_vector_test)
-target_link_libraries(coter_container_vector_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
+file(GLOB_RECURSE SRCS_G CONFIGURE_DEPENDS "*.cpp")
+add_executable(coter_container_test ${SRCS_G})
+add_test(NAME coter_container_test COMMAND coter_container_test)
+target_link_libraries(coter_container_test PRIVATE
+  coter_compile_dependency
+  coter::testing_main
+  coter::coter
+)

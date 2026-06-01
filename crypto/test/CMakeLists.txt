@@ -1,11 +1,8 @@
-add_executable(coter_crypto_hashalgo_test hash/hashalgo_test.cpp)
-add_test(NAME coter_crypto_hashalgo_test COMMAND coter_crypto_hashalgo_test)
-target_link_libraries(coter_crypto_hashalgo_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
-
-add_executable(coter_crypto_md5_test md5_test.cpp)
-add_test(NAME coter_crypto_md5_test COMMAND coter_crypto_md5_test)
-target_link_libraries(coter_crypto_md5_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
-
-add_executable(coter_crypto_sha1_test sha1_test.cpp)
-add_test(NAME coter_crypto_sha1_test COMMAND coter_crypto_sha1_test)
-target_link_libraries(coter_crypto_sha1_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
+file(GLOB_RECURSE SRCS_G CONFIGURE_DEPENDS "*.cpp")
+add_executable(coter_crypto_test ${SRCS_G})
+add_test(NAME coter_crypto_test COMMAND coter_crypto_test)
+target_link_libraries(coter_crypto_test PRIVATE
+  coter_compile_dependency
+  coter::testing_main
+  coter::coter
+)
