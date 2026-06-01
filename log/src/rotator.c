@@ -42,7 +42,9 @@ ct_log_rotator_t* ct_log_rotator_create(const ct_log_rotator_config_t* config) {
 
     memset(self, 0, sizeof(*self));
     strncpy(self->dir, config->dir, sizeof(self->dir) - 1);
+    self->dir[sizeof(self->dir) - 1] = '\0';
     strncpy(self->name, config->name, sizeof(self->name) - 1);
+    self->name[sizeof(self->name) - 1] = '\0';
     self->size_max     = config->size_max;
     self->count_max    = config->count_max;
     self->file_index   = -1;

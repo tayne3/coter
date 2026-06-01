@@ -43,7 +43,9 @@ ct_log_handler_t* ct_log_file_handler_create(const ct_log_file_handler_config_t*
 
     ct_log_rotator_config_t rotator_config = {0};
     strncpy(rotator_config.dir, config->dir, sizeof(rotator_config.dir) - 1);
+    rotator_config.dir[sizeof(rotator_config.dir) - 1] = '\0';
     strncpy(rotator_config.name, config->name, sizeof(rotator_config.name) - 1);
+    rotator_config.name[sizeof(rotator_config.name) - 1] = '\0';
     rotator_config.size_max  = config->size_max;
     rotator_config.count_max = config->count_max;
 
