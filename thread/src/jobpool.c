@@ -89,7 +89,7 @@ ct_jobpool_t* ct_jobpool_create(size_t thread_max, size_t job_max) {
             ct_thread_yield();
         } else {
             free(unit);
-            fprintf(stderr, "failed to create thread" STR_NEWLINE);
+            fprintf(stderr, "failed to create thread\n");
         }
     }
 
