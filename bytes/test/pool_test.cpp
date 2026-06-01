@@ -32,7 +32,7 @@ static void test_bytepool_basic_operations(void) {
     int         count = 0;
     for (int i = 0; i < 20; ++i) {
         bytes_array[i] = ct_bytepool_get(pool);
-        if (bytes_array[i] != nullptr) { count++; }
+        if (bytes_array[i] != nullptr) { ++count; }
     }
     REQUIRE(count == 20);
 
@@ -104,7 +104,7 @@ static void test_bytepool_concurrency(void) {
     for (int i = 0; i < CONCURRENCY_THREADS * 2; ++i) {
         ct_bytes_t* bytes = ct_bytepool_get(pool);
         if (bytes != nullptr) {
-            available_bytes++;
+            ++available_bytes;
             ct_bytepool_put(pool, bytes);
         }
     }

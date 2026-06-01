@@ -17,7 +17,7 @@ bool _ct__vector_reserve(void** p_ptr, size_t* p_cap, size_t elem_size, size_t n
 #if SIZE_MAX > 0xFFFFFFFF
     target_cap |= target_cap >> 32;  // 64 位系统
 #endif
-    target_cap++;
+    ++target_cap;
     if (target_cap > CT_VEC_MEMORY_MAX / elem_size) { return false; }
 
     void* new_ptr = realloc(*p_ptr, elem_size * target_cap);

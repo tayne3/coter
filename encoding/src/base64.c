@@ -24,7 +24,7 @@ size_t ct_base64_update(uint8_t ch, char* to, size_t n) {
     } else {
         to[n]   = (char)ct_base64_encode_single(to[n] | (ch >> 6));
         to[++n] = (char)ct_base64_encode_single(ch & 63);
-        n++;
+        ++n;
     }
     return n;
 }

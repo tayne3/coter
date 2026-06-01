@@ -175,7 +175,7 @@ TEST_CASE("short: repeated flag increments count", "[short]") {
     int  id;
     while (ct_opt_next(&o, kShortDefs, &id) == CT_OPT_OK) {
         REQUIRE(id == 'e');
-        count++;
+        ++count;
     }
     REQUIRE(count == 6);
 }

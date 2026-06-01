@@ -17,7 +17,7 @@ size_t ct_list_size(const ct_list_t* self) {
     if (!self) { return 0; }
     size_t size = 0;
     ct_list_foreach(node, self) {
-        size++;
+        ++size;
     }
     return size;
 }

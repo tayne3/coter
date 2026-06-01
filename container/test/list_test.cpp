@@ -175,7 +175,7 @@ TEST_CASE("list_splice", "[list]") {
             case 2: REQUIRE(pos == node1); break;
             case 3: REQUIRE(pos == node2); break;
         }
-        count++;
+        ++count;
     }
     REQUIRE(count == 4);
     ct_list_splice_next(head1, head3);
@@ -195,7 +195,7 @@ TEST_CASE("list_splice", "[list]") {
             case 4: REQUIRE(pos == node5); break;
             case 5: REQUIRE(pos == node6); break;
         }
-        count++;
+        ++count;
     }
     REQUIRE(count == 6);
     ct_list_remove(node1);
@@ -224,7 +224,7 @@ TEST_CASE("list_foreach", "[list]") {
     ct_list_append(head, node2);
     int count = 0;
     ct_list_foreach(ptr, head) {
-        count++;
+        ++count;
     }
     REQUIRE(count == 2);
 }

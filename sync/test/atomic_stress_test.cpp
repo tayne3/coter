@@ -85,10 +85,10 @@ static int thread_pop_routine(void* arg) {
     for (int i = 0; i < ITEMS_PER_THREAD; ++i) {
         Node* n = stack_pop();
         if (n) {
-            popped_count++;
+            ++popped_count;
         } else {
-            i--;
-            for (volatile int k = 0; k < 100; k++) {}
+            --i;
+            for (volatile int k = 0; k < 100; ++k) {}
         }
     }
     return popped_count;

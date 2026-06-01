@@ -1,3 +1,5 @@
+#include <catch.hpp>
+
 #include "coter/core/macro.h"
 
 struct test_struct {
@@ -17,7 +19,7 @@ CT_STATIC_ASSERT(OFFSET_OF(test_struct, a) == 0);
 CT_STATIC_ASSERT(OFFSET_OF(test_struct, b) > OFFSET_OF(struct test_struct, a));
 CT_STATIC_ASSERT(OFFSET_OF(test_struct, b) == offsetof(struct test_struct, b));
 
-int main() {
+TEST_CASE("static_assert_cpp") {
     CT_STATIC_ASSERT(sizeof(uint8_t) == 1);
     CT_STATIC_ASSERT(sizeof(uint16_t) == 2);
     CT_STATIC_ASSERT(sizeof(uint32_t) == 4);
@@ -31,6 +33,4 @@ int main() {
     CT_STATIC_ASSERT(OFFSET_OF(test_struct, a) == 0);
     CT_STATIC_ASSERT(OFFSET_OF(test_struct, b) > OFFSET_OF(struct test_struct, a));
     CT_STATIC_ASSERT(OFFSET_OF(test_struct, b) == offsetof(struct test_struct, b));
-
-    return 0;
 }

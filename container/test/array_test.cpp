@@ -224,7 +224,7 @@ TEST_CASE("Array Foreach Macro", "[array][foreach]") {
         int idx = 0;
         ct_array_foreach(&arr, int, it) {
             REQUIRE(*it == expected[idx]);
-            idx++;
+            ++idx;
         }
         REQUIRE(idx == 4);
     }
@@ -245,7 +245,7 @@ TEST_CASE("Array Foreach Macro", "[array][foreach]") {
         int count = 0;
         ct_array_foreach(&arr, int, it) {
             if (*it == 5) break;
-            count++;
+            ++count;
         }
         REQUIRE(count == 5);
     }
@@ -253,7 +253,7 @@ TEST_CASE("Array Foreach Macro", "[array][foreach]") {
     SECTION("Iterate empty") {
         int count = 0;
         ct_array_foreach(&arr, int, it) {
-            count++;
+            ++count;
         }
         REQUIRE(count == 0);
     }

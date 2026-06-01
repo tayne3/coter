@@ -365,7 +365,7 @@ static int ctl_monitor_thread(void* arg) {
                 ct_thread_join(worker->thread, NULL);
                 ct_msgqueue_destroy(worker->tasks);
                 free(worker);
-                stale_size++;
+                ++stale_size;
             }
 
             // 如果所有线程都是过期的且有等待任务，则通知工作者

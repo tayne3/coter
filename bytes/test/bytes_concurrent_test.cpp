@@ -58,7 +58,7 @@ static ct_bytes_t* get_free_buffer(buffer_pool_t* pool) {
 static void return_filled_buffer(buffer_pool_t* pool, ct_bytes_t* buffer) {
     ct_mutex_lock(&pool->mutex);
     ct_list_append(&pool->filled_buffers, buffer->list);
-    pool->total_chunks++;
+    ++pool->total_chunks;
     ct_cond_signal(&pool->cond);
     ct_mutex_unlock(&pool->mutex);
 }
@@ -84,7 +84,7 @@ static void consume_chunks(test_context_t* ctx) {
     ct_bytes_clear(buffer);
     ct_mutex_lock(&ctx->free_pool->mutex);
     ct_list_append(&ctx->free_pool->free_buffers, buffer->list);
-    ctx->free_pool->total_chunks++;
+    ++ctx->free_pool->total_chunks;
     ct_mutex_unlock(&ctx->free_pool->mutex);
 }
 

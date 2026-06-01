@@ -42,7 +42,7 @@ int ct_hex_decode(const char* hex, size_t hex_len, void* out, size_t max) {
     if (!hex || !out || max == 0) { return -1; }
     if (hex_len == 0) {
         const char* p = hex;
-        while (*p) { p++; }
+        while (*p) { ++p; }
         hex_len = p - hex;
     }
     if (hex_len % 2 != 0) {
