@@ -147,5 +147,83 @@ CT_API void ct_opt_help(FILE* out, const ct_opt_def_t* defs, int count, const ct
 
 #ifdef __cplusplus
 }
+
+namespace coter {
+namespace opt {
+
+    enum class Status {
+        Ok      = CT_OPT_OK,
+        Done    = CT_OPT_DONE,
+        Invalid = CT_OPT_ERR_INVALID,
+        Missing = CT_OPT_ERR_MISSING,
+        TooMany = CT_OPT_ERR_TOOMANY,
+    };
+
+    enum class ArgType {
+        None     = CT_OPT_NONE,
+        Required = CT_OPT_REQUIRED,
+        Optional = CT_OPT_OPTIONAL,
+    };
+
+    struct Option : public ct_opt_def_t {
+        Option() {
+            longname  = nullptr;
+            shortname = 0;
+            argtype   = CT_OPT_NONE;
+            desc      = nullptr;
+            metavar   = nullptr;
+        }
+        Option(const char* ln, int sn, ArgType at, const char* d = nullptr, const char* mv = nullptr) {
+            longname  = ln;
+            shortname = sn;
+            argtype   = static_cast<ct_opt_argtype_t>(at);
+            desc      = d;
+            metavar   = mv;
+        }
+    };
+
+    using HelpConfig = ct_opt_help_config_t;
+
+    class Parser {
+    public:
+        explicit Parser(char** argv) { ct_opt_init(&d, argv); }
+
+        Parser(const Parser&)            = delete;
+        Parser& operator=(const Parser&) = delete;
+
+        /** @brief Parse the next option. */
+        Status next(const Option* defs, int* out_id = nullptr) {
+            return static_cast<Status>(ct_opt_next(&d, static_cast<const ct_opt_def_t*>(defs), out_id));
+        }
+
+        /** @brief Step past sub-commands or positional args. */
+        char* shift() { return ct_opt_shift(&d); }
+
+        // --- Accessors ---
+        char* arg() const { return d.optarg; }
+        int   optopt() const { return d.optopt; }
+        int   optind() const { return d.optind; }
+        int   subind() const { return d.subind; }
+
+        // --- Configuration ---
+        void set_permute(bool enable) { d.permute = enable ? 1 : 0; }
+
+        // --- Static Helpers ---
+        static const char* strerror(Status s) { return ct_opt_strerror(static_cast<ct_opt_status_t>(s)); }
+        static void        usage(FILE* out, const char* progname, const Option* defs, int count = -1,
+                                 const char* pos_args = nullptr) {
+            ct_opt_usage(out, progname, static_cast<const ct_opt_def_t*>(defs), count, pos_args);
+        }
+        static void help(FILE* out, const Option* defs, int count = -1, const HelpConfig* cfg = nullptr) {
+            ct_opt_help(out, static_cast<const ct_opt_def_t*>(defs), count, cfg);
+        }
+
+    private:
+        ct_opt_t d;
+    };
+
+}  // namespace opt
+}  // namespace coter
 #endif
+
 #endif /* COTER_OPT_OPT_H */
