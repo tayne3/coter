@@ -21,7 +21,7 @@ static void collect_log(const ct_log_record_t* record, void* userdata) {
 }
 
 int main(void) {
-    if (ct_log_init() != 0) {
+    if (ct_log_init(NULL) != 0) {
         fprintf(stderr, "error: failed to initialize logger\n");
         return 1;
     }

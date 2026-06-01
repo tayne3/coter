@@ -88,7 +88,14 @@ static void logger__harvest_iter(ct_log_tls_t* tc, void* arg, bool force) {
 
 // -------------------------[PUBLIC API IMPLEMENTATION]-------------------------
 
-int ct_log_init(void) {
+void ct_log_config_default(ct_log_config_t* config) {
+    if (!config) return;
+    config->dispatcher_queue_size = 1024;
+    config->pool_max_blocks       = 256;
+    config->pool_block_capacity   = 8192;
+}
+
+int ct_log_init(const ct_log_config_t* config) {
     int expected = 0;
     if (!ct_atomic_int_compare_exchange(&mgr->is_inited, &expected, 1)) { return -1; }
 
@@ -103,13 +110,35 @@ int ct_log_init(void) {
     ct_atomic_int_store(&mgr->stdout_logger.state, CT_LOGGER_STATE_RUNNING);
     ct_list_append(mgr->registry, &mgr->stdout_logger.node);
 
-    mgr->dispatcher = ct_log_dispatcher_create();
+    ct_log_config_t cfg;
+    if (config) {
+        cfg = *config;
+        if (cfg.dispatcher_queue_size == 0) { cfg.dispatcher_queue_size = 1024; }
+        if (cfg.pool_max_blocks == 0) { cfg.pool_max_blocks = 256; }
+        if (cfg.pool_block_capacity == 0) { cfg.pool_block_capacity = 8192; }
+    } else {
+        ct_log_config_default(&cfg);
+    }
+
+    mgr->dispatcher = ct_log_dispatcher_create(cfg.dispatcher_queue_size, cfg.pool_max_blocks, cfg.pool_block_capacity);
     if (!mgr->dispatcher) {
         ct_atomic_int_store(&mgr->is_inited, 0);
         return -1;
     }
 
     return 0;
+}
+
+void ct_log_get_stats(ct_log_stats_t* stats) {
+    if (!stats) return;
+    if (ct_atomic_int_load(&mgr->is_inited) == 0) {
+        stats->queue_current_jobs   = 0;
+        stats->queue_high_watermark = 0;
+        stats->pool_free_blocks     = 0;
+        stats->total_dropped_bytes  = 0;
+        return;
+    }
+    ct_log_get_stats_internal(stats);
 }
 
 void ct_log_close(void) {

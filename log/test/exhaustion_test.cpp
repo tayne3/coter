@@ -17,26 +17,26 @@ void exhaustion_callback(const ct_log_record_t* record, void* userdata) {
     stats->calls++;
     stats->total_bytes += record->size;
 }
-} // namespace
+}  // namespace
 
 TEST_CASE("log_exhaustion_oversized", "[log][exhaustion]") {
-    REQUIRE(ct_log_init() == 0);
+    REQUIRE(ct_log_init(NULL) == 0);
 
     exhaustion_stats stats;
-    
+
     ct_logger_t logger;
     ct_logger_init(&logger);
 
     ct_log_callback_handler_config_t config;
     ct_log_callback_handler_config_default(&config);
-    config.routine = exhaustion_callback;
+    config.routine  = exhaustion_callback;
     config.userdata = &stats;
 
     REQUIRE(ct_logger_add_handler(&logger, ct_log_callback_handler_create(&config)) == 0);
     REQUIRE(ct_logger_register(&logger) == 0);
 
     // Generate a massive string larger than the 8KB default block capacity
-    const size_t huge_size = 20000;
+    const size_t      huge_size = 20000;
     std::vector<char> huge_str(huge_size, 'A');
     huge_str.back() = '\0';
 

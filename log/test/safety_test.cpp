@@ -26,7 +26,7 @@ void safety_log_callback(const ct_log_record_t* record, void* userdata) {
 }  // namespace
 
 TEST_CASE("log_safety_lifecycle", "[log][safety]") {
-    REQUIRE(ct_log_init() == 0);
+    REQUIRE(ct_log_init(NULL) == 0);
 
     safety_callback_state state;
 

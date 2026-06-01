@@ -10,7 +10,7 @@ static ct_logger_t audit_logger[1];
 #define audit_debug(...) CT_LOG_BASIC_DEBUG(audit_logger, __VA_ARGS__)
 
 int main(void) {
-    if (ct_log_init() != 0) {
+    if (ct_log_init(NULL) != 0) {
         fprintf(stderr, "error: failed to initialize logger\n");
         return 1;
     }

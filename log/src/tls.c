@@ -328,10 +328,13 @@ static void tls__write_record_va(ct_log_tls_t* self, ct_logger_t* logger, int le
             }
             if (msg_len > 0) {
                 uint32_t written_msg = (uint32_t)msg_len < available ? (uint32_t)msg_len : available - 1;
-                if ((uint32_t)msg_len >= available && written_msg >= 3) {
-                    block->data[block->used + written_msg - 3] = '.';
-                    block->data[block->used + written_msg - 2] = '.';
-                    block->data[block->used + written_msg - 1] = '.';
+                if ((uint32_t)msg_len >= available) {
+                    if (written_msg >= 3) {
+                        block->data[block->used + written_msg - 3] = '.';
+                        block->data[block->used + written_msg - 2] = '.';
+                        block->data[block->used + written_msg - 1] = '.';
+                    }
+                    ct_log_add_dropped_bytes((uint32_t)msg_len - written_msg);
                 }
                 block->used += written_msg;
             }
@@ -386,6 +389,7 @@ static void tls__write_sync(ct_logger_t* logger, int level, const char* file, in
                 buf[prefix_len + final_msg_len - 2] = '.';
                 buf[prefix_len + final_msg_len - 1] = '.';
             }
+            ct_log_add_dropped_bytes((uint32_t)msg_len - final_msg_len);
         }
 
         ct_log_record_t record = {

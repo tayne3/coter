@@ -7,7 +7,7 @@
 #include "coter/log/log.h"
 
 TEST_CASE("log_chaos_lifecycle", "[log][chaos]") {
-    REQUIRE(ct_log_init() == 0);
+    REQUIRE(ct_log_init(NULL) == 0);
     std::atomic<bool> stop{false};
     constexpr int     kWorkerThreads = 4;
 

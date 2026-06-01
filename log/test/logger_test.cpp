@@ -36,11 +36,11 @@ void collect_log(const ct_log_record_t* record, void* userdata) {
 
 TEST_CASE("log_logger_lifecycle", "[log]") {
     ct_log_close();
-    REQUIRE(ct_log_init() == 0);
-    REQUIRE(ct_log_init() == -1);
+    REQUIRE(ct_log_init(NULL) == 0);
+    REQUIRE(ct_log_init(NULL) == -1);
 
     ct_log_close();
-    REQUIRE(ct_log_init() == 0);
+    REQUIRE(ct_log_init(NULL) == 0);
 
     ct_log_close();
     ct_log_close();
@@ -48,7 +48,7 @@ TEST_CASE("log_logger_lifecycle", "[log]") {
 
 TEST_CASE("log_logger_object_api", "[log]") {
     ct_log_close();
-    REQUIRE(ct_log_init() == 0);
+    REQUIRE(ct_log_init(NULL) == 0);
     ct_logger_t logger;
     ct_logger_init(&logger);
 
@@ -86,7 +86,7 @@ TEST_CASE("log_logger_object_api", "[log]") {
 
 TEST_CASE("log_default_fallback", "[log]") {
     ct_log_close();
-    REQUIRE(ct_log_init() == 0);
+    REQUIRE(ct_log_init(NULL) == 0);
 
     callback_state                   state;
     ct_log_callback_handler_config_t config;
@@ -115,7 +115,7 @@ TEST_CASE("log_default_fallback", "[log]") {
 
 TEST_CASE("log_logger_add_handler_while_writing", "[log]") {
     ct_log_close();
-    REQUIRE(ct_log_init() == 0);
+    REQUIRE(ct_log_init(NULL) == 0);
 
     ct_logger_t logger;
     ct_logger_init(&logger);
@@ -168,7 +168,7 @@ TEST_CASE("log_logger_add_handler_while_writing", "[log]") {
 
 TEST_CASE("log_logger_level_is_atomic", "[log]") {
     ct_log_close();
-    REQUIRE(ct_log_init() == 0);
+    REQUIRE(ct_log_init(NULL) == 0);
 
     ct_logger_t logger;
     ct_logger_init(&logger);

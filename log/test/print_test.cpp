@@ -43,7 +43,7 @@ int run_parallel_test(Func test_func) {
 }  // namespace
 
 TEST_CASE("log_print_performance", "[log][perf]") {
-    REQUIRE(ct_log_init() == 0);
+    REQUIRE(ct_log_init(NULL) == 0);
     REQUIRE(ct_logger_is_enabled(ct_log_get_default(), CT_LOG_LEVEL_VERBOSE));
 
 #define PRINT_CALL(F)                                                                                                  \

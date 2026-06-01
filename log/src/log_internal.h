@@ -7,6 +7,7 @@
 
 #include "coter/container/list.h"
 #include "coter/core/time.h"
+#include "coter/log/log.h"
 #include "coter/log/logger.h"
 #include "coter/log/tls.h"
 
@@ -62,7 +63,18 @@ ct_log_block_pool_t* ct_log_dispatcher_get_pool(ct_log_dispatcher_t* self);
 /**
  * @brief Create and start the log dispatcher.
  */
-ct_log_dispatcher_t* ct_log_dispatcher_create(void);
+ct_log_dispatcher_t* ct_log_dispatcher_create(uint32_t queue_size, uint32_t pool_max_blocks,
+                                              uint32_t pool_block_capacity);
+
+/**
+ * @brief Add bytes to the global dropped counter.
+ */
+void ct_log_add_dropped_bytes(uint32_t bytes);
+
+/**
+ * @brief Get global log system statistics.
+ */
+void ct_log_get_stats_internal(ct_log_stats_t* stats);
 
 /**
  * @brief Stop and destroy the log dispatcher.

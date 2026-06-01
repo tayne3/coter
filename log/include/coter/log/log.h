@@ -104,11 +104,41 @@ extern "C" {
 #define CT_LOG_HEX_FATAL(__logger, __buf, __len)   CT_LOG_HEX(FATAL, (__logger), (__buf), (__len))
 
 /**
+ * @brief Global log system configuration.
+ */
+typedef struct ct_log_config {
+    uint32_t dispatcher_queue_size;  // Queue depth for async writes (default: 1024). Increase to absorb bursty peaks.
+    uint32_t pool_max_blocks;  // Max allocated TLS blocks (default: 256). Determines absolute physical memory limit.
+    uint32_t pool_block_capacity;  // Capacity of a single block in bytes (default: 8192). Max length of a single log.
+} ct_log_config_t;
+
+/**
+ * @brief Global log system statistics dashboard.
+ */
+typedef struct ct_log_stats {
+    uint32_t queue_current_jobs;    // Current pending async jobs (real-time congestion).
+    uint32_t queue_high_watermark;  // Historical peak of pending jobs (for tuning queue size).
+    uint32_t pool_free_blocks;      // Current free blocks in the pool (real-time memory margin).
+    uint32_t total_dropped_bytes;   // Total bytes truncated or dropped due to OOM/overflow limits.
+} ct_log_stats_t;
+
+/**
+ * @brief Initialize the global log system config with conservative defaults.
+ */
+CT_API void ct_log_config_default(ct_log_config_t* config);
+
+/**
  * @brief 初始化日志系统
  *
+ * @param config Optional configuration bounds. Pass NULL for defaults.
  * @return int 成功返回0, 失败返回-1
  */
-CT_API int ct_log_init(void);
+CT_API int ct_log_init(const ct_log_config_t* config);
+
+/**
+ * @brief 获取全局系统统计指标
+ */
+CT_API void ct_log_get_stats(ct_log_stats_t* stats);
 
 /**
  * @brief 关闭日志系统

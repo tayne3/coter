@@ -100,7 +100,7 @@ TEST_CASE("log_callback_integrity", "[log]") {
         }
 
         {
-            REQUIRE(ct_log_init() == 0);
+            REQUIRE(ct_log_init(NULL) == 0);
             FilePtr f(std::fopen(kWithLogFile, "wb"));
             REQUIRE(f != nullptr);
             g_file_with_log = f.get();

@@ -109,7 +109,7 @@ TEST_CASE("log_write_performance", "[log][perf]") {
         // 2. With Logger
         int time_with_log = 0;
         {
-            REQUIRE(ct_log_init() == 0);
+            REQUIRE(ct_log_init(NULL) == 0);
             ct_logger_t logger;
             ct_logger_init(&logger);
 

@@ -92,7 +92,7 @@ TEST_CASE("log_hex_and_long_text", "[log][hex]") {
         }
 
         {
-            REQUIRE(ct_log_init() == 0);
+            REQUIRE(ct_log_init(NULL) == 0);
             ct_logger_t logger;
             ct_logger_init(&logger);
 
@@ -148,7 +148,7 @@ TEST_CASE("log_hex_and_long_text", "[log][hex]") {
         }
 
         {
-            REQUIRE(ct_log_init() == 0);
+            REQUIRE(ct_log_init(NULL) == 0);
             ct_logger_t logger;
             ct_logger_init(&logger);
 

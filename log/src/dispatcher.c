@@ -17,9 +17,10 @@
 // -------------------------[BLOCK & POOL INTERNAL]-------------------------
 
 struct ct_log_block_pool {
-    ct_msgqueue_t queue;
-    void*         q_buf;
-    uint32_t      block_capacity;
+    ct_msgqueue_t   queue;
+    void*           q_buf;
+    uint32_t        block_capacity;
+    ct_atomic_int_t free_blocks;
 };
 
 static ct_log_block_t* block__create(uint32_t capacity) {
@@ -80,7 +81,13 @@ static void block__pool_release(ct_log_block_pool_t* pool, ct_log_block_t* block
     if (ct_msgqueue_try_push(&pool->queue, &block) != 0) { block__destroy(block); }
 }
 
-// -------------------------[DISPATCHER INTERNAL]-------------------------
+// -------------------------[GLOBAL METRICS]-------------------------
+
+static ct_atomic_int_t g_dropped_bytes = CT_ATOMIC_VAR_INIT(0);
+
+void ct_log_add_dropped_bytes(uint32_t bytes) {
+    ct_atomic_int_add(&g_dropped_bytes, (int)bytes);
+}
 
 typedef struct {
     ct_logger_t*    logger;
@@ -93,11 +100,30 @@ struct ct_log_dispatcher {
     void*                q_buf;
     ct_log_block_pool_t* pool;
     ct_atomic_int_t      pending_jobs;
+    ct_atomic_int_t      high_watermark;
     ct_mutex_t           flush_mutex;
     ct_cond_t            flush_cond;
-    ct_log_record_t      batch_records[CT_LOG_BATCH_MAX];  // Fixed pre-allocated buffer
+    ct_log_record_t*     batch_records;  // Dynamic pre-allocated buffer
+    uint32_t             batch_max;
     bool                 running;
 };
+
+void ct_log_get_stats_internal(ct_log_stats_t* stats) {
+    if (!stats) { return; }
+    stats->queue_current_jobs   = 0;
+    stats->queue_high_watermark = 0;
+    stats->pool_free_blocks     = 0;
+    stats->total_dropped_bytes  = (uint32_t)ct_atomic_int_load(&g_dropped_bytes);
+
+    ct_log_dispatcher_t* dispatcher = ct_log_get_dispatcher();
+    if (dispatcher) {
+        stats->queue_current_jobs   = (uint32_t)ct_atomic_int_load(&dispatcher->pending_jobs);
+        stats->queue_high_watermark = (uint32_t)ct_atomic_int_load(&dispatcher->high_watermark);
+        if (dispatcher->pool) {
+            stats->pool_free_blocks = (uint32_t)ct_atomic_int_load(&dispatcher->pool->free_blocks);
+        }
+    }
+}
 
 static inline void dispatcher__do_heartbeat(ct_time64_t* last_heartbeat) {
     ct_time64_t now = ct_getuptime_ms();
@@ -122,7 +148,7 @@ static int dispatcher__routine(void* arg) {
 
                 while (processed < total_count) {
                     uint32_t batch_size = total_count - processed;
-                    if (batch_size > CT_LOG_BATCH_MAX) { batch_size = CT_LOG_BATCH_MAX; }
+                    if (batch_size > self->batch_max) { batch_size = self->batch_max; }
 
                     for (uint32_t i = 0; i < batch_size; ++i) {
                         ct_log_record_header_t* header = (ct_log_record_header_t*)p;
@@ -154,24 +180,37 @@ static int dispatcher__routine(void* arg) {
     return 0;
 }
 
-ct_log_dispatcher_t* ct_log_dispatcher_create(void) {
+ct_log_dispatcher_t* ct_log_dispatcher_create(uint32_t queue_size, uint32_t pool_max_blocks,
+                                              uint32_t pool_block_capacity) {
     ct_log_dispatcher_t* self = (ct_log_dispatcher_t*)calloc(1, sizeof(ct_log_dispatcher_t));
     if (!self) { return NULL; }
 
-    self->pool = block__pool_create(256, 8192);
+    self->pool = block__pool_create(pool_max_blocks, pool_block_capacity);
     if (!self->pool) {
         free(self);
         return NULL;
     }
 
-    self->q_buf = malloc(sizeof(ct_log_job_t) * 1024);
+    self->q_buf = malloc(sizeof(ct_log_job_t) * queue_size);
     if (!self->q_buf) {
         block__pool_destroy(self->pool);
         free(self);
         return NULL;
     }
-    ct_msgqueue_init(&self->queue, self->q_buf, sizeof(ct_log_job_t), 1024);
-    self->pending_jobs = CT_ATOMIC_VAR_INIT(0);
+    ct_msgqueue_init(&self->queue, self->q_buf, sizeof(ct_log_job_t), queue_size);
+
+    self->batch_max     = queue_size;
+    self->batch_records = (ct_log_record_t*)malloc(sizeof(ct_log_record_t) * self->batch_max);
+    if (!self->batch_records) {
+        ct_msgqueue_destroy(&self->queue);
+        free(self->q_buf);
+        block__pool_destroy(self->pool);
+        free(self);
+        return NULL;
+    }
+
+    self->pending_jobs   = CT_ATOMIC_VAR_INIT(0);
+    self->high_watermark = CT_ATOMIC_VAR_INIT(0);
     ct_mutex_init(&self->flush_mutex);
     ct_cond_init(&self->flush_cond);
 
@@ -179,6 +218,7 @@ ct_log_dispatcher_t* ct_log_dispatcher_create(void) {
     if (ct_thread_create(&self->thread, NULL, dispatcher__routine, self) != 0) {
         ct_mutex_destroy(&self->flush_mutex);
         ct_cond_destroy(&self->flush_cond);
+        free(self->batch_records);
         ct_msgqueue_destroy(&self->queue);
         free(self->q_buf);
         block__pool_destroy(self->pool);
