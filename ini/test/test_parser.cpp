@@ -163,7 +163,7 @@ TEST_CASE("Edge Cases - Massive line", "[parser]") {
     large_val[SIZE] = '\0';
 
     char* line = (char*)malloc(SIZE + 100);
-    sprintf(line, "key = %s\n", large_val);
+    snprintf(line, SIZE + 100, "key = %s\n", large_val);
 
     FILE* fp = fopen(test_tmp_path("massive.ini"), "w");
     if (fp) {
