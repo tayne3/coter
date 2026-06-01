@@ -194,7 +194,7 @@
 
 // newline and separator
 # ifdef CT_OS_WIN
-#   define STR_NEWLINE "\r\n"
+#   define STR_NEWLINE "\n"
 #   define STR_SEPARATOR "\\"
 #   define STR_SEPARATOR_CHAR '\\'
 # else
@@ -368,6 +368,19 @@ typedef int ct_endian_t;
 #   define __ct_packed__
 #   define __ct_aligned__(_n)
 #   define __ct_packed_aligned__(_n)
+# endif
+
+// maybe unused
+# if defined(__cplusplus) && (__cplusplus >= 201703L)   /* C++17 */
+#   define __ct_maybe_unused__          [[maybe_unused]]
+# elif defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 202311L) /* C23 */
+#   define __ct_maybe_unused__          [[maybe_unused]]
+# elif defined(__GNUC__) || defined(__clang__)
+#   define __ct_maybe_unused__          __attribute__((unused))
+# elif defined(_MSC_VER)
+#   define __ct_maybe_unused__          __pragma(warning(suppress: 4100 4101))
+# else
+#   define __ct_maybe_unused__          /* not supported */
 # endif
 
 // MSVC-compatible packing macros (use around struct definitions)

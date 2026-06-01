@@ -21,42 +21,42 @@ extern "C" {
  * @param TYPE 元素类型 (e.g. int, struct foo)
  * @param NAME 生成的类型名 (e.g. IntList -> IntList_t)
  */
-#define CT_VEC_DECL(TYPE, NAME)                                              \
-    typedef struct NAME {                                                    \
-        TYPE*  ptr;                                                          \
-        size_t size;                                                         \
-        size_t cap;                                                          \
-    } NAME##_t;                                                              \
-                                                                             \
-    static inline size_t NAME##_size(const NAME##_t* self) {                 \
-        return self ? self->size : 0;                                        \
-    }                                                                        \
-    static inline size_t NAME##_capacity(const NAME##_t* self) {             \
-        return self ? self->cap : 0;                                         \
-    }                                                                        \
-    static inline bool NAME##_empty(const NAME##_t* self) {                  \
-        return !self || self->size == 0;                                     \
-    }                                                                        \
-    static inline TYPE* NAME##_at(NAME##_t* self, size_t idx) {              \
-        return (self && idx < self->size) ? &self->ptr[idx] : NULL;          \
-    }                                                                        \
-    static inline TYPE* NAME##_front(NAME##_t* self) {                       \
-        return (self && self->size > 0) ? &self->ptr[0] : NULL;              \
-    }                                                                        \
-    static inline TYPE* NAME##_back(NAME##_t* self) {                        \
-        return (self && self->size > 0) ? &self->ptr[self->size - 1] : NULL; \
-    }                                                                        \
-                                                                             \
-    int  NAME##_init(NAME##_t* self, size_t cap);                            \
-    void NAME##_destroy(NAME##_t* self);                                     \
-    void NAME##_clear(NAME##_t* self);                                       \
-    bool NAME##_reserve(NAME##_t* self, size_t cap);                         \
-    bool NAME##_resize(NAME##_t* self, size_t new_size);                     \
-    bool NAME##_shrink(NAME##_t* self);                                      \
-    bool NAME##_push(NAME##_t* self, const TYPE* val);                       \
-    bool NAME##_pop(NAME##_t* self);                                         \
-    bool NAME##_insert(NAME##_t* self, size_t idx, const TYPE* val);         \
-    bool NAME##_erase(NAME##_t* self, size_t idx);
+#define CT_VEC_DECL(TYPE, NAME)                                                          \
+    typedef struct NAME {                                                                \
+        TYPE*  ptr;                                                                      \
+        size_t size;                                                                     \
+        size_t cap;                                                                      \
+    } NAME##_t;                                                                          \
+                                                                                         \
+    __ct_maybe_unused__ static inline size_t NAME##_size(const NAME##_t* self) {         \
+        return self ? self->size : 0;                                                    \
+    }                                                                                    \
+    __ct_maybe_unused__ static inline size_t NAME##_capacity(const NAME##_t* self) {     \
+        return self ? self->cap : 0;                                                     \
+    }                                                                                    \
+    __ct_maybe_unused__ static inline bool NAME##_empty(const NAME##_t* self) {          \
+        return !self || self->size == 0;                                                 \
+    }                                                                                    \
+    __ct_maybe_unused__ static inline TYPE* NAME##_at(NAME##_t* self, size_t idx) {      \
+        return (self && idx < self->size) ? &self->ptr[idx] : NULL;                      \
+    }                                                                                    \
+    __ct_maybe_unused__ static inline TYPE* NAME##_front(NAME##_t* self) {               \
+        return (self && self->size > 0) ? &self->ptr[0] : NULL;                          \
+    }                                                                                    \
+    __ct_maybe_unused__ static inline TYPE* NAME##_back(NAME##_t* self) {                \
+        return (self && self->size > 0) ? &self->ptr[self->size - 1] : NULL;             \
+    }                                                                                    \
+                                                                                         \
+    __ct_maybe_unused__ int  NAME##_init(NAME##_t* self, size_t cap);                    \
+    __ct_maybe_unused__ void NAME##_destroy(NAME##_t* self);                             \
+    __ct_maybe_unused__ void NAME##_clear(NAME##_t* self);                               \
+    __ct_maybe_unused__ bool NAME##_reserve(NAME##_t* self, size_t cap);                 \
+    __ct_maybe_unused__ bool NAME##_resize(NAME##_t* self, size_t new_size);             \
+    __ct_maybe_unused__ bool NAME##_shrink(NAME##_t* self);                              \
+    __ct_maybe_unused__ bool NAME##_push(NAME##_t* self, const TYPE* val);               \
+    __ct_maybe_unused__ bool NAME##_pop(NAME##_t* self);                                 \
+    __ct_maybe_unused__ bool NAME##_insert(NAME##_t* self, size_t idx, const TYPE* val); \
+    __ct_maybe_unused__ bool NAME##_erase(NAME##_t* self, size_t idx);
 
 #define CT_VEC_IMPL(TYPE, NAME)                                                                                \
     int NAME##_init(NAME##_t* self, size_t cap) {                                                              \
