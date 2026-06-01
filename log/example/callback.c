@@ -26,17 +26,21 @@ int main(void) {
         return 1;
     }
 
+    ct_logger_t callback_logger;
+    ct_logger_init(&callback_logger);
+
     callback_stats_t                 stats = {0};
     ct_log_callback_handler_config_t callback_config;
     ct_log_callback_handler_config_default(&callback_config);
     callback_config.routine  = collect_log;
     callback_config.userdata = &stats;
-    callback_config.limit    = 32;
-    if (ct_logger_add_handler(NULL, ct_log_callback_handler_create(&callback_config)) != 0) {
+    if (ct_logger_add_handler(&callback_logger, ct_log_callback_handler_create(&callback_config)) != 0) {
         fprintf(stderr, "error: failed to add callback handler\n");
         ct_log_close();
         return 1;
     }
+    ct_logger_register(&callback_logger);
+    ct_log_set_default(&callback_logger);
 
     for (int i = 0; i < 10; ++i) { log_debug("callback log line %02d\n", i); }
 

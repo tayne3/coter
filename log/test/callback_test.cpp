@@ -27,19 +27,15 @@ struct FileDeleter {
 };
 using FilePtr = std::unique_ptr<FILE, FileDeleter>;
 
-static std::atomic<bool> g_is_exit{false};
-static FILE*             g_file_with_log = nullptr;
-
-void thread_log_schedule() {
-    while (!g_is_exit) {
-        ct_log_schedule(ct_getuptime_ms());
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    }
-}
+static FILE* g_file_with_log = nullptr;
 
 void log_callback(const ct_log_record_t* record, void* userdata) {
-    (void)userdata;
-    if (record && record->data && g_file_with_log) { std::fwrite(record->data, 1, record->size, g_file_with_log); }
+    CT_UNUSED(userdata);
+    static std::mutex g_callback_mtx;
+    if (record && record->data && g_file_with_log) {
+        std::lock_guard<std::mutex> lock(g_callback_mtx);
+        std::fwrite(record->data, 1, record->size, g_file_with_log);
+    }
 }
 
 void thread_callback_with_log() {
@@ -115,20 +111,15 @@ TEST_CASE("log_callback_integrity", "[log]") {
             ct_log_callback_handler_config_t config;
             ct_log_callback_handler_config_default(&config);
             config.routine = log_callback;
-            config.limit   = 100;  // test some buffering
             REQUIRE(ct_logger_add_handler(&logger, ct_log_callback_handler_create(&config)) == 0);
             ct_logger_register(&logger);
             ct_log_set_default(&logger);
-
-            g_is_exit = false;
-            std::thread schedule_thread(thread_log_schedule);
 
             std::vector<std::thread> threads;
             for (int i = 0; i < kTestThreads; ++i) threads.emplace_back(thread_callback_with_log);
             for (auto& t : threads) t.join();
 
-            g_is_exit = true;
-            schedule_thread.join();
+            // In Phase 1, everything is already written
             ct_log_close();
             g_file_with_log = nullptr;
         }

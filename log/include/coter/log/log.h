@@ -7,7 +7,7 @@
 
 #include "coter/log/handler.h"
 #include "coter/log/logger.h"
-#include "coter/thread/cache.h"
+#include "coter/log/tls.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,95 +31,109 @@ extern "C" {
 #define CT_LOG_STRING_ERROR   "ERR"
 #define CT_LOG_STRING_FATAL   "FTL"
 
-#define CT_LOG_STYLE_VERBOSE "\x1b[34;22m"
-#define CT_LOG_STYLE_DEBUG   "\x1b[37;22m"
-#define CT_LOG_STYLE_TRACE   "\x1b[32;22m"
-#define CT_LOG_STYLE_WARNING "\x1b[33;22m"
-#define CT_LOG_STYLE_ERROR   "\x1b[31;22m"
-#define CT_LOG_STYLE_FATAL   "\x1b[31;22m"
+#define CT_LOG_COLOR_VERBOSE "\x1b[34;22m"
+#define CT_LOG_COLOR_DEBUG   "\x1b[37;22m"
+#define CT_LOG_COLOR_TRACE   "\x1b[32;22m"
+#define CT_LOG_COLOR_WARNING "\x1b[33;22m"
+#define CT_LOG_COLOR_ERROR   "\x1b[31;22m"
+#define CT_LOG_COLOR_FATAL   "\x1b[31;22m"
 
+#define CT_LOG_BASIC(__flag, __logger, ...)                                                     \
+    do {                                                                                        \
+        ct_logger_t* ct_logger_p_ = (__logger);                                                 \
+        if (ct_logger_is_enabled(ct_logger_p_, CT_LOG_LEVEL_##__flag)) {                        \
+            ct_log_tls_output(ct_logger_p_, CT_LOG_LEVEL_##__flag, NULL, 0, NULL, __VA_ARGS__); \
+        }                                                                                       \
+    } while (0)
+
+#define CT_LOG_BASIC_VERBOSE(__logger, ...) CT_LOG_BASIC(VERBOSE, (__logger), __VA_ARGS__)
+#define CT_LOG_BASIC_DEBUG(__logger, ...)   CT_LOG_BASIC(DEBUG, (__logger), __VA_ARGS__)
+#define CT_LOG_BASIC_TRACE(__logger, ...)   CT_LOG_BASIC(TRACE, (__logger), __VA_ARGS__)
+#define CT_LOG_BASIC_WARNING(__logger, ...) CT_LOG_BASIC(WARNING, (__logger), __VA_ARGS__)
+#define CT_LOG_BASIC_ERROR(__logger, ...)   CT_LOG_BASIC(ERROR, (__logger), __VA_ARGS__)
+#define CT_LOG_BASIC_FATAL(__logger, ...)   CT_LOG_BASIC(FATAL, (__logger), __VA_ARGS__)
+
+#define CT_LOG_BRIEF(__flag, __logger, ...)                                                               \
+    do {                                                                                                  \
+        ct_logger_t* ct_logger_p_ = (__logger);                                                           \
+        if (ct_logger_is_enabled(ct_logger_p_, CT_LOG_LEVEL_##__flag)) {                                  \
+            ct_log_tls_output(ct_logger_p_, CT_LOG_LEVEL_##__flag, NULL, 0,                               \
+                              "\x1b[2m%s %s" CT_LOG_COLOR_##__flag " " CT_LOG_STRING_##__flag "\x1b[0m ", \
+                              __VA_ARGS__);                                                               \
+        }                                                                                                 \
+    } while (0)
+
+#define CT_LOG_BRIEF_VERBOSE(__logger, ...) CT_LOG_BRIEF(VERBOSE, (__logger), __VA_ARGS__)
+#define CT_LOG_BRIEF_DEBUG(__logger, ...)   CT_LOG_BRIEF(DEBUG, (__logger), __VA_ARGS__)
+#define CT_LOG_BRIEF_TRACE(__logger, ...)   CT_LOG_BRIEF(TRACE, (__logger), __VA_ARGS__)
+#define CT_LOG_BRIEF_WARNING(__logger, ...) CT_LOG_BRIEF(WARNING, (__logger), __VA_ARGS__)
+#define CT_LOG_BRIEF_ERROR(__logger, ...)   CT_LOG_BRIEF(ERROR, (__logger), __VA_ARGS__)
+#define CT_LOG_BRIEF_FATAL(__logger, ...)   CT_LOG_BRIEF(FATAL, (__logger), __VA_ARGS__)
+
+#define CT_LOG_DETAIL(__flag, __logger, ...)                                                               \
+    do {                                                                                                   \
+        ct_logger_t* ct_logger_p_ = (__logger);                                                            \
+        if (ct_logger_is_enabled(ct_logger_p_, CT_LOG_LEVEL_##__flag)) {                                   \
+            ct_log_tls_output(ct_logger_p_, CT_LOG_LEVEL_##__flag, STR_SEPARATOR __ct_file__, __ct_line__, \
+                              "\x1b[2m%s %s" CT_LOG_COLOR_##__flag " " CT_LOG_STRING_##__flag              \
+                              "\x1b[37;1m %.*s:%d \x1b[36;22m>\x1b[0m ",                                   \
+                              __VA_ARGS__);                                                                \
+        }                                                                                                  \
+    } while (0)
+
+#define CT_LOG_DETAIL_VERBOSE(__logger, ...) CT_LOG_DETAIL(VERBOSE, (__logger), __VA_ARGS__)
+#define CT_LOG_DETAIL_DEBUG(__logger, ...)   CT_LOG_DETAIL(DEBUG, (__logger), __VA_ARGS__)
+#define CT_LOG_DETAIL_TRACE(__logger, ...)   CT_LOG_DETAIL(TRACE, (__logger), __VA_ARGS__)
+#define CT_LOG_DETAIL_WARNING(__logger, ...) CT_LOG_DETAIL(WARNING, (__logger), __VA_ARGS__)
+#define CT_LOG_DETAIL_ERROR(__logger, ...)   CT_LOG_DETAIL(ERROR, (__logger), __VA_ARGS__)
+#define CT_LOG_DETAIL_FATAL(__logger, ...)   CT_LOG_DETAIL(FATAL, (__logger), __VA_ARGS__)
+
+#define CT_LOG_HEX(__flag, __logger, __buf, __len)                                        \
+    do {                                                                                  \
+        ct_logger_t* ct_logger_p_ = (__logger);                                           \
+        if ((__len) > 0 && ct_logger_is_enabled(ct_logger_p_, CT_LOG_LEVEL_##__flag)) {   \
+            ct_log_tls_output_hex(ct_logger_p_, CT_LOG_LEVEL_##__flag, (__buf), (__len)); \
+        }                                                                                 \
+    } while (0)
+
+#define CT_LOG_HEX_VERBOSE(__logger, __buf, __len) CT_LOG_HEX(VERBOSE, (__logger), (__buf), (__len))
+#define CT_LOG_HEX_DEBUG(__logger, __buf, __len)   CT_LOG_HEX(DEBUG, (__logger), (__buf), (__len))
+#define CT_LOG_HEX_TRACE(__logger, __buf, __len)   CT_LOG_HEX(TRACE, (__logger), (__buf), (__len))
+#define CT_LOG_HEX_WARNING(__logger, __buf, __len) CT_LOG_HEX(WARNING, (__logger), (__buf), (__len))
+#define CT_LOG_HEX_ERROR(__logger, __buf, __len)   CT_LOG_HEX(ERROR, (__logger), (__buf), (__len))
+#define CT_LOG_HEX_FATAL(__logger, __buf, __len)   CT_LOG_HEX(FATAL, (__logger), (__buf), (__len))
+
+/**
+ * @brief 初始化日志系统
+ *
+ * @return int 成功返回0, 失败返回-1
+ */
+CT_API int ct_log_init(void);
+
+/**
+ * @brief 关闭日志系统
+ */
+CT_API void ct_log_close(void);
+
+/**
+ * @brief 获取全局默认的 Logger
+ *
+ * @return ct_logger_t* 返回默认日志器对象
+ */
+CT_API ct_logger_t* ct_log_get_default(void);
 #define CT_DEFAULT_LOGGER ct_log_get_default()
 
-#define CT_LOG_BASIC(__flag, __logger, ...)                                                                   \
-    do {                                                                                                      \
-        ct_logger_t* __ct_logger_p = (__logger);                                                              \
-        if (ct_logger_is_enable(__ct_logger_p, CT_LOG_LEVEL_##__flag)) {                                      \
-            ct_threadcache_t* __ct_cache = ct_threadcache_get();                                              \
-            const int         __ct_size  = __ct_threadcache_basic(__ct_cache, __VA_ARGS__);                   \
-            if (__ct_size > 0) {                                                                              \
-                ct_logger_handle(__ct_logger_p, CT_LOG_LEVEL_##__flag, ct_threadcache_get_buffer(__ct_cache), \
-                                 (size_t)__ct_size);                                                          \
-            }                                                                                                 \
-        }                                                                                                     \
-    } while (0)
+/**
+ * @brief 设置全局默认的 Logger
+ *
+ * @param logger 目标日志器
+ */
+CT_API void ct_log_set_default(ct_logger_t* logger);
 
-#define CT_LOG_BRIEF(__flag, __logger, ...)                                                                                    \
-    do {                                                                                                                       \
-        ct_logger_t* __ct_logger_p = (__logger);                                                                               \
-        if (ct_logger_is_enable(__ct_logger_p, CT_LOG_LEVEL_##__flag)) {                                                       \
-            ct_threadcache_t* __ct_cache = ct_threadcache_get();                                                               \
-            const int         __ct_size  = __ct_threadcache_brief(                                                             \
-                __ct_cache, "\x1b[2m%s %s" CT_LOG_STYLE_##__flag " " CT_LOG_STRING_##__flag "\x1b[0m ", __VA_ARGS__); \
-            if (__ct_size > 0) {                                                                                               \
-                ct_logger_handle(__ct_logger_p, CT_LOG_LEVEL_##__flag, ct_threadcache_get_buffer(__ct_cache),                  \
-                                 (size_t)__ct_size);                                                                           \
-            }                                                                                                                  \
-        }                                                                                                                      \
-    } while (0)
-
-#define CT_LOG_DETAIL(__flag, __logger, ...)                                                                  \
-    do {                                                                                                      \
-        ct_logger_t* __ct_logger_p = (__logger);                                                              \
-        if (ct_logger_is_enable(__ct_logger_p, CT_LOG_LEVEL_##__flag)) {                                      \
-            ct_threadcache_t* __ct_cache = ct_threadcache_get();                                              \
-            const int         __ct_size =                                                                     \
-                __ct_threadcache_detail(__ct_cache, STR_SEPARATOR __ct_file__, __ct_line__,                   \
-                                        "\x1b[2m%s %s" CT_LOG_STYLE_##__flag " " CT_LOG_STRING_##__flag       \
-                                        "\x1b[37;1m %.*s:%d \x1b[36;22m>\x1b[0m ",                            \
-                                        __VA_ARGS__);                                                         \
-            if (__ct_size > 0) {                                                                              \
-                ct_logger_handle(__ct_logger_p, CT_LOG_LEVEL_##__flag, ct_threadcache_get_buffer(__ct_cache), \
-                                 (size_t)__ct_size);                                                          \
-            }                                                                                                 \
-        }                                                                                                     \
-    } while (0)
-
-#define CT_LOG_HEX(__flag, __logger, __buf, __len)                                           \
-    do {                                                                                     \
-        ct_logger_t* __ct_logger_p = (__logger);                                             \
-        if ((__len) > 0 && ct_logger_is_enable(__ct_logger_p, CT_LOG_LEVEL_##__flag)) {      \
-            ct_threadcache_t* __ct_cache       = ct_threadcache_get();                       \
-            char*             __ct_buffer      = ct_threadcache_get_buffer(__ct_cache);      \
-            const size_t      __ct_buffer_size = ct_threadcache_get_buffer_size(__ct_cache); \
-            if (__ct_buffer && __ct_buffer_size >= 3) {                                      \
-                char*          __ct_dst       = __ct_buffer;                                 \
-                const uint8_t* __ct_src       = (const uint8_t*)(__buf);                     \
-                size_t         __ct_available = __ct_buffer_size;                            \
-                const char*    __ct_hex_table = "0123456789ABCDEF";                          \
-                for (size_t __ct_i = 0; __ct_i < (size_t)(__len); ++__ct_i) {                \
-                    if (__ct_available < 3) {                                                \
-                        ct_logger_handle(__ct_logger_p, CT_LOG_LEVEL_##__flag, __ct_buffer,  \
-                                         (size_t)(__ct_dst - __ct_buffer));                  \
-                        __ct_dst       = __ct_buffer;                                        \
-                        __ct_available = __ct_buffer_size;                                   \
-                    }                                                                        \
-                    const uint8_t __ct_byte = __ct_src[__ct_i];                              \
-                    *__ct_dst++             = __ct_hex_table[__ct_byte >> 4];                \
-                    *__ct_dst++             = __ct_hex_table[__ct_byte & 0x0F];              \
-                    if (__ct_i != (size_t)(__len) - 1) {                                     \
-                        *__ct_dst++ = ' ';                                                   \
-                        __ct_available -= 3;                                                 \
-                    } else {                                                                 \
-                        __ct_available -= 2;                                                 \
-                    }                                                                        \
-                }                                                                            \
-                if (__ct_dst > __ct_buffer) {                                                \
-                    ct_logger_handle(__ct_logger_p, CT_LOG_LEVEL_##__flag, __ct_buffer,      \
-                                     (size_t)(__ct_dst - __ct_buffer));                      \
-                }                                                                            \
-            }                                                                                \
-        }                                                                                    \
-    } while (0)
+/**
+ * @brief 全局日志刷新
+ */
+CT_API void ct_log_flush(void);
 
 #ifdef __cplusplus
 }

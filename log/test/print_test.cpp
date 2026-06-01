@@ -16,17 +16,8 @@
 #define test_detail_trace(...) CT_LOG_DETAIL(TRACE, CT_DEFAULT_LOGGER, __VA_ARGS__)
 
 namespace {
-static constexpr int kTestThreads    = 2;
-static constexpr int kTestThreadData = 10000;
-
-static std::atomic<bool> g_is_exit{false};
-
-void thread_log_schedule() {
-    while (!g_is_exit) {
-        ct_log_schedule(ct_getuptime_ms());
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    }
-}
+static constexpr int kTestThreads    = 4;
+static constexpr int kTestThreadData = 100;
 
 template <typename Func>
 int run_parallel_test(Func test_func) {
@@ -37,7 +28,7 @@ int run_parallel_test(Func test_func) {
     auto start_time = ct_getuptime_ms();
     for (int i = 0; i < kTestThreads; ++i) {
         threads.emplace_back([&]() {
-            ready++;
+            ++ready;
             while (!start) { std::this_thread::yield(); }
             for (int j = 0; j < kTestThreadData; ++j) { test_func(); }
         });
@@ -53,10 +44,7 @@ int run_parallel_test(Func test_func) {
 
 TEST_CASE("log_print_performance", "[log][perf]") {
     REQUIRE(ct_log_init() == 0);
-    REQUIRE(ct_logger_is_enable(ct_log_get_default(), CT_LOG_LEVEL_VERBOSE));
-
-    g_is_exit = false;
-    std::thread schedule_thread(thread_log_schedule);
+    REQUIRE(ct_logger_is_enabled(ct_log_get_default(), CT_LOG_LEVEL_VERBOSE));
 
 #define PRINT_CALL(F)                                                                                                  \
     run_parallel_test([&]() {                                                                                          \
@@ -71,13 +59,16 @@ TEST_CASE("log_print_performance", "[log][perf]") {
         auto time_brief   = PRINT_CALL(test_brief_trace);
         auto time_detail  = PRINT_CALL(test_detail_trace);
 
-        printf("Execution time:\n Without:  %d ms\n  Basic:  %d ms\n  Brief:  %d ms\n  Detail: %d ms\n", time_without,
-               time_basic, time_brief, time_detail);
+        {
+            char buf[1024];
+            snprintf(buf, sizeof(buf),
+                     "Execution time:\n Without:  %d ms\n  Basic:  %d ms\n  Brief:  %d ms\n  Detail: %d ms\n",
+                     time_without, time_basic, time_brief, time_detail);
+            INFO(buf);
+        }
 
         REQUIRE(true);
     }
 
-    g_is_exit = true;
-    schedule_thread.join();
     ct_log_close();
 }

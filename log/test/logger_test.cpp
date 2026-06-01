@@ -21,7 +21,9 @@ struct callback_state {
 void collect_log(const ct_log_record_t* record, void* userdata) {
     REQUIRE(record != nullptr);
     REQUIRE(record->data != nullptr);
-    auto* state = static_cast<callback_state*>(userdata);
+    static std::mutex           g_callback_mtx;
+    std::lock_guard<std::mutex> lock(g_callback_mtx);
+    auto*                       state = static_cast<callback_state*>(userdata);
     state->calls++;
     state->bytes += record->size;
     state->last_level = record->level;
@@ -62,15 +64,16 @@ TEST_CASE("log_logger_object_api", "[log]") {
     REQUIRE(ct_logger_add_handler(&logger, ct_log_callback_handler_create(&config)) == 0);
     REQUIRE(ct_logger_register(&logger) == 0);
 
-    REQUIRE(!ct_logger_is_enable(&logger, CT_LOG_LEVEL_TRACE));
+    REQUIRE(!ct_logger_is_enabled(&logger, CT_LOG_LEVEL_TRACE));
 
     ct_logger_set_level(&logger, CT_LOG_LEVEL_VERBOSE);
-    REQUIRE(ct_logger_is_enable(&logger, CT_LOG_LEVEL_TRACE));
+    REQUIRE(ct_logger_is_enabled(&logger, CT_LOG_LEVEL_TRACE));
 
     REQUIRE(ct_logger_add_handler(ct_log_get_default(), ct_log_callback_handler_create(&config)) == -1);
     REQUIRE(ct_logger_add_handler(&logger, ct_log_callback_handler_create(&config)) == -1);
     test_logger_trace(&logger, "object");
 
+    // In Phase 2, dispatcher is async
     REQUIRE(state.calls == 0);
     ct_log_flush();
     REQUIRE(state.calls == 1);
@@ -100,6 +103,7 @@ TEST_CASE("log_default_fallback", "[log]") {
     ct_log_set_default(&logger);
 
     test_trace("abc");
+    // In Phase 2, dispatcher is async
     REQUIRE(state.calls == 0);
 
     ct_log_flush();
@@ -133,7 +137,7 @@ TEST_CASE("log_logger_add_handler_while_writing", "[log]") {
 
     for (int i = 0; i < kThreads; ++i) {
         threads.emplace_back([&]() {
-            ready++;
+            ++ready;
             while (!start) { std::this_thread::sleep_for(std::chrono::milliseconds(1)); }
             for (int j = 0; j < kRecords; ++j) {
                 test_logger_trace(&logger, "line\n");
@@ -185,7 +189,7 @@ TEST_CASE("log_logger_level_is_atomic", "[log]") {
 
     ct_logger_set_level(&logger, CT_LOG_LEVEL_ERROR);
     REQUIRE(ct_logger_get_level(&logger) == CT_LOG_LEVEL_ERROR);
-    REQUIRE(!ct_logger_is_enable(&logger, CT_LOG_LEVEL_TRACE));
+    REQUIRE(!ct_logger_is_enabled(&logger, CT_LOG_LEVEL_TRACE));
 
     ct_log_close();
 }

@@ -5,42 +5,31 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "async_bridge.h"
-#include "coter/bytes/pool.h"
-#include "coter/core/time.h"
 #include "coter/log/handler.h"
+#include "coter/sync/mutex.h"
 #include "rotator.h"
 
 typedef struct ct_log_file_handler {
-    ct_log_handler_t       base;
-    ct_log_rotator_t*      rotator;
-    ct_bytepool_t*         bytepool;
-    ct_log_async_bridge_t* bridge;
-    int                    autosave_interval;
-    ct_time64_t            next_save_time;
+    ct_log_handler_t  base;
+    ct_log_rotator_t* rotator;
+    ct_mutex_t        lock;
 } ct_log_file_handler_t;
 
-static void file_handle(ct_log_handler_t* self, const ct_log_record_t* record);
+static void file_write_batch(ct_log_handler_t* self, const ct_log_record_t* records, size_t count);
 static void file_flush(ct_log_handler_t* self);
-static void file_schedule(ct_log_handler_t* self, ct_time64_t tick);
 static void file_destroy(ct_log_handler_t* self);
-static void file_consume(const char* buf, size_t size, void* ctx);
 
 static const ct_log_handler_vtable_t file_vtable = {
-    .handle   = file_handle,
-    .flush    = file_flush,
-    .schedule = file_schedule,
-    .destroy  = file_destroy,
+    .write_batch = file_write_batch,
+    .flush       = file_flush,
+    .destroy     = file_destroy,
 };
 
 void ct_log_file_handler_config_default(ct_log_file_handler_config_t* config) {
     if (!config) { return; }
     memset(config, 0, sizeof(*config));
-    config->cache_size        = 4 * 1024;
-    config->size_max          = 4 * 1024 * 1024;
-    config->count_max         = 3;
-    config->autosave_interval = 3600;
-    config->max_pending_bytes = 0;
+    config->size_max  = 4 * 1024 * 1024;
+    config->count_max = 3;
 }
 
 ct_log_handler_t* ct_log_file_handler_create(const ct_log_file_handler_config_t* config) {
@@ -64,67 +53,33 @@ ct_log_handler_t* ct_log_file_handler_create(const ct_log_file_handler_config_t*
         return NULL;
     }
 
-    self->bytepool = ct_bytepool_create(64, config->cache_size);
-    if (!self->bytepool) {
-        ct_log_rotator_destroy(self->rotator);
-        free(self);
-        return NULL;
-    }
-
-    self->autosave_interval = config->autosave_interval;
-    self->next_save_time    = ct_getuptime_ms() + ((ct_time64_t)self->autosave_interval * 1000);
-
-    ct_log_async_config_t async_config = {
-        .bytepool          = self->bytepool,
-        .policy            = CT_LOG_ASYNC_POLICY_THRESHOLD,
-        .threshold         = config->cache_size,
-        .max_pending_bytes = config->max_pending_bytes,
-        .consume           = file_consume,
-        .consume_ctx       = self,
-    };
-    self->bridge = ct_log_async_bridge_create(&async_config);
-    if (!self->bridge) {
-        ct_log_rotator_destroy(self->rotator);
-        ct_bytepool_destroy(self->bytepool);
-        free(self);
-        return NULL;
-    }
+    ct_mutex_init(&self->lock);
 
     return &self->base;
 }
 
-static void file_handle(ct_log_handler_t* self, const ct_log_record_t* record) {
+static void file_write_batch(ct_log_handler_t* self, const ct_log_record_t* records, size_t count) {
     ct_log_file_handler_t* handler = (ct_log_file_handler_t*)self;
-    ct_log_async_bridge_push(handler->bridge, record->data, record->size);
+    ct_mutex_lock(&handler->lock);
+    for (size_t i = 0; i < count; ++i) {
+        if (records[i].data && records[i].size > 0) {
+            (void)ct_log_rotator_write(handler->rotator, records[i].data, records[i].size);
+        }
+    }
+    ct_mutex_unlock(&handler->lock);
 }
 
 static void file_flush(ct_log_handler_t* self) {
     ct_log_file_handler_t* handler = (ct_log_file_handler_t*)self;
-    ct_log_async_bridge_flush(handler->bridge);
-    ct_log_async_bridge_schedule(handler->bridge);
+    ct_mutex_lock(&handler->lock);
     ct_log_rotator_flush(handler->rotator);
-}
-
-static void file_schedule(ct_log_handler_t* self, ct_time64_t tick) {
-    ct_log_file_handler_t* handler = (ct_log_file_handler_t*)self;
-    if (tick >= handler->next_save_time) {
-        handler->next_save_time = tick + ((ct_time64_t)handler->autosave_interval * 1000);
-        ct_log_async_bridge_flush(handler->bridge);
-    }
-    ct_log_async_bridge_schedule(handler->bridge);
-    ct_log_rotator_flush(handler->rotator);
+    ct_mutex_unlock(&handler->lock);
 }
 
 static void file_destroy(ct_log_handler_t* self) {
     if (!self) { return; }
     ct_log_file_handler_t* handler = (ct_log_file_handler_t*)self;
-    ct_log_async_bridge_destroy(handler->bridge);
     ct_log_rotator_destroy(handler->rotator);
-    ct_bytepool_destroy(handler->bytepool);
+    ct_mutex_destroy(&handler->lock);
     free(handler);
-}
-
-static void file_consume(const char* buf, size_t size, void* ctx) {
-    ct_log_file_handler_t* handler = (ct_log_file_handler_t*)ctx;
-    (void)ct_log_rotator_write(handler->rotator, buf, size);
 }

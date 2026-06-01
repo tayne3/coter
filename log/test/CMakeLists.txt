@@ -1,27 +1,8 @@
-add_executable(coter_log_callback_test callback_test.cpp)
-add_test(NAME coter_log_callback_test COMMAND coter_log_callback_test)
-target_link_libraries(coter_log_callback_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
-
-add_executable(coter_log_hex_test hex_test.cpp)
-add_test(NAME coter_log_hex_test COMMAND coter_log_hex_test)
-target_link_libraries(coter_log_hex_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
-
-add_executable(coter_log_print_test print_test.cpp)
-add_test(NAME coter_log_print_test COMMAND coter_log_print_test)
-target_link_libraries(coter_log_print_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
-
-add_executable(coter_log_write_test write_test.cpp)
-add_test(NAME coter_log_write_test COMMAND coter_log_write_test)
-target_link_libraries(coter_log_write_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
-
-add_executable(coter_log_logger_test logger_test.cpp)
-add_test(NAME coter_log_logger_test COMMAND coter_log_logger_test)
-target_link_libraries(coter_log_logger_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
-
-add_executable(coter_log_async_bridge_test async_bridge_test.cpp)
-add_test(NAME coter_log_async_bridge_test COMMAND coter_log_async_bridge_test)
-target_link_libraries(coter_log_async_bridge_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
-
-add_executable(coter_log_rotator_test rotator_test.cpp)
-add_test(NAME coter_log_rotator_test COMMAND coter_log_rotator_test)
-target_link_libraries(coter_log_rotator_test PRIVATE coter_compile_dependency coter::coter coter::testing_main)
+file(GLOB_RECURSE SRCS_G CONFIGURE_DEPENDS "*.cpp")
+add_executable(coter_log_test ${SRCS_G})
+add_test(NAME coter_log_test COMMAND coter_log_test)
+target_link_libraries(coter_log_test PRIVATE
+  coter_compile_dependency
+  coter::testing_main
+  coter::coter
+)

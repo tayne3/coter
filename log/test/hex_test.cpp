@@ -37,15 +37,6 @@ struct FileDeleter {
 };
 using FilePtr = std::unique_ptr<FILE, FileDeleter>;
 
-std::atomic<bool> g_is_exit{false};
-
-void thread_log_schedule() {
-    while (!g_is_exit) {
-        ct_log_schedule(ct_getuptime_ms());
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    }
-}
-
 void verify_files_identical(const char* path1, const char* path2) {
     FilePtr f1(std::fopen(path1, "rb"));
     FilePtr f2(std::fopen(path2, "rb"));
@@ -109,17 +100,11 @@ TEST_CASE("log_hex_and_long_text", "[log][hex]") {
             ct_log_file_handler_config_default(&file_config);
             std::strncpy(file_config.dir, kOutputDir, sizeof(file_config.dir) - 1);
             std::strncpy(file_config.name, "with_log", sizeof(file_config.name) - 1);
-            file_config.cache_size        = 10 * 1024;
-            file_config.size_max          = 4 * 1024 * 1024;
-            file_config.count_max         = 3;
-            file_config.autosave_interval = 3600;
-            file_config.max_pending_bytes = 0;
+            file_config.size_max  = 4 * 1024 * 1024;
+            file_config.count_max = 3;
             REQUIRE(ct_logger_add_handler(&logger, ct_log_file_handler_create(&file_config)) == 0);
             ct_logger_register(&logger);
             ct_log_set_default(&logger);
-
-            g_is_exit = false;
-            std::thread schedule_thread(thread_log_schedule);
 
             const uint8_t buf[16] = {0x12, 0x23, 0x34, 0x45, 0x56, 0x67, 0x78, 0x89,
                                      0x9A, 0xAB, 0xBC, 0xCD, 0xDE, 0xEF, 0xF0, 0x01};
@@ -138,8 +123,6 @@ TEST_CASE("log_hex_and_long_text", "[log][hex]") {
                 logFN("\n");
             }
 
-            g_is_exit = true;
-            schedule_thread.join();
             ct_log_close();
         }
 
@@ -177,9 +160,6 @@ TEST_CASE("log_hex_and_long_text", "[log][hex]") {
             ct_logger_register(&logger);
             ct_log_set_default(&logger);
 
-            g_is_exit = false;
-            std::thread schedule_thread(thread_log_schedule);
-
             for (int i = 0; i < 10; ++i) {
                 logVH(long_text.data(), text_size);
                 logVN("\n");
@@ -195,8 +175,6 @@ TEST_CASE("log_hex_and_long_text", "[log][hex]") {
                 logFN("\n");
             }
 
-            g_is_exit = true;
-            schedule_thread.join();
             ct_log_close();
         }
 

@@ -48,7 +48,10 @@ ct_log_rotator_t* ct_log_rotator_create(const ct_log_rotator_config_t* config) {
     self->file_index   = -1;
     self->current_size = 0;
 
-    (void)rotator_file_open_initial(self);
+    if (!rotator_file_open_initial(self)) {
+        free(self);
+        return NULL;
+    }
     return self;
 }
 
@@ -201,7 +204,7 @@ static bool rotator_folder_create_recursive(const char* path) {
     snprintf(tmp, sizeof(tmp), "%s", path);
     len = strlen(tmp);
     if (tmp[len - 1] == STR_SEPARATOR_CHAR) { tmp[len - 1] = 0; }
-    for (p = tmp + 1; *p; p++) {
+    for (p = tmp + 1; *p; ++p) {
         if (*p == STR_SEPARATOR_CHAR) {
             *p = 0;
             ct_mkdir(tmp);
