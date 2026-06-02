@@ -30,11 +30,14 @@
 #   define CT_API
 # endif
 
+# define CT_CXX_98 199711L
+# define CT_CXX_03 199711L
 # define CT_CXX_11 201103L
 # define CT_CXX_14 201402L
 # define CT_CXX_17 201703L
 # define CT_CXX_20 202002L
 # define CT_CXX_23 202302L
+# define CT_CXX_26 202603L
 
 # ifdef __cplusplus
 #   if defined(_MSVC_LANG) && _MSVC_LANG > __cplusplus
