@@ -1,7 +1,6 @@
-#include "common.hpp"
-
-#define CATCH_CONFIG_MAIN
 #include <catch.hpp>
+
+#include "common.hpp"
 
 TEST_CASE("Get/Find Section - Get section creates", "[section_api]") {
     ct_ini_t*         ini = ct_ini_empty();

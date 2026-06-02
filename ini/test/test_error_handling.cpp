@@ -1,7 +1,6 @@
-#include "common.hpp"
-
-#define CATCH_CONFIG_MAIN
 #include <catch.hpp>
+
+#include "common.hpp"
 
 TEST_CASE("Error Codes - Last error after success", "[error_handling]") {
     ct_ini_t* ini = ct_ini_empty();

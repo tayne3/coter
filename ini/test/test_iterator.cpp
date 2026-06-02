@@ -1,7 +1,6 @@
-#include "common.hpp"
-
-#define CATCH_CONFIG_MAIN
 #include <catch.hpp>
+
+#include "common.hpp"
 
 TEST_CASE("Section Iteration - Empty config", "[iterator]") {
     ct_ini_t* ini = ct_ini_empty();

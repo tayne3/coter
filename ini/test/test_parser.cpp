@@ -1,7 +1,6 @@
-#include "common.hpp"
-
-#define CATCH_CONFIG_MAIN
 #include <catch.hpp>
+
+#include "common.hpp"
 
 TEST_CASE("Inline Comments - Semicolon comments", "[parser]") {
     const char* content = "[comments]\n"

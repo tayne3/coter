@@ -1,11 +1,9 @@
+#include <catch.hpp>
 #include <cmath>
 #include <string>
 #include <vector>
 
 #include "common.hpp"
-
-#define CATCH_CONFIG_MAIN
-#include <catch.hpp>
 
 TEST_CASE("C++ API - Basic", "[cpp]") {
     coter::ini::Ini ini;

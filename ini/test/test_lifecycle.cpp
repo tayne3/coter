@@ -1,7 +1,6 @@
-#include "common.hpp"
-
-#define CATCH_CONFIG_MAIN
 #include <catch.hpp>
+
+#include "common.hpp"
 
 TEST_CASE("Create/Destroy - Create from file", "[lifecycle]") {
     ct_ini_t* ini = ct_ini_create(test_res_path("basic.ini"));

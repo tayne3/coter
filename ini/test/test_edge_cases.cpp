@@ -1,7 +1,6 @@
-#include "common.hpp"
-
-#define CATCH_CONFIG_MAIN
 #include <catch.hpp>
+
+#include "common.hpp"
 
 TEST_CASE("Long Strings - Very long key", "[edge_cases]") {
     const size_t SIZE = 10 * 1024;

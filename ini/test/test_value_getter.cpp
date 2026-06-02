@@ -2,10 +2,9 @@
 #include <limits.h>
 #include <math.h>
 
-#include "common.hpp"
-
-#define CATCH_CONFIG_MAIN
 #include <catch.hpp>
+
+#include "common.hpp"
 
 TEST_CASE("String Getters - ct_ini_key_get", "[value_getter]") {
     ct_ini_t*         ini = ct_ini_empty();

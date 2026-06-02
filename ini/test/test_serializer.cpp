@@ -1,7 +1,6 @@
-#include "common.hpp"
-
-#define CATCH_CONFIG_MAIN
 #include <catch.hpp>
+
+#include "common.hpp"
 
 TEST_CASE("Basic Save - Save basic", "[serializer]") {
     const char* path = test_tmp_path("save_basic.ini");
