@@ -42,7 +42,7 @@
 #define FMT_REMOVE_TRANSITIVE_INCLUDES
 #endif
 
-#include "base.h"
+#include "coter/fmt/base.hpp"
 
 // libc++ supports string_view in pre-c++17.
 #if FMT_HAS_INCLUDE(<string_view>) && (FMT_CPLUSPLUS >= 201703L || defined(_LIBCPP_VERSION))
@@ -4093,7 +4093,7 @@ FMT_END_NAMESPACE
 
 // #ifdef FMT_HEADER_ONLY
 #define FMT_FUNC inline
-#include "format-inl.h"
+#include "coter/fmt/format-inl.hpp"
 // #endif
 
 // Restore _LIBCPP_REMOVE_TRANSITIVE_INCLUDES.
