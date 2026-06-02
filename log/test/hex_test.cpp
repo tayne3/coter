@@ -11,19 +11,19 @@
 #include "coter/core/macro.h"
 #include "coter/log/log.h"
 
-#define logVN(...) CT_LOG_BASIC(VERBOSE, CT_DEFAULT_LOGGER, __VA_ARGS__)
-#define logDN(...) CT_LOG_BASIC(DEBUG, CT_DEFAULT_LOGGER, __VA_ARGS__)
-#define logTN(...) CT_LOG_BASIC(TRACE, CT_DEFAULT_LOGGER, __VA_ARGS__)
-#define logWN(...) CT_LOG_BASIC(WARNING, CT_DEFAULT_LOGGER, __VA_ARGS__)
-#define logEN(...) CT_LOG_BASIC(ERROR, CT_DEFAULT_LOGGER, __VA_ARGS__)
-#define logFN(...) CT_LOG_BASIC(FATAL, CT_DEFAULT_LOGGER, __VA_ARGS__)
+#define logVN(...) CT_LOGGER_BASIC(VERBOSE, CT_DEFAULT_LOGGER, __VA_ARGS__)
+#define logDN(...) CT_LOGGER_BASIC(DEBUG, CT_DEFAULT_LOGGER, __VA_ARGS__)
+#define logTN(...) CT_LOGGER_BASIC(TRACE, CT_DEFAULT_LOGGER, __VA_ARGS__)
+#define logWN(...) CT_LOGGER_BASIC(WARNING, CT_DEFAULT_LOGGER, __VA_ARGS__)
+#define logEN(...) CT_LOGGER_BASIC(ERROR, CT_DEFAULT_LOGGER, __VA_ARGS__)
+#define logFN(...) CT_LOGGER_BASIC(FATAL, CT_DEFAULT_LOGGER, __VA_ARGS__)
 
-#define logVH(__buf, __len) CT_LOG_HEX(VERBOSE, CT_DEFAULT_LOGGER, __buf, __len)
-#define logDH(__buf, __len) CT_LOG_HEX(DEBUG, CT_DEFAULT_LOGGER, __buf, __len)
-#define logTH(__buf, __len) CT_LOG_HEX(TRACE, CT_DEFAULT_LOGGER, __buf, __len)
-#define logWH(__buf, __len) CT_LOG_HEX(WARNING, CT_DEFAULT_LOGGER, __buf, __len)
-#define logEH(__buf, __len) CT_LOG_HEX(ERROR, CT_DEFAULT_LOGGER, __buf, __len)
-#define logFH(__buf, __len) CT_LOG_HEX(FATAL, CT_DEFAULT_LOGGER, __buf, __len)
+#define logVH(__buf, __len) CT_LOGGER_HEX(VERBOSE, CT_DEFAULT_LOGGER, __buf, __len)
+#define logDH(__buf, __len) CT_LOGGER_HEX(DEBUG, CT_DEFAULT_LOGGER, __buf, __len)
+#define logTH(__buf, __len) CT_LOGGER_HEX(TRACE, CT_DEFAULT_LOGGER, __buf, __len)
+#define logWH(__buf, __len) CT_LOGGER_HEX(WARNING, CT_DEFAULT_LOGGER, __buf, __len)
+#define logEH(__buf, __len) CT_LOGGER_HEX(ERROR, CT_DEFAULT_LOGGER, __buf, __len)
+#define logFH(__buf, __len) CT_LOGGER_HEX(FATAL, CT_DEFAULT_LOGGER, __buf, __len)
 
 namespace {
 static const char* kOutputDir      = "test_log_out";

@@ -4,7 +4,7 @@
 #include "coter/core/fs.h"
 #include "coter/log/log.h"
 
-#define log_debug(...) CT_LOG_BASIC(DEBUG, CT_DEFAULT_LOGGER, __VA_ARGS__)
+#define log_debug(...) CT_LOGGER_BASIC(DEBUG, CT_DEFAULT_LOGGER, __VA_ARGS__)
 
 int main(void) {
     if (ct_log_init(NULL) != 0) {

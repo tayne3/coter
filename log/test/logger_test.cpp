@@ -8,8 +8,8 @@
 
 #include "coter/log/log.h"
 
-#define test_trace(...)                  CT_LOG_BASIC(TRACE, CT_DEFAULT_LOGGER, __VA_ARGS__)
-#define test_logger_trace(__logger, ...) CT_LOG_BASIC(TRACE, __logger, __VA_ARGS__)
+#define test_trace(...)                  CT_LOGGER_BASIC(TRACE, CT_DEFAULT_LOGGER, __VA_ARGS__)
+#define test_logger_trace(__logger, ...) CT_LOGGER_BASIC(TRACE, __logger, __VA_ARGS__)
 
 namespace {
 struct callback_state {

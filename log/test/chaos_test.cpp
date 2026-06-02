@@ -17,7 +17,7 @@ TEST_CASE("log_chaos_lifecycle", "[log][chaos]") {
         workers.emplace_back([&, i]() {
             while (!stop) {
                 // Logging to default logger
-                CT_LOG_BASIC(TRACE, CT_DEFAULT_LOGGER, "Chaos message from worker %d\n", i);
+                CT_LOGGER_BASIC(TRACE, CT_DEFAULT_LOGGER, "Chaos message from worker %d\n", i);
 
                 // Sabotage: Test custom logger lifecycle within chaos
                 ct_logger_t* temp_logger = (ct_logger_t*)malloc(sizeof(ct_logger_t));
@@ -29,7 +29,7 @@ TEST_CASE("log_chaos_lifecycle", "[log][chaos]") {
                 ct_logger_add_handler(temp_logger, ct_log_console_handler_create(&temp_config));
                 ct_logger_register(temp_logger);
 
-                CT_LOG_BASIC(TRACE, temp_logger, "Sabotage message %d\n", i);
+                CT_LOGGER_BASIC(TRACE, temp_logger, "Sabotage message %d\n", i);
 
                 std::this_thread::yield();
                 ct_logger_close(temp_logger);

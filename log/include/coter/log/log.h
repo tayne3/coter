@@ -38,7 +38,7 @@ extern "C" {
 #define CT_LOG_COLOR_ERROR   "\x1b[31;22m"
 #define CT_LOG_COLOR_FATAL   "\x1b[31;22m"
 
-#define CT_LOG_BASIC(__flag, __logger, ...)                                                     \
+#define CT_LOGGER_BASIC(__flag, __logger, ...)                                                  \
     do {                                                                                        \
         ct_logger_t* ct_logger_p_ = (__logger);                                                 \
         if (ct_logger_is_enabled(ct_logger_p_, CT_LOG_LEVEL_##__flag)) {                        \
@@ -46,14 +46,14 @@ extern "C" {
         }                                                                                       \
     } while (0)
 
-#define CT_LOG_BASIC_VERBOSE(__logger, ...) CT_LOG_BASIC(VERBOSE, (__logger), __VA_ARGS__)
-#define CT_LOG_BASIC_DEBUG(__logger, ...)   CT_LOG_BASIC(DEBUG, (__logger), __VA_ARGS__)
-#define CT_LOG_BASIC_TRACE(__logger, ...)   CT_LOG_BASIC(TRACE, (__logger), __VA_ARGS__)
-#define CT_LOG_BASIC_WARNING(__logger, ...) CT_LOG_BASIC(WARNING, (__logger), __VA_ARGS__)
-#define CT_LOG_BASIC_ERROR(__logger, ...)   CT_LOG_BASIC(ERROR, (__logger), __VA_ARGS__)
-#define CT_LOG_BASIC_FATAL(__logger, ...)   CT_LOG_BASIC(FATAL, (__logger), __VA_ARGS__)
+#define CT_LOGGER_BASIC_VERBOSE(__logger, ...) CT_LOGGER_BASIC(VERBOSE, (__logger), __VA_ARGS__)
+#define CT_LOGGER_BASIC_DEBUG(__logger, ...)   CT_LOGGER_BASIC(DEBUG, (__logger), __VA_ARGS__)
+#define CT_LOGGER_BASIC_TRACE(__logger, ...)   CT_LOGGER_BASIC(TRACE, (__logger), __VA_ARGS__)
+#define CT_LOGGER_BASIC_WARNING(__logger, ...) CT_LOGGER_BASIC(WARNING, (__logger), __VA_ARGS__)
+#define CT_LOGGER_BASIC_ERROR(__logger, ...)   CT_LOGGER_BASIC(ERROR, (__logger), __VA_ARGS__)
+#define CT_LOGGER_BASIC_FATAL(__logger, ...)   CT_LOGGER_BASIC(FATAL, (__logger), __VA_ARGS__)
 
-#define CT_LOG_BRIEF(__flag, __logger, ...)                                                               \
+#define CT_LOGGER_BRIEF(__flag, __logger, ...)                                                            \
     do {                                                                                                  \
         ct_logger_t* ct_logger_p_ = (__logger);                                                           \
         if (ct_logger_is_enabled(ct_logger_p_, CT_LOG_LEVEL_##__flag)) {                                  \
@@ -63,14 +63,14 @@ extern "C" {
         }                                                                                                 \
     } while (0)
 
-#define CT_LOG_BRIEF_VERBOSE(__logger, ...) CT_LOG_BRIEF(VERBOSE, (__logger), __VA_ARGS__)
-#define CT_LOG_BRIEF_DEBUG(__logger, ...)   CT_LOG_BRIEF(DEBUG, (__logger), __VA_ARGS__)
-#define CT_LOG_BRIEF_TRACE(__logger, ...)   CT_LOG_BRIEF(TRACE, (__logger), __VA_ARGS__)
-#define CT_LOG_BRIEF_WARNING(__logger, ...) CT_LOG_BRIEF(WARNING, (__logger), __VA_ARGS__)
-#define CT_LOG_BRIEF_ERROR(__logger, ...)   CT_LOG_BRIEF(ERROR, (__logger), __VA_ARGS__)
-#define CT_LOG_BRIEF_FATAL(__logger, ...)   CT_LOG_BRIEF(FATAL, (__logger), __VA_ARGS__)
+#define CT_LOGGER_BRIEF_VERBOSE(__logger, ...) CT_LOGGER_BRIEF(VERBOSE, (__logger), __VA_ARGS__)
+#define CT_LOGGER_BRIEF_DEBUG(__logger, ...)   CT_LOGGER_BRIEF(DEBUG, (__logger), __VA_ARGS__)
+#define CT_LOGGER_BRIEF_TRACE(__logger, ...)   CT_LOGGER_BRIEF(TRACE, (__logger), __VA_ARGS__)
+#define CT_LOGGER_BRIEF_WARNING(__logger, ...) CT_LOGGER_BRIEF(WARNING, (__logger), __VA_ARGS__)
+#define CT_LOGGER_BRIEF_ERROR(__logger, ...)   CT_LOGGER_BRIEF(ERROR, (__logger), __VA_ARGS__)
+#define CT_LOGGER_BRIEF_FATAL(__logger, ...)   CT_LOGGER_BRIEF(FATAL, (__logger), __VA_ARGS__)
 
-#define CT_LOG_DETAIL(__flag, __logger, ...)                                                               \
+#define CT_LOGGER_DETAIL(__flag, __logger, ...)                                                            \
     do {                                                                                                   \
         ct_logger_t* ct_logger_p_ = (__logger);                                                            \
         if (ct_logger_is_enabled(ct_logger_p_, CT_LOG_LEVEL_##__flag)) {                                   \
@@ -81,14 +81,14 @@ extern "C" {
         }                                                                                                  \
     } while (0)
 
-#define CT_LOG_DETAIL_VERBOSE(__logger, ...) CT_LOG_DETAIL(VERBOSE, (__logger), __VA_ARGS__)
-#define CT_LOG_DETAIL_DEBUG(__logger, ...)   CT_LOG_DETAIL(DEBUG, (__logger), __VA_ARGS__)
-#define CT_LOG_DETAIL_TRACE(__logger, ...)   CT_LOG_DETAIL(TRACE, (__logger), __VA_ARGS__)
-#define CT_LOG_DETAIL_WARNING(__logger, ...) CT_LOG_DETAIL(WARNING, (__logger), __VA_ARGS__)
-#define CT_LOG_DETAIL_ERROR(__logger, ...)   CT_LOG_DETAIL(ERROR, (__logger), __VA_ARGS__)
-#define CT_LOG_DETAIL_FATAL(__logger, ...)   CT_LOG_DETAIL(FATAL, (__logger), __VA_ARGS__)
+#define CT_LOGGER_DETAIL_VERBOSE(__logger, ...) CT_LOGGER_DETAIL(VERBOSE, (__logger), __VA_ARGS__)
+#define CT_LOGGER_DETAIL_DEBUG(__logger, ...)   CT_LOGGER_DETAIL(DEBUG, (__logger), __VA_ARGS__)
+#define CT_LOGGER_DETAIL_TRACE(__logger, ...)   CT_LOGGER_DETAIL(TRACE, (__logger), __VA_ARGS__)
+#define CT_LOGGER_DETAIL_WARNING(__logger, ...) CT_LOGGER_DETAIL(WARNING, (__logger), __VA_ARGS__)
+#define CT_LOGGER_DETAIL_ERROR(__logger, ...)   CT_LOGGER_DETAIL(ERROR, (__logger), __VA_ARGS__)
+#define CT_LOGGER_DETAIL_FATAL(__logger, ...)   CT_LOGGER_DETAIL(FATAL, (__logger), __VA_ARGS__)
 
-#define CT_LOG_HEX(__flag, __logger, __buf, __len)                                        \
+#define CT_LOGGER_HEX(__flag, __logger, __buf, __len)                                     \
     do {                                                                                  \
         ct_logger_t* ct_logger_p_ = (__logger);                                           \
         if ((__len) > 0 && ct_logger_is_enabled(ct_logger_p_, CT_LOG_LEVEL_##__flag)) {   \
@@ -96,12 +96,12 @@ extern "C" {
         }                                                                                 \
     } while (0)
 
-#define CT_LOG_HEX_VERBOSE(__logger, __buf, __len) CT_LOG_HEX(VERBOSE, (__logger), (__buf), (__len))
-#define CT_LOG_HEX_DEBUG(__logger, __buf, __len)   CT_LOG_HEX(DEBUG, (__logger), (__buf), (__len))
-#define CT_LOG_HEX_TRACE(__logger, __buf, __len)   CT_LOG_HEX(TRACE, (__logger), (__buf), (__len))
-#define CT_LOG_HEX_WARNING(__logger, __buf, __len) CT_LOG_HEX(WARNING, (__logger), (__buf), (__len))
-#define CT_LOG_HEX_ERROR(__logger, __buf, __len)   CT_LOG_HEX(ERROR, (__logger), (__buf), (__len))
-#define CT_LOG_HEX_FATAL(__logger, __buf, __len)   CT_LOG_HEX(FATAL, (__logger), (__buf), (__len))
+#define CT_LOGGER_HEX_VERBOSE(__logger, __buf, __len) CT_LOGGER_HEX(VERBOSE, (__logger), (__buf), (__len))
+#define CT_LOGGER_HEX_DEBUG(__logger, __buf, __len)   CT_LOGGER_HEX(DEBUG, (__logger), (__buf), (__len))
+#define CT_LOGGER_HEX_TRACE(__logger, __buf, __len)   CT_LOGGER_HEX(TRACE, (__logger), (__buf), (__len))
+#define CT_LOGGER_HEX_WARNING(__logger, __buf, __len) CT_LOGGER_HEX(WARNING, (__logger), (__buf), (__len))
+#define CT_LOGGER_HEX_ERROR(__logger, __buf, __len)   CT_LOGGER_HEX(ERROR, (__logger), (__buf), (__len))
+#define CT_LOGGER_HEX_FATAL(__logger, __buf, __len)   CT_LOGGER_HEX(FATAL, (__logger), (__buf), (__len))
 
 /**
  * @brief Global log system configuration.

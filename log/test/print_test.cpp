@@ -11,9 +11,9 @@
 #include "coter/core/macro.h"
 #include "coter/log/log.h"
 
-#define test_basic_trace(...)  CT_LOG_BASIC(TRACE, CT_DEFAULT_LOGGER, __VA_ARGS__)
-#define test_brief_trace(...)  CT_LOG_BRIEF(TRACE, CT_DEFAULT_LOGGER, __VA_ARGS__)
-#define test_detail_trace(...) CT_LOG_DETAIL(TRACE, CT_DEFAULT_LOGGER, __VA_ARGS__)
+#define test_basic_trace(...)  CT_LOGGER_BASIC(TRACE, CT_DEFAULT_LOGGER, __VA_ARGS__)
+#define test_brief_trace(...)  CT_LOGGER_BRIEF(TRACE, CT_DEFAULT_LOGGER, __VA_ARGS__)
+#define test_detail_trace(...) CT_LOGGER_DETAIL(TRACE, CT_DEFAULT_LOGGER, __VA_ARGS__)
 
 namespace {
 static constexpr int kTestThreads    = 4;

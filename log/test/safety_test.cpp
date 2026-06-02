@@ -61,7 +61,7 @@ TEST_CASE("log_safety_lifecycle", "[log][safety]") {
             ct_logger_add_handler(temp_logger, ct_log_callback_handler_create(&temp_config));
             ct_logger_register(temp_logger);
 
-            CT_LOG_BASIC(TRACE, temp_logger, "Sabotage message %d\n", i);
+            CT_LOGGER_BASIC(TRACE, temp_logger, "Sabotage message %d\n", i);
 
             std::this_thread::yield();
             ct_logger_close(temp_logger);
@@ -71,7 +71,7 @@ TEST_CASE("log_safety_lifecycle", "[log][safety]") {
     });
 
     // 3. Fire many logs on main thread
-    for (int i = 0; i < 100; ++i) { CT_LOG_BASIC(TRACE, logger, "Safety test message %d\n", i); }
+    for (int i = 0; i < 100; ++i) { CT_LOGGER_BASIC(TRACE, logger, "Safety test message %d\n", i); }
 
     // 4. Immediately close the primary logger while logs are still in flight
     ct_logger_close(logger);

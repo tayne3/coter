@@ -5,7 +5,7 @@
 ## 架构
 
 ```sh
-用户宏 (CT_LOG_BRIEF_* / CT_LOG_DETAIL_* / ...)
+用户宏 (CT_LOGGER_BRIEF_* / CT_LOGGER_DETAIL_* / ...)
        │
        ▼
   ct_log_tls_output()         公开 API 入口
@@ -32,7 +32,7 @@
 int main(void) {
     ct_log_init();
 
-    CT_LOG_BRIEF_DEBUG(CT_DEFAULT_LOGGER, "Hello %s", "world");
+    CT_LOGGER_BRIEF_DEBUG(CT_DEFAULT_LOGGER, "Hello %s", "world");
 
     ct_log_close();
     return 0;
@@ -54,7 +54,7 @@ ct_log_handler_t* handler = ct_log_console_handler_create(&config);
 ct_logger_add_handler(&my_logger, handler);
 ct_logger_register(&my_logger);
 
-CT_LOG_BRIEF_DEBUG(&my_logger, "custom logger");
+CT_LOGGER_BRIEF_DEBUG(&my_logger, "custom logger");
 ```
 
 一个 Logger 可挂载多个 Handler，日志会同时写入所有已注册的 Handler。
@@ -105,13 +105,13 @@ ct_log_handler_t* handler = ct_log_callback_handler_create(&config);
 
 | 样式 | 宏前缀 | 输出格式 |
 | ------ | --- | --- |
-| BASIC | `CT_LOG_BASIC_*` | 纯消息，无前缀 |
-| BRIEF | `CT_LOG_BRIEF_*` | `时间 线程ID 级别 消息` |
-| DETAIL | `CT_LOG_DETAIL_*` | `时间 线程ID 级别 文件:行号 > 消息` |
+| BASIC | `CT_LOGGER_BASIC_*` | 纯消息，无前缀 |
+| BRIEF | `CT_LOGGER_BRIEF_*` | `时间 线程ID 级别 消息` |
+| DETAIL | `CT_LOGGER_DETAIL_*` | `时间 线程ID 级别 文件:行号 > 消息` |
 
-每种样式对应六个级别的便捷宏：`CT_LOG_BRIEF_VERBOSE`、`CT_LOG_BRIEF_DEBUG`、……、`CT_LOG_BRIEF_FATAL`。
+每种样式对应六个级别的便捷宏：`CT_LOGGER_BRIEF_VERBOSE`、`CT_LOGGER_BRIEF_DEBUG`、……、`CT_LOGGER_BRIEF_FATAL`。
 
-另有 `CT_LOG_HEX_*` 系列宏用于十六进制 dump。
+另有 `CT_LOGGER_HEX_*` 系列宏用于十六进制 dump。
 
 ## API 参考
 

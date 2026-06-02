@@ -41,7 +41,7 @@ TEST_CASE("log_exhaustion_oversized", "[log][exhaustion]") {
     huge_str.back() = '\0';
 
     // This should trigger the fallback truncation logic in tls.c without crashing
-    CT_LOG_BASIC(TRACE, &logger, "%s\n", huge_str.data());
+    CT_LOGGER_BASIC(TRACE, &logger, "%s\n", huge_str.data());
 
     ct_log_flush();
 

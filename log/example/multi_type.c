@@ -6,8 +6,8 @@
 
 static ct_logger_t audit_logger[1];
 
-#define app_debug(...)   CT_LOG_BASIC_DEBUG(CT_DEFAULT_LOGGER, __VA_ARGS__)
-#define audit_debug(...) CT_LOG_BASIC_DEBUG(audit_logger, __VA_ARGS__)
+#define app_debug(...)   CT_LOGGER_BASIC_DEBUG(CT_DEFAULT_LOGGER, __VA_ARGS__)
+#define audit_debug(...) CT_LOGGER_BASIC_DEBUG(audit_logger, __VA_ARGS__)
 
 int main(void) {
     if (ct_log_init(NULL) != 0) {
