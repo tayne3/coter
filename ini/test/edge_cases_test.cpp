@@ -141,7 +141,7 @@ TEST_CASE("Bulk Operations - Many keys in section", "[edge_cases]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Bulk Operations - Many sections", "[edge_cases]") {
+TEST_CASE("Bulk Operations - Massive section count", "[edge_cases]") {
     ct_ini_t* ini = ct_ini_empty();
 
     for (int i = 0; i < 500; i++) {
