@@ -19,12 +19,11 @@
 // -------------------------[STATIC DECLARATION]-------------------------
 
 /**
- * @brief 将大端数据转换为小端数据
- * @param buf 数据缓冲区
- * @param longs 数据长度
- * @note 该函数只在大端字节序的系统下进行转换
+ * @brief 从字节缓冲区读取 little-endian 32 位整数
+ * @param p 字节缓冲区
  */
-static void ct_md5_byte_reverse(uint8_t* buf, unsigned longs);
+static uint32_t ct_md5_load_le32(const uint8_t* p);
+static void     ct_md5_store_le32(uint8_t* p, uint32_t v);
 
 /**
  * @brief MD5算法的转换函数
@@ -32,7 +31,7 @@ static void ct_md5_byte_reverse(uint8_t* buf, unsigned longs);
  * @param in 输入数据
  * @note 该函数用于执行MD5算法的转换步骤
  */
-static void ct_md5_transform(uint32_t buf[4], uint32_t const in[16]);
+static void ct_md5_transform(uint32_t buf[4], const uint8_t block[64]);
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
@@ -65,8 +64,7 @@ void ct_md5_update(ct_md5_ctx_t* self, const void* data, size_t len) {
                 return;
             }
             memcpy(p, buf, t);
-            ct_md5_byte_reverse(self->in, 16);
-            ct_md5_transform(self->buf, (uint32_t*)self->in);
+            ct_md5_transform(self->buf, self->in);
             buf += t;
             len -= t;
         }
@@ -74,8 +72,7 @@ void ct_md5_update(ct_md5_ctx_t* self, const void* data, size_t len) {
 
     for (; len >= 64;) {
         memcpy(self->in, buf, 64);
-        ct_md5_byte_reverse(self->in, 16);
-        ct_md5_transform(self->buf, (uint32_t*)self->in);
+        ct_md5_transform(self->buf, self->in);
         buf += 64;
         len -= 64;
     }
@@ -91,42 +88,38 @@ void ct_md5_final(ct_md5_ctx_t* self, uint8_t digest[16]) {
         count              = 64 - 1 - count;
         if (count < 8) {
             memset(p, 0, count);
-            ct_md5_byte_reverse(self->in, 16);
-            ct_md5_transform(self->buf, (uint32_t*)self->in);
+            ct_md5_transform(self->buf, self->in);
             memset(self->in, 0, 56);
         } else {
             memset(p, 0, count - 8);
         }
-        ct_md5_byte_reverse(self->in, 14);
     }
 
-    {
-        uint32_t* a = (uint32_t*)self->in;
-        a[14]       = self->bits[0];
-        a[15]       = self->bits[1];
-    }
+    ct_md5_store_le32(self->in + 56, self->bits[0]);
+    ct_md5_store_le32(self->in + 60, self->bits[1]);
 
-    ct_md5_transform(self->buf, (uint32_t*)self->in);
-    ct_md5_byte_reverse((uint8_t*)self->buf, 4);
-    memcpy(digest, self->buf, 16);
+    ct_md5_transform(self->buf, self->in);
+    ct_md5_store_le32(digest, self->buf[0]);
+    ct_md5_store_le32(digest + 4, self->buf[1]);
+    ct_md5_store_le32(digest + 8, self->buf[2]);
+    ct_md5_store_le32(digest + 12, self->buf[3]);
     memset((char*)self, 0, sizeof(*self));
 }
 
 // -------------------------[STATIC DEFINITION]-------------------------
 
-static void ct_md5_byte_reverse(uint8_t* buf, unsigned longs) {
-#if CT_ENDIAN_IS_BIG
-    do {
-        *(uint32_t*)buf = (uint32_t)((unsigned)buf[3] << 8 | buf[2]) << 16 | ((unsigned)buf[1] << 8 | buf[0]);
-        buf += 4;
-    } while (--longs);
-#else
-    CT_UNUSED(buf);
-    CT_UNUSED(longs);
-#endif
+static uint32_t ct_md5_load_le32(const uint8_t* p) {
+    return ((uint32_t)p[0]) | ((uint32_t)p[1] << 8) | ((uint32_t)p[2] << 16) | ((uint32_t)p[3] << 24);
 }
 
-static void ct_md5_transform(uint32_t buf[4], uint32_t const in[16]) {
+static void ct_md5_store_le32(uint8_t* p, uint32_t v) {
+    p[0] = (uint8_t)(v);
+    p[1] = (uint8_t)(v >> 8);
+    p[2] = (uint8_t)(v >> 16);
+    p[3] = (uint8_t)(v >> 24);
+}
+
+static void ct_md5_transform(uint32_t buf[4], const uint8_t block[64]) {
 #define F1(x, y, z) (z ^ (x & (y ^ z)))
 #define F2(x, y, z) F1(z, x, y)
 #define F3(x, y, z) (x ^ y ^ z)
@@ -135,6 +128,10 @@ static void ct_md5_transform(uint32_t buf[4], uint32_t const in[16]) {
 #define MD5STEP(f, w, x, y, z, data, s) (w += f(x, y, z) + data, w = w << s | w >> (32 - s), w += x)
 
     uint32_t a, b, c, d;
+    uint32_t in[16];
+    int      i;
+
+    for (i = 0; i < 16; ++i) { in[i] = ct_md5_load_le32(block + i * 4); }
 
     a = buf[0];
     b = buf[1];
