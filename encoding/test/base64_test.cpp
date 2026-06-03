@@ -36,7 +36,7 @@ TEST_CASE("base64_decode", "[base64]") {
         const auto&  it     = ct_base64_test_all[i];
         const size_t length = std::strlen(it.target);
         ct_base64_decode(it.target, length, buf, sizeof(buf));
-        REQUIRE(std::strcmp(buf, it.source) == 0);
+        REQUIRE(strcmp(buf, it.source) == 0);
     }
 }
 
@@ -57,10 +57,10 @@ TEST_CASE("base64_encode", "[base64]") {
         size_t n = 0;
         for (size_t j = 0; j < length; ++j) { n = ct_base64_update(it.source[j], buf, n); }
         n = ct_base64_final(buf, n);
-        REQUIRE(std::strcmp(buf, it.target) == 0);
+        REQUIRE(strcmp(buf, it.target) == 0);
 
         ct_base64_encode((uint8_t*)it.source, length, buf, sizeof(buf));
-        REQUIRE(std::strcmp(buf, it.target) == 0);
+        REQUIRE(strcmp(buf, it.target) == 0);
 
         REQUIRE(n == CT_BASE64_ENCODE_LENGTH(length));
     }

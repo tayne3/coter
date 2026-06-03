@@ -1,6 +1,7 @@
 #include "coter/time/cron.h"
 
 #include <catch.hpp>
+#include <cstring>
 
 #include "coter/core/macro.h"
 #include "coter/sync/atomic.h"

@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <catch.hpp>
+#include <cstring>
 #include <vector>
 
 static int int_cmp(const void* a, const void* b) {

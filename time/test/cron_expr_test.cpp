@@ -1,4 +1,5 @@
 #include <catch.hpp>
+#include <cstring>
 
 #include "coter/time/cron.h"
 

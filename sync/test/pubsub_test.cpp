@@ -38,7 +38,7 @@ static void handler_data_check(uint32_t type, void* data, void* user_data) {
     if (!ctx) { return; }
     ctx->count_c++;
     const char* expected_data = "hello";
-    if (type == EVENT_TYPE_C && data && std::strcmp((const char*)data, expected_data) == 0) {
+    if (type == EVENT_TYPE_C && data && strcmp((const char*)data, expected_data) == 0) {
         ctx->is_expected = true;
     } else {
         ctx->is_expected = false;

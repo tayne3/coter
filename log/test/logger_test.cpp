@@ -90,7 +90,7 @@ TEST_CASE("log_logger_object_api", "[log]") {
     REQUIRE(state.calls == 1);
     REQUIRE(state.bytes == 6);
     REQUIRE(state.last_level == CT_LOG_LEVEL_TRACE);
-    REQUIRE(std::strcmp(state.data, "object") == 0);
+    REQUIRE(strcmp(state.data, "object") == 0);
 }
 
 TEST_CASE("log_unstarted_logger_uses_sync_path", "[log]") {

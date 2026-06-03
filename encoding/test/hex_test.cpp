@@ -8,15 +8,15 @@ TEST_CASE("hex_encode", "[hex]") {
     uint8_t data[] = {0x48, 0x65, 0x6c, 0x6c, 0x6f};
     int     len    = ct_hex_encode(data, sizeof(data), output, sizeof(output));
     REQUIRE(len == 10);
-    REQUIRE(std::strcmp(output, "48656c6c6f") == 0);
+    REQUIRE(strcmp(output, "48656c6c6f") == 0);
     char small_output[11];
     len = ct_hex_encode(data, sizeof(data), small_output, 11);
     REQUIRE(len == 10);
-    REQUIRE(std::strcmp(small_output, "48656c6c6f") == 0);
+    REQUIRE(strcmp(small_output, "48656c6c6f") == 0);
     char tiny_output[5];
     len = ct_hex_encode(data, sizeof(data), tiny_output, 5);
     REQUIRE(len == 4);
-    REQUIRE(std::strcmp(tiny_output, "4865") == 0);
+    REQUIRE(strcmp(tiny_output, "4865") == 0);
 }
 
 TEST_CASE("hex_decode", "[hex]") {

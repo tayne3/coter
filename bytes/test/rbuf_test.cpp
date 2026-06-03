@@ -1,6 +1,7 @@
 #include "coter/bytes/rbuf.h"
 
 #include <catch.hpp>
+#include <cstring>
 
 #define TEST_BUF_CAPACITY 16
 
