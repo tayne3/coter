@@ -24,8 +24,14 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
   endif()
 
-  if(NOT DEFINED ENV{CPM_SOURCE_CACHE})
-    set(ENV{CPM_SOURCE_CACHE} ${CMAKE_SOURCE_DIR}/cmake_modules)
+  # Enable Link-Time Optimization (LTO/IPO) for Release configurations if supported
+  if(NOT (CMAKE_COMPILER_IS_GNUCXX AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.0))
+    include(CheckIPOSupported)
+    check_ipo_supported(RESULT _lto_supported LANGUAGES C CXX)
+    if(_lto_supported)
+      set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
+      set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELWITHDEBINFO TRUE)
+    endif()
   endif()
     
   if(NOT DEFINED CMAKE_C_VISIBILITY_PRESET)
@@ -82,66 +88,64 @@ if(WIN32)
   endif()
 endif()
 
-if(CMAKE_C_COMPILER_ID STREQUAL "MSVC")
+if(MSVC)
   target_compile_options(coter_compile_dependency INTERFACE 
-    "$<$<COMPILE_LANGUAGE:C>:/utf-8>"   # UTF-8 source and execution character set
-    "$<$<COMPILE_LANGUAGE:C>:/wd4018>"  # signed/unsigned comparison
-    "$<$<COMPILE_LANGUAGE:C>:/wd4100>"  # unused parameter
-    "$<$<COMPILE_LANGUAGE:C>:/wd4102>"  # unreferenced label
-    "$<$<COMPILE_LANGUAGE:C>:/wd4244>"  # conversion with possible loss of data
-    "$<$<COMPILE_LANGUAGE:C>:/wd4267>"  # 64-bit to 32-bit conversion
-    "$<$<COMPILE_LANGUAGE:C>:/wd4819>"  # Unicode character issues
-    "$<$<COMPILE_LANGUAGE:C>:/wd4996>"  # deprecated function warnings
-	)
-endif()
-if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-  target_compile_options(coter_compile_dependency INTERFACE
 		"$<$<COMPILE_LANGUAGE:CXX>:/Zc:__cplusplus>"
-    "$<$<COMPILE_LANGUAGE:CXX>:/utf-8>"   # UTF-8 source and execution character set
-    "$<$<COMPILE_LANGUAGE:CXX>:/wd4018>"  # signed/unsigned comparison
-    "$<$<COMPILE_LANGUAGE:CXX>:/wd4100>"  # unused parameter
-    "$<$<COMPILE_LANGUAGE:CXX>:/wd4102>"  # unreferenced label
-    "$<$<COMPILE_LANGUAGE:CXX>:/wd4244>"  # conversion with possible loss of data
-    "$<$<COMPILE_LANGUAGE:CXX>:/wd4267>"  # 64-bit to 32-bit conversion
-    "$<$<COMPILE_LANGUAGE:CXX>:/wd4819>"  # Unicode character issues
-    "$<$<COMPILE_LANGUAGE:CXX>:/wd4996>"  # deprecated function warnings
+    "$<$<COMPILE_LANGUAGE:C>:/utf-8>"   # UTF-8 source and execution character set
+    "$<$<COMPILE_LANGUAGE:CXX>:/utf-8>"
+    "$<$<COMPILE_LANGUAGE:C>:/wd4018>"  # signed/unsigned comparison
+    "$<$<COMPILE_LANGUAGE:CXX>:/wd4018>" 
+    "$<$<COMPILE_LANGUAGE:C>:/wd4100>"  # unused parameter
+    "$<$<COMPILE_LANGUAGE:CXX>:/wd4100>"
+    "$<$<COMPILE_LANGUAGE:C>:/wd4102>"  # unreferenced label
+    "$<$<COMPILE_LANGUAGE:CXX>:/wd4102>"
+    "$<$<COMPILE_LANGUAGE:C>:/wd4244>"  # conversion with possible loss of data
+    "$<$<COMPILE_LANGUAGE:CXX>:/wd4244>"
+    "$<$<COMPILE_LANGUAGE:C>:/wd4267>"  # 64-bit to 32-bit conversion
+    "$<$<COMPILE_LANGUAGE:CXX>:/wd4267>" 
+    "$<$<COMPILE_LANGUAGE:C>:/wd4819>"  # Unicode character issues
+    "$<$<COMPILE_LANGUAGE:CXX>:/wd4819>"
+    "$<$<COMPILE_LANGUAGE:C>:/wd4996>"  # deprecated function warnings
+    "$<$<COMPILE_LANGUAGE:CXX>:/wd4996>"
 	)
+else()
+  target_compile_options(coter_compile_dependency INTERFACE
+    "$<$<COMPILE_LANGUAGE:C>:-fmacro-prefix-map=${CMAKE_SOURCE_DIR}/=/>"
+    "$<$<COMPILE_LANGUAGE:CXX>:-fmacro-prefix-map=${CMAKE_SOURCE_DIR}/=/>"
+  )
 endif()
 
-# compiler warnings, skipped for MSVC & ClangCL (MSVC frontend)
-if(NOT (CMAKE_C_COMPILER_ID STREQUAL "MSVC" OR ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang" AND "${CMAKE_C_COMPILER_FRONTEND_VARIANT}" STREQUAL "MSVC")))
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
+  set(_is_clangcl TRUE)
+else()
+  set(_is_clangcl FALSE)
+endif()
+
+if(NOT MSVC AND NOT _is_clangcl)
   target_compile_options(coter_compile_dependency INTERFACE
     "$<$<COMPILE_LANGUAGE:C>:-Wall>"
     "$<$<COMPILE_LANGUAGE:C>:-Wextra>"
-  )
-  check_c_compiler_flag("-Werror=return-type" HAVE_C_WERROR_RETURN_TYPE)
-  if(HAVE_C_WERROR_RETURN_TYPE)
-    target_compile_options(coter_compile_dependency INTERFACE
-      "$<$<COMPILE_LANGUAGE:C>:-Werror=return-type>"
-    )
-  endif()
-endif()
-if(NOT (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" OR ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" AND "${CMAKE_CXX_COMPILER_FRONTEND_VARIANT}" STREQUAL "MSVC")))
-  target_compile_options(coter_compile_dependency INTERFACE
     "$<$<COMPILE_LANGUAGE:CXX>:-Wall>"
     "$<$<COMPILE_LANGUAGE:CXX>:-Wextra>"
   )
-  check_cxx_compiler_flag("-Werror=return-type" HAVE_CXX_WERROR_RETURN_TYPE)
-  if(HAVE_CXX_WERROR_RETURN_TYPE)
+
+  # Probe once via the C driver: on any GCC/Clang toolchain the C and CXX
+  # drivers share the same -W flag set, so a single check covers both.
+  include(CheckCCompilerFlag)
+  check_c_compiler_flag("-Werror=return-type" HAVE_WERROR_RETURN_TYPE)
+  if(HAVE_WERROR_RETURN_TYPE)
     target_compile_options(coter_compile_dependency INTERFACE
+      "$<$<COMPILE_LANGUAGE:C>:-Werror=return-type>"
       "$<$<COMPILE_LANGUAGE:CXX>:-Werror=return-type>"
     )
   endif()
-endif()
 
-# Handle -Wno-missing-field-initializers for older GCC
-if(CMAKE_C_COMPILER_ID STREQUAL "GNU" AND CMAKE_C_COMPILER_VERSION VERSION_LESS 6.0)
-  target_compile_options(coter_compile_dependency INTERFACE 
-		"$<$<COMPILE_LANGUAGE:C>:-Wno-missing-field-initializers>"
-	)
-endif()
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 6.0)
-  target_compile_options(coter_compile_dependency INTERFACE 
-		"$<$<COMPILE_LANGUAGE:CXX>:-Wno-missing-field-initializers>"
-	)
+  # GCC < 6.0 incorrectly fires -Wmissing-field-initializers on valid C99
+  # designated / partial initializers. The false positive was fixed in GCC 6.
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "6.0")
+    target_compile_options(coter_compile_dependency INTERFACE
+      "$<$<COMPILE_LANGUAGE:C>:-Wno-missing-field-initializers>"
+      "$<$<COMPILE_LANGUAGE:CXX>:-Wno-missing-field-initializers>"
+    )
+  endif()
 endif()
