@@ -39,8 +39,8 @@ typedef volatile long               ct_atomic_int_t;
 typedef volatile unsigned long      ct_atomic_uint_t;
 typedef volatile long               ct_atomic_long_t;
 typedef volatile unsigned long      ct_atomic_ulong_t;
-typedef volatile long long          __ct_aligned__(8) ct_atomic_llong_t;
-typedef volatile unsigned long long __ct_aligned__(8) ct_atomic_ullong_t;
+typedef volatile long long          CT_ATTR_ALIGNED(8) ct_atomic_llong_t;
+typedef volatile unsigned long long CT_ATTR_ALIGNED(8) ct_atomic_ullong_t;
 typedef void* volatile ct_atomic_ptr_t;
 
 #define CT_ATOMIC_VAR_INIT(value) (value)

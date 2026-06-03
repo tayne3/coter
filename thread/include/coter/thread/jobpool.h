@@ -24,7 +24,7 @@ typedef struct ct_jobpool ct_jobpool_t;
  * @param attr 线程属性 (NULL 则使用默认属性)
  * @return 返回新创建的任务池指针，如果创建失败则返回空指针
  */
-CT_API ct_jobpool_t* ct_jobpool_create(size_t thread_max, size_t job_max) __ct_throw;
+CT_API ct_jobpool_t* ct_jobpool_create(size_t thread_max, size_t job_max) CT_ATTR_THROW;
 
 /**
  * @brief 销毁任务池

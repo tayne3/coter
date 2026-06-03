@@ -7,11 +7,25 @@
 
 #include <stdarg.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "coter/core/macro.h"
 
 #ifdef __cplusplus
 extern "C" {
+#endif
+
+#ifdef _MSC_VER
+#define ct_strcasecmp  _stricmp
+#define ct_strncasecmp _strnicmp
+#define ct_stricmp     _stricmp
+#define ct_strnicmp    _strnicmp
+#else
+#include <strings.h>
+#define ct_strcasecmp  strcasecmp
+#define ct_strncasecmp strncasecmp
+#define ct_stricmp     strcasecmp
+#define ct_strnicmp    strncasecmp
 #endif
 
 /// @brief Format string with buffer size limit.
@@ -74,16 +88,73 @@ CT_INLINE void* ct_memrchr(const void* __s, int __c, size_t __n) {
 }
 #endif
 
-/// @brief Extract filename from file path
-/// @param path File path
-/// @return Pointer to filename after last separator, or path if no separator found
-/// @note Undefined behavior if path is NULL
-CT_INLINE const char* ct_basename(const char* path) {
-    const char* filename = strrchr(path, STR_SEPARATOR_CHAR);
-    return filename ? filename + 1 : path;
-}
-
 #ifdef __cplusplus
 }
 #endif
+
+#if defined(__cplusplus) && CT_CXX_STANDARD >= CT_CXX_14
+constexpr const char* ct_basename(const char* path) noexcept {
+    if (!path) return "(nil)";
+    const char* result = path;
+    for (const char* p = path; *p; ++p) {
+#ifdef CT_OS_WIN
+        if (*p == '/' || *p == '\\')
+#else
+        if (*p == '/')
+#endif
+        {
+            result = p + 1;
+        }
+    }
+    return result;
+}
+#elif defined(__cplusplus) && CT_CXX_STANDARD >= CT_CXX_11
+namespace coter {
+namespace detail {
+    constexpr const char* ct_basename_impl(const char* p, const char* last) noexcept {
+#ifdef CT_OS_WIN
+        return (*p == '\0')              ? last :
+               (*p == '/' || *p == '\\') ? ct_basename_impl(p + 1, p + 1) :
+                                           ct_basename_impl(p + 1, last);
+#else
+        return (*p == '\0') ? last : (*p == '/') ? ct_basename_impl(p + 1, p + 1) : ct_basename_impl(p + 1, last);
+#endif
+    }
+}  // namespace detail
+}  // namespace coter
+constexpr const char* ct_basename(const char* path) noexcept {
+    return (path == nullptr) ? "(nil)" : coter::detail::ct_basename_impl(path, path);
+}
+#else
+#ifdef __cplusplus
+extern "C" {
+#endif
+CT_INLINE CT_ATTR_PURE const char* ct_basename(const char* path) {
+    if (!path) { return "(nil)"; }
+    const char* result = path;
+    const char* p;
+    for (p = path; *p; ++p) {
+#ifdef CT_OS_WIN
+        if (*p == '/' || *p == '\\')
+#else
+        if (*p == '/')
+#endif
+        {
+            result = p + 1;
+        }
+    }
+    return result;
+}
+#ifdef __cplusplus
+}
+#endif
+#endif
+
+// Filename without path.
+#if defined(__clang__) || (defined(__GNUC__) && __GNUC__ >= 12)
+#define CT_FILE_NAME __FILE_NAME__
+#else
+#define CT_FILE_NAME ct_basename(CT_FILE)
+#endif
+
 #endif  // COTER_CORE_STRINGS_H

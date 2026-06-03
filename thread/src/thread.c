@@ -1,6 +1,7 @@
 #include "coter/thread/thread.h"
 
 #include <errno.h>
+#include <string.h>
 
 #include "coter/core/platform.h"
 

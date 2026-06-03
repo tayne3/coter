@@ -137,8 +137,8 @@ void ct_cron_mgr_close(void) {
 }
 
 static int cron__compare(const ct_heap_node_t* a, const ct_heap_node_t* b) {
-    const ct_cron_t* l = CONTAINER_OF(a, ct_cron_t, node);
-    const ct_cron_t* r = CONTAINER_OF(b, ct_cron_t, node);
+    const ct_cron_t* l = CT_CONTAINER_OF(a, ct_cron_t, node);
+    const ct_cron_t* r = CT_CONTAINER_OF(b, ct_cron_t, node);
     if (l->next_time < r->next_time) { return -1; }
     if (l->next_time > r->next_time) { return 1; }
     return 0;

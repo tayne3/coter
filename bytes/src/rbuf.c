@@ -1,5 +1,7 @@
 #include "coter/bytes/rbuf.h"
 
+#include <string.h>
+
 size_t ct_rbuf_write(ct_rbuf_t* self, const uint8_t* src, size_t len) {
     if (!self || !src) { return 0; }
     if (len + self->len > self->cap) { len = self->cap - self->len; }

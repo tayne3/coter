@@ -4,6 +4,8 @@
  */
 #include "coter/container/stack.h"
 
+#include <string.h>
+
 int ct_stack_init(ct_stack_buf_t self, void* buffer, size_t byte, size_t max) {
     if (!self || !byte) { return -1; }
     self->_all  = (char*)buffer;

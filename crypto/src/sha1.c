@@ -16,6 +16,8 @@
  */
 #include "coter/crypto/sha1.h"
 
+#include <string.h>
+
 #define rol(value, bits) (((value) << (bits)) | ((value) >> (32 - (bits))))
 
 /* blk0() and blk() perform the initial expand. */

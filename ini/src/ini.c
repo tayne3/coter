@@ -24,9 +24,9 @@
 #include "coter/ini/ini.h"
 
 #include <ctype.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+
+#include "coter/core/strings.h"
 
 // X-macro: single source of truth for error codes and their descriptions
 #define INI_ERROR_FOREACH(F)                   \
@@ -307,7 +307,7 @@ ct_ini_section_t* ct_ini_find_section(ct_ini_t* self, const char* name) {
 
     ct_ini_section_t* curr = self->sections;
     while (curr) {
-        if (strcasecmp(curr->name, name) == 0) { return curr; }
+        if (ct_strcasecmp(curr->name, name) == 0) { return curr; }
         curr = curr->next;
     }
     return NULL;
@@ -320,7 +320,7 @@ int ct_ini_remove_section(ct_ini_t* self, const char* name) {
     ct_ini_section_t* prev = NULL;
 
     while (curr) {
-        if (strcasecmp(curr->name, name) == 0) {
+        if (ct_strcasecmp(curr->name, name) == 0) {
             if (prev) {
                 prev->next = curr->next;
             } else {
@@ -365,7 +365,7 @@ ct_ini_key_t* ct_ini_section_find_key(const ct_ini_section_t* section, const cha
 
     ct_ini_key_t* curr = section->keys;
     while (curr) {
-        if (strcasecmp(curr->key, key) == 0) { return curr; }
+        if (ct_strcasecmp(curr->key, key) == 0) { return curr; }
         curr = curr->next;
     }
     return NULL;
@@ -402,7 +402,7 @@ int ct_ini_section_remove_key(ct_ini_section_t* section, const char* key) {
     ct_ini_key_t* prev = NULL;
 
     while (curr) {
-        if (strcasecmp(curr->key, key) == 0) {
+        if (ct_strcasecmp(curr->key, key) == 0) {
             if (prev) {
                 prev->next = curr->next;
             } else {

@@ -5,6 +5,7 @@
 #include "coter/thread/thpool.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "coter/container/list.h"
 #include "coter/sync/atomic.h"

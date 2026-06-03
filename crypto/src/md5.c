@@ -14,6 +14,8 @@
  */
 #include "coter/crypto/md5.h"
 
+#include <string.h>
+
 // -------------------------[STATIC DECLARATION]-------------------------
 
 /**

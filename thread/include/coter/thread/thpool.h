@@ -47,7 +47,7 @@ typedef struct ct_thpool_config {
  * @param config 线程池配置 (NULL 则使用默认配置)
  * @return 成功返回线程池指针, 失败返回NULL
  */
-CT_API ct_thpool_t* ct_thpool_create(size_t size, ct_thpool_config_t* config) __ct_throw;
+CT_API ct_thpool_t* ct_thpool_create(size_t size, ct_thpool_config_t* config) CT_ATTR_THROW;
 
 /**
  * @brief 关闭线程池

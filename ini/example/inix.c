@@ -33,9 +33,9 @@
 #define STR_NEWLINE "\n"
 
 // 打印命令说明
-static inline void ix_shell_help(int status);
+static void ix_shell_help(int status);
 // 打印项目版本
-static inline void ix_shell_version(void);
+static void ix_shell_version(void);
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
 
 // -------------------------[STATIC DEFINITION]-------------------------
 
-static inline void ix_shell_help(int status) {
+static void ix_shell_help(int status) {
     // clang-format off
     fprintf(stdout, 
         STR_NEWLINE
@@ -164,7 +164,7 @@ static inline void ix_shell_help(int status) {
     exit(status);
 }
 
-static inline void ix_shell_version(void) {
+static void ix_shell_version(void) {
 #ifndef COTER_VERSION
 #define COTER_VERSION "1.0.0"
 #endif

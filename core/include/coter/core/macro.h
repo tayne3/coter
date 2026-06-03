@@ -7,7 +7,6 @@
 #define COTER_CORE_MACRO_H
 
 #include <stddef.h>
-#include <string.h>
 
 #include "coter/core/config.h"
 
@@ -37,15 +36,16 @@
 # define CT_CXX_17 201703L
 # define CT_CXX_20 202002L
 # define CT_CXX_23 202302L
-# define CT_CXX_26 202603L
 
-# ifdef __cplusplus
+#ifdef __cplusplus
 #   if defined(_MSVC_LANG) && _MSVC_LANG > __cplusplus
 #       define CT_CXX_STANDARD _MSVC_LANG
 #   else
 #       define CT_CXX_STANDARD __cplusplus
-   #endif
-# endif
+#   endif
+#else
+#   undef CT_CXX_STANDARD
+#endif
 
 // COMPILER
 #if defined(__clang__)
@@ -54,13 +54,6 @@
 #define CT_COMPILER_GCC
 #elif defined(_MSC_VER)
 #define CT_COMPILER_MSVC
-#include <sys/timeb.h>
-#elif defined(__MINGW32__) || defined(__MINGW64__)
-#define CT_COMPILER_MINGW
-#elif defined(__MSYS__)
-#define CT_COMPILER_MSYS
-#elif defined(__CYGWIN__)
-#define CT_COMPILER_CYGWIN
 #else
 #warning "Untested compiler!"
 #endif
@@ -98,26 +91,24 @@
 	 defined(_M_AMD64) || defined(_M_ARM64) || defined(_M_IA64) || defined(__ia64__) || defined(__ia64) ||              \
 	 (defined(__WORDSIZE) && (__WORDSIZE == 64)) || (defined(__SIZEOF_POINTER__) && (__SIZEOF_POINTER__ == 8)) ||       \
 	 defined(TCC_TARGET_X86_64)
-#	define __CT_WORDSIZE 64
+#	define CT_WORDSIZE 64
 # else
-#	define __CT_WORDSIZE 32
+#	define CT_WORDSIZE 32
 # endif
 
-# ifndef __GNUC_PREREQ
-#   if defined(__GNUC__) && defined(__GNUC_MINOR__)
-#     define __GNUC_PREREQ(maj, min) ((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
-#   else
-#     define __GNUC_PREREQ(maj, min) 0
-#   endif
-# endif
+#ifdef __GNUC_PREREQ
+#   define CT_GNUC_PREREQ(maj, min) __GNUC_PREREQ(maj, min)
+#elif defined(__GNUC__) && defined(__GNUC_MINOR__)
+#   define CT_GNUC_PREREQ(maj, min) ((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
+#else
+#   define CT_GNUC_PREREQ(maj, min) 0
+#endif
 
-# ifndef CT_CLANG_HAS_EXTENSION
-#   if defined(__clang__) && defined(__has_extension)
-#     define CT_CLANG_HAS_EXTENSION(_x) __has_extension(_x)
-#   else
-#     define CT_CLANG_HAS_EXTENSION(_x) 0
-#   endif
-# endif
+#if defined(__clang__) && defined(__has_extension)
+#   define CT_CLANG_HAS_EXTENSION(_x) __has_extension(_x)
+#else
+#   define CT_CLANG_HAS_EXTENSION(_x) 0
+#endif
 
 # ifndef CT_STATIC_ASSERT
 #   if defined(__cplusplus) && \
@@ -129,7 +120,7 @@
 #     define CT_STATIC_ASSERT(_expr) _Static_assert((_expr), #_expr)
 #   elif !defined(__cplusplus) && CT_CLANG_HAS_EXTENSION(c_static_assert)
 #     define CT_STATIC_ASSERT(_expr) __extension__ _Static_assert((_expr), #_expr)
-#   elif !defined(__cplusplus) && __GNUC_PREREQ(4, 6)
+#   elif !defined(__cplusplus) && CT_GNUC_PREREQ(4, 6)
 #     define CT_STATIC_ASSERT(_expr) __extension__ _Static_assert((_expr), #_expr)
 #   else
 #     define CT__STATIC_ASSERT_CONCAT_IMPL(_a, _b) _a##_b
@@ -160,48 +151,64 @@
 #	endif
 # endif
 
-# if HAVE_STDINT_H
-    #include <stdint.h>
-# elif defined(_MSC_VER) && _MSC_VER < 1700
-	typedef __int8              int8_t;
-	typedef __int16             int16_t;
-	typedef __int32             int32_t;
-	typedef __int64             int64_t;
+#if defined(_MSC_VER) && _MSC_VER < 1700
+    typedef __int8              int8_t;
+    typedef __int16             int16_t;
+    typedef __int32             int32_t;
+    typedef __int64             int64_t;
 
-	typedef unsigned __int8     uint8_t;
-	typedef unsigned __int16    uint16_t;
-	typedef unsigned __int32    uint32_t;
-	typedef unsigned __int64    uint64_t;
+    typedef unsigned __int8     uint8_t;
+    typedef unsigned __int16    uint16_t;
+    typedef unsigned __int32    uint32_t;
+    typedef unsigned __int64    uint64_t;
 #else
-    #error "Unsupported platform!"
-# endif
+    #include <stdint.h>
+#endif
 
-# ifdef _MSC_VER
-#   define strcasecmp  _stricmp
-#   define strncasecmp _strnicmp
-# else
-    #include <strings.h>
-#	define stricmp     strcasecmp
-#	define strnicmp    strncasecmp
-# endif
+// current function name
+#if defined(__cplusplus) && CT_GNUC_PREREQ(2, 6)
+#  define CT_STRFUNC __extension__ __PRETTY_FUNCTION__
+#elif !defined(__cplusplus) && CT_GNUC_PREREQ(2, 4)
+#  define CT_STRFUNC __extension__ __PRETTY_FUNCTION__
+#elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
+#  define CT_STRFUNC __func__
+#elif defined(__cplusplus) && CT_CXX_STANDARD >= CT_CXX_11
+#  define CT_STRFUNC __func__
+#elif defined(__FUNCTION__)
+#  define CT_STRFUNC __FUNCTION__
+#elif defined(__TINYC__)
+#  define CT_STRFUNC __func__
+#else
+#  define CT_STRFUNC "(unknown)"
+#endif
+
+#define CT_FILE __FILE__
+#define CT_LINE __LINE__
+
+#define CT_STRINGIFY_ARG(x) #x 
+#define CT_STRINGIFY(x)     CT_STRINGIFY_ARG(x)
+
+#define CT_STRLINE CT_STRINGIFY(__LINE__)
+#define CT_STRLOC  CT_FILE ":" CT_STRLINE
 
 // empty string
 # ifndef STR_NULL
 #   define STR_NULL ""
 # endif
-
 // string is empty
 # ifndef STR_ISEMPTY
 #   define STR_ISEMPTY(_s) 	(!(_s) || !*(const char *)(_s))
 # endif
+// newline
+# ifndef STR_NEWLINE
+#   define STR_NEWLINE "\n"
+# endif
 
 // newline and separator
 # ifdef CT_OS_WIN
-#   define STR_NEWLINE "\n"
 #   define STR_SEPARATOR "\\"
 #   define STR_SEPARATOR_CHAR '\\'
 # else
-#   define STR_NEWLINE "\n"
 #   define STR_SEPARATOR "/"
 #   define STR_SEPARATOR_CHAR '/'
 # endif
@@ -231,16 +238,11 @@
 #elif defined(__mips__)
     #define CT_PAUSE() __asm__ volatile(".word 0x00000140" ::: "memory")
 #elif defined(__riscv)
-    #if __riscv_xlen == 32
-        #define CT_PAUSE() __asm__ volatile(".word 0x0100000f" ::: "memory")
-    #elif __riscv_xlen == 64
-        #define CT_PAUSE() __asm__ volatile(".dword 0x0100000f" ::: "memory")
-    #endif
+    #define CT_PAUSE() __asm__ volatile(".word 0x0100000f" ::: "memory")
 #elif defined(__loongarch__)
     #define CT_PAUSE() __asm__ volatile("dbar 0" ::: "memory")
 #else
-    #include <sched.h>
-    #define CT_PAUSE() sched_yield()
+    #define CT_PAUSE() do {} while (0)
 #endif
 
 typedef int ct_endian_t;
@@ -294,47 +296,15 @@ typedef int ct_endian_t;
 # define CT_CLAMP(_val, _min, _max) CT_MIN(CT_MAX(_val, _min), _max)
 
 // offset of member
-# ifndef OFFSET_OF
-#   define OFFSET_OF(_type, _member) offsetof(_type, _member)
-# endif
+#ifdef offsetof
+#   define CT_OFFSET_OF(T, F) offsetof(T, F)
+#elif defined(__GNUC__) || defined(__clang__)
+#   define CT_OFFSET_OF(T, F) __builtin_offsetof(T, F)
+#else
+#   define CT_OFFSET_OF(T, F) ((size_t)((char*)&((T*)0)->F - (char*)0))
+#endif
 // container of
-# ifndef CONTAINER_OF
-# 	define CONTAINER_OF(_ptr, _type, _member) (_type *)((_ptr) == NULL ? NULL : ((char *)(_ptr)-OFFSET_OF(_type, _member)))
-# endif
-
-// current function name, file name, and line number
-# if defined __cplusplus ? __GNUC_PREREQ(2, 6) : __GNUC_PREREQ(2, 4)
-#	define __ct_func__		__extension__ __PRETTY_FUNCTION__
-#	define __ct_file__		__FILE__
-#	define __ct_line__		__LINE__
-# elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
-#	define __ct_func__		__func__
-#	define __ct_file__		__FILE__
-#	define __ct_line__		__LINE__
-# elif defined(__GNUC__)
-#	define __ct_func__		__FUNCTION__
-#	define __ct_file__		__FILE__
-#	define __ct_line__		__LINE__
-# elif defined(_MSC_VER)
-#	define __ct_func__		__FUNCTION__
-#	define __ct_file__		__FILE__
-#	define __ct_line__		__LINE__
-# elif defined(__TINYC__)
-#	define __ct_func__		__func__
-#	define __ct_file__		__FILE__
-#	define __ct_line__		__LINE__
-# else
-#	define __ct_func__		"(nil)"
-#	define __ct_file__		"(nil)"
-#	define __ct_line__		0
-# endif
-
-// Filename without path (prefer compile-time when available).
-# if defined(__clang__) || (defined(__GNUC__) && __GNUC__ >= 12)
-#   define __ct_filename__  __FILE_NAME__
-# else
-#   define __ct_filename__  (strrchr(STR_SEPARATOR __ct_file__, STR_SEPARATOR_CHAR) + 1)
-# endif
+#define CT_CONTAINER_OF(_ptr, _type, _member) (_type *)((char *)(void *)(_ptr)-CT_OFFSET_OF(_type, _member))
 
 // Provide 'inline' keyword for C89/C90 compatibility.
 # if !defined(__cplusplus) && !defined(inline) && (!defined(__STDC_VERSION__) || __STDC_VERSION__ < 199901L)
@@ -345,63 +315,70 @@ typedef int ct_endian_t;
 #   define CT_INLINE static inline
 # endif
 // Compiler-specific directive to force function inlining.
-# if defined(_MSC_VER)
-#	define __ct_force_inline		__forceinline
-# elif __GNUC_PREREQ(3,2)
-#  	define __ct_force_inline		__always_inline
-# else
-#  	define __ct_force_inline		inline
-# endif
+#if defined(_MSC_VER)
+#	define CT_FORCE_INLINE __forceinline
+#elif CT_GNUC_PREREQ(3,2)
+#  	define CT_FORCE_INLINE __attribute__((always_inline)) inline
+#else
+#  	define CT_FORCE_INLINE inline
+#endif
 
-# if defined(__GNUC__) || defined(__clang__)
-#   define __ct_attribute__(...)		__attribute__(__VA_ARGS__)				// GCC/Clang attribute declaration
-#   define __ct_attribute_weak__ 		__attribute__((weak))					// Mark weak reference function
-#   define __ct_packed__ 				__attribute__((packed))					// Packed struct (GCC/Clang)
-#   define __ct_aligned__(_n)  			__attribute__((aligned(_n)))			// Aligned struct
-#   define __ct_packed_aligned__(_n)	__attribute__((packed, aligned(_n)))	// Packed and aligned
-# elif defined(_MSC_VER)
-#   define __ct_attribute__(...)
-#   define __ct_attribute_weak__
-#   define __ct_packed__                /* WARNING: Use CT_PACK_PUSH/POP for MSVC packing */
-#   define __ct_aligned__(_n)  			__declspec(align(_n))
-#   define __ct_packed_aligned__(_n)	__declspec(align(_n))
-# else
-#   define __ct_attribute__(...)
-#   define __ct_attribute_weak__
-#   define __ct_packed__
-#   define __ct_aligned__(_n)
-#   define __ct_packed_aligned__(_n)
-# endif
+#if defined(__GNUC__) || defined(__clang__)
+#   define CT_ATTRIBUTE(...)		   __attribute__(__VA_ARGS__)				// GCC/Clang attribute declaration
+#   define CT_ATTR_WEAK 		       __attribute__((weak))					// Mark weak reference function
+#   define CT_ATTR_PACKED 			   __attribute__((packed))					// Packed struct (GCC/Clang)
+#   define CT_ATTR_ALIGNED(_n)  	   __attribute__((aligned(_n)))			// Aligned struct
+#   define CT_ATTR_PACKED_ALIGNED(_n)  __attribute__((packed, aligned(_n)))	// Packed and aligned
+#elif defined(_MSC_VER)
+#   define CT_ATTRIBUTE(...)
+#   define CT_ATTR_WEAK
+#   define CT_ATTR_PACKED              /* WARNING: Use CT_PACK_PUSH/POP for MSVC packing */
+#   define CT_ATTR_ALIGNED(_n)  	   __declspec(align(_n))
+#   define CT_ATTR_PACKED_ALIGNED(_n)  __declspec(align(_n))
+#else
+#   define CT_ATTRIBUTE(...)
+#   define CT_ATTR_WEAK
+#   define CT_ATTR_PACKED
+#   define CT_ATTR_ALIGNED(_n)
+#   define CT_ATTR_PACKED_ALIGNED(_n)
+#endif
 
 // maybe unused
-# if defined(__cplusplus) && (__cplusplus >= 201703L)   /* C++17 */
-#   define __ct_maybe_unused__          [[maybe_unused]]
-# elif defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 202311L) /* C23 */
-#   define __ct_maybe_unused__          [[maybe_unused]]
-# elif defined(__GNUC__) || defined(__clang__)
-#   define __ct_maybe_unused__          __attribute__((unused))
-# elif defined(_MSC_VER)
-#   define __ct_maybe_unused__          __pragma(warning(suppress: 4100 4101))
-# else
-#   define __ct_maybe_unused__          /* not supported */
-# endif
+#if defined(__cplusplus) && (CT_CXX_STANDARD >= CT_CXX_17) /* C++17 */
+#   define CT_MAYBE_UNUSED [[maybe_unused]]
+#elif defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 202311L) /* C23 */
+#   define CT_MAYBE_UNUSED [[maybe_unused]]
+#elif defined(__GNUC__) || defined(__clang__)
+#   define CT_MAYBE_UNUSED __attribute__((unused))
+#elif defined(_MSC_VER)
+#   define CT_MAYBE_UNUSED __pragma(warning(suppress: 4100 4101))
+#else
+#   define CT_MAYBE_UNUSED /* not supported */
+#endif
 
 // MSVC-compatible packing macros (use around struct definitions)
-# ifdef _MSC_VER
-#   define CT_PACK_PUSH(_n)	    __pragma(pack(push, _n))
-#   define CT_PACK_POP()		__pragma(pack(pop))
-# elif defined(__GNUC__) || defined(__clang__)
-#   define CT_PACK_PUSH(_n)	    _Pragma("pack(push, " #_n ")")
-#   define CT_PACK_POP()		_Pragma("pack(pop)")
-# else
+#ifdef _MSC_VER
+#   define CT_PACK_PUSH(_n)        __pragma(pack(push, _n))
+#   define CT_PACK_POP()           __pragma(pack(pop))
+#elif defined(__GNUC__) || defined(__clang__)
+#   define CT_DO_PRAGMA_IMPL(_str) _Pragma(#_str)
+#   define CT_PACK_PUSH(_n)        CT_DO_PRAGMA_IMPL(pack(push, _n))
+#   define CT_PACK_POP()           CT_DO_PRAGMA_IMPL(pack(pop))
+#else
 #   define CT_PACK_PUSH(_n)
 #   define CT_PACK_POP()
-# endif
+#endif
 
-# if !defined __cplusplus && __GNUC_PREREQ(3,3) && defined(__THROW)
-#   define __ct_throw __THROW
-# else
-#   define __ct_throw
-# endif
+#if !defined __cplusplus && CT_GNUC_PREREQ(3,3) && defined(__THROW)
+#   define CT_ATTR_THROW __THROW
+#else
+#   define CT_ATTR_THROW
+#endif
+
+#if defined(__GNUC__) || defined(__clang__)
+#   define CT_ATTR_PURE __attribute__((pure))
+#else
+#   define CT_ATTR_PURE
+#endif
 
 #endif // COTER_CORE_MACRO_H

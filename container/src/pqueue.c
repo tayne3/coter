@@ -5,6 +5,7 @@
 #include "coter/container/pqueue.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 static void ct_pqueue__sift_up(ct_pqueue_t* self, uint32_t idx) {
     char* tmp = (char*)malloc(self->_item_size);

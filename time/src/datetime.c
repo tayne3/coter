@@ -9,6 +9,7 @@
 #include <string.h>
 
 #include "coter/core/macro.h"
+#include "coter/core/strings.h"
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
@@ -161,7 +162,7 @@ int ct_datetime_days_of_month(int month, int year) {
 int ct_datetime_month_atoi(const char* month) {
     if (!month) { return 0; }
     for (int i = 0; i < 12; ++i) {
-        if (strnicmp(month, s_months[i], strlen(month)) == 0) { return i + 1; }
+        if (ct_strnicmp(month, s_months[i], strlen(month)) == 0) { return i + 1; }
     }
     return 0;
 }
@@ -174,7 +175,7 @@ const char* ct_datetime_month_itoa(int month) {
 int ct_datetime_weekday_atoi(const char* weekday) {
     if (!weekday) { return 0; }
     for (int i = 0; i < 7; ++i) {
-        if (strnicmp(weekday, s_weekdays[i], strlen(weekday)) == 0) { return i; }
+        if (ct_strnicmp(weekday, s_weekdays[i], strlen(weekday)) == 0) { return i; }
     }
     return 0;
 }

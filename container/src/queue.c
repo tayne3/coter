@@ -7,6 +7,8 @@
  */
 #include "coter/container/queue.h"
 
+#include <string.h>
+
 #define CT_QUEUE_INDEX_INC(self, x) ((x) + 1 >= (self)->_max ? 0 : (x) + 1)  // 队列-索引 递增
 #define CT_QUEUE_INDEX_DEC(self, x) ((x) == 0 ? (self)->_max - 1 : (x) - 1)  // 队列-索引 递减
 #define CT_QUEUE_ITEM(self, idx)    (&(self)->_all[(idx) * (self)->_byte])   // 队列-数据

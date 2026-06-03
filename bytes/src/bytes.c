@@ -5,6 +5,7 @@
 #include "coter/bytes/bytes.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 ct_bytes_t* ct_bytes_create(size_t capacity) {
     capacity         = (capacity ? capacity : 1024UL);

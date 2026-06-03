@@ -35,7 +35,7 @@ typedef struct ct_list {
 //	- __node 指向链表节点的指针
 // 	- __type 包含链表节点的条目的类型
 // 	- __member 在结构体@type中表示链表头的成员变量的名称
-#define ct_list_entry(__node, __type, __member) CONTAINER_OF(__node, __type, __member)
+#define ct_list_entry(__node, __type, __member) CT_CONTAINER_OF(__node, __type, __member)
 
 #define ct_list_isempty(__head)          ((__head)->next == (void*)(__head))  // 判断链表是否为空
 #define ct_list_first(__head)            ((__head)->next)                     // 获取首节点
