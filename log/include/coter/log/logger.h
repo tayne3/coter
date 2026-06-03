@@ -6,7 +6,7 @@
 #define COTER_LOG_LOGGER_H
 
 #include "coter/core/time.h"
-#include "coter/log/handler.h"
+#include "coter/log/handler/base.h"
 #include "coter/sync/atomic.h"
 
 #ifdef __cplusplus
@@ -14,7 +14,6 @@ extern "C" {
 #endif
 
 typedef struct ct_logger {
-    ct_list_t       node;      // Node for global registry
     ct_list_t       handlers;  // List of handlers
     ct_atomic_int_t level;     // Log level
     ct_atomic_int_t state;     // Running state
@@ -28,22 +27,15 @@ typedef struct ct_logger {
 CT_API void ct_logger_init(ct_logger_t* logger);
 
 /**
- * @brief 注册 Logger 到全局管理系统
+ * @brief 启动 Logger 并封印 handlers
  *
  * @param logger 目标日志器对象
  * @return int 成功返回 0, 失败返回 -1
  */
-CT_API int ct_logger_register(ct_logger_t* logger);
+CT_API int ct_logger_start(ct_logger_t* logger);
 
 /**
- * @brief 从全局管理系统中注销 Logger
- *
- * @param logger 目标日志器对象
- */
-CT_API void ct_logger_unregister(ct_logger_t* logger);
-
-/**
- * @brief 关闭 Logger 并销毁其持有的 Handler 资源
+ * @brief 关闭 Logger 并销毁其持有的 handlers
  *
  * @param logger 目标日志器对象
  */
@@ -81,16 +73,6 @@ CT_API int ct_logger_add_handler(ct_logger_t* logger, ct_log_handler_t* handler)
  * @param level 检查的级别
  */
 CT_API bool ct_logger_is_enabled(const ct_logger_t* logger, int level);
-
-/**
- * @brief 处理日志数据
- *
- * @param logger 目标日志器, 若为 NULL 则使用默认日志器
- * @param level 日志级别
- * @param buf 日志内容
- * @param size 日志长度
- */
-CT_API void ct_logger_handle(ct_logger_t* logger, int level, const char* buf, size_t size);
 
 #ifdef __cplusplus
 }

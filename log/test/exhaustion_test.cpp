@@ -4,6 +4,7 @@
 #include <thread>
 #include <vector>
 
+#include "coter/log/handler/callback.h"
 #include "coter/log/log.h"
 
 namespace {
@@ -20,8 +21,6 @@ void exhaustion_callback(const ct_log_record_t* record, void* userdata) {
 }  // namespace
 
 TEST_CASE("log_exhaustion_oversized", "[log][exhaustion]") {
-    REQUIRE(ct_log_init(NULL) == 0);
-
     exhaustion_stats stats;
 
     ct_logger_t logger;
@@ -33,7 +32,7 @@ TEST_CASE("log_exhaustion_oversized", "[log][exhaustion]") {
     config.userdata = &stats;
 
     REQUIRE(ct_logger_add_handler(&logger, ct_log_callback_handler_create(&config)) == 0);
-    REQUIRE(ct_logger_register(&logger) == 0);
+    REQUIRE(ct_logger_start(&logger) == 0);
 
     // Generate a massive string larger than the 8KB default block capacity
     const size_t      huge_size = 20000;
@@ -41,15 +40,11 @@ TEST_CASE("log_exhaustion_oversized", "[log][exhaustion]") {
     huge_str.back() = '\0';
 
     // This should trigger the fallback truncation logic in tls.c without crashing
-    CT_LOGGER_BASIC(TRACE, &logger, "%s\n", huge_str.data());
-
-    ct_log_flush();
+    CT_LOGGER_TRACE(&logger, "%s\n", huge_str.data());
 
     // The message should be truncated to fit within the block capacity minus headers
+    ct_logger_close(&logger);
     REQUIRE(stats.calls == 1);
     REQUIRE(stats.total_bytes > 0);
     REQUIRE(stats.total_bytes < huge_size);
-
-    ct_logger_close(&logger);
-    ct_log_close();
 }

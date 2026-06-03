@@ -108,7 +108,7 @@ struct ct_log_dispatcher {
     bool                 running;
 };
 
-void ct_log_get_stats_internal(ct_log_stats_t* stats) {
+void ct_logger_get_stats_internal(ct_logger_stats_t* stats) {
     if (!stats) { return; }
     stats->queue_current_jobs   = 0;
     stats->queue_high_watermark = 0;
@@ -125,11 +125,10 @@ void ct_log_get_stats_internal(ct_log_stats_t* stats) {
     }
 }
 
-static inline void dispatcher__do_heartbeat(ct_time64_t* last_heartbeat) {
+static void dispatcher__do_heartbeat(ct_time64_t* last_heartbeat) {
     ct_time64_t now = ct_getuptime_ms();
     if (now - *last_heartbeat >= 1000) {
         ct_log_harvest();
-        ct_log_flush_handlers();
         *last_heartbeat = now;
     }
 }
@@ -154,6 +153,9 @@ static int dispatcher__routine(void* arg) {
                         ct_log_record_header_t* header = (ct_log_record_header_t*)p;
                         p += sizeof(ct_log_record_header_t);
                         self->batch_records[i].time  = header->time;
+                        self->batch_records[i].tid   = header->tid;
+                        self->batch_records[i].file  = header->file;
+                        self->batch_records[i].line  = header->line;
                         self->batch_records[i].level = header->level;
                         self->batch_records[i].data  = p;
                         self->batch_records[i].size  = header->size;
@@ -161,12 +163,13 @@ static int dispatcher__routine(void* arg) {
                     }
 
                     ct_list_foreach_entry(handler, &job.logger->handlers, ct_log_handler_t, node) {
-                        if (handler->vtable && handler->vtable->write_batch) {
-                            handler->vtable->write_batch(handler, self->batch_records, batch_size);
+                        if (handler->vtable && handler->vtable->puts) {
+                            handler->vtable->puts(handler, self->batch_records, batch_size);
                         }
                     }
                     processed += batch_size;
                 }
+                ct_logger_flush_handlers(job.logger);
             }
 
             if (job.block) { block__pool_release(self->pool, job.block); }
@@ -245,11 +248,12 @@ void ct_log_dispatcher_destroy(ct_log_dispatcher_t* self) {
 }
 
 void ct_log_dispatcher_push_block(ct_log_dispatcher_t* self, ct_logger_t* logger, ct_log_block_t* block) {
-    if (!self || !logger || !block || !self->running) {
-        if (block) block__pool_release(self->pool, block);
+    if (!block) { return; }
+    if (!self) {
+        block__destroy(block);
         return;
     }
-    if (block->rec_count == 0) {
+    if (!logger || !self->running || block->rec_count == 0) {
         block__pool_release(self->pool, block);
         return;
     }

@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "coter/log/handler.h"
+#include "coter/log/handler/callback.h"
 
 typedef struct ct_log_callback_handler {
     ct_log_handler_t           base;
@@ -19,9 +19,9 @@ static void callback_flush(ct_log_handler_t* self);
 static void callback_destroy(ct_log_handler_t* self);
 
 static const ct_log_handler_vtable_t callback_vtable = {
-    .write_batch = callback_write_batch,
-    .flush       = callback_flush,
-    .destroy     = callback_destroy,
+    .puts    = callback_write_batch,
+    .flush   = callback_flush,
+    .destroy = callback_destroy,
 };
 
 void ct_log_callback_handler_config_default(ct_log_callback_handler_config_t* config) {

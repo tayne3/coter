@@ -9,3 +9,6 @@ target_link_libraries(coter_log_example_callback PRIVATE coter_compile_dependenc
 
 add_executable(coter_log_example_multi_type multi_type.c)
 target_link_libraries(coter_log_example_multi_type PRIVATE coter_compile_dependency coter::coter)
+
+add_executable(coter_log_example_hex_dump hex_dump.c)
+target_link_libraries(coter_log_example_hex_dump PRIVATE coter_compile_dependency coter::coter)

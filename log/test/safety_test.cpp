@@ -8,6 +8,7 @@
 #include <thread>
 #include <vector>
 
+#include "coter/log/handler/callback.h"
 #include "coter/log/log.h"
 
 namespace {
@@ -26,8 +27,6 @@ void safety_log_callback(const ct_log_record_t* record, void* userdata) {
 }  // namespace
 
 TEST_CASE("log_safety_lifecycle", "[log][safety]") {
-    REQUIRE(ct_log_init(NULL) == 0);
-
     safety_callback_state state;
 
     // 1. Create a logger on heap
@@ -40,7 +39,7 @@ TEST_CASE("log_safety_lifecycle", "[log][safety]") {
     config.userdata = &state;
 
     REQUIRE(ct_logger_add_handler(logger, ct_log_callback_handler_create(&config)) == 0);
-    REQUIRE(ct_logger_register(logger) == 0);
+    REQUIRE(ct_logger_start(logger) == 0);
 
     // Verify sealing logic: cannot add handler after registration
     REQUIRE(ct_logger_add_handler(logger, ct_log_callback_handler_create(&config)) == -1);
@@ -59,9 +58,9 @@ TEST_CASE("log_safety_lifecycle", "[log][safety]") {
             temp_config.userdata = &state;
 
             ct_logger_add_handler(temp_logger, ct_log_callback_handler_create(&temp_config));
-            ct_logger_register(temp_logger);
+            ct_logger_start(temp_logger);
 
-            CT_LOGGER_BASIC(TRACE, temp_logger, "Sabotage message %d\n", i);
+            CT_LOGGER_TRACE(temp_logger, "Sabotage message %d\n", i);
 
             std::this_thread::yield();
             ct_logger_close(temp_logger);
@@ -71,19 +70,14 @@ TEST_CASE("log_safety_lifecycle", "[log][safety]") {
     });
 
     // 3. Fire many logs on main thread
-    for (int i = 0; i < 100; ++i) { CT_LOGGER_BASIC(TRACE, logger, "Safety test message %d\n", i); }
+    for (int i = 0; i < 100; ++i) { CT_LOGGER_TRACE(logger, "Safety test message %d\n", i); }
 
     // 4. Immediately close the primary logger while logs are still in flight
     ct_logger_close(logger);
 
     saboteur.join();
 
-    // 5. Wait for processing to finish
-    ct_log_flush();
-
     REQUIRE(state.calls >= 150);
 
     free(logger);
-
-    ct_log_close();
 }

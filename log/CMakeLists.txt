@@ -18,6 +18,7 @@ target_link_libraries(coter_log
     coter::time
     coter::thread
     coter::sync
+    coter::fmt
 )
 if(BUILD_SHARED_LIBS)
   target_compile_definitions(coter_log
