@@ -6,12 +6,14 @@
 #include <string.h>
 
 #include "coter/log/handler/callback.h"
+#include "formatter.h"
 
 typedef struct ct_log_callback_handler {
     ct_log_handler_t           base;
     ct_log_callback_routine_fn routine;
     ct_log_callback_flush_fn   flush;
     void*                      userdata;
+    ct_log_formatter_t         formatter;
 } ct_log_callback_handler_t;
 
 static void callback_write_batch(ct_log_handler_t* self, const ct_log_record_t* records, size_t count);
@@ -40,13 +42,19 @@ ct_log_handler_t* ct_log_callback_handler_create(const ct_log_callback_handler_c
     self->routine     = config->routine;
     self->flush       = config->flush;
     self->userdata    = config->userdata;
+    ct_log_formatter_init(&self->formatter, config->enable_color);
 
     return &self->base;
 }
 
 static void callback_write_batch(ct_log_handler_t* self, const ct_log_record_t* records, size_t count) {
     ct_log_callback_handler_t* handler = (ct_log_callback_handler_t*)self;
-    for (size_t i = 0; i < count; ++i) { handler->routine(&records[i], handler->userdata); }
+    char                       buf[2048];
+
+    for (size_t i = 0; i < count; ++i) {
+        (void)ct_log_formatter_format(&handler->formatter, &records[i], buf, sizeof(buf));
+        handler->routine(buf, strlen(buf), handler->userdata);
+    }
 }
 
 static void callback_flush(ct_log_handler_t* self) {

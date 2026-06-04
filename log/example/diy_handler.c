@@ -1,7 +1,6 @@
-#include "coter/log/handler/callback.h"
-
 #include <stdio.h>
 
+#include "coter/log/handler/base.h"
 #include "coter/log/log.h"
 
 typedef struct callback_stats {
@@ -24,12 +23,12 @@ int main(void) {
     ct_logger_t callback_logger;
     ct_logger_init(&callback_logger);
 
-    callback_stats_t                 stats = {0};
-    ct_log_callback_handler_config_t callback_config;
-    ct_log_callback_handler_config_default(&callback_config);
+    callback_stats_t             stats = {0};
+    ct_log_base_handler_config_t callback_config;
+    ct_log_base_handler_config_default(&callback_config);
     callback_config.routine  = collect_log;
     callback_config.userdata = &stats;
-    if (ct_logger_add_handler(&callback_logger, ct_log_callback_handler_create(&callback_config)) != 0) {
+    if (ct_logger_add_handler(&callback_logger, ct_log_base_handler_create(&callback_config)) != 0) {
         fprintf(stderr, "error: failed to add callback handler\n");
         return 1;
     }

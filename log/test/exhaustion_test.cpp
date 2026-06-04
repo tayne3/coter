@@ -26,12 +26,12 @@ TEST_CASE("log_exhaustion_oversized", "[log][exhaustion]") {
     ct_logger_t logger;
     ct_logger_init(&logger);
 
-    ct_log_callback_handler_config_t config;
-    ct_log_callback_handler_config_default(&config);
+    ct_log_base_handler_config_t config;
+    ct_log_base_handler_config_default(&config);
     config.routine  = exhaustion_callback;
     config.userdata = &stats;
 
-    REQUIRE(ct_logger_add_handler(&logger, ct_log_callback_handler_create(&config)) == 0);
+    REQUIRE(ct_logger_add_handler(&logger, ct_log_base_handler_create(&config)) == 0);
     REQUIRE(ct_logger_start(&logger) == 0);
 
     // Generate a massive string larger than the 8KB default block capacity
@@ -39,7 +39,7 @@ TEST_CASE("log_exhaustion_oversized", "[log][exhaustion]") {
     std::vector<char> huge_str(huge_size, 'A');
     huge_str.back() = '\0';
 
-    // This should trigger the fallback truncation logic in tls.c without crashing
+    // This should trigger fixed-buffer truncation without crashing
     CT_LOGGER_TRACE(&logger, "%s\n", huge_str.data());
 
     // The message should be truncated to fit within the block capacity minus headers

@@ -36,12 +36,12 @@ TEST_CASE("log_chaos_lifecycle", "[log][chaos]") {
                 }
                 ct_logger_init(temp_logger);
 
-                ct_log_callback_handler_config_t temp_config;
-                ct_log_callback_handler_config_default(&temp_config);
+                ct_log_base_handler_config_t temp_config;
+                ct_log_base_handler_config_default(&temp_config);
                 temp_config.routine  = chaos_callback;
                 temp_config.userdata = &callback_count;
 
-                ct_log_handler_t* handler = ct_log_callback_handler_create(&temp_config);
+                ct_log_handler_t* handler = ct_log_base_handler_create(&temp_config);
                 if (!handler || ct_logger_add_handler(temp_logger, handler) != 0) {
                     ++error_count;
                     if (handler && handler->vtable && handler->vtable->destroy) { handler->vtable->destroy(handler); }
@@ -56,7 +56,7 @@ TEST_CASE("log_chaos_lifecycle", "[log][chaos]") {
                     continue;
                 }
 
-                ct_log_handler_t* late_handler = ct_log_callback_handler_create(&temp_config);
+                ct_log_handler_t* late_handler = ct_log_base_handler_create(&temp_config);
                 if (!late_handler || ct_logger_add_handler(temp_logger, late_handler) != -1) { ++error_count; }
                 if (late_handler && late_handler->vtable && late_handler->vtable->destroy) {
                     late_handler->vtable->destroy(late_handler);

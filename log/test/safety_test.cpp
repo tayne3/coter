@@ -33,16 +33,16 @@ TEST_CASE("log_safety_lifecycle", "[log][safety]") {
     ct_logger_t* logger = (ct_logger_t*)malloc(sizeof(ct_logger_t));
     ct_logger_init(logger);
 
-    ct_log_callback_handler_config_t config;
-    ct_log_callback_handler_config_default(&config);
+    ct_log_base_handler_config_t config;
+    ct_log_base_handler_config_default(&config);
     config.routine  = safety_log_callback;
     config.userdata = &state;
 
-    REQUIRE(ct_logger_add_handler(logger, ct_log_callback_handler_create(&config)) == 0);
+    REQUIRE(ct_logger_add_handler(logger, ct_log_base_handler_create(&config)) == 0);
     REQUIRE(ct_logger_start(logger) == 0);
 
     // Verify sealing logic: cannot add handler after registration
-    REQUIRE(ct_logger_add_handler(logger, ct_log_callback_handler_create(&config)) == -1);
+    REQUIRE(ct_logger_add_handler(logger, ct_log_base_handler_create(&config)) == -1);
 
     std::atomic<bool> saboteur_done{false};
 
@@ -52,12 +52,12 @@ TEST_CASE("log_safety_lifecycle", "[log][safety]") {
             ct_logger_t* temp_logger = (ct_logger_t*)malloc(sizeof(ct_logger_t));
             ct_logger_init(temp_logger);
 
-            ct_log_callback_handler_config_t temp_config;
-            ct_log_callback_handler_config_default(&temp_config);
+            ct_log_base_handler_config_t temp_config;
+            ct_log_base_handler_config_default(&temp_config);
             temp_config.routine  = safety_log_callback;
             temp_config.userdata = &state;
 
-            ct_logger_add_handler(temp_logger, ct_log_callback_handler_create(&temp_config));
+            ct_logger_add_handler(temp_logger, ct_log_base_handler_create(&temp_config));
             ct_logger_start(temp_logger);
 
             CT_LOGGER_TRACE(temp_logger, "Sabotage message %d\n", i);

@@ -12,219 +12,104 @@
 #include "coter/thread/thread.h"
 #include "log_internal.h"
 
-#define CT_LOG_BATCH_MAX 1024
-
-// -------------------------[BLOCK & POOL INTERNAL]-------------------------
-
-struct ct_log_block_pool {
-    ct_msgqueue_t   queue;
-    void*           q_buf;
-    uint32_t        block_capacity;
-    ct_atomic_int_t free_blocks;
-};
-
-static ct_log_block_t* block__create(uint32_t capacity) {
-    ct_log_block_t* self = (ct_log_block_t*)malloc(sizeof(ct_log_block_t) + capacity);
-    if (!self) { return NULL; }
-    ct_list_init(&self->node);
-    self->capacity  = capacity;
-    self->used      = 0;
-    self->rec_count = 0;
-    return self;
-}
-
-static void block__destroy(ct_log_block_t* block) {
-    if (block) { free(block); }
-}
-
-static void block__clear(ct_log_block_t* block) {
-    if (block) {
-        block->used      = 0;
-        block->rec_count = 0;
-    }
-}
-
-static ct_log_block_pool_t* block__pool_create(uint32_t max_blocks, uint32_t block_capacity) {
-    ct_log_block_pool_t* self = (ct_log_block_pool_t*)calloc(1, sizeof(ct_log_block_pool_t));
-    if (!self) { return NULL; }
-    self->block_capacity = block_capacity;
-
-    self->q_buf = malloc(sizeof(ct_log_block_t*) * max_blocks);
-    if (!self->q_buf) {
-        free(self);
-        return NULL;
-    }
-
-    ct_msgqueue_init(&self->queue, self->q_buf, sizeof(ct_log_block_t*), max_blocks);
-    return self;
-}
-
-static void block__pool_destroy(ct_log_block_pool_t* pool) {
-    if (!pool) { return; }
-    ct_log_block_t* block;
-    while (ct_msgqueue_try_pop(&pool->queue, &block) == 0) { block__destroy(block); }
-    ct_msgqueue_destroy(&pool->queue);
-    free(pool->q_buf);
-    free(pool);
-}
-
-ct_log_block_t* ct_log_block_pool_acquire(ct_log_block_pool_t* pool) {
-    if (!pool) { return NULL; }
-    ct_log_block_t* block;
-    if (ct_msgqueue_try_pop(&pool->queue, &block) == 0) { return block; }
-    return block__create(pool->block_capacity);
-}
-
-static void block__pool_release(ct_log_block_pool_t* pool, ct_log_block_t* block) {
-    if (!pool || !block) { return; }
-    block__clear(block);
-    if (ct_msgqueue_try_push(&pool->queue, &block) != 0) { block__destroy(block); }
-}
-
-// -------------------------[GLOBAL METRICS]-------------------------
-
-static ct_atomic_int_t g_dropped_bytes = CT_ATOMIC_VAR_INIT(0);
-
-void ct_log_add_dropped_bytes(uint32_t bytes) {
-    ct_atomic_int_add(&g_dropped_bytes, (int)bytes);
-}
-
-typedef struct {
+typedef struct ct_log_job {
     ct_logger_t*    logger;
-    ct_log_block_t* block;
+    ct_log_record_t record;
+    char            payload[CT_LOG_RECORD_MAX];
 } ct_log_job_t;
 
 struct ct_log_dispatcher {
-    ct_thread_t          thread;
-    ct_msgqueue_t        queue;
-    void*                q_buf;
-    ct_log_block_pool_t* pool;
-    ct_atomic_int_t      pending_jobs;
-    ct_atomic_int_t      high_watermark;
-    ct_mutex_t           flush_mutex;
-    ct_cond_t            flush_cond;
-    ct_log_record_t*     batch_records;  // Dynamic pre-allocated buffer
-    uint32_t             batch_max;
-    bool                 running;
+    ct_thread_t     thread;
+    ct_msgqueue_t   queue;
+    void*           q_buf;
+    ct_atomic_int_t running;
+    ct_atomic_int_t pending_jobs;
+    ct_atomic_int_t high_watermark;
+    ct_mutex_t      flush_mutex;
+    ct_cond_t       flush_cond;
 };
 
-void ct_logger_get_stats_internal(ct_logger_stats_t* stats) {
-    if (!stats) { return; }
-    stats->queue_current_jobs   = 0;
-    stats->queue_high_watermark = 0;
-    stats->pool_free_blocks     = 0;
-    stats->total_dropped_bytes  = (uint32_t)ct_atomic_int_load(&g_dropped_bytes);
+static int  dispatcher__routine(void* arg);
+static void dispatcher__update_high_watermark(ct_log_dispatcher_t* self, int value);
+static void dispatcher__finish_global_job(ct_log_dispatcher_t* self);
+static void dispatcher__copy_payload(ct_log_job_t* job, const char* payload, size_t payload_len);
 
-    ct_log_dispatcher_t* dispatcher = ct_log_get_dispatcher();
-    if (dispatcher) {
-        stats->queue_current_jobs   = (uint32_t)ct_atomic_int_load(&dispatcher->pending_jobs);
-        stats->queue_high_watermark = (uint32_t)ct_atomic_int_load(&dispatcher->high_watermark);
-        if (dispatcher->pool) {
-            stats->pool_free_blocks = (uint32_t)ct_atomic_int_load(&dispatcher->pool->free_blocks);
-        }
+static void dispatcher__update_high_watermark(ct_log_dispatcher_t* self, int value) {
+    int high = ct_atomic_int_load(&self->high_watermark);
+    while (value > high) {
+        int expected = high;
+        if (ct_atomic_int_compare_exchange(&self->high_watermark, &expected, value)) { return; }
+        high = expected;
     }
 }
 
-static void dispatcher__do_heartbeat(ct_time64_t* last_heartbeat) {
-    ct_time64_t now = ct_getuptime_ms();
-    if (now - *last_heartbeat >= 1000) {
-        ct_log_harvest();
-        *last_heartbeat = now;
+static void dispatcher__finish_global_job(ct_log_dispatcher_t* self) {
+    ct_mutex_lock(&self->flush_mutex);
+    if (ct_atomic_int_sub(&self->pending_jobs, 1) == 1) { ct_cond_broadcast(&self->flush_cond); }
+    ct_mutex_unlock(&self->flush_mutex);
+}
+
+static void dispatcher__copy_payload(ct_log_job_t* job, const char* payload, size_t payload_len) {
+    size_t copy_len = payload_len;
+    if (copy_len >= CT_LOG_RECORD_MAX) {
+        copy_len = CT_LOG_RECORD_MAX - 1;
+        if (copy_len >= 3) {
+            memcpy(job->payload, payload, copy_len);
+            job->payload[copy_len - 3] = '.';
+            job->payload[copy_len - 2] = '.';
+            job->payload[copy_len - 1] = '.';
+        } else {
+            memcpy(job->payload, payload, copy_len);
+        }
+    } else {
+        memcpy(job->payload, payload, copy_len);
     }
+    job->payload[copy_len] = '\0';
+    job->record.size       = copy_len;
 }
 
 static int dispatcher__routine(void* arg) {
     ct_log_dispatcher_t* self = (ct_log_dispatcher_t*)arg;
     ct_log_job_t         job;
-    ct_time64_t          last_heartbeat = ct_getuptime_ms();
 
-    while (self->running || ct_atomic_int_load(&self->pending_jobs) > 0) {
-        if (ct_msgqueue_pop_for(&self->queue, &job, 100) == 0) {
-            if (job.block && job.block->rec_count > 0) {
-                uint32_t total_count = job.block->rec_count;
-                uint32_t processed   = 0;
-                char*    p           = job.block->data;
+    while (ct_atomic_int_load(&self->running) || ct_atomic_int_load(&self->pending_jobs) > 0) {
+        if (ct_msgqueue_pop_for(&self->queue, &job, 100) != 0) { continue; }
 
-                while (processed < total_count) {
-                    uint32_t batch_size = total_count - processed;
-                    if (batch_size > self->batch_max) { batch_size = self->batch_max; }
-
-                    for (uint32_t i = 0; i < batch_size; ++i) {
-                        ct_log_record_header_t* header = (ct_log_record_header_t*)p;
-                        p += sizeof(ct_log_record_header_t);
-                        self->batch_records[i].time  = header->time;
-                        self->batch_records[i].tid   = header->tid;
-                        self->batch_records[i].file  = header->file;
-                        self->batch_records[i].line  = header->line;
-                        self->batch_records[i].level = header->level;
-                        self->batch_records[i].data  = p;
-                        self->batch_records[i].size  = header->size;
-                        p += header->size;
-                    }
-
-                    ct_list_foreach_entry(handler, &job.logger->handlers, ct_log_handler_t, node) {
-                        if (handler->vtable && handler->vtable->puts) {
-                            handler->vtable->puts(handler, self->batch_records, batch_size);
-                        }
-                    }
-                    processed += batch_size;
-                }
-                ct_logger_flush_handlers(job.logger);
+        job.record.data = job.payload;
+        if (job.logger && job.record.size > 0) {
+            ct_list_foreach_entry(handler, &job.logger->handlers, ct_log_handler_t, node) {
+                if (handler->vtable && handler->vtable->puts) { handler->vtable->puts(handler, &job.record, 1); }
             }
-
-            if (job.block) { block__pool_release(self->pool, job.block); }
-
-            ct_mutex_lock(&self->flush_mutex);
-            if (ct_atomic_int_sub(&self->pending_jobs, 1) == 1) { ct_cond_broadcast(&self->flush_cond); }
-            ct_mutex_unlock(&self->flush_mutex);
         }
-        dispatcher__do_heartbeat(&last_heartbeat);
+
+        if (job.logger) { ct_logger_finish_pending_job(job.logger); }
+        dispatcher__finish_global_job(self);
     }
     return 0;
 }
 
-ct_log_dispatcher_t* ct_log_dispatcher_create(uint32_t queue_size, uint32_t pool_max_blocks,
-                                              uint32_t pool_block_capacity) {
+ct_log_dispatcher_t* ct_log_dispatcher_create(void) {
     ct_log_dispatcher_t* self = (ct_log_dispatcher_t*)calloc(1, sizeof(ct_log_dispatcher_t));
     if (!self) { return NULL; }
 
-    self->pool = block__pool_create(pool_max_blocks, pool_block_capacity);
-    if (!self->pool) {
-        free(self);
-        return NULL;
-    }
-
-    self->q_buf = malloc(sizeof(ct_log_job_t) * queue_size);
+    self->q_buf = malloc(sizeof(ct_log_job_t) * CT_LOG_QUEUE_SIZE);
     if (!self->q_buf) {
-        block__pool_destroy(self->pool);
         free(self);
         return NULL;
     }
-    ct_msgqueue_init(&self->queue, self->q_buf, sizeof(ct_log_job_t), queue_size);
+    ct_msgqueue_init(&self->queue, self->q_buf, sizeof(ct_log_job_t), CT_LOG_QUEUE_SIZE);
 
-    self->batch_max     = queue_size;
-    self->batch_records = (ct_log_record_t*)malloc(sizeof(ct_log_record_t) * self->batch_max);
-    if (!self->batch_records) {
-        ct_msgqueue_destroy(&self->queue);
-        free(self->q_buf);
-        block__pool_destroy(self->pool);
-        free(self);
-        return NULL;
-    }
-
+    self->running        = CT_ATOMIC_VAR_INIT(1);
     self->pending_jobs   = CT_ATOMIC_VAR_INIT(0);
     self->high_watermark = CT_ATOMIC_VAR_INIT(0);
     ct_mutex_init(&self->flush_mutex);
     ct_cond_init(&self->flush_cond);
 
-    self->running = true;
     if (ct_thread_create(&self->thread, NULL, dispatcher__routine, self) != 0) {
         ct_mutex_destroy(&self->flush_mutex);
         ct_cond_destroy(&self->flush_cond);
-        free(self->batch_records);
         ct_msgqueue_destroy(&self->queue);
         free(self->q_buf);
-        block__pool_destroy(self->pool);
         free(self);
         return NULL;
     }
@@ -232,45 +117,30 @@ ct_log_dispatcher_t* ct_log_dispatcher_create(uint32_t queue_size, uint32_t pool
     return self;
 }
 
-void ct_log_dispatcher_destroy(ct_log_dispatcher_t* self) {
-    if (!self) { return; }
-    self->running = false;
-    ct_thread_join(self->thread, NULL);
+int ct_log_dispatcher_push_record(ct_log_dispatcher_t* self, ct_logger_t* logger, int level, const char* file, int line,
+                                  uint32_t tid, ct_time64_t time, const char* payload, size_t payload_len) {
+    if (!self || !logger || !payload || payload_len == 0 || !ct_atomic_int_load(&self->running)) { return -1; }
 
-    ct_mutex_destroy(&self->flush_mutex);
-    ct_cond_destroy(&self->flush_cond);
+    ct_log_job_t job;
+    memset(&job, 0, sizeof(job));
+    job.logger       = logger;
+    job.record.time  = time;
+    job.record.tid   = tid;
+    job.record.file  = file;
+    job.record.line  = line;
+    job.record.level = level;
+    dispatcher__copy_payload(&job, payload, payload_len);
 
-    ct_msgqueue_destroy(&self->queue);
-    free(self->q_buf);
+    ct_logger_add_pending_job(logger);
+    int pending = ct_atomic_int_add(&self->pending_jobs, 1) + 1;
+    dispatcher__update_high_watermark(self, pending);
 
-    block__pool_destroy(self->pool);
-    free(self);
-}
-
-void ct_log_dispatcher_push_block(ct_log_dispatcher_t* self, ct_logger_t* logger, ct_log_block_t* block) {
-    if (!block) { return; }
-    if (!self) {
-        block__destroy(block);
-        return;
+    if (ct_msgqueue_try_push(&self->queue, &job) != 0) {
+        dispatcher__finish_global_job(self);
+        ct_logger_finish_pending_job(logger);
+        return -1;
     }
-    if (!logger || !self->running || block->rec_count == 0) {
-        block__pool_release(self->pool, block);
-        return;
-    }
-
-    ct_log_job_t job = {
-        .logger = logger,
-        .block  = block,
-    };
-    ct_atomic_int_add(&self->pending_jobs, 1);
-    if (ct_msgqueue_push(&self->queue, &job) != 0) {
-        ct_atomic_int_sub(&self->pending_jobs, 1);
-        block__pool_release(self->pool, block);
-    }
-}
-
-ct_log_block_pool_t* ct_log_dispatcher_get_pool(ct_log_dispatcher_t* self) {
-    return self ? self->pool : NULL;
+    return 0;
 }
 
 void ct_log_dispatcher_flush(ct_log_dispatcher_t* self) {

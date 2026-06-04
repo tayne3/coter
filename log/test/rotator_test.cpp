@@ -1,4 +1,4 @@
-#include "../src/rotator.h"
+#include "../src/handler/rotator.h"
 
 #include <catch.hpp>
 #include <cstdio>

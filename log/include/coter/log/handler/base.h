@@ -18,6 +18,8 @@ extern "C" {
 
 // 日志记录
 typedef struct ct_log_record ct_log_record_t;
+// 日志器
+typedef struct ct_logger ct_logger_t;
 // 日志处理器基类
 typedef struct ct_log_handler ct_log_handler_t;
 
@@ -35,6 +37,7 @@ typedef struct ct_log_handler_vtable {
 struct ct_log_handler {
     ct_list_t                      node;    // 链表节点
     const ct_log_handler_vtable_t* vtable;  // 虚函数表
+    ct_logger_t*                   owner;   // 所属日志器
 };
 
 // 日志记录
@@ -47,6 +50,18 @@ struct ct_log_record {
     size_t      size;   // 负载字节数
     int         level;  // 日志级别
 };
+
+typedef void (*ct_log_base_routine_fn)(const ct_log_record_t* record, void* userdata);
+typedef void (*ct_log_base_flush_fn)(void* userdata);
+
+typedef struct ct_log_base_handler_config {
+    ct_log_base_routine_fn routine;
+    ct_log_base_flush_fn   flush;
+    void*                  userdata;
+} ct_log_base_handler_config_t;
+
+CT_API void              ct_log_base_handler_config_default(ct_log_base_handler_config_t* config);
+CT_API ct_log_handler_t* ct_log_base_handler_create(const ct_log_base_handler_config_t* config);
 
 #ifdef __cplusplus
 }
