@@ -5,10 +5,9 @@
 #ifndef COTER_LOG_LOGGER_H
 #define COTER_LOG_LOGGER_H
 
-#include "coter/log/handler/base.h"
+#include "coter/container/list.h"
+#include "coter/log/handler/record.h"
 #include "coter/sync/atomic.h"
-#include "coter/sync/cond.h"
-#include "coter/sync/mutex.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -33,13 +32,10 @@ enum ct_log_level {
 #define CT_LOG_LEVEL_IS_VALID(__level) ((unsigned)(__level) < (unsigned)CT_LOG_LEVEL_COUNT)
 
 struct ct_logger {
-    ct_list_t       handlers;        // List of handlers
-    ct_atomic_int_t level;           // Log level
-    ct_atomic_int_t state;           // Running state
-    ct_mutex_t      lifecycle_lock;  // Protects writer and pending counters
-    ct_cond_t       lifecycle_cond;  // Signals logger idle state
-    uint32_t        active_writers;  // Producers currently submitting
-    uint32_t        pending_jobs;    // Dispatcher jobs referencing this logger
+    ct_list_t       handlers;
+    ct_atomic_int_t level;
+    ct_atomic_int_t state;
+    ct_atomic_int_t active_writers;
 };
 
 /**
@@ -61,15 +57,32 @@ CT_API int ct_logger_start(ct_logger_t* logger);
  * @brief 关闭 Logger 并销毁其持有的 handlers
  *
  * @param logger 目标日志器对象
+ * @return int 成功返回 0, 失败返回 -1
  */
-CT_API void ct_logger_close(ct_logger_t* logger);
+CT_API int ct_logger_close(ct_logger_t* logger);
+
+/**
+ * @brief 排空 Logger 已提交日志并刷新 handlers
+ *
+ * @param logger 目标日志器, 若为 NULL 则刷新默认日志器
+ * @return int 成功返回 0, 失败返回 -1
+ */
+CT_API int ct_logger_flush(ct_logger_t* logger);
 
 /**
  * @brief 获取库内默认 Logger。
  *
  * @return ct_logger_t* 返回默认日志器对象。
  */
-CT_API ct_logger_t* ct_logger_default(void);
+CT_API ct_logger_t* ct_logger_get_default(void);
+
+/**
+ * @brief 设置库内默认 Logger。
+ *
+ * @param logger 新默认日志器。必须已启动；传 NULL 恢复内置默认日志器。
+ * @return int 成功返回 0, 失败返回 -1
+ */
+CT_API int ct_logger_set_default(ct_logger_t* logger);
 
 /**
  * @brief 设置日志器的日志级别
@@ -133,7 +146,7 @@ CT_API void ct_log_submit_payload(ct_logger_t* logger, int level, const char* fi
 }
 #endif
 
-#if defined(__cplusplus) && CT_CXX_STANDARD >= CT_CXX_11
+#if defined(__cplusplus) && CT_CPLUSPLUS >= CT_CXX_11
 
 #include "coter/fmt/format.hpp"
 
@@ -158,33 +171,33 @@ namespace log {
         }
 
         template <typename... Args>
-        void verbose(const char* file, int line, fmt::format_string<Args...> fmt, Args&&... args) const {
-            log(CT_LOG_LEVEL_VERBOSE, file, line, fmt, std::forward<Args>(args)...);
+        void verbose(fmt::format_string<Args...> fmt, Args&&... args) const {
+            log(CT_LOG_LEVEL_VERBOSE, "", 0, fmt, std::forward<Args>(args)...);
         }
         template <typename... Args>
-        void debug(const char* file, int line, fmt::format_string<Args...> fmt, Args&&... args) const {
-            log(CT_LOG_LEVEL_DEBUG, file, line, fmt, std::forward<Args>(args)...);
+        void debug(fmt::format_string<Args...> fmt, Args&&... args) const {
+            log(CT_LOG_LEVEL_DEBUG, "", 0, fmt, std::forward<Args>(args)...);
         }
         template <typename... Args>
-        void trace(const char* file, int line, fmt::format_string<Args...> fmt, Args&&... args) const {
-            log(CT_LOG_LEVEL_TRACE, file, line, fmt, std::forward<Args>(args)...);
+        void trace(fmt::format_string<Args...> fmt, Args&&... args) const {
+            log(CT_LOG_LEVEL_TRACE, "", 0, fmt, std::forward<Args>(args)...);
         }
         template <typename... Args>
-        void warning(const char* file, int line, fmt::format_string<Args...> fmt, Args&&... args) const {
-            log(CT_LOG_LEVEL_WARNING, file, line, fmt, std::forward<Args>(args)...);
+        void warning(fmt::format_string<Args...> fmt, Args&&... args) const {
+            log(CT_LOG_LEVEL_WARNING, "", 0, fmt, std::forward<Args>(args)...);
         }
         template <typename... Args>
-        void error(const char* file, int line, fmt::format_string<Args...> fmt, Args&&... args) const {
-            log(CT_LOG_LEVEL_ERROR, file, line, fmt, std::forward<Args>(args)...);
+        void error(fmt::format_string<Args...> fmt, Args&&... args) const {
+            log(CT_LOG_LEVEL_ERROR, "", 0, fmt, std::forward<Args>(args)...);
         }
         template <typename... Args>
-        void fatal(const char* file, int line, fmt::format_string<Args...> fmt, Args&&... args) const {
-            log(CT_LOG_LEVEL_FATAL, file, line, fmt, std::forward<Args>(args)...);
+        void fatal(fmt::format_string<Args...> fmt, Args&&... args) const {
+            log(CT_LOG_LEVEL_FATAL, "", 0, fmt, std::forward<Args>(args)...);
         }
     };
 
     inline Logger default_logger() {
-        return Logger(ct_logger_default());
+        return Logger(NULL);
     }
 
 }  // namespace log

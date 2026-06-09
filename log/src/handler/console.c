@@ -2,11 +2,13 @@
  * @file handler_console.c
  * @brief 控制台 Handler
  */
+#include "coter/log/handler/console.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "coter/log/handler/console.h"
 #include "formatter.h"
+#include "log_internal.h"
 
 typedef struct ct_log_console_handler {
     ct_log_handler_t   base;
@@ -14,12 +16,12 @@ typedef struct ct_log_console_handler {
     ct_log_formatter_t formatter;
 } ct_log_console_handler_t;
 
-static void console_write_batch(ct_log_handler_t* self, const ct_log_record_t* records, size_t count);
+static void console_write(ct_log_handler_t* self, const ct_log_record_t* record);
 static void console_flush(ct_log_handler_t* self);
 static void console_destroy(ct_log_handler_t* self);
 
 static const ct_log_handler_vtable_t console_vtable = {
-    .puts    = console_write_batch,
+    .write   = console_write,
     .flush   = console_flush,
     .destroy = console_destroy,
 };
@@ -41,14 +43,12 @@ ct_log_handler_t* ct_log_console_handler_create(const ct_log_console_handler_con
     return &handler->base;
 }
 
-static void console_write_batch(ct_log_handler_t* self, const ct_log_record_t* records, size_t count) {
+static void console_write(ct_log_handler_t* self, const ct_log_record_t* record) {
     ct_log_console_handler_t* handler = (ct_log_console_handler_t*)self;
     char                      buf[2048];
 
-    for (size_t i = 0; i < count; ++i) {
-        size_t len = ct_log_formatter_format(&handler->formatter, &records[i], buf, sizeof(buf));
-        if (len > 0) { fwrite(buf, 1, len, handler->stream); }
-    }
+    size_t len = ct_log_formatter_format(&handler->formatter, record, buf, sizeof(buf));
+    if (len > 0) { fwrite(buf, 1, len, handler->stream); }
 }
 
 static void console_flush(ct_log_handler_t* self) {

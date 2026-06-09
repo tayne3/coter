@@ -121,7 +121,7 @@ static bool rotator_try_recover(ct_log_rotator_t* self) {
     }
 
     if (self->file_index >= 0) {
-        char filename[512] = {0};
+        char filename[548] = {0};
         rotator_filename(self, self->file_index, filename, sizeof(filename));
         rotator_folder_create_recursive(self->dir);
         rotator_file_writable_set(filename);
@@ -144,7 +144,7 @@ static bool rotator_file_open_initial(ct_log_rotator_t* self) {
     int       newest_index = -1;
     ct_time_t newest_time  = 0;
     for (int i = 0; i < self->count_max; ++i) {
-        char      filename[512];
+        char      filename[548];
         ct_stat_t st;
         rotator_filename(self, i, filename, sizeof(filename));
         if (ct_stat(filename, &st) == 0) {
@@ -158,7 +158,7 @@ static bool rotator_file_open_initial(ct_log_rotator_t* self) {
     if (newest_index == -1) {
         newest_index = 0;
     } else {
-        char      filename[512];
+        char      filename[548];
         ct_stat_t st;
         rotator_filename(self, newest_index, filename, sizeof(filename));
         if (ct_stat(filename, &st) == 0 && (size_t)st.st_size >= self->size_max) {
@@ -166,7 +166,7 @@ static bool rotator_file_open_initial(ct_log_rotator_t* self) {
         }
     }
 
-    char filename[512];
+    char filename[548];
     rotator_filename(self, newest_index, filename, sizeof(filename));
     rotator_file_writable_set(filename);
     self->file = fopen(filename, "ab+");
@@ -186,7 +186,7 @@ static bool rotator_file_next(ct_log_rotator_t* self) {
     }
 
     self->file_index = (self->file_index + 1) % self->count_max;
-    char filename[512];
+    char filename[548];
     rotator_filename(self, self->file_index, filename, sizeof(filename));
     ct_remove(filename);
     self->file = fopen(filename, "ab+");

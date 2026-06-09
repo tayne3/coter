@@ -2,150 +2,153 @@
  * @file dispatcher.c
  * @brief Internal log dispatcher.
  */
-#include <stdlib.h>
 #include <string.h>
 
-#include "coter/sync/atomic.h"
-#include "coter/sync/cond.h"
 #include "coter/sync/msgqueue.h"
-#include "coter/sync/mutex.h"
 #include "coter/thread/thread.h"
 #include "log_internal.h"
 
-typedef struct ct_log_job {
-    ct_logger_t*    logger;
-    ct_log_record_t record;
-    char            payload[CT_LOG_RECORD_MAX];
-} ct_log_job_t;
-
-struct ct_log_dispatcher {
-    ct_thread_t     thread;
-    ct_msgqueue_t   queue;
-    void*           q_buf;
-    ct_atomic_int_t running;
-    ct_atomic_int_t pending_jobs;
-    ct_atomic_int_t high_watermark;
-    ct_mutex_t      flush_mutex;
-    ct_cond_t       flush_cond;
+enum ct_log_dispatcher_state {
+    CT_LOG_DISPATCHER_INIT     = 0,
+    CT_LOG_DISPATCHER_STARTING = 1,
+    CT_LOG_DISPATCHER_READY    = 2,
+    CT_LOG_DISPATCHER_FAILED   = -1,
 };
 
+static struct dispatcher {
+    ct_atomic_int_t state;
+    ct_thread_t     worker;
+    ct_msgqueue_t   queue;
+    ct_log_job_t    q_buf[CT_LOG_QUEUE_SIZE];
+} mgr[1] = {{
+    .state = CT_ATOMIC_VAR_INIT(CT_LOG_DISPATCHER_INIT),
+}};
+
 static int  dispatcher__routine(void* arg);
-static void dispatcher__update_high_watermark(ct_log_dispatcher_t* self, int value);
-static void dispatcher__finish_global_job(ct_log_dispatcher_t* self);
-static void dispatcher__copy_payload(ct_log_job_t* job, const char* payload, size_t payload_len);
-
-static void dispatcher__update_high_watermark(ct_log_dispatcher_t* self, int value) {
-    int high = ct_atomic_int_load(&self->high_watermark);
-    while (value > high) {
-        int expected = high;
-        if (ct_atomic_int_compare_exchange(&self->high_watermark, &expected, value)) { return; }
-        high = expected;
-    }
-}
-
-static void dispatcher__finish_global_job(ct_log_dispatcher_t* self) {
-    ct_mutex_lock(&self->flush_mutex);
-    if (ct_atomic_int_sub(&self->pending_jobs, 1) == 1) { ct_cond_broadcast(&self->flush_cond); }
-    ct_mutex_unlock(&self->flush_mutex);
-}
-
-static void dispatcher__copy_payload(ct_log_job_t* job, const char* payload, size_t payload_len) {
-    size_t copy_len = payload_len;
-    if (copy_len >= CT_LOG_RECORD_MAX) {
-        copy_len = CT_LOG_RECORD_MAX - 1;
-        if (copy_len >= 3) {
-            memcpy(job->payload, payload, copy_len);
-            job->payload[copy_len - 3] = '.';
-            job->payload[copy_len - 2] = '.';
-            job->payload[copy_len - 1] = '.';
-        } else {
-            memcpy(job->payload, payload, copy_len);
-        }
-    } else {
-        memcpy(job->payload, payload, copy_len);
-    }
-    job->payload[copy_len] = '\0';
-    job->record.size       = copy_len;
-}
+static int  dispatcher__start(void);
+static bool dispatcher__is_ready(void);
+static void dispatcher__dispatch_record(ct_logger_t* logger, const ct_log_record_job_t* job);
 
 static int dispatcher__routine(void* arg) {
-    ct_log_dispatcher_t* self = (ct_log_dispatcher_t*)arg;
-    ct_log_job_t         job;
+    CT_UNUSED(arg);
 
-    while (ct_atomic_int_load(&self->running) || ct_atomic_int_load(&self->pending_jobs) > 0) {
-        if (ct_msgqueue_pop_for(&self->queue, &job, 100) != 0) { continue; }
+    ct_log_job_t job;
+    while (ct_msgqueue_pop(&mgr->queue, &job) == 0) {
+        switch (job.type) {
+            case CT_LOG_JOB_RECORD: dispatcher__dispatch_record(job.logger, &job.record); break;
 
-        job.record.data = job.payload;
-        if (job.logger && job.record.size > 0) {
-            ct_list_foreach_entry(handler, &job.logger->handlers, ct_log_handler_t, node) {
-                if (handler->vtable && handler->vtable->puts) { handler->vtable->puts(handler, &job.record, 1); }
+            case CT_LOG_JOB_FLUSH:
+                if (job.logger) {
+                    ct_list_foreach_entry(handler, &job.logger->handlers, ct_log_handler_t, node) {
+                        if (handler->vtable && handler->vtable->flush) { handler->vtable->flush(handler); }
+                    }
+                }
+                CT_FALLTHROUGH;
+
+            case CT_LOG_JOB_BARRIER: {
+                ct_log_barrier_t* b = job.barrier;
+                ct_mutex_lock(&b->mtx);
+                b->done = true;
+                ct_cond_signal(&b->cond);
+                ct_mutex_unlock(&b->mtx);
+                break;
             }
-        }
 
-        if (job.logger) { ct_logger_finish_pending_job(job.logger); }
-        dispatcher__finish_global_job(self);
+            default: break;
+        }
     }
     return 0;
 }
 
-ct_log_dispatcher_t* ct_log_dispatcher_create(void) {
-    ct_log_dispatcher_t* self = (ct_log_dispatcher_t*)calloc(1, sizeof(ct_log_dispatcher_t));
-    if (!self) { return NULL; }
+static void dispatcher__dispatch_record(ct_logger_t* logger, const ct_log_record_job_t* job) {
+    if (!logger || !job || job->size == 0) { return; }
 
-    self->q_buf = malloc(sizeof(ct_log_job_t) * CT_LOG_QUEUE_SIZE);
-    if (!self->q_buf) {
-        free(self);
-        return NULL;
+    ct_log_record_t record;
+    record.time  = job->time;
+    record.tid   = job->tid;
+    record.file  = job->file;
+    record.line  = job->line;
+    record.level = job->level;
+    record.size  = job->size;
+    record.data  = job->payload;
+
+    ct_list_foreach_entry(handler, &logger->handlers, ct_log_handler_t, node) {
+        if (handler->vtable && handler->vtable->write) { handler->vtable->write(handler, &record); }
     }
-    ct_msgqueue_init(&self->queue, self->q_buf, sizeof(ct_log_job_t), CT_LOG_QUEUE_SIZE);
-
-    self->running        = CT_ATOMIC_VAR_INIT(1);
-    self->pending_jobs   = CT_ATOMIC_VAR_INIT(0);
-    self->high_watermark = CT_ATOMIC_VAR_INIT(0);
-    ct_mutex_init(&self->flush_mutex);
-    ct_cond_init(&self->flush_cond);
-
-    if (ct_thread_create(&self->thread, NULL, dispatcher__routine, self) != 0) {
-        ct_mutex_destroy(&self->flush_mutex);
-        ct_cond_destroy(&self->flush_cond);
-        ct_msgqueue_destroy(&self->queue);
-        free(self->q_buf);
-        free(self);
-        return NULL;
-    }
-
-    return self;
 }
 
-int ct_log_dispatcher_push_record(ct_log_dispatcher_t* self, ct_logger_t* logger, int level, const char* file, int line,
-                                  uint32_t tid, ct_time64_t time, const char* payload, size_t payload_len) {
-    if (!self || !logger || !payload || payload_len == 0 || !ct_atomic_int_load(&self->running)) { return -1; }
+static int dispatcher__start(void) {
+    ct_msgqueue_init(&mgr->queue, mgr->q_buf, sizeof(ct_log_job_t), CT_LOG_QUEUE_SIZE);
+
+    ct_thread_attr_t attr = CT_THREAD_ATTR_INIT;
+    attr.stack_size       = 1 * 1024 * 1024;  // stack size: 1MB
+    if (ct_thread_create(&mgr->worker, &attr, dispatcher__routine, NULL) != 0) {
+        ct_msgqueue_destroy(&mgr->queue);
+        return -1;
+    }
+
+    ct_atomic_int_store(&mgr->state, CT_LOG_DISPATCHER_READY);
+    return 0;
+}
+
+static bool dispatcher__is_ready(void) {
+    return ct_atomic_int_load(&mgr->state) == CT_LOG_DISPATCHER_READY;
+}
+
+int ct_log_dispatcher_start(void) {
+    int state = ct_atomic_int_load(&mgr->state);
+    if (state == CT_LOG_DISPATCHER_READY) { return 0; }
+    if (state == CT_LOG_DISPATCHER_FAILED) { return -1; }
+
+    int expected = CT_LOG_DISPATCHER_INIT;
+    if (ct_atomic_int_compare_exchange(&mgr->state, &expected, CT_LOG_DISPATCHER_STARTING)) {
+        if (dispatcher__start() == 0) { return 0; }
+
+        ct_atomic_int_store(&mgr->state, CT_LOG_DISPATCHER_FAILED);
+        return -1;
+    }
+
+    while (ct_atomic_int_load(&mgr->state) == CT_LOG_DISPATCHER_STARTING) { ct_thread_yield(); }
+    return ct_atomic_int_load(&mgr->state) == CT_LOG_DISPATCHER_READY ? 0 : -1;
+}
+
+int ct_log_dispatcher_submit(const ct_log_job_t* job) {
+    if (!job || !job->logger || !dispatcher__is_ready()) { return -1; }
+    if (ct_log_dispatcher_is_worker()) { return -1; }
+    return ct_msgqueue_push(&mgr->queue, job);
+}
+
+int ct_log_dispatcher_sync(ct_logger_t* logger, int job_type) {
+    if (!logger || !dispatcher__is_ready()) { return -1; }
+    if (ct_log_dispatcher_is_worker()) { return -1; }
+    if (job_type != CT_LOG_JOB_BARRIER && job_type != CT_LOG_JOB_FLUSH) { return -1; }
+
+    ct_log_barrier_t b;
+    ct_mutex_init(&b.mtx);
+    ct_cond_init(&b.cond);
+    b.done = false;
 
     ct_log_job_t job;
     memset(&job, 0, sizeof(job));
-    job.logger       = logger;
-    job.record.time  = time;
-    job.record.tid   = tid;
-    job.record.file  = file;
-    job.record.line  = line;
-    job.record.level = level;
-    dispatcher__copy_payload(&job, payload, payload_len);
+    job.type    = job_type;
+    job.logger  = logger;
+    job.barrier = &b;
 
-    ct_logger_add_pending_job(logger);
-    int pending = ct_atomic_int_add(&self->pending_jobs, 1) + 1;
-    dispatcher__update_high_watermark(self, pending);
-
-    if (ct_msgqueue_try_push(&self->queue, &job) != 0) {
-        dispatcher__finish_global_job(self);
-        ct_logger_finish_pending_job(logger);
+    if (ct_log_dispatcher_submit(&job) != 0) {
+        ct_cond_destroy(&b.cond);
+        ct_mutex_destroy(&b.mtx);
         return -1;
     }
+
+    ct_mutex_lock(&b.mtx);
+    while (!b.done) { ct_cond_wait(&b.cond, &b.mtx); }
+    ct_mutex_unlock(&b.mtx);
+
+    ct_cond_destroy(&b.cond);
+    ct_mutex_destroy(&b.mtx);
     return 0;
 }
 
-void ct_log_dispatcher_flush(ct_log_dispatcher_t* self) {
-    if (!self) { return; }
-    ct_mutex_lock(&self->flush_mutex);
-    while (ct_atomic_int_load(&self->pending_jobs) > 0) { ct_cond_wait(&self->flush_cond, &self->flush_mutex); }
-    ct_mutex_unlock(&self->flush_mutex);
+bool ct_log_dispatcher_is_worker(void) {
+    return dispatcher__is_ready() && ct_thread_is_self(mgr->worker);
 }

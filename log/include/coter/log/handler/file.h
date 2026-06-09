@@ -7,7 +7,7 @@
 
 #include <stddef.h>
 
-#include "coter/log/handler/base.h"
+#include "coter/log/handler/record.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -20,7 +20,7 @@ typedef struct ct_log_file_handler_config {
     int    count_max;
 } ct_log_file_handler_config_t;
 
-CT_API void ct_log_file_handler_config_default(ct_log_file_handler_config_t* config);
+CT_API void              ct_log_file_handler_config_default(ct_log_file_handler_config_t* config);
 CT_API ct_log_handler_t* ct_log_file_handler_create(const ct_log_file_handler_config_t* config);
 
 #ifdef __cplusplus

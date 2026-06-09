@@ -20,18 +20,18 @@ extern "C" {
 #define CT_LOGGER_ERROR(__logger, ...)   CT_LOGGER_LOG((__logger), CT_LOG_LEVEL_ERROR, __VA_ARGS__)
 #define CT_LOGGER_FATAL(__logger, ...)   CT_LOGGER_LOG((__logger), CT_LOG_LEVEL_FATAL, __VA_ARGS__)
 
-#define CT_VERBOSE(...) CT_LOGGER_VERBOSE(ct_logger_default(), __VA_ARGS__)
-#define CT_DEBUG(...)   CT_LOGGER_DEBUG(ct_logger_default(), __VA_ARGS__)
-#define CT_TRACE(...)   CT_LOGGER_TRACE(ct_logger_default(), __VA_ARGS__)
-#define CT_WARNING(...) CT_LOGGER_WARNING(ct_logger_default(), __VA_ARGS__)
-#define CT_ERROR(...)   CT_LOGGER_ERROR(ct_logger_default(), __VA_ARGS__)
-#define CT_FATAL(...)   CT_LOGGER_FATAL(ct_logger_default(), __VA_ARGS__)
+#define CT_VERBOSE(...) CT_LOGGER_VERBOSE(NULL, __VA_ARGS__)
+#define CT_DEBUG(...)   CT_LOGGER_DEBUG(NULL, __VA_ARGS__)
+#define CT_TRACE(...)   CT_LOGGER_TRACE(NULL, __VA_ARGS__)
+#define CT_WARNING(...) CT_LOGGER_WARNING(NULL, __VA_ARGS__)
+#define CT_ERROR(...)   CT_LOGGER_ERROR(NULL, __VA_ARGS__)
+#define CT_FATAL(...)   CT_LOGGER_FATAL(NULL, __VA_ARGS__)
 
 #ifdef __cplusplus
 }
 #endif
 
-#if defined(__cplusplus) && CT_CXX_STANDARD >= CT_CXX_11
+#if defined(__cplusplus) && CT_CPLUSPLUS >= CT_CXX_11
 
 #define COTER_LOGGER_LOG(logger_, level, ...) (logger_).log((level), CT_FILE, CT_LINE, __VA_ARGS__)
 

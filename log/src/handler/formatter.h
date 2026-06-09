@@ -5,7 +5,7 @@
 #ifndef COTER_LOG_FORMATTER_H
 #define COTER_LOG_FORMATTER_H
 
-#include "coter/log/handler/base.h"
+#include "coter/log/handler/record.h"
 
 typedef struct ct_log_formatter {
     bool color;

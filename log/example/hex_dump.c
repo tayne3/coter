@@ -11,7 +11,7 @@
  * @brief Application layer helper to print hex dump.
  */
 static void app_dump_hex(ct_logger_t* logger, const void* data, size_t len) {
-    if (!logger || !data || len == 0) { return; }
+    if (!data || len == 0) { return; }
 
     char           hex_buf[128];
     const uint8_t* src       = (const uint8_t*)data;
@@ -39,12 +39,12 @@ int main(void) {
         0x66, 0x77, 0x88, 0x99, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF,
     };
 
-    CT_LOGGER_DEBUG(ct_logger_default(), "--- Dumping String Data ---");
-    app_dump_hex(ct_logger_default(), dummy_string, strlen(dummy_string));
+    CT_DEBUG("--- Dumping String Data ---");
+    app_dump_hex(NULL, dummy_string, strlen(dummy_string));
 
-    CT_LOGGER_DEBUG(ct_logger_default(), "--- Dumping Binary Data ---");
-    app_dump_hex(ct_logger_default(), dummy_binary, sizeof(dummy_binary));
+    CT_DEBUG("--- Dumping Binary Data ---");
+    app_dump_hex(NULL, dummy_binary, sizeof(dummy_binary));
 
-    ct_logger_close(ct_logger_default());
+    ct_logger_flush(NULL);
     return 0;
 }

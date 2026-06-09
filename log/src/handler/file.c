@@ -2,12 +2,14 @@
  * @file handler_file.c
  * @brief 文件 Handler
  */
+#include "coter/log/handler/file.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "coter/log/handler/file.h"
 #include "formatter.h"
+#include "log_internal.h"
 #include "rotator.h"
 
 typedef struct ct_log_file_handler {
@@ -16,12 +18,12 @@ typedef struct ct_log_file_handler {
     ct_log_formatter_t formatter;
 } ct_log_file_handler_t;
 
-static void file_write_batch(ct_log_handler_t* self, const ct_log_record_t* records, size_t count);
+static void file_write(ct_log_handler_t* self, const ct_log_record_t* record);
 static void file_flush(ct_log_handler_t* self);
 static void file_destroy(ct_log_handler_t* self);
 
 static const ct_log_handler_vtable_t file_vtable = {
-    .puts    = file_write_batch,
+    .write   = file_write,
     .flush   = file_flush,
     .destroy = file_destroy,
 };
@@ -58,14 +60,12 @@ ct_log_handler_t* ct_log_file_handler_create(const ct_log_file_handler_config_t*
     return &handler->base;
 }
 
-static void file_write_batch(ct_log_handler_t* self, const ct_log_record_t* records, size_t count) {
+static void file_write(ct_log_handler_t* self, const ct_log_record_t* record) {
     ct_log_file_handler_t* handler = (ct_log_file_handler_t*)self;
     char                   buf[2048];
 
-    for (size_t i = 0; i < count; ++i) {
-        size_t len = ct_log_formatter_format(&handler->formatter, &records[i], buf, sizeof(buf));
-        if (len > 0) { (void)ct_log_rotator_write(handler->rotator, buf, len); }
-    }
+    size_t len = ct_log_formatter_format(&handler->formatter, record, buf, sizeof(buf));
+    if (len > 0) { (void)ct_log_rotator_write(handler->rotator, buf, len); }
 }
 
 static void file_flush(ct_log_handler_t* self) {
