@@ -10,7 +10,7 @@
 
 #include "coter/core/macro.h"
 
-#if defined(__cplusplus) && CT_CXX_STANDARD >= CT_CXX_11
+#if defined(__cplusplus) && CT_CPLUSPLUS >= CT_CXX_11
 
 #include "format.h"
 
@@ -418,5 +418,5 @@ inline auto output_file(cstring_view path, T... params) -> ostream {
 FMT_END_EXPORT
 FMT_END_NAMESPACE
 
-#endif  // CT_CXX_STANDARD >= CT_CXX_11
+#endif  // CT_CPLUSPLUS >= CT_CXX_11
 #endif  // COTER_FMT_FMT_OS_H_

@@ -10,7 +10,7 @@
 
 #include "coter/core/macro.h"
 
-#if defined(__cplusplus) && CT_CXX_STANDARD >= CT_CXX_11
+#if defined(__cplusplus) && CT_CPLUSPLUS >= CT_CXX_11
 
 #include "format.h"
 #include "ostream.h"
@@ -664,5 +664,5 @@ struct formatter<std::reference_wrapper<T>, Char,
 
 FMT_END_NAMESPACE
 
-#endif  // CT_CXX_STANDARD >= CT_CXX_11
+#endif  // CT_CPLUSPLUS >= CT_CXX_11
 #endif  // COTER_FMT_FMT_STD_H_

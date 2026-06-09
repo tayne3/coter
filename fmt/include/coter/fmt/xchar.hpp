@@ -10,7 +10,7 @@
 
 #include "coter/core/macro.h"
 
-#if defined(__cplusplus) && CT_CXX_STANDARD >= CT_CXX_11
+#if defined(__cplusplus) && CT_CPLUSPLUS >= CT_CXX_11
 
 #include "color.h"
 #include "format.h"
@@ -102,7 +102,7 @@ public:
     }
     basic_fstring(runtime_format_string<Char> fmt) : str_(fmt.str) {}
 
-    operator basic_string_view<Char>() const { return str_; }
+         operator basic_string_view<Char>() const { return str_; }
     auto get() const -> basic_string_view<Char> { return str_; }
 };
 
@@ -311,5 +311,5 @@ inline auto to_wstring(const T& value) -> std::wstring {
 FMT_END_EXPORT
 FMT_END_NAMESPACE
 
-#endif  // CT_CXX_STANDARD >= CT_CXX_11
+#endif  // CT_CPLUSPLUS >= CT_CXX_11
 #endif  // COTER_FMT_FMT_XCHAR_H_

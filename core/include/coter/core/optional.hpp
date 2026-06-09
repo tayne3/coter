@@ -4,7 +4,7 @@
 #include "coter/core/macro.h"
 
 // See: https://stackoverflow.com/questions/2324658/how-to-determine-the-version-of-the-c-standard-used-by-the-compiler
-#if CT_CXX_STANDARD >= CT_CXX_17
+#if CT_CPLUSPLUS >= CT_CXX_17
 // Standard library provides std::optional in C++17 and above.
 #include <optional>
 namespace coter {

@@ -92,7 +92,7 @@ CT_INLINE void* ct_memrchr(const void* __s, int __c, size_t __n) {
 }
 #endif
 
-#if defined(__cplusplus) && CT_CXX_STANDARD >= CT_CXX_14
+#if defined(__cplusplus) && CT_CPLUSPLUS >= CT_CXX_14
 constexpr const char* ct_basename(const char* path) noexcept {
     if (!path) return "(nil)";
     const char* result = path;
@@ -108,7 +108,7 @@ constexpr const char* ct_basename(const char* path) noexcept {
     }
     return result;
 }
-#elif defined(__cplusplus) && CT_CXX_STANDARD >= CT_CXX_11
+#elif defined(__cplusplus) && CT_CPLUSPLUS >= CT_CXX_11
 namespace coter {
 namespace detail {
     constexpr const char* ct_basename_impl(const char* p, const char* last) noexcept {

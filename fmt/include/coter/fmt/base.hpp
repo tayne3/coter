@@ -10,7 +10,7 @@
 
 #include "coter/core/macro.h"
 
-#if defined(__cplusplus) && CT_CXX_STANDARD >= CT_CXX_11
+#if defined(__cplusplus) && CT_CPLUSPLUS >= CT_CXX_11
 
 #if defined(FMT_IMPORT_STD) && !defined(FMT_MODULE)
 #define FMT_MODULE
@@ -1783,8 +1783,7 @@ public:
 #if !FMT_MSC_VERSION || FMT_MSC_VERSION >= 1940
     FMT_CONSTEXPR20
 #endif
-        void
-        append(const U* begin, const U* end) {
+        void append(const U* begin, const U* end) {
         while (begin != end) {
             auto size     = size_;
             auto free_cap = capacity_ - size;
@@ -2282,7 +2281,7 @@ struct named_arg_store {
     named_arg_store(const named_arg_store& rhs)                    = delete;
     auto operator=(const named_arg_store& rhs) -> named_arg_store& = delete;
     auto operator=(named_arg_store&& rhs) -> named_arg_store&      = delete;
-    operator const arg_t<Context, NUM_ARGS>*() const { return args + 1; }
+         operator const arg_t<Context, NUM_ARGS>*() const { return args + 1; }
 };
 
 // An array of references to arguments. It can be implicitly converted to
@@ -2854,5 +2853,5 @@ namespace coter {
 namespace fmt = ::fmt;
 }
 
-#endif  // CT_CXX_STANDARD >= CT_CXX_11
+#endif  // CT_CPLUSPLUS >= CT_CXX_11
 #endif  // COTER_FMT_FMT_BASE_H_

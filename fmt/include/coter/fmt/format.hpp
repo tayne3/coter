@@ -35,7 +35,7 @@
 
 #include "coter/core/macro.h"
 
-#if defined(__cplusplus) && CT_CXX_STANDARD >= CT_CXX_11
+#if defined(__cplusplus) && CT_CPLUSPLUS >= CT_CXX_11
 
 #ifndef _LIBCPP_REMOVE_TRANSITIVE_INCLUDES
 #define _LIBCPP_REMOVE_TRANSITIVE_INCLUDES
@@ -485,8 +485,7 @@ template <typename OutputIt,
 #if FMT_CLANG_VERSION >= 307 && !FMT_ICC_VERSION
 __attribute__((no_sanitize("undefined")))
 #endif
-FMT_CONSTEXPR20 inline auto
-reserve(OutputIt it, size_t n) -> typename OutputIt::value_type* {
+FMT_CONSTEXPR20 inline auto reserve(OutputIt it, size_t n) -> typename OutputIt::value_type* {
     auto&  c    = get_container(it);
     size_t size = c.size();
     c.resize(size + n);
@@ -1289,7 +1288,7 @@ public:
             FMT_THROW(std::runtime_error(sizeof(WChar) == 2 ? "invalid utf16" : "invalid utf32"));
         }
     }
-    operator string_view() const { return string_view(&buffer_[0], size()); }
+         operator string_view() const { return string_view(&buffer_[0], size()); }
     auto size() const -> size_t { return buffer_.size() - 1; }
     auto c_str() const -> const char* { return &buffer_[0]; }
     auto str() const -> std::string { return std::string(&buffer_[0], size()); }
@@ -4101,5 +4100,5 @@ FMT_END_NAMESPACE
 #undef _LIBCPP_REMOVE_TRANSITIVE_INCLUDES
 #endif
 
-#endif  // CT_CXX_STANDARD >= CT_CXX_11
+#endif  // CT_CPLUSPLUS >= CT_CXX_11
 #endif  // COTER_FMT_FMT_FORMAT_H_

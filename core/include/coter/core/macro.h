@@ -37,14 +37,59 @@
 # define CT_CXX_20 202002L
 # define CT_CXX_23 202302L
 
-#ifdef __cplusplus
-#   if defined(_MSVC_LANG) && _MSVC_LANG > __cplusplus
-#       define CT_CXX_STANDARD _MSVC_LANG
-#   else
-#       define CT_CXX_STANDARD __cplusplus
-#   endif
+#ifndef __cplusplus
+#undef CT_CPLUSPLUS
+#elif defined(_MSVC_LANG)
+#define CT_CPLUSPLUS _MSVC_LANG
 #else
-#   undef CT_CXX_STANDARD
+#define CT_CPLUSPLUS __cplusplus
+#endif
+
+// Detect __has_*.
+#ifdef __has_feature
+#define CT_HAS_FEATURE(x) __has_feature(x)
+#else
+#define CT_HAS_FEATURE(x) 0
+#endif
+#ifdef __has_include
+#define CT_HAS_INCLUDE(x) __has_include(x)
+#else
+#define CT_HAS_INCLUDE(x) 0
+#endif
+#ifdef __has_builtin
+#define CT_HAS_BUILTIN(x) __has_builtin(x)
+#else
+#define CT_HAS_BUILTIN(x) 0
+#endif
+
+#ifdef __has_attribute
+#define CT_HAS_ATTRIBUTE(x) __has_attribute(x)
+#else
+#define CT_HAS_ATTRIBUTE(x) 0
+#endif
+#ifdef __has_c_attribute
+#define CT_HAS_C_ATTRIBUTE(x) __has_c_attribute(x)
+#else
+#define CT_HAS_C_ATTRIBUTE(x) 0
+#endif
+#ifdef __has_cpp_attribute
+#define CT_HAS_CPP_ATTRIBUTE(x) __has_cpp_attribute(x)
+#else
+#define CT_HAS_CPP_ATTRIBUTE(x) 0
+#endif
+
+#ifdef __GNUC_PREREQ
+#define CT_GNUC_PREREQ(maj, min) __GNUC_PREREQ(maj, min)
+#elif defined(__GNUC__) && defined(__GNUC_MINOR__)
+#define CT_GNUC_PREREQ(maj, min) ((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
+#else
+#define CT_GNUC_PREREQ(maj, min) 0
+#endif
+
+#if defined(__clang__) && defined(__has_extension)
+#define CT_CLANG_HAS_EXTENSION(_x) __has_extension(_x)
+#else
+#define CT_CLANG_HAS_EXTENSION(_x) 0
 #endif
 
 // COMPILER
@@ -96,23 +141,9 @@
 #	define CT_WORDSIZE 32
 # endif
 
-#ifdef __GNUC_PREREQ
-#   define CT_GNUC_PREREQ(maj, min) __GNUC_PREREQ(maj, min)
-#elif defined(__GNUC__) && defined(__GNUC_MINOR__)
-#   define CT_GNUC_PREREQ(maj, min) ((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
-#else
-#   define CT_GNUC_PREREQ(maj, min) 0
-#endif
-
-#if defined(__clang__) && defined(__has_extension)
-#   define CT_CLANG_HAS_EXTENSION(_x) __has_extension(_x)
-#else
-#   define CT_CLANG_HAS_EXTENSION(_x) 0
-#endif
-
 # ifndef CT_STATIC_ASSERT
 #   if defined(__cplusplus) && \
-       ((defined(CT_CXX_STANDARD) && CT_CXX_STANDARD >= CT_CXX_11) || (defined(_MSC_VER) && _MSC_VER >= 1600))
+       ((defined(CT_CPLUSPLUS) && CT_CPLUSPLUS >= CT_CXX_11) || (defined(_MSC_VER) && _MSC_VER >= 1600))
 #     define CT_STATIC_ASSERT(_expr) static_assert((_expr), #_expr)
 #   elif !defined(__cplusplus) && defined(__STDC_VERSION__) && __STDC_VERSION__ >= 202311L
 #     define CT_STATIC_ASSERT(_expr) static_assert((_expr), #_expr)
@@ -172,7 +203,7 @@
 #  define CT_STRFUNC __extension__ __PRETTY_FUNCTION__
 #elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 #  define CT_STRFUNC __func__
-#elif defined(__cplusplus) && CT_CXX_STANDARD >= CT_CXX_11
+#elif defined(__cplusplus) && CT_CPLUSPLUS >= CT_CXX_11
 #  define CT_STRFUNC __func__
 #elif defined(__FUNCTION__)
 #  define CT_STRFUNC __FUNCTION__
@@ -327,8 +358,8 @@ typedef int ct_endian_t;
 #   define CT_ATTRIBUTE(...)		   __attribute__(__VA_ARGS__)				// GCC/Clang attribute declaration
 #   define CT_ATTR_WEAK 		       __attribute__((weak))					// Mark weak reference function
 #   define CT_ATTR_PACKED 			   __attribute__((packed))					// Packed struct (GCC/Clang)
-#   define CT_ATTR_ALIGNED(_n)  	   __attribute__((aligned(_n)))			// Aligned struct
-#   define CT_ATTR_PACKED_ALIGNED(_n)  __attribute__((packed, aligned(_n)))	// Packed and aligned
+#   define CT_ATTR_ALIGNED(_n)  	   __attribute__((aligned(_n)))			    // Aligned struct
+#   define CT_ATTR_PACKED_ALIGNED(_n)  __attribute__((packed, aligned(_n)))	    // Packed and aligned
 #elif defined(_MSC_VER)
 #   define CT_ATTRIBUTE(...)
 #   define CT_ATTR_WEAK
@@ -343,8 +374,38 @@ typedef int ct_endian_t;
 #   define CT_ATTR_PACKED_ALIGNED(_n)
 #endif
 
+
+#ifdef __cplusplus
+#if CT_HAS_CPP_ATTRIBUTE(fallthrough) >= 201603L
+#define CT_FALLTHROUGH [[fallthrough]]
+#elif CT_HAS_CPP_ATTRIBUTE(clang::fallthrough)
+#define CT_FALLTHROUGH [[clang::fallthrough]]
+#elif CT_HAS_CPP_ATTRIBUTE(gnu::fallthrough)
+#define CT_FALLTHROUGH [[gnu::fallthrough]]
+#elif CT_HAS_ATTRIBUTE(fallthrough) || CT_GNUC_PREREQ(7, 0)
+#define CT_FALLTHROUGH __attribute__((fallthrough))
+#elif defined(_MSC_VER)
+#define CT_FALLTHROUGH __pragma(warning(suppress: 26819))
+#else 
+#define CT_FALLTHROUGH do {} while(0)
+#endif
+
+#else
+
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 202311L && CT_HAS_C_ATTRIBUTE(fallthrough)
+#define CT_FALLTHROUGH [[fallthrough]]
+#elif CT_HAS_ATTRIBUTE(fallthrough) || CT_GNUC_PREREQ(7, 0)
+#define CT_FALLTHROUGH __attribute__((fallthrough))
+#elif defined(_MSC_VER)
+#define CT_FALLTHROUGH __pragma(warning(suppress: 26819))
+#else
+#define CT_FALLTHROUGH do {} while (0)
+#endif
+#endif
+
+
 // maybe unused
-#if defined(__cplusplus) && (CT_CXX_STANDARD >= CT_CXX_17) /* C++17 */
+#if defined(__cplusplus) && (CT_CPLUSPLUS >= CT_CXX_17) /* C++17 */
 #   define CT_MAYBE_UNUSED [[maybe_unused]]
 #elif defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 202311L) /* C23 */
 #   define CT_MAYBE_UNUSED [[maybe_unused]]

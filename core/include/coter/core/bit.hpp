@@ -7,7 +7,7 @@
 
 #include "coter/core/macro.h"
 
-#if CT_CXX_STANDARD >= CT_CXX_20
+#if CT_CPLUSPLUS >= CT_CXX_20
 #include <bit>
 namespace coter {
 using std::bit_cast;

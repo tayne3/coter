@@ -10,7 +10,7 @@
 
 #include "coter/core/macro.h"
 
-#if defined(__cplusplus) && CT_CXX_STANDARD >= CT_CXX_11
+#if defined(__cplusplus) && CT_CPLUSPLUS >= CT_CXX_11
 
 #ifndef FMT_MODULE
 #include <initializer_list>
@@ -787,5 +787,5 @@ auto join(std::initializer_list<T> list, string_view sep) -> join_view<const T*,
 FMT_END_EXPORT
 FMT_END_NAMESPACE
 
-#endif  // CT_CXX_STANDARD >= CT_CXX_11
+#endif  // CT_CPLUSPLUS >= CT_CXX_11
 #endif  // COTER_FMT_FMT_RANGES_H_

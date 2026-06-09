@@ -5,7 +5,7 @@
 
 #include "coter/core/macro.h"
 
-#if CT_CXX_STANDARD < CT_CXX_14
+#if CT_CPLUSPLUS < CT_CXX_14
 namespace coter {
 template <typename T, typename... Args>
 std::unique_ptr<T> make_unique(Args&&... args) {

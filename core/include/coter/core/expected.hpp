@@ -8,7 +8,7 @@
 // std::expected is available only in C++23.
 // See: https://stackoverflow.com/questions/2324658/how-to-determine-the-version-of-the-c-standard-used-by-the-compiler
 // and: http://eel.is/c++draft/cpp.predefined#1.1
-#if CT_CXX_STANDARD > CT_CXX_20
+#if CT_CPLUSPLUS > CT_CXX_20
 // Standard library provides std::expected in C++23 and above.
 #include <expected>
 namespace coter {
@@ -66,7 +66,7 @@ using std::unexpected;
 
 #if !defined(CT_ASSERT)
 // can't have assert in constexpr in C++11 and GCC 4.9 has a compiler bug
-#if (CT_CXX_STANDARD > CT_CXX_11) && !defined(CT_EXPECTED_GCC49)
+#if (CT_CPLUSPLUS > CT_CXX_11) && !defined(CT_EXPECTED_GCC49)
 #include <cassert>
 #define CT_ASSERT(x) assert(x)
 #else
@@ -111,7 +111,7 @@ namespace detail {
 #define CT_EXPECTED_IS_TRIVIALLY_DESTRUCTIBLE(T)       std::is_trivially_destructible<T>
 #endif
 
-#if CT_CXX_STANDARD > CT_CXX_11
+#if CT_CPLUSPLUS > CT_CXX_11
 #define CT_EXPECTED_CXX14
 #endif
 
@@ -121,13 +121,13 @@ namespace detail {
 #define CT_EXPECTED_GCC49_CONSTEXPR constexpr
 #endif
 
-#if (CT_CXX_STANDARD == CT_CXX_11 || defined(CT_EXPECTED_MSVC2015) || defined(CT_EXPECTED_GCC49))
+#if (CT_CPLUSPLUS == CT_CXX_11 || defined(CT_EXPECTED_MSVC2015) || defined(CT_EXPECTED_GCC49))
 #define CT_EXPECTED_11_CONSTEXPR
 #else
 #define CT_EXPECTED_11_CONSTEXPR constexpr
 #endif
 
-#if CT_CXX_STANDARD >= CT_CXX_17
+#if CT_CPLUSPLUS >= CT_CXX_17
 #define CT_EXPECTED_NODISCARD [[nodiscard]]
 #else
 #define CT_EXPECTED_NODISCARD
