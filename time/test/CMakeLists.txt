@@ -1,11 +1,14 @@
 file(GLOB_RECURSE SRCS_G CONFIGURE_DEPENDS "*.cpp")
-add_executable(coter_time_test ${SRCS_G})
-add_test(NAME coter_time_test COMMAND coter_time_test)
-target_link_libraries(coter_time_test PRIVATE
-  coter_compile_dependency
-  coter::testing_main
-  coter::coter
-)
-target_include_directories(coter_time_test PRIVATE
-  ${CMAKE_CURRENT_SOURCE_DIR}/../src
-)
+foreach(SRC ${SRCS_G})
+  get_filename_component(TEST_NAME ${SRC} NAME_WE)
+  add_executable(coter_time_${TEST_NAME} ${SRC})
+  add_test(NAME coter_time_${TEST_NAME} COMMAND coter_time_${TEST_NAME})
+  target_link_libraries(coter_time_${TEST_NAME} PRIVATE
+    coter_compile_dependency
+    coter::testing_main
+    coter::coter
+  )
+  target_include_directories(coter_time_${TEST_NAME} PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src
+  )
+endforeach()
