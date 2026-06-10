@@ -33,14 +33,17 @@ void safety_log_callback(const ct_log_record_t* record, void* userdata) {
     auto* state = static_cast<safety_callback_state*>(userdata);
     state->calls++;
     // Simulate slow processing
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(1);
+    while (std::chrono::steady_clock::now() < deadline) { CT_PAUSE(); }
 }
 
 void slow_log_callback(const ct_log_record_t* record, void* userdata) {
     (void)record;
     auto* state = static_cast<safety_callback_state*>(userdata);
     state->calls++;
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    // Simulate slow processing
+    auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(1);
+    while (std::chrono::steady_clock::now() < deadline) { CT_PAUSE(); }
 }
 
 void recursive_log_callback(const ct_log_record_t* record, void* userdata) {
