@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "coter/core/strings.h"
 #include "formatter.h"
 #include "log_internal.h"
 #include "rotator.h"
@@ -46,8 +47,8 @@ ct_log_handler_t* ct_log_file_handler_create(const ct_log_file_handler_config_t*
     ct_log_formatter_init(&handler->formatter, false);
 
     ct_log_rotator_config_t rotator_config = {0};
-    snprintf(rotator_config.dir, sizeof(rotator_config.dir), "%s", config->dir);
-    snprintf(rotator_config.name, sizeof(rotator_config.name), "%s", config->name);
+    ct_snprintf_s(rotator_config.dir, sizeof(rotator_config.dir), "%s", config->dir);
+    ct_snprintf_s(rotator_config.name, sizeof(rotator_config.name), "%s", config->name);
     rotator_config.size_max  = config->size_max;
     rotator_config.count_max = config->count_max;
 

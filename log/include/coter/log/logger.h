@@ -169,31 +169,6 @@ namespace log {
 
             ct_log_submit_payload(d, level, file, line, buf.data(), buf.size());
         }
-
-        template <typename... Args>
-        void verbose(fmt::format_string<Args...> fmt, Args&&... args) const {
-            log(CT_LOG_LEVEL_VERBOSE, "", 0, fmt, std::forward<Args>(args)...);
-        }
-        template <typename... Args>
-        void debug(fmt::format_string<Args...> fmt, Args&&... args) const {
-            log(CT_LOG_LEVEL_DEBUG, "", 0, fmt, std::forward<Args>(args)...);
-        }
-        template <typename... Args>
-        void trace(fmt::format_string<Args...> fmt, Args&&... args) const {
-            log(CT_LOG_LEVEL_TRACE, "", 0, fmt, std::forward<Args>(args)...);
-        }
-        template <typename... Args>
-        void warning(fmt::format_string<Args...> fmt, Args&&... args) const {
-            log(CT_LOG_LEVEL_WARNING, "", 0, fmt, std::forward<Args>(args)...);
-        }
-        template <typename... Args>
-        void error(fmt::format_string<Args...> fmt, Args&&... args) const {
-            log(CT_LOG_LEVEL_ERROR, "", 0, fmt, std::forward<Args>(args)...);
-        }
-        template <typename... Args>
-        void fatal(fmt::format_string<Args...> fmt, Args&&... args) const {
-            log(CT_LOG_LEVEL_FATAL, "", 0, fmt, std::forward<Args>(args)...);
-        }
     };
 
     inline Logger default_logger() {

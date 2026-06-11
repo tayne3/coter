@@ -93,7 +93,7 @@ static const char* formatter__basename(ct_log_formatter_t* formatter, const char
 static const char* formatter__tid(ct_log_formatter_t* formatter, uint32_t tid) {
     if (formatter->cached_tid != tid) {
         formatter->cached_tid = tid;
-        snprintf(formatter->cached_tid_text, sizeof(formatter->cached_tid_text), "0x%08X", tid);
+        ct_snprintf_s(formatter->cached_tid_text, sizeof(formatter->cached_tid_text), "0x%08X", tid);
     }
     return formatter->cached_tid_text;
 }
@@ -107,21 +107,23 @@ void ct_log_formatter_init(ct_log_formatter_t* formatter, bool color) {
 size_t ct_log_formatter_format(ct_log_formatter_t* formatter, const ct_log_record_t* record, char* buf, size_t cap) {
     if (!formatter || !record || !record->data || record->size == 0 || !buf || cap == 0) { return 0; }
 
-    char        tm[24];
+    char tm[24];
+    formatter__time(formatter, record->time, tm);
+
     const char* basename = formatter__basename(formatter, record->file);
     const char* tid      = formatter__tid(formatter, record->tid);
-    const char* level    = g_level_names[record->level];
 
-    formatter__time(formatter, record->time, tm);
+    const bool  level_valid = CT_LOG_LEVEL_IS_VALID(record->level);
+    const char* level       = level_valid ? g_level_names[record->level] : "UNK";
 
     int len;
     if (formatter->color) {
-        const char* color = g_level_colors[record->level];
-        len = snprintf(buf, cap, "\x1b[2m%s %s\x1b[0m %s%s\x1b[0m \x1b[37;1m%s:%d\x1b[0m > %.*s\n", tm, tid, color,
-                       level, basename, record->line, (int)record->size, record->data);
+        const char* color = level_valid ? g_level_colors[record->level] : "\x1b[37;22m";
+        len = ct_snprintf_s(buf, cap, "\x1b[2m%s %s\x1b[0m %s%s\x1b[0m \x1b[37;1m%s:%d\x1b[0m > %.*s\n", tm, tid, color,
+                            level, basename, record->line, (int)record->size, record->data);
     } else {
-        len = snprintf(buf, cap, "%s %s %s %s:%d > %.*s\n", tm, tid, level, basename, record->line, (int)record->size,
-                       record->data);
+        len = ct_snprintf_s(buf, cap, "%s %s %s %s:%d > %.*s\n", tm, tid, level, basename, record->line,
+                            (int)record->size, record->data);
     }
 
     if (len <= 0) { return 0; }

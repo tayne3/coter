@@ -13,9 +13,11 @@
 extern "C" {
 #endif
 
+#define CT_LOG_PATH_MAX 512
+
 typedef struct ct_log_file_handler_config {
-    char   dir[256];
-    char   name[256];
+    char   dir[CT_LOG_PATH_MAX];
+    char   name[CT_LOG_PATH_MAX];
     size_t size_max;
     int    count_max;
 } ct_log_file_handler_config_t;

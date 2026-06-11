@@ -8,6 +8,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "coter/log/handler/file.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -15,8 +17,8 @@ extern "C" {
 typedef struct ct_log_rotator ct_log_rotator_t;
 
 typedef struct ct_log_rotator_config {
-    char   dir[256];
-    char   name[256];
+    char   dir[CT_LOG_PATH_MAX];
+    char   name[CT_LOG_PATH_MAX];
     size_t size_max;
     int    count_max;
 } ct_log_rotator_config_t;

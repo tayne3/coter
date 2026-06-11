@@ -25,7 +25,6 @@ static uint32_t submit__gettid(void);
 static void     submit__init_job(ct_log_job_t* job, ct_logger_t* logger, int level, const char* file, int line);
 static size_t   submit__format_payload(ct_log_record_job_t* record_job, const char* fmt, va_list args);
 static size_t   submit__copy_payload(ct_log_record_job_t* record_job, const char* payload, size_t payload_len);
-static int      submit__dispatch_job(ct_logger_t* logger, const ct_log_job_t* job);
 
 static uint32_t submit__gettid(void) {
 #ifdef CT_OS_WIN
@@ -97,11 +96,6 @@ static size_t submit__copy_payload(ct_log_record_job_t* record_job, const char* 
     return written;
 }
 
-static int submit__dispatch_job(ct_logger_t* logger, const ct_log_job_t* job) {
-    CT_UNUSED(logger);
-    return ct_log_dispatcher_submit(job);
-}
-
 void ct_log_submit_fmt(ct_logger_t* logger, int level, const char* file, int line, const char* fmt, ...) {
     if (ct_log_dispatcher_is_worker()) { return; }
     if (!CT_LOG_LEVEL_IS_VALID(level) || !fmt) { return; }
@@ -119,7 +113,7 @@ void ct_log_submit_fmt(ct_logger_t* logger, int level, const char* file, int lin
     size_t len = submit__format_payload(&job.record, fmt, args);
     va_end(args);
 
-    if (len > 0) { (void)submit__dispatch_job(logger, &job); }
+    if (len > 0) { (void)ct_log_dispatcher_submit(&job); }
 
     ct_logger_release_writer(logger);
 }
@@ -138,7 +132,7 @@ void ct_log_submit_payload(ct_logger_t* logger, int level, const char* file, int
     submit__init_job(&job, logger, level, file, line);
 
     size_t len = submit__copy_payload(&job.record, payload, payload_len);
-    if (len > 0) { (void)submit__dispatch_job(logger, &job); }
+    if (len > 0) { (void)ct_log_dispatcher_submit(&job); }
 
     ct_logger_release_writer(logger);
 }

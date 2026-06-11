@@ -7,6 +7,7 @@
 #include <stdlib.h>
 
 #include "coter/container/list.h"
+#include "coter/core/time.h"
 #include "coter/log/handler/console.h"
 #include "coter/thread/once.h"
 #include "coter/thread/thread.h"
@@ -139,8 +140,16 @@ static int logger__deinit_internal(ct_logger_t* logger) {
 
 static void logger__wait_active_writers(ct_logger_t* logger) {
     if (!logger) { return; }
-    // Low-frequency operation; spin-yield is used.
-    while (ct_atomic_int_load(&logger->active_writers) > 0) { ct_thread_yield(); }
+    // Low-frequency operation; spin-yield with backoff to sleep.
+    int spin_count = 0;
+    while (ct_atomic_int_load(&logger->active_writers) > 0) {
+        if (spin_count < 100) {
+            ct_thread_yield();
+            ++spin_count;
+        } else {
+            ct_msleep(1);
+        }
+    }
 }
 
 int ct_logger_acquire_writer(ct_logger_t* logger) {
@@ -214,7 +223,10 @@ int ct_logger_close(ct_logger_t* logger) {
     if (ct_log_dispatcher_is_worker()) { return -1; }
 
     ct_logger_t* default_logger = logger__default_logger();
-    if (logger == &mgr->stdout_logger) { return logger__flush_internal(logger); }
+    if (logger == &mgr->stdout_logger) {
+        (void)logger__flush_internal(logger);
+        return -1;
+    }
     if (logger == default_logger) { return -1; }
     return logger__deinit_internal(logger);
 }
@@ -234,7 +246,7 @@ void ct_logger_set_level(ct_logger_t* logger, int level) {
 int ct_logger_get_level(const ct_logger_t* logger) {
     if (!logger) { logger = ct_logger_get_default(); }
     if (!logger) { return -1; }
-    return ct_atomic_int_load((ct_atomic_int_t*)&logger->level);
+    return ct_atomic_int_load(&logger->level);
 }
 
 int ct_logger_add_handler(ct_logger_t* logger, ct_log_handler_t* handler) {

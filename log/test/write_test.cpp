@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "coter/core/fs.h"
+#include "coter/core/strings.h"
 #include "coter/log/handler/file.h"
 #include "coter/log/log.h"
 
@@ -94,8 +95,8 @@ TEST_CASE("log_write_performance", "[log][perf]") {
 
         {
             char buf[256];
-            snprintf(buf, sizeof(buf), "Performance: with log %d ms, without log %d ms\n", time_with_log,
-                     time_without_log);
+            ct_snprintf_s(buf, sizeof(buf), "Performance: with log %d ms, without log %d ms\n", time_with_log,
+                          time_without_log);
             INFO(buf);
         }
 

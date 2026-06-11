@@ -61,7 +61,7 @@ TEST_CASE("log_default_logger_zero_init", "[log]") {
 
     CT_TRACE("zero init");
     REQUIRE(ct_logger_flush(NULL) == 0);
-    REQUIRE(ct_logger_close(logger) == 0);
+    REQUIRE(ct_logger_close(logger) == -1);
 }
 
 TEST_CASE("log_default_logger_is_sealed_after_first_use", "[log]") {
