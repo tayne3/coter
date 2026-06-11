@@ -77,7 +77,7 @@ typedef void* volatile ct_atomic_ptr_t;
 #endif
 
 #define CT_ATOMIC_GEN_BASE_OP(name, type)                                                                       \
-    CT_INLINE type ct_atomic_##name##_load(ct_atomic_##name##_t* p) {                                           \
+    CT_INLINE type ct_atomic_##name##_load(const ct_atomic_##name##_t* p) {                                     \
         return CT_ATOMIC_LOAD(p);                                                                               \
     }                                                                                                           \
     CT_INLINE void ct_atomic_##name##_store(ct_atomic_##name##_t* p, type v) {                                  \
@@ -133,7 +133,7 @@ CT_ATOMIC_GEN_ARITH_OP(llong, long long)
 CT_ATOMIC_GEN_BASE_OP(ullong, unsigned long long)
 CT_ATOMIC_GEN_ARITH_OP(ullong, unsigned long long)
 
-CT_INLINE void* ct_atomic_ptr_load(ct_atomic_ptr_t* p) {
+CT_INLINE void* ct_atomic_ptr_load(const ct_atomic_ptr_t* p) {
     return CT_ATOMIC_LOAD(p);
 }
 CT_INLINE void ct_atomic_ptr_store(ct_atomic_ptr_t* p, void* v) {

@@ -65,7 +65,7 @@ typedef void* volatile ct_atomic_ptr_t;
 
 #define CT_ATOMIC_VAR_INIT(value) (value)
 
-CT_INLINE bool ct_atomic_bool_load(ct_atomic_bool_t* p) {
+CT_INLINE bool ct_atomic_bool_load(const ct_atomic_bool_t* p) {
     bool v;
     __ct_atomic_lock();
     v = *p;
@@ -98,7 +98,7 @@ CT_INLINE bool ct_atomic_bool_compare_exchange(ct_atomic_bool_t* p, bool* expect
     return ret;
 }
 
-CT_INLINE char ct_atomic_char_load(ct_atomic_char_t* p) {
+CT_INLINE char ct_atomic_char_load(const ct_atomic_char_t* p) {
     char v;
     __ct_atomic_lock();
     v = *p;
@@ -147,7 +147,7 @@ CT_INLINE bool ct_atomic_char_compare_exchange(ct_atomic_char_t* p, char* expect
     return ret;
 }
 
-CT_INLINE signed char ct_atomic_schar_load(ct_atomic_schar_t* p) {
+CT_INLINE signed char ct_atomic_schar_load(const ct_atomic_schar_t* p) {
     signed char v;
     __ct_atomic_lock();
     v = *p;
@@ -196,7 +196,7 @@ CT_INLINE bool ct_atomic_schar_compare_exchange(ct_atomic_schar_t* p, signed cha
     return ret;
 }
 
-CT_INLINE unsigned char ct_atomic_uchar_load(ct_atomic_uchar_t* p) {
+CT_INLINE unsigned char ct_atomic_uchar_load(const ct_atomic_uchar_t* p) {
     unsigned char v;
     __ct_atomic_lock();
     v = *p;
@@ -245,7 +245,7 @@ CT_INLINE bool ct_atomic_uchar_compare_exchange(ct_atomic_uchar_t* p, unsigned c
     return ret;
 }
 
-CT_INLINE short ct_atomic_short_load(ct_atomic_short_t* p) {
+CT_INLINE short ct_atomic_short_load(const ct_atomic_short_t* p) {
     short v;
     __ct_atomic_lock();
     v = *p;
@@ -294,7 +294,7 @@ CT_INLINE bool ct_atomic_short_compare_exchange(ct_atomic_short_t* p, short* exp
     return ret;
 }
 
-CT_INLINE unsigned short ct_atomic_ushort_load(ct_atomic_ushort_t* p) {
+CT_INLINE unsigned short ct_atomic_ushort_load(const ct_atomic_ushort_t* p) {
     unsigned short v;
     __ct_atomic_lock();
     v = *p;
@@ -344,7 +344,7 @@ CT_INLINE bool ct_atomic_ushort_compare_exchange(ct_atomic_ushort_t* p, unsigned
     return ret;
 }
 
-CT_INLINE int ct_atomic_int_load(ct_atomic_int_t* p) {
+CT_INLINE int ct_atomic_int_load(const ct_atomic_int_t* p) {
     int v;
     __ct_atomic_lock();
     v = *p;
@@ -393,7 +393,7 @@ CT_INLINE bool ct_atomic_int_compare_exchange(ct_atomic_int_t* p, int* expected,
     return ret;
 }
 
-CT_INLINE unsigned ct_atomic_uint_load(ct_atomic_uint_t* p) {
+CT_INLINE unsigned ct_atomic_uint_load(const ct_atomic_uint_t* p) {
     unsigned v;
     __ct_atomic_lock();
     v = *p;
@@ -442,7 +442,7 @@ CT_INLINE bool ct_atomic_uint_compare_exchange(ct_atomic_uint_t* p, unsigned* ex
     return ret;
 }
 
-CT_INLINE long ct_atomic_long_load(ct_atomic_long_t* p) {
+CT_INLINE long ct_atomic_long_load(const ct_atomic_long_t* p) {
     long v;
     __ct_atomic_lock();
     v = *p;
@@ -491,7 +491,7 @@ CT_INLINE bool ct_atomic_long_compare_exchange(ct_atomic_long_t* p, long* expect
     return ret;
 }
 
-CT_INLINE unsigned long ct_atomic_ulong_load(ct_atomic_ulong_t* p) {
+CT_INLINE unsigned long ct_atomic_ulong_load(const ct_atomic_ulong_t* p) {
     unsigned long v;
     __ct_atomic_lock();
     v = *p;
@@ -540,7 +540,7 @@ CT_INLINE bool ct_atomic_ulong_compare_exchange(ct_atomic_ulong_t* p, unsigned l
     return ret;
 }
 
-CT_INLINE long long ct_atomic_llong_load(ct_atomic_llong_t* p) {
+CT_INLINE long long ct_atomic_llong_load(const ct_atomic_llong_t* p) {
     long long v;
     __ct_atomic_lock();
     v = *p;
@@ -589,7 +589,7 @@ CT_INLINE bool ct_atomic_llong_compare_exchange(ct_atomic_llong_t* p, long long*
     return ret;
 }
 
-CT_INLINE unsigned long long ct_atomic_ullong_load(ct_atomic_ullong_t* p) {
+CT_INLINE unsigned long long ct_atomic_ullong_load(const ct_atomic_ullong_t* p) {
     unsigned long long v;
     __ct_atomic_lock();
     v = *p;
@@ -639,7 +639,7 @@ CT_INLINE bool ct_atomic_ullong_compare_exchange(ct_atomic_ullong_t* p, unsigned
     return ret;
 }
 
-CT_INLINE void* ct_atomic_ptr_load(ct_atomic_ptr_t* p) {
+CT_INLINE void* ct_atomic_ptr_load(const ct_atomic_ptr_t* p) {
     void* v;
     __ct_atomic_lock();
     v = *p;
