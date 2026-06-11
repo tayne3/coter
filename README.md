@@ -5,24 +5,28 @@
 [![Tag](https://img.shields.io/github/v/tag/tayne3/coter?color=%23ff8936&style=flat-square&logo=git&logoColor=white)](https://github.com/tayne3/coter/tags)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/tayne3/coter)
 
-`coter` 是一个轻量级的 C 语言基础库。它将 C 语言开发中常用的基础设施进行了模块化封装，旨在提供一套接口清晰、性能稳定且易于集成的工具库。
+A lightweight, modular C foundation library. Each module is self-contained, has a minimal public API, and is built to be stable rather than feature-complete.
 
-`coter` 按功能划分为多个模块：
+## Modules
 
-- **core**: 基础核心功能。
-- **sync**: 并发同步原语。
-- **container**: 常用容器与数据结构。
-- **bytes**: 字节处理与缓存管理。
-- **log**: 灵活的日志系统。
-- **opt**: 命令行参数解析。
-- **encoding**: 常用编解码工具。
-- **crypto**: 基础加密算法。
+| Module | Description |
+| --- | --- |
+| **core** | Platform macros, strings, filesystem, time primitives, `expected`/`optional` |
+| **sync** | Mutex, cond, rwlock, semaphore, atomic, event, waitgroup, message queue, pub/sub |
+| **thread** | Thread create/join, thread pool, job pool, TLS, `once` |
+| **container** | Array, vector, list, stack, queue, priority queue, heap |
+| **bytes** | Byte buffer, ring buffer, segmented buffer, buffer builder |
+| **log** | Async logger — console / rotating-file / custom handler, producer-consumer architecture |
+| **time** | Timer, ticker, cron scheduler, datetime formatting |
+| **ini** | INI config file parser and serializer |
+| **opt** | Command-line argument parser |
+| **encoding** | Base64, hex, BCD, binary, JSON (bundled nlohmann/json) |
+| **crypto** | MD5, SHA-1, generic hash interface |
+| **fmt** | C++ format support (bundled fmtlib) |
 
-## 🔨 项目集成
+## Integration
 
-`coter` 使用 CMake 构建，可以通过 `FetchContent` 将其集成到你的工程中。
-
-在你的 `CMakeLists.txt` 中添加：
+`coter` uses CMake and can be consumed via `FetchContent`:
 
 ```cmake
 include(FetchContent)
@@ -30,9 +34,24 @@ include(FetchContent)
 FetchContent_Declare(
   coter
   GIT_REPOSITORY https://github.com/tayne3/coter.git
-  GIT_TAG v0.10.5
+  GIT_TAG        v0.11.0
 )
 FetchContent_MakeAvailable(coter)
 
 target_link_libraries(your_project PRIVATE coter::coter)
+```
+
+## Build
+
+```sh
+cmake -B build
+cmake --build build
+```
+
+To run tests:
+
+```sh
+cmake -B build -DCOTER_BUILD_TEST=ON
+cmake --build build
+ctest --test-dir build --output-on-failure
 ```
