@@ -5,11 +5,11 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'The tag to create a release for (e.g., v1.0.0)'
+        description: "The tag to create a release for (e.g., v1.0.0)"
         required: true
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   release:
@@ -18,7 +18,7 @@ jobs:
       contents: write
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Publish Release
@@ -26,4 +26,4 @@ jobs:
         with:
           tag_name: ${{ github.event.inputs.tag || github.ref_name }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
