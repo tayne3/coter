@@ -1,9 +1,11 @@
 /**
- * @file hashalgo.h
- * @brief Hash算法实现
+ * @file hash.h
+ * @brief Hash algorithm implementation
  */
 #ifndef COTER_CRYPTO_HASH_HASH_H
 #define COTER_CRYPTO_HASH_HASH_H
+
+#include <stdint.h>
 
 #include "coter/core/macro.h"
 
@@ -12,52 +14,52 @@ extern "C" {
 #endif
 
 /**
- * @brief Time33 算法 / DJBX33A 算法 (Daniel J. Bernstein, Times 33 with Addition)
- * @param data 源字符串
- * @param size 源字符串长度
- * @return 32位哈希值
+ * @brief Time33 Algorithm / DJBX33A Algorithm (Daniel J. Bernstein, Times 33 with Addition)
+ * @param data Source string
+ * @param size Source string length
+ * @return 32-bit hash value
  */
 CT_API uint32_t ct_hashalgo_times33(const char* data, size_t size);
 
 /**
- * @brief BKDR 算法
- * @param data 源字符串
- * @param size 源字符串长度
- * @return 32位哈希值
+ * @brief BKDR Algorithm
+ * @param data Source string
+ * @param size Source string length
+ * @return 32-bit hash value
  */
 CT_API uint32_t ct_hashalgo_bkdr(const char* data, size_t size);
 
 /**
- * @brief PJW 算法
- * @param data 源字符串
- * @param size 源字符串长度
- * @return 32位哈希值
+ * @brief PJW Algorithm
+ * @param data Source string
+ * @param size Source string length
+ * @return 32-bit hash value
  */
 CT_API uint32_t ct_hashalgo_pjw(const char* data, size_t size);
 
 /**
- * @brief MurmurHash2 算法
- * @param data 源字符串
- * @param size 源字符串长度
- * @return 32位哈希值
+ * @brief MurmurHash2 Algorithm
+ * @param data Source string
+ * @param size Source string length
+ * @return 32-bit hash value
  */
 CT_API uint32_t ct_hashalgo_murmurhash2(const char* data, size_t size);
 
 /**
- * @brief MurmurHash2 算法
- * @param data 源字符串
- * @param size 源字符串长度
- * @param seed 种子
- * @return 64位哈希值
+ * @brief MurmurHash2 Algorithm
+ * @param data Source string
+ * @param size Source string length
+ * @param seed Seed
+ * @return 64-bit hash value
  */
 CT_API uint64_t ct_hashalgo_murmurhash2_64(const char* data, size_t size, uint64_t seed);
 
 /**
- * @brief SipHash 算法
- * @param data 源字符串
- * @param size 源字符串长度
- * @param sipct_hashalgo_keys 128位密钥
- * @return 64位哈希值
+ * @brief SipHash Algorithm
+ * @param data Source string
+ * @param size Source string length
+ * @param sipct_hashalgo_keys 128-bit key
+ * @return 64-bit hash value
  */
 CT_API uint64_t ct_hashalgo_siphash_64(const char* data, size_t size, const uint8_t sipct_hashalgo_keys[16]);
 
