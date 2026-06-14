@@ -157,20 +157,20 @@ jobs:
               build_type: Debug,
             }
           - {
-              os: windows-2025,
+              os: windows-2025-vs2026,
               compiler: msvc,
               generator: "Visual Studio 18 2026",
               build_type: Release,
             }
           - {
-              os: windows-2025,
+              os: windows-2025-vs2026,
               compiler: msvc,
               generator: "Visual Studio 18 2026",
               build_type: Debug,
             }
           # Clang-CL (uses MSVC runtime)
           - {
-              os: windows-2025,
+              os: windows-2025-vs2026,
               compiler: clang-cl,
               generator: "Visual Studio 18 2026",
               build_type: Release,
@@ -208,8 +208,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { os: windows-2025, build_type: Release }
-          - { os: windows-2025, build_type: Debug }
+          - { os: windows-2025-vs2026, build_type: Release }
+          - { os: windows-2025-vs2026, build_type: Debug }
           - { os: windows-2022, build_type: Release }
           - { os: windows-2022, build_type: Debug }
 
