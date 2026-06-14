@@ -9,20 +9,20 @@ A lightweight, modular C foundation library. Each module is self-contained, has 
 
 ## Modules
 
-| Module | Description |
-| --- | --- |
-| **core** | Platform macros, strings, filesystem, time primitives, `expected`/`optional` |
-| **sync** | Mutex, cond, rwlock, semaphore, atomic, event, waitgroup, message queue, pub/sub |
-| **thread** | Thread create/join, thread pool, job pool, TLS, `once` |
-| **container** | Array, vector, list, stack, queue, priority queue, heap |
-| **bytes** | Byte buffer, ring buffer, segmented buffer, buffer builder |
-| **log** | Async logger — console / rotating-file / custom handler, producer-consumer architecture |
-| **time** | Timer, ticker, cron scheduler, datetime formatting |
-| **ini** | INI config file parser and serializer |
-| **opt** | Command-line argument parser |
-| **encoding** | Base64, hex, BCD, binary, JSON (bundled nlohmann/json) |
-| **crypto** | MD5, SHA-1, generic hash interface |
-| **fmt** | C++ format support (bundled fmtlib) |
+| Module        | Description                                                                             |
+| ------------- | --------------------------------------------------------------------------------------- |
+| **core**      | Platform macros, strings, filesystem, time primitives, `expected`/`optional`            |
+| **sync**      | Mutex, cond, rwlock, semaphore, atomic, event, waitgroup, message queue, pub/sub        |
+| **thread**    | Thread create/join, thread pool, job pool, TLS, `once`                                  |
+| **container** | Array, vector, list, stack, queue, priority queue, heap                                 |
+| **bytes**     | Byte buffer, ring buffer, segmented buffer, buffer builder                              |
+| **log**       | Async logger — console / rotating-file / custom handler, producer-consumer architecture |
+| **time**      | Timer, ticker, cron scheduler, datetime formatting                                      |
+| **ini**       | INI config file parser and serializer                                                   |
+| **opt**       | Command-line argument parser                                                            |
+| **encoding**  | Base64, hex, BCD, binary, JSON (bundled nlohmann/json)                                  |
+| **crypto**    | MD5, SHA-1, generic hash interface                                                      |
+| **fmt**       | C++ format support (bundled fmtlib)                                                     |
 
 ## Integration
 
@@ -34,7 +34,7 @@ include(FetchContent)
 FetchContent_Declare(
   coter
   GIT_REPOSITORY https://github.com/tayne3/coter.git
-  GIT_TAG        v0.11.0
+  GIT_TAG        v0.11.1
 )
 FetchContent_MakeAvailable(coter)
 
