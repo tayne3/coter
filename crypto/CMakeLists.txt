@@ -9,9 +9,9 @@ target_include_directories(coter_crypto
   PRIVATE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
 )
-target_link_libraries(coter_crypto 
+target_link_libraries(coter_crypto
   PRIVATE
-    coter_compile_dependency
+    coter_internal_options
   PUBLIC
     coter::core
     coter::encoding
@@ -19,7 +19,7 @@ target_link_libraries(coter_crypto
 if(BUILD_SHARED_LIBS)
   target_compile_definitions(coter_crypto
     PRIVATE
-      CT_LIB_EXPORT 
+      CT_LIB_EXPORT
     INTERFACE
       CT_SHARED
   )

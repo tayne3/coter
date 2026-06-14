@@ -11,7 +11,7 @@ target_include_directories(coter_bytes
 )
 target_link_libraries(coter_bytes
   PRIVATE
-    coter_compile_dependency
+    coter_internal_options
   PUBLIC
     coter::core
     coter::container
@@ -21,7 +21,7 @@ target_link_libraries(coter_bytes
 if(BUILD_SHARED_LIBS)
   target_compile_definitions(coter_bytes
     PRIVATE
-      CT_LIB_EXPORT 
+      CT_LIB_EXPORT
     INTERFACE
       CT_SHARED
   )

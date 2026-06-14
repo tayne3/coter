@@ -4,7 +4,7 @@ foreach(SRC ${SRCS_G})
   add_executable(coter_core_${TEST_NAME} ${SRC})
   add_test(NAME coter_core_${TEST_NAME} COMMAND coter_core_${TEST_NAME})
   target_link_libraries(coter_core_${TEST_NAME} PRIVATE
-    coter_compile_dependency
+    coter_internal_options
     coter::testing_main
     coter::coter
   )

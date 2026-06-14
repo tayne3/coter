@@ -2,19 +2,19 @@ string(TIMESTAMP COTER_BUILD_DATE "%Y-%m-%d")
 
 add_executable(coter_ini_sample sample.c)
 target_link_libraries(coter_ini_sample PRIVATE
-  coter_compile_dependency
+  coter_internal_options
   coter::ini
 )
 
 add_executable(coter_ini_sample_cpp sample_cpp.cpp)
 target_link_libraries(coter_ini_sample_cpp PRIVATE
-  coter_compile_dependency
+  coter_internal_options
   coter::ini
 )
 
 add_executable(coter_ini_inix inix.c)
 target_link_libraries(coter_ini_inix PRIVATE
-  coter_compile_dependency
+  coter_internal_options
   coter::ini
 )
 target_compile_definitions(coter_ini_inix PRIVATE

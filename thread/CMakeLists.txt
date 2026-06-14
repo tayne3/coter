@@ -9,9 +9,9 @@ target_include_directories(coter_thread
   PRIVATE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
 )
-target_link_libraries(coter_thread 
+target_link_libraries(coter_thread
   PRIVATE
-    coter_compile_dependency
+    coter_internal_options
   PUBLIC
     coter::core
     coter::container

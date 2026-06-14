@@ -1,18 +1,15 @@
 #ifndef COTER_CORE_CONFIG_H
 #define COTER_CORE_CONFIG_H
 
-#define __coter_version_string__   "@PROJECT_VERSION@"
-#define __coter_version_major__    @PROJECT_VERSION_MAJOR@
-#define __coter_version_minor__    @PROJECT_VERSION_MINOR@
-#define __coter_version_patch__    @PROJECT_VERSION_PATCH@
-#define __coter_version_tweak__    @PROJECT_VERSION_TWEAK@
+#define __coter_version_string__ "@PROJECT_VERSION@"
+#define __coter_version_major__  @PROJECT_VERSION_MAJOR@
+#define __coter_version_minor__  @PROJECT_VERSION_MINOR@
+#define __coter_version_patch__  @PROJECT_VERSION_PATCH@
+#define __coter_version_tweak__  @PROJECT_VERSION_TWEAK@
 
-#define CT_SYSTEM_IS_BIG_ENDIAN      @CT_SYSTEM_IS_BIG_ENDIAN@
-#define CT_SYSTEM_IS_LITTLE_ENDIAN   @CT_SYSTEM_IS_LITTLE_ENDIAN@
-
-#define CT_ATOMIC_USE_GCC          @CT_ATOMIC_USE_GCC@
-#define CT_ATOMIC_USE_WIN          @CT_ATOMIC_USE_WIN@
-#define CT_ATOMIC_USE_MUTEX        @CT_ATOMIC_USE_MUTEX@
+#define CT_ATOMIC_USE_GCC   @COTER_ATOMIC_USE_GCC@
+#define CT_ATOMIC_USE_WIN   @COTER_ATOMIC_USE_WIN@
+#define CT_ATOMIC_USE_MUTEX @COTER_ATOMIC_USE_MUTEX@
 
 #ifndef HAVE_INTTYPES_H
 #define HAVE_INTTYPES_H @HAVE_INTTYPES_H@

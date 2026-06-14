@@ -15,16 +15,12 @@ target_include_directories(coter_core
   PRIVATE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
 )
-target_link_libraries(coter_core
-  PRIVATE
-    coter_compile_dependency
-  PUBLIC
-    coter_public_dependency
-)
+target_link_libraries(coter_core PRIVATE coter_internal_options)
+target_compile_features(coter_core PUBLIC c_std_99)
 if(BUILD_SHARED_LIBS)
   target_compile_definitions(coter_core
     PRIVATE
-      CT_LIB_EXPORT 
+      CT_LIB_EXPORT
     INTERFACE
       CT_SHARED
   )

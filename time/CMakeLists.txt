@@ -9,9 +9,9 @@ target_include_directories(coter_time
   PRIVATE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
 )
-target_link_libraries(coter_time 
+target_link_libraries(coter_time
   PRIVATE
-    coter_compile_dependency
+    coter_internal_options
   PUBLIC
     coter::core
     coter::container
@@ -20,7 +20,7 @@ target_link_libraries(coter_time
 if(BUILD_SHARED_LIBS)
   target_compile_definitions(coter_time
     PRIVATE
-      CT_LIB_EXPORT 
+      CT_LIB_EXPORT
     INTERFACE
       CT_SHARED
   )
