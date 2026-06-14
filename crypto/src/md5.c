@@ -1,6 +1,6 @@
 /**
  * @file md5.c
- * @brief MD5加密算法
+ * @brief MD5 message-digest algorithm
  * @note
  *  This code implements the MD5 message-digest algorithm.
  *  The algorithm is due to Ron Rivest.  This code was
@@ -19,30 +19,36 @@
 // -------------------------[STATIC DECLARATION]-------------------------
 
 /**
- * @brief 从字节缓冲区读取 little-endian 32 位整数
- * @param p 字节缓冲区
+ * @brief Reads a little-endian 32-bit integer from a byte buffer.
+ * @param p The byte buffer.
  */
-static uint32_t ct_md5_load_le32(const uint8_t* p);
-static void     ct_md5_store_le32(uint8_t* p, uint32_t v);
+static uint32_t md5__load_le32(const uint8_t* p);
 
 /**
- * @brief MD5算法的转换函数
- * @param buf MD5缓冲区
- * @param in 输入数据
- * @note 该函数用于执行MD5算法的转换步骤
+ * @brief Writes a 32-bit integer to a byte buffer in little-endian format.
+ * @param p The byte buffer.
+ * @param v The 32-bit integer to write.
  */
-static void ct_md5_transform(uint32_t buf[4], const uint8_t block[64]);
+static void md5__store_le32(uint8_t* p, uint32_t v);
+
+/**
+ * @brief MD5 algorithm transformation function.
+ * @param buf MD5 buffer.
+ * @param block Input data.
+ * @note This function performs the transformation step of the MD5 algorithm.
+ */
+static void md5__transform(uint32_t buf[4], const uint8_t block[64]);
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
 void ct_md5_init(ct_md5_ctx_t* self) {
-    self->buf[0] = 0x67452301;
-    self->buf[1] = 0xefcdab89;
-    self->buf[2] = 0x98badcfe;
-    self->buf[3] = 0x10325476;
-
+    self->buf[0]  = UINT32_C(0x67452301);
+    self->buf[1]  = UINT32_C(0xefcdab89);
+    self->buf[2]  = UINT32_C(0x98badcfe);
+    self->buf[3]  = UINT32_C(0x10325476);
     self->bits[0] = 0;
     self->bits[1] = 0;
+    memset(self->in, 0, sizeof(self->in));
 }
 
 void ct_md5_update(ct_md5_ctx_t* self, const void* data, size_t len) {
@@ -50,8 +56,8 @@ void ct_md5_update(ct_md5_ctx_t* self, const void* data, size_t len) {
 
     {
         uint32_t t = self->bits[0];
-        if ((self->bits[0] = t + ((uint32_t)len << 3)) < t) { self->bits[1]++; }
-        self->bits[1] += (uint32_t)len >> 29;
+        if ((self->bits[0] = t + ((uint32_t)len << 3)) < t) { ++self->bits[1]; }
+        self->bits[1] += (uint32_t)(len >> 29);
 
         t = (t >> 3) & 0x3f;
 
@@ -64,7 +70,7 @@ void ct_md5_update(ct_md5_ctx_t* self, const void* data, size_t len) {
                 return;
             }
             memcpy(p, buf, t);
-            ct_md5_transform(self->buf, self->in);
+            md5__transform(self->buf, self->in);
             buf += t;
             len -= t;
         }
@@ -72,7 +78,7 @@ void ct_md5_update(ct_md5_ctx_t* self, const void* data, size_t len) {
 
     for (; len >= 64;) {
         memcpy(self->in, buf, 64);
-        ct_md5_transform(self->buf, self->in);
+        md5__transform(self->buf, self->in);
         buf += 64;
         len -= 64;
     }
@@ -88,123 +94,129 @@ void ct_md5_final(ct_md5_ctx_t* self, uint8_t digest[16]) {
         count              = 64 - 1 - count;
         if (count < 8) {
             memset(p, 0, count);
-            ct_md5_transform(self->buf, self->in);
+            md5__transform(self->buf, self->in);
             memset(self->in, 0, 56);
         } else {
             memset(p, 0, count - 8);
         }
     }
 
-    ct_md5_store_le32(self->in + 56, self->bits[0]);
-    ct_md5_store_le32(self->in + 60, self->bits[1]);
+    md5__store_le32(self->in + 56, self->bits[0]);
+    md5__store_le32(self->in + 60, self->bits[1]);
 
-    ct_md5_transform(self->buf, self->in);
-    ct_md5_store_le32(digest, self->buf[0]);
-    ct_md5_store_le32(digest + 4, self->buf[1]);
-    ct_md5_store_le32(digest + 8, self->buf[2]);
-    ct_md5_store_le32(digest + 12, self->buf[3]);
-    memset((char*)self, 0, sizeof(*self));
+    md5__transform(self->buf, self->in);
+    md5__store_le32(digest, self->buf[0]);
+    md5__store_le32(digest + 4, self->buf[1]);
+    md5__store_le32(digest + 8, self->buf[2]);
+    md5__store_le32(digest + 12, self->buf[3]);
+
+    ct_md5_init(self);
 }
 
 // -------------------------[STATIC DEFINITION]-------------------------
 
-static uint32_t ct_md5_load_le32(const uint8_t* p) {
+static uint32_t md5__load_le32(const uint8_t* p) {
     return ((uint32_t)p[0]) | ((uint32_t)p[1] << 8) | ((uint32_t)p[2] << 16) | ((uint32_t)p[3] << 24);
 }
 
-static void ct_md5_store_le32(uint8_t* p, uint32_t v) {
+static void md5__store_le32(uint8_t* p, uint32_t v) {
     p[0] = (uint8_t)(v);
     p[1] = (uint8_t)(v >> 8);
     p[2] = (uint8_t)(v >> 16);
     p[3] = (uint8_t)(v >> 24);
 }
 
-static void ct_md5_transform(uint32_t buf[4], const uint8_t block[64]) {
+static void md5__transform(uint32_t buf[4], const uint8_t block[64]) {
 #define F1(x, y, z) (z ^ (x & (y ^ z)))
 #define F2(x, y, z) F1(z, x, y)
 #define F3(x, y, z) (x ^ y ^ z)
 #define F4(x, y, z) (y ^ (x | ~z))
 
-#define MD5STEP(f, w, x, y, z, data, s) (w += f(x, y, z) + data, w = w << s | w >> (32 - s), w += x)
+#define MD5STEP(f, w, x, y, z, data, s)     \
+    do {                                    \
+        w += f(x, y, z) + (data);           \
+        w = (w << (s)) | (w >> (32 - (s))); \
+        w += x;                             \
+    } while (0)
 
     uint32_t a, b, c, d;
     uint32_t in[16];
     int      i;
 
-    for (i = 0; i < 16; ++i) { in[i] = ct_md5_load_le32(block + i * 4); }
+    for (i = 0; i < 16; ++i) { in[i] = md5__load_le32(block + i * 4); }
 
     a = buf[0];
     b = buf[1];
     c = buf[2];
     d = buf[3];
 
-    MD5STEP(F1, a, b, c, d, in[0] + 0xd76aa478, 7);
-    MD5STEP(F1, d, a, b, c, in[1] + 0xe8c7b756, 12);
-    MD5STEP(F1, c, d, a, b, in[2] + 0x242070db, 17);
-    MD5STEP(F1, b, c, d, a, in[3] + 0xc1bdceee, 22);
-    MD5STEP(F1, a, b, c, d, in[4] + 0xf57c0faf, 7);
-    MD5STEP(F1, d, a, b, c, in[5] + 0x4787c62a, 12);
-    MD5STEP(F1, c, d, a, b, in[6] + 0xa8304613, 17);
-    MD5STEP(F1, b, c, d, a, in[7] + 0xfd469501, 22);
-    MD5STEP(F1, a, b, c, d, in[8] + 0x698098d8, 7);
-    MD5STEP(F1, d, a, b, c, in[9] + 0x8b44f7af, 12);
-    MD5STEP(F1, c, d, a, b, in[10] + 0xffff5bb1, 17);
-    MD5STEP(F1, b, c, d, a, in[11] + 0x895cd7be, 22);
-    MD5STEP(F1, a, b, c, d, in[12] + 0x6b901122, 7);
-    MD5STEP(F1, d, a, b, c, in[13] + 0xfd987193, 12);
-    MD5STEP(F1, c, d, a, b, in[14] + 0xa679438e, 17);
-    MD5STEP(F1, b, c, d, a, in[15] + 0x49b40821, 22);
+    MD5STEP(F1, a, b, c, d, in[0] + UINT32_C(0xd76aa478), 7);
+    MD5STEP(F1, d, a, b, c, in[1] + UINT32_C(0xe8c7b756), 12);
+    MD5STEP(F1, c, d, a, b, in[2] + UINT32_C(0x242070db), 17);
+    MD5STEP(F1, b, c, d, a, in[3] + UINT32_C(0xc1bdceee), 22);
+    MD5STEP(F1, a, b, c, d, in[4] + UINT32_C(0xf57c0faf), 7);
+    MD5STEP(F1, d, a, b, c, in[5] + UINT32_C(0x4787c62a), 12);
+    MD5STEP(F1, c, d, a, b, in[6] + UINT32_C(0xa8304613), 17);
+    MD5STEP(F1, b, c, d, a, in[7] + UINT32_C(0xfd469501), 22);
+    MD5STEP(F1, a, b, c, d, in[8] + UINT32_C(0x698098d8), 7);
+    MD5STEP(F1, d, a, b, c, in[9] + UINT32_C(0x8b44f7af), 12);
+    MD5STEP(F1, c, d, a, b, in[10] + UINT32_C(0xffff5bb1), 17);
+    MD5STEP(F1, b, c, d, a, in[11] + UINT32_C(0x895cd7be), 22);
+    MD5STEP(F1, a, b, c, d, in[12] + UINT32_C(0x6b901122), 7);
+    MD5STEP(F1, d, a, b, c, in[13] + UINT32_C(0xfd987193), 12);
+    MD5STEP(F1, c, d, a, b, in[14] + UINT32_C(0xa679438e), 17);
+    MD5STEP(F1, b, c, d, a, in[15] + UINT32_C(0x49b40821), 22);
 
-    MD5STEP(F2, a, b, c, d, in[1] + 0xf61e2562, 5);
-    MD5STEP(F2, d, a, b, c, in[6] + 0xc040b340, 9);
-    MD5STEP(F2, c, d, a, b, in[11] + 0x265e5a51, 14);
-    MD5STEP(F2, b, c, d, a, in[0] + 0xe9b6c7aa, 20);
-    MD5STEP(F2, a, b, c, d, in[5] + 0xd62f105d, 5);
-    MD5STEP(F2, d, a, b, c, in[10] + 0x02441453, 9);
-    MD5STEP(F2, c, d, a, b, in[15] + 0xd8a1e681, 14);
-    MD5STEP(F2, b, c, d, a, in[4] + 0xe7d3fbc8, 20);
-    MD5STEP(F2, a, b, c, d, in[9] + 0x21e1cde6, 5);
-    MD5STEP(F2, d, a, b, c, in[14] + 0xc33707d6, 9);
-    MD5STEP(F2, c, d, a, b, in[3] + 0xf4d50d87, 14);
-    MD5STEP(F2, b, c, d, a, in[8] + 0x455a14ed, 20);
-    MD5STEP(F2, a, b, c, d, in[13] + 0xa9e3e905, 5);
-    MD5STEP(F2, d, a, b, c, in[2] + 0xfcefa3f8, 9);
-    MD5STEP(F2, c, d, a, b, in[7] + 0x676f02d9, 14);
-    MD5STEP(F2, b, c, d, a, in[12] + 0x8d2a4c8a, 20);
+    MD5STEP(F2, a, b, c, d, in[1] + UINT32_C(0xf61e2562), 5);
+    MD5STEP(F2, d, a, b, c, in[6] + UINT32_C(0xc040b340), 9);
+    MD5STEP(F2, c, d, a, b, in[11] + UINT32_C(0x265e5a51), 14);
+    MD5STEP(F2, b, c, d, a, in[0] + UINT32_C(0xe9b6c7aa), 20);
+    MD5STEP(F2, a, b, c, d, in[5] + UINT32_C(0xd62f105d), 5);
+    MD5STEP(F2, d, a, b, c, in[10] + UINT32_C(0x02441453), 9);
+    MD5STEP(F2, c, d, a, b, in[15] + UINT32_C(0xd8a1e681), 14);
+    MD5STEP(F2, b, c, d, a, in[4] + UINT32_C(0xe7d3fbc8), 20);
+    MD5STEP(F2, a, b, c, d, in[9] + UINT32_C(0x21e1cde6), 5);
+    MD5STEP(F2, d, a, b, c, in[14] + UINT32_C(0xc33707d6), 9);
+    MD5STEP(F2, c, d, a, b, in[3] + UINT32_C(0xf4d50d87), 14);
+    MD5STEP(F2, b, c, d, a, in[8] + UINT32_C(0x455a14ed), 20);
+    MD5STEP(F2, a, b, c, d, in[13] + UINT32_C(0xa9e3e905), 5);
+    MD5STEP(F2, d, a, b, c, in[2] + UINT32_C(0xfcefa3f8), 9);
+    MD5STEP(F2, c, d, a, b, in[7] + UINT32_C(0x676f02d9), 14);
+    MD5STEP(F2, b, c, d, a, in[12] + UINT32_C(0x8d2a4c8a), 20);
 
-    MD5STEP(F3, a, b, c, d, in[5] + 0xfffa3942, 4);
-    MD5STEP(F3, d, a, b, c, in[8] + 0x8771f681, 11);
-    MD5STEP(F3, c, d, a, b, in[11] + 0x6d9d6122, 16);
-    MD5STEP(F3, b, c, d, a, in[14] + 0xfde5380c, 23);
-    MD5STEP(F3, a, b, c, d, in[1] + 0xa4beea44, 4);
-    MD5STEP(F3, d, a, b, c, in[4] + 0x4bdecfa9, 11);
-    MD5STEP(F3, c, d, a, b, in[7] + 0xf6bb4b60, 16);
-    MD5STEP(F3, b, c, d, a, in[10] + 0xbebfbc70, 23);
-    MD5STEP(F3, a, b, c, d, in[13] + 0x289b7ec6, 4);
-    MD5STEP(F3, d, a, b, c, in[0] + 0xeaa127fa, 11);
-    MD5STEP(F3, c, d, a, b, in[3] + 0xd4ef3085, 16);
-    MD5STEP(F3, b, c, d, a, in[6] + 0x04881d05, 23);
-    MD5STEP(F3, a, b, c, d, in[9] + 0xd9d4d039, 4);
-    MD5STEP(F3, d, a, b, c, in[12] + 0xe6db99e5, 11);
-    MD5STEP(F3, c, d, a, b, in[15] + 0x1fa27cf8, 16);
-    MD5STEP(F3, b, c, d, a, in[2] + 0xc4ac5665, 23);
+    MD5STEP(F3, a, b, c, d, in[5] + UINT32_C(0xfffa3942), 4);
+    MD5STEP(F3, d, a, b, c, in[8] + UINT32_C(0x8771f681), 11);
+    MD5STEP(F3, c, d, a, b, in[11] + UINT32_C(0x6d9d6122), 16);
+    MD5STEP(F3, b, c, d, a, in[14] + UINT32_C(0xfde5380c), 23);
+    MD5STEP(F3, a, b, c, d, in[1] + UINT32_C(0xa4beea44), 4);
+    MD5STEP(F3, d, a, b, c, in[4] + UINT32_C(0x4bdecfa9), 11);
+    MD5STEP(F3, c, d, a, b, in[7] + UINT32_C(0xf6bb4b60), 16);
+    MD5STEP(F3, b, c, d, a, in[10] + UINT32_C(0xbebfbc70), 23);
+    MD5STEP(F3, a, b, c, d, in[13] + UINT32_C(0x289b7ec6), 4);
+    MD5STEP(F3, d, a, b, c, in[0] + UINT32_C(0xeaa127fa), 11);
+    MD5STEP(F3, c, d, a, b, in[3] + UINT32_C(0xd4ef3085), 16);
+    MD5STEP(F3, b, c, d, a, in[6] + UINT32_C(0x04881d05), 23);
+    MD5STEP(F3, a, b, c, d, in[9] + UINT32_C(0xd9d4d039), 4);
+    MD5STEP(F3, d, a, b, c, in[12] + UINT32_C(0xe6db99e5), 11);
+    MD5STEP(F3, c, d, a, b, in[15] + UINT32_C(0x1fa27cf8), 16);
+    MD5STEP(F3, b, c, d, a, in[2] + UINT32_C(0xc4ac5665), 23);
 
-    MD5STEP(F4, a, b, c, d, in[0] + 0xf4292244, 6);
-    MD5STEP(F4, d, a, b, c, in[7] + 0x432aff97, 10);
-    MD5STEP(F4, c, d, a, b, in[14] + 0xab9423a7, 15);
-    MD5STEP(F4, b, c, d, a, in[5] + 0xfc93a039, 21);
-    MD5STEP(F4, a, b, c, d, in[12] + 0x655b59c3, 6);
-    MD5STEP(F4, d, a, b, c, in[3] + 0x8f0ccc92, 10);
-    MD5STEP(F4, c, d, a, b, in[10] + 0xffeff47d, 15);
-    MD5STEP(F4, b, c, d, a, in[1] + 0x85845dd1, 21);
-    MD5STEP(F4, a, b, c, d, in[8] + 0x6fa87e4f, 6);
-    MD5STEP(F4, d, a, b, c, in[15] + 0xfe2ce6e0, 10);
-    MD5STEP(F4, c, d, a, b, in[6] + 0xa3014314, 15);
-    MD5STEP(F4, b, c, d, a, in[13] + 0x4e0811a1, 21);
-    MD5STEP(F4, a, b, c, d, in[4] + 0xf7537e82, 6);
-    MD5STEP(F4, d, a, b, c, in[11] + 0xbd3af235, 10);
-    MD5STEP(F4, c, d, a, b, in[2] + 0x2ad7d2bb, 15);
-    MD5STEP(F4, b, c, d, a, in[9] + 0xeb86d391, 21);
+    MD5STEP(F4, a, b, c, d, in[0] + UINT32_C(0xf4292244), 6);
+    MD5STEP(F4, d, a, b, c, in[7] + UINT32_C(0x432aff97), 10);
+    MD5STEP(F4, c, d, a, b, in[14] + UINT32_C(0xab9423a7), 15);
+    MD5STEP(F4, b, c, d, a, in[5] + UINT32_C(0xfc93a039), 21);
+    MD5STEP(F4, a, b, c, d, in[12] + UINT32_C(0x655b59c3), 6);
+    MD5STEP(F4, d, a, b, c, in[3] + UINT32_C(0x8f0ccc92), 10);
+    MD5STEP(F4, c, d, a, b, in[10] + UINT32_C(0xffeff47d), 15);
+    MD5STEP(F4, b, c, d, a, in[1] + UINT32_C(0x85845dd1), 21);
+    MD5STEP(F4, a, b, c, d, in[8] + UINT32_C(0x6fa87e4f), 6);
+    MD5STEP(F4, d, a, b, c, in[15] + UINT32_C(0xfe2ce6e0), 10);
+    MD5STEP(F4, c, d, a, b, in[6] + UINT32_C(0xa3014314), 15);
+    MD5STEP(F4, b, c, d, a, in[13] + UINT32_C(0x4e0811a1), 21);
+    MD5STEP(F4, a, b, c, d, in[4] + UINT32_C(0xf7537e82), 6);
+    MD5STEP(F4, d, a, b, c, in[11] + UINT32_C(0xbd3af235), 10);
+    MD5STEP(F4, c, d, a, b, in[2] + UINT32_C(0x2ad7d2bb), 15);
+    MD5STEP(F4, b, c, d, a, in[9] + UINT32_C(0xeb86d391), 21);
 
     buf[0] += a;
     buf[1] += b;

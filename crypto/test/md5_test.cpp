@@ -1,13 +1,16 @@
 #include "coter/crypto/md5.h"
 
 #include <catch.hpp>
+#include <cstddef>
 #include <cstring>
 
-TEST_CASE("md5", "[md5]") {
-    struct ct_md5_test {
+TEST_CASE("md5 test", "[md5]") {
+    struct md5_test {
         const char*   data;
         const uint8_t target[16];
-    } ct_md5_test_all[] = {
+    };
+
+    const md5_test md5_test_all[] = {
         {
             "hello world",
             {0x5E, 0xB6, 0x3B, 0xBB, 0xE0, 0x1E, 0xEE, 0xD0, 0x93, 0xCB, 0x22, 0xBB, 0x8F, 0x5A, 0xCD, 0xC3},
@@ -34,18 +37,29 @@ TEST_CASE("md5", "[md5]") {
         },
     };
 
-    uint8_t buffer[16];
+    for (const auto& test_case : md5_test_all) {
+        CAPTURE(test_case.data);
+        const size_t data_len = std::strlen(test_case.data);
 
-    const int size = (int)(sizeof(ct_md5_test_all) / sizeof(ct_md5_test_all[0]));
-    for (int i = 0; i < size; ++i) {
-        const struct ct_md5_test* it = &ct_md5_test_all[i];
+        {
+            uint8_t buffer[16] = {0};
 
-        ct_md5_ctx_t ctx;
-        ct_md5_init(&ctx);
-        ct_md5_update(&ctx, it->data, strlen(it->data));
-        ct_md5_final(&ctx, buffer);
+            ct_md5_ctx_t ctx;
+            ct_md5_init(&ctx);
+            ct_md5_update(&ctx, test_case.data, data_len);
+            ct_md5_final(&ctx, buffer);
 
-        INFO("i=" << i);
-        REQUIRE(std::memcmp(buffer, it->target, 16) == 0);
+            REQUIRE(std::memcmp(buffer, test_case.target, 16) == 0);
+        }
+
+        {
+            uint8_t buffer[16] = {0};
+
+            ct_md5_ctx_t ctx = CT_MD5_CTX_INIT;
+            ct_md5_update(&ctx, test_case.data, data_len);
+            ct_md5_final(&ctx, buffer);
+
+            REQUIRE(std::memcmp(buffer, test_case.target, 16) == 0);
+        }
     }
 }
