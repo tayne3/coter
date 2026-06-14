@@ -110,6 +110,7 @@ jobs:
       - name: Install compiler
         run: |
           sudo apt-get update
+          sudo apt-get install -y ninja-build
           if [ "${{ matrix.compiler }}" = "gcc" ]; then
             sudo apt-get install -y gcc-${{ matrix.version }} g++-${{ matrix.version }}
           else
@@ -119,7 +120,7 @@ jobs:
       - name: Configure CMake
         run: >
           cmake -S . -B build
-          -G "Unix Makefiles"
+          -G "Ninja"
           -DCMAKE_C_COMPILER=${{ matrix.compiler }}-${{ matrix.version }}
           -DCMAKE_CXX_COMPILER=${{ matrix.compiler == 'gcc' && 'g++' || 'clang++' }}-${{ matrix.version }}
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
@@ -226,7 +227,7 @@ jobs:
       - name: Configure CMake
         run: >
           cmake -S . -B build
-          -G "MinGW Makefiles"
+          -G "Ninja"
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
           -DBUILD_SHARED_LIBS=OFF
           -DCOTER_BUILD_TEST=ON
@@ -260,12 +261,12 @@ jobs:
           install: >-
             mingw-w64-ucrt-x86_64-gcc
             mingw-w64-ucrt-x86_64-cmake
-            make
+            mingw-w64-ucrt-x86_64-ninja
 
       - name: Configure CMake
         run: >
           cmake -S . -B build
-          -G "Unix Makefiles"
+          -G "Ninja"
           -DCMAKE_BUILD_TYPE=Release
           -DBUILD_SHARED_LIBS=OFF
           -DCOTER_BUILD_TEST=ON
@@ -308,14 +309,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
-      - name: Install GCC (Homebrew)
-        if: startsWith(matrix.compiler, 'gcc')
-        run: brew install gcc@15
+      - name: Install dependencies (Homebrew)
+        run: |
+          brew install ninja
+          if [[ "${{ matrix.compiler }}" == gcc* ]]; then
+            brew install gcc@15
+          fi
 
       - name: Configure CMake
         run: >
           cmake -S . -B build
-          -G "Unix Makefiles"
+          -G "Ninja"
           ${{ matrix.cc && format('-DCMAKE_C_COMPILER={0}', matrix.cc) || '' }}
           ${{ matrix.cxx && format('-DCMAKE_CXX_COMPILER={0}', matrix.cxx) || '' }}
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
