@@ -2,8 +2,8 @@
  * @file hashalgo.h
  * @brief Hash算法实现
  */
-#ifndef COTER_HASH_HASH_H
-#define COTER_HASH_HASH_H
+#ifndef COTER_CRYPTO_HASH_HASH_H
+#define COTER_CRYPTO_HASH_HASH_H
 
 #include "coter/core/macro.h"
 
@@ -64,4 +64,4 @@ CT_API uint64_t ct_hashalgo_siphash_64(const char* data, size_t size, const uint
 #ifdef __cplusplus
 }
 #endif
-#endif  // COTER_HASH_HASH_H
+#endif  // COTER_CRYPTO_HASH_HASH_H
