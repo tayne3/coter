@@ -18,9 +18,9 @@ static const char* const g_level_names[] = {
 };
 
 static const char* const g_level_colors[] = {
-    "\x1b[34;22m",  // VER
+    "\x1b[34;22m",  // TRC
     "\x1b[37;22m",  // DBG
-    "\x1b[32;22m",  // TRC
+    "\x1b[32;22m",  // INF
     "\x1b[33;22m",  // WRN
     "\x1b[31;22m",  // ERR
     "\x1b[31;22m",  // FTL

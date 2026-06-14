@@ -57,7 +57,7 @@ void destroy_handler(ct_log_handler_t* handler) {
 TEST_CASE("log_default_logger_zero_init", "[log]") {
     ct_logger_t* logger = ct_logger_get_default();
     REQUIRE(logger != nullptr);
-    REQUIRE(ct_logger_is_enabled(logger, CT_LOG_LEVEL_VERBOSE));
+    REQUIRE(ct_logger_is_enabled(logger, CT_LOG_LEVEL_TRACE));
 
     CT_TRACE("zero init");
     REQUIRE(ct_logger_flush(NULL) == 0);
@@ -113,7 +113,7 @@ TEST_CASE("log_logger_object_api", "[log]") {
 
     REQUIRE(!ct_logger_is_enabled(&logger, CT_LOG_LEVEL_TRACE));
 
-    ct_logger_set_level(&logger, CT_LOG_LEVEL_VERBOSE);
+    ct_logger_set_level(&logger, CT_LOG_LEVEL_TRACE);
     REQUIRE(ct_logger_is_enabled(&logger, CT_LOG_LEVEL_TRACE));
 
     ct_log_handler_t* default_handler = ct_log_record_handler_create(&config);
@@ -285,7 +285,7 @@ TEST_CASE("log_logger_level_is_atomic", "[log]") {
     for (int i = 0; i < kThreads; ++i) {
         threads.emplace_back([&]() {
             for (int j = 0; j < 10000; ++j) {
-                ct_logger_set_level(&logger, j % 2 == 0 ? CT_LOG_LEVEL_VERBOSE : CT_LOG_LEVEL_ERROR);
+                ct_logger_set_level(&logger, j % 2 == 0 ? CT_LOG_LEVEL_TRACE : CT_LOG_LEVEL_ERROR);
                 (void)ct_logger_get_level(&logger);
             }
         });

@@ -145,14 +145,14 @@ int main() {
 
 ## 日志级别
 
-| 级别 | 值 | 缩写 |
-| --- | --- | --- |
-| VERBOSE | 0 | VER |
-| DEBUG | 1 | DBG |
-| TRACE | 2 | TRC |
-| WARNING | 3 | WRN |
-| ERROR | 4 | ERR |
-| FATAL | 5 | FTL |
+| 级别    | 值  | 缩写 |
+| ------- | --- | ---- |
+| TRACE   | 0   | TRC  |
+| DEBUG   | 1   | DBG  |
+| INFO    | 2   | INF  |
+| WARNING | 3   | WRN  |
+| ERROR   | 4   | ERR  |
+| FATAL   | 5   | FTL  |
 
 通过 `ct_logger_set_level()` 设置最低输出级别，低于该级别的日志不会入队。
 
@@ -201,15 +201,15 @@ void ct_log_handler_destroy(ct_log_handler_t* handler);
 
 ## 线程安全
 
-| 操作 | 线程安全性 | 说明 |
-| --- | --- | --- |
-| `CT_*` / `CT_LOGGER_*` 写入 | 安全 | 构建 job snapshot 后提交到 bounded queue |
-| `ct_logger_set_level` | 安全 | atomic 操作 |
-| `ct_logger_add_handler` | 配置期安全 | 只能在 `ct_logger_start()` 前调用 |
-| `ct_logger_close` | 安全 | 拒绝新写入，等待 active writer 和 per-logger drain 后销毁 handler |
-| `ct_logger_flush` | 安全 | 等待已提交日志处理完成并刷新 handler |
-| `ct_logger_set_default` | 配置期安全 | 只能在默认 logger 首次使用前调用 |
-| Handler `write` | 串行调用 | dispatcher 单线程分发 |
+| 操作                        | 线程安全性 | 说明                                                              |
+| --------------------------- | ---------- | ----------------------------------------------------------------- |
+| `CT_*` / `CT_LOGGER_*` 写入 | 安全       | 构建 job snapshot 后提交到 bounded queue                          |
+| `ct_logger_set_level`       | 安全       | atomic 操作                                                       |
+| `ct_logger_add_handler`     | 配置期安全 | 只能在 `ct_logger_start()` 前调用                                 |
+| `ct_logger_close`           | 安全       | 拒绝新写入，等待 active writer 和 per-logger drain 后销毁 handler |
+| `ct_logger_flush`           | 安全       | 等待已提交日志处理完成并刷新 handler                              |
+| `ct_logger_set_default`     | 配置期安全 | 只能在默认 logger 首次使用前调用                                  |
+| Handler `write`             | 串行调用   | dispatcher 单线程分发                                             |
 
 ## 资源策略
 

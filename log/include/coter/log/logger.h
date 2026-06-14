@@ -15,9 +15,9 @@ extern "C" {
 
 /* F(name, value, short) */
 #define CT_LOG_LEVEL_FOREACH(F) \
-    F(VERBOSE, 0, "VER")        \
+    F(TRACE, 0, "TRC")          \
     F(DEBUG, 1, "DBG")          \
-    F(TRACE, 2, "TRC")          \
+    F(INFO, 2, "INF")           \
     F(WARNING, 3, "WRN")        \
     F(ERROR, 4, "ERR")          \
     F(FATAL, 5, "FTL")
