@@ -357,12 +357,14 @@ namespace ini {
         std::string   getValue() const { return ct_ini_key_get_value(d); }
         std::string   getString(const std::string& def = "") const { return ct_ini_key_get_string(d, def.c_str()); }
         int           getInt(int def = 0) const { return ct_ini_key_get_int(d, def); }
-        long          getInteger(long def = 0) const { return ct_ini_key_get_i64(d, def); }
-        unsigned long getUnsigned(unsigned long def = 0) const { return ct_ini_key_get_u64(d, def); }
-        int64_t       getI64(int64_t def = 0) const { return ct_ini_key_get_i64(d, def); }
-        uint64_t      getU64(uint64_t def = 0) const { return ct_ini_key_get_u64(d, def); }
-        double        getDouble(double def = 0.0) const { return ct_ini_key_get_double(d, def); }
-        bool          getBool(bool def = false) const { return ct_ini_key_get_bool(d, def); }
+        long          getInteger(long def = 0) const { return static_cast<long>(ct_ini_key_get_i64(d, def)); }
+        unsigned long getUnsigned(unsigned long def = 0) const {
+            return static_cast<unsigned long>(ct_ini_key_get_u64(d, def));
+        }
+        int64_t  getI64(int64_t def = 0) const { return ct_ini_key_get_i64(d, def); }
+        uint64_t getU64(uint64_t def = 0) const { return ct_ini_key_get_u64(d, def); }
+        double   getDouble(double def = 0.0) const { return ct_ini_key_get_double(d, def); }
+        bool     getBool(bool def = false) const { return ct_ini_key_get_bool(d, def); }
 
         void set(const std::string& value) { ct_ini_key_set_value(d, value.c_str()); }
         void setValue(const std::string& value) { set(value); }
