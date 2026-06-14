@@ -1,5 +1,6 @@
 #include "coter/time/cron.h"
 
+#include <atomic>
 #include <catch.hpp>
 #include <cstring>
 
@@ -10,20 +11,20 @@
 
 namespace {
 
-struct test_env {
-    ct_atomic_long_t realtime        = CT_ATOMIC_VAR_INIT(0);
-    ct_atomic_long_t monotonic       = CT_ATOMIC_VAR_INIT(0);
-    ct_atomic_int_t  manager_stopped = CT_ATOMIC_VAR_INIT(0);
-    ct_thread_t      manager_thread;
-    ct_cron_t        wakeup;
-    bool             started = false;
+struct test_env final {
+    ct_thread_t          manager_thread;
+    ct_cron_t            wakeup;
+    bool                 started{false};
+    std::atomic<int64_t> realtime{0};
+    std::atomic<int64_t> monotonic{0};
+    std::atomic<int>     manager_stopped{0};
 
-    test_env() {}
-
-    ~test_env() {
+    test_env() = default;
+    ~test_env() noexcept {
         if (!started) { return; }
         ct_cron_mgr_close();
         (void)ct_thread_join(manager_thread, nullptr);
+        started = false;
     }
 };
 
@@ -33,12 +34,12 @@ void do_nothing_cb(void*) {
 }
 
 struct callback_ctx {
-    ct_event_t      event;
-    ct_atomic_int_t count;
+    ct_event_t       event;
+    std::atomic<int> count{0};
 
     callback_ctx() {
         ct_event_init(&event);
-        ct_atomic_int_store(&count, 0);
+        count.store(0);
     }
     ~callback_ctx() { ct_event_destroy(&event); }
     void wait() { REQUIRE(ct_event_wait(&event) == 0); }
@@ -47,7 +48,7 @@ struct callback_ctx {
 
 void event_count_cb(void* arg) {
     callback_ctx* ctx = (callback_ctx*)arg;
-    ct_atomic_int_add(&ctx->count, 1);
+    ctx->count.fetch_add(1);
     ct_event_signal(&ctx->event);
 }
 
@@ -65,16 +66,16 @@ void verify_arg_cb(void* arg) {
 int cron_thread_run(void* arg) {
     test_env* env = (test_env*)arg;
     ct_cron_mgr_run();
-    ct_atomic_int_store(&env->manager_stopped, 1);
+    env->manager_stopped.store(1);
     return 0;
 }
 
 ct_time64_t mock_realtime_ms() {
-    return static_cast<ct_time64_t>(ct_atomic_long_load(&g_env.realtime)) * 1000;
+    return g_env.realtime.load();
 }
 
 ct_time64_t mock_monotonic_ms() {
-    return static_cast<ct_time64_t>(ct_atomic_long_load(&g_env.monotonic)) * 1000;
+    return g_env.monotonic.load();
 }
 
 ct_time_t make_test_time(int year, int month, int day, int hour, int min, int sec) {
@@ -92,9 +93,9 @@ ct_time_t make_test_time(int year, int month, int day, int hour, int min, int se
 
 void start() {
     const ct_time_t now = make_test_time(2020, 1, 1, 0, 0, 0);
-    ct_atomic_long_store(&g_env.realtime, (long)now);
-    ct_atomic_long_store(&g_env.monotonic, 0);
-    ct_atomic_int_store(&g_env.manager_stopped, 0);
+    g_env.realtime.store(static_cast<int64_t>(now) * 1000);
+    g_env.monotonic.store(0);
+    g_env.manager_stopped.store(0);
     g_env.started = false;
 
     ct_cron_mgr_init(mock_realtime_ms, mock_monotonic_ms);
@@ -110,19 +111,23 @@ void stop() {
     if (!g_env.started) { return; }
     ct_cron_mgr_close();
     REQUIRE(ct_thread_join(g_env.manager_thread, nullptr) == 0);
-    REQUIRE(ct_atomic_int_load(&g_env.manager_stopped) == 1);
+    REQUIRE(g_env.manager_stopped.load() == 1);
     g_env.started = false;
 }
 
 void advance_seconds(ct_time_t seconds) {
-    ct_atomic_long_add(&g_env.realtime, static_cast<long>(seconds));
-    ct_atomic_long_add(&g_env.monotonic, static_cast<long>(seconds));
+    for (ct_time_t i = 0; i < seconds; ++i) {
+        g_env.realtime.fetch_add(500);
+        g_env.monotonic.fetch_add(500);
+        g_env.realtime.fetch_add(500);
+        g_env.monotonic.fetch_add(500);
+    }
     REQUIRE(ct_cron_reset(&g_env.wakeup, -1, -1, -1, -1, -1) == 0);
 }
 
 void advance_seconds_skew(ct_time_t r, ct_time_t m) {
-    ct_atomic_long_add(&g_env.realtime, static_cast<long>(r));
-    ct_atomic_long_add(&g_env.monotonic, static_cast<long>(m));
+    g_env.realtime.fetch_add(static_cast<int64_t>(r) * 1000);
+    g_env.monotonic.fetch_add(static_cast<int64_t>(m) * 1000);
     REQUIRE(ct_cron_reset(&g_env.wakeup, -1, -1, -1, -1, -1) == 0);
 }
 
@@ -137,16 +142,16 @@ TEST_CASE("minutely cron fires at correct interval with mock time", "[cron]") {
     REQUIRE(ct_cron_start(&cron, -1, -1, -1, -1, -1, event_count_cb, &ctx) == 0);
 
     advance_seconds(59);
-    REQUIRE(ct_atomic_int_load(&ctx.count) == 0);
+    REQUIRE(ctx.count.load() == 0);
     REQUIRE_FALSE(ctx.wait_timeout(50));
 
     advance_seconds(1);
     ctx.wait();
-    REQUIRE(ct_atomic_int_load(&ctx.count) == 1);
+    REQUIRE(ctx.count.load() == 1);
 
     advance_seconds(60);
     ctx.wait();
-    REQUIRE(ct_atomic_int_load(&ctx.count) == 2);
+    REQUIRE(ctx.count.load() == 2);
 
     REQUIRE(ct_cron_stop(&cron) == 0);
     stop();
@@ -162,7 +167,7 @@ TEST_CASE("stopping cron prevents future executions", "[cron]") {
 
     advance_seconds(60);
     ctx.wait();
-    REQUIRE(ct_atomic_int_load(&ctx.count) >= 1);
+    REQUIRE(ctx.count.load() >= 1);
 
     REQUIRE(ct_cron_stop(&cron) == 0);
 
@@ -188,7 +193,7 @@ TEST_CASE("time jump reschedules without catchup burst", "[cron]") {
 
     advance_seconds(1800);
     ctx.wait();
-    REQUIRE(ct_atomic_int_load(&ctx.count) == 1);
+    REQUIRE(ctx.count.load() == 1);
 
     REQUIRE(ct_cron_stop(&cron) == 0);
     stop();
@@ -209,14 +214,14 @@ TEST_CASE("multiple tasks due at same time can fire together", "[cron]") {
 
     advance_seconds(60);
     minute_ctx.wait();
-    REQUIRE(ct_atomic_int_load(&minute_ctx.count) >= 1);
-    REQUIRE(ct_atomic_int_load(&hour_ctx.count) == 0);
+    REQUIRE(minute_ctx.count.load() >= 1);
+    REQUIRE(hour_ctx.count.load() == 0);
 
     advance_seconds(3540);
     minute_ctx.wait();
     hour_ctx.wait();
-    REQUIRE(ct_atomic_int_load(&minute_ctx.count) >= 2);
-    REQUIRE(ct_atomic_int_load(&hour_ctx.count) >= 1);
+    REQUIRE(minute_ctx.count.load() >= 2);
+    REQUIRE(hour_ctx.count.load() >= 1);
 
     REQUIRE(ct_cron_stop(&minute_cron) == 0);
     REQUIRE(ct_cron_stop(&hour_cron) == 0);
@@ -273,7 +278,7 @@ TEST_CASE("starting a cron twice replaces its schedule", "[cron]") {
 
     advance_seconds(30);
     ctx.wait();
-    REQUIRE(ct_atomic_int_load(&ctx.count) == 1);
+    REQUIRE(ctx.count.load() == 1);
 
     REQUIRE(ct_cron_stop(&cron) == 0);
     stop();
@@ -311,7 +316,7 @@ TEST_CASE("minutely cron remains stable over many consecutive ticks", "[cron]") 
         advance_seconds(60);
         ctx.wait();
     }
-    REQUIRE(ct_atomic_int_load(&ctx.count) >= 5);
+    REQUIRE(ctx.count.load() >= 5);
 
     REQUIRE(ct_cron_stop(&cron) == 0);
     stop();
