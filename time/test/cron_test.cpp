@@ -115,14 +115,14 @@ void stop() {
 }
 
 void advance_seconds(ct_time_t seconds) {
-    ct_atomic_long_add(&g_env.realtime, seconds);
-    ct_atomic_long_add(&g_env.monotonic, seconds);
+    ct_atomic_long_add(&g_env.realtime, static_cast<long>(seconds));
+    ct_atomic_long_add(&g_env.monotonic, static_cast<long>(seconds));
     REQUIRE(ct_cron_reset(&g_env.wakeup, -1, -1, -1, -1, -1) == 0);
 }
 
 void advance_seconds_skew(ct_time_t r, ct_time_t m) {
-    ct_atomic_long_add(&g_env.realtime, r);
-    ct_atomic_long_add(&g_env.monotonic, m);
+    ct_atomic_long_add(&g_env.realtime, static_cast<long>(r));
+    ct_atomic_long_add(&g_env.monotonic, static_cast<long>(m));
     REQUIRE(ct_cron_reset(&g_env.wakeup, -1, -1, -1, -1, -1) == 0);
 }
 
