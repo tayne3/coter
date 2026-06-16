@@ -161,13 +161,19 @@ namespace log {
         explicit Logger(ct_logger_t* logger) : d(logger) {}
 
         template <typename... Args>
-        void log(int level, const char* file, int line, fmt::format_string<Args...> fmt, Args&&... args) const {
+        void log(int level, const char* file, int line, fmt::format_string<Args...> fmt_str,
+                 Args&&... args) const noexcept {
             if (!ct_logger_is_enabled(d, level)) { return; }
 
-            fmt::basic_memory_buffer<char, 1024> buf;
-            fmt::format_to(std::back_inserter(buf), fmt, std::forward<Args>(args)...);
-
-            ct_log_submit_payload(d, level, file, line, buf.data(), buf.size());
+            try {
+                fmt::basic_memory_buffer<char, 1024> buf;
+                fmt::format_to(std::back_inserter(buf), fmt_str, std::forward<Args>(args)...);
+                ct_log_submit_payload(d, level, file, line, buf.data(), buf.size());
+            } catch (...) {
+                static const char   errMsg[]  = "[log: format error]";
+                static const size_t errMsgLen = sizeof(errMsg) - 1;
+                ct_log_submit_payload(d, level, file, line, errMsg, errMsgLen);
+            }
         }
     };
 
