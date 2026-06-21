@@ -124,7 +124,8 @@ jobs:
           -DCMAKE_C_COMPILER=${{ matrix.compiler }}-${{ matrix.version }}
           -DCMAKE_CXX_COMPILER=${{ matrix.compiler == 'gcc' && 'g++' || 'clang++' }}-${{ matrix.version }}
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-          -DCOTER_BUILD_TEST=ON
+          -DCOTER_BUILD_TESTS=ON
+          ${{ matrix.build_type == 'Release' && '-DCOTER_ENABLE_LTO=ON' || '' }}
 
       - name: Build
         run: cmake --build build --config ${{ matrix.build_type }}
@@ -188,7 +189,8 @@ jobs:
           -G "${{ matrix.generator }}"
           ${{ matrix.toolset && format('-T {0}', matrix.toolset) || '' }}
           -DBUILD_SHARED_LIBS=OFF
-          -DCOTER_BUILD_TEST=ON
+          -DCOTER_BUILD_TESTS=ON
+          ${{ matrix.build_type == 'Release' && '-DCOTER_ENABLE_LTO=ON' || '' }}
         shell: bash
 
       - name: Build
@@ -230,7 +232,8 @@ jobs:
           -G "Ninja"
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
           -DBUILD_SHARED_LIBS=OFF
-          -DCOTER_BUILD_TEST=ON
+          -DCOTER_BUILD_TESTS=ON
+          ${{ matrix.build_type == 'Release' && '-DCOTER_ENABLE_LTO=ON' || '' }}
 
       - name: Build
         run: cmake --build build --config ${{ matrix.build_type }}
@@ -269,7 +272,8 @@ jobs:
           -G "Ninja"
           -DCMAKE_BUILD_TYPE=Release
           -DBUILD_SHARED_LIBS=OFF
-          -DCOTER_BUILD_TEST=ON
+          -DCOTER_BUILD_TESTS=ON
+          -DCOTER_ENABLE_LTO=ON
 
       - name: Build
         run: cmake --build build
@@ -326,7 +330,8 @@ jobs:
           ${{ matrix.cxx && format('-DCMAKE_CXX_COMPILER={0}', matrix.cxx) || '' }}
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
           -DBUILD_SHARED_LIBS=OFF
-          -DCOTER_BUILD_TEST=ON
+          -DCOTER_BUILD_TESTS=ON
+          ${{ matrix.build_type == 'Release' && '-DCOTER_ENABLE_LTO=ON' || '' }}
 
       - name: Build
         run: cmake --build build --config ${{ matrix.build_type }}
