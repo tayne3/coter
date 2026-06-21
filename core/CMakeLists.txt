@@ -1,5 +1,5 @@
 configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/include/coter/core/config.h.in"
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/config.h.in"
   "${CMAKE_CURRENT_BINARY_DIR}/include/coter/core/config.h"
   @ONLY
 )
