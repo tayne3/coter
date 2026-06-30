@@ -61,5 +61,13 @@ TEST_CASE("md5 test", "[md5]") {
 
             REQUIRE(std::memcmp(buffer, test_case.target, 16) == 0);
         }
+
+        {
+            uint8_t buffer[16] = {0};
+
+            ct_md5_sum(test_case.data, data_len, buffer);
+
+            REQUIRE(std::memcmp(buffer, test_case.target, 16) == 0);
+        }
     }
 }

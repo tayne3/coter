@@ -54,11 +54,16 @@ typedef struct ct_md5_ctx {
     uint8_t  in[64];
 } ct_md5_ctx_t;
 
-#define CT_MD5_CTX_INIT                                                                           \
-    {                                                                                             \
-        {UINT32_C(0x67452301), UINT32_C(0xefcdab89), UINT32_C(0x98badcfe), UINT32_C(0x10325476)}, \
-        {0, 0},                                                                                   \
-        {0},                                                                                      \
+#define CT_MD5_CTX_INIT           \
+    {                             \
+        {                         \
+            UINT32_C(0x67452301), \
+            UINT32_C(0xefcdab89), \
+            UINT32_C(0x98badcfe), \
+            UINT32_C(0x10325476), \
+        },                        \
+        {0, 0},                   \
+        {0},                      \
     }
 
 /**
@@ -93,6 +98,15 @@ CT_API void ct_md5_update(ct_md5_ctx_t* self, const void* data, size_t len);
  * This function is used to end the MD5 computation and retrieve the final MD5 digest.
  */
 CT_API void ct_md5_final(ct_md5_ctx_t* self, uint8_t digest[16]);
+
+/**
+ * @brief Computes the MD5 digest of a data block in a single call.
+ *
+ * @param data Pointer to the input data.
+ * @param len Length of the input data.
+ * @param digest Output buffer used to store the 16-byte MD5 digest.
+ */
+CT_API void ct_md5_sum(const void* data, size_t len, uint8_t digest[16]);
 
 #ifdef __cplusplus
 }
