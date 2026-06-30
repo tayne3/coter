@@ -5,13 +5,10 @@
 #include "coter/time/datetime.h"
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 #include "coter/core/macro.h"
 #include "coter/core/strings.h"
-
-// -------------------------[STATIC DECLARATION]-------------------------
 
 #define IS_LEAP_YEAR(year) (((year) % 4 == 0 && (year) % 100 != 0) || (year) % 400 == 0)
 
@@ -26,8 +23,6 @@ static const char* s_months[12] = {
 
 //                                 1   2   3   4   5   6   7   8   9   10  11  12
 static const uint8_t s_days[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-
-// -------------------------[GLOBAL DEFINITION]-------------------------
 
 ct_datetime_t ct_datetime_now(void) {
     ct_time64_t   now_ms = ct_gettimeofday_ms();
@@ -195,4 +190,19 @@ ct_datetime_t __ct_datetime_compile(const char* _date, const char* _time) {
     return dt;
 }
 
-// -------------------------[STATIC DEFINITION]-------------------------
+char* ct_tm_duration_fmt(int sec, char* buf) {
+    if (sec < 0 || !buf) { return NULL; }
+    int m = sec / 60;
+    int s = sec % 60;
+    int h = m / 60;
+    m     = m % 60;
+    sprintf(buf, "%02d:%02d:%02d", h, m, s);
+    return buf;
+}
+
+char* ct_tm_fmt(const struct tm* tm, char* buf) {
+    if (!tm || !buf) { return NULL; }
+    sprintf(buf, "%04d-%02d-%02d %02d:%02d:%02d", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour,
+            tm->tm_min, tm->tm_sec);
+    return buf;
+}

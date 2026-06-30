@@ -9,7 +9,6 @@
 #include "coter/sync/atomic.h"
 #include "coter/sync/cond.h"
 #include "coter/sync/mutex.h"
-#include "coter/time/ticker.h"
 
 typedef enum node_type {
     NODE_TYPE_TIMER = 0,
