@@ -34,7 +34,7 @@ typedef struct ct_thpool ct_thpool_t;
 
 // 线程池配置
 typedef struct ct_thpool_config {
-    ct_thread_attr_t* thread_attr;   // 线程属性
+    ct_thread_attr_t* thread_attr;   // 线程属性 (NULL=使用默认; 非NULL=create时值拷贝，调用方可随后释放)
     size_t            idle_timeout;  // 空闲超时时间 (单位: ms, 0代表不回收线程)
     bool              non_blocking;  // 是否非阻塞模式
     size_t            max_tasks;     // 最大阻塞任务数 (0代表不限制)

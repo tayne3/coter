@@ -65,6 +65,13 @@ CT_API bool ct_msgqueue_is_empty(ct_msgqueue_t* self);
 CT_API bool ct_msgqueue_is_full(ct_msgqueue_t* self);
 
 /**
+ * @brief 获取消息队列中当前的元素数量
+ * @param self 消息队列
+ * @return 当前元素数量
+ */
+CT_API size_t ct_msgqueue_size(ct_msgqueue_t* self);
+
+/**
  * @brief 阻塞入队
  * @param self 消息队列
  * @param item 消息

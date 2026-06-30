@@ -50,8 +50,12 @@ typedef struct status {
  * @brief 线程池
  */
 struct ct_thpool {
-    ct_thpool_config_t config;  // 线程池属性
-    status_t           status;  // 线程池状态
+    status_t         status;           // 线程池状态
+    ct_thread_attr_t thread_attr;      // 线程属性
+    size_t           idle_timeout;     // 空闲超时时间 (ms, 0=不回收线程)
+    size_t           max_tasks;        // 最大阻塞任务数 (0=不限制)
+    bool             non_blocking;     // 是否非阻塞模式
+    bool             has_thread_attr;  // 是否使用自定义线程属性
 
     ct_list_t  worker_head[1];   // 工作者队列
     ct_mutex_t worker_mutex[1];  // 互斥锁
@@ -95,7 +99,7 @@ ct_thpool_t* ct_thpool_create(size_t size, ct_thpool_config_t* config) {
     ct_mutex_init(self->worker_mutex);
     ct_cond_init(self->worker_cond);
 
-    if (self->config.idle_timeout > 0) {
+    if (self->idle_timeout > 0) {
         ct_thread_attr_t attr;
         ct_thread_attr_init(&attr);
         ct_thread_attr_set_stack_size(&attr, 1 * 1024);  // 设置堆栈大小: 1KB
@@ -110,7 +114,7 @@ void ct_thpool_close(ct_thpool_t* self) {
     if (ctl_is_closed(self)) { return; }
     ct_atomic_long_store(&self->status.closed, 1);
 
-    if (self->config.idle_timeout > 0) { ct_thread_join(self->monitor_thread, NULL); }
+    if (self->idle_timeout > 0) { ct_thread_join(&self->monitor_thread, NULL); }
 
     ct_list_t stale_head[1];
     ct_list_init(stale_head);
@@ -124,7 +128,7 @@ void ct_thpool_close(ct_thpool_t* self) {
     ct_mutex_unlock(self->worker_mutex);
 
     ct_list_foreach_entry_safe(worker, stale_head, worker_t, list) {
-        ct_thread_join(worker->thread, NULL);
+        ct_thread_join(&worker->thread, NULL);
         ct_msgqueue_destroy(worker->tasks);
         free(worker);
     }
@@ -138,15 +142,16 @@ void ct_thpool_destroy(ct_thpool_t* self) {
     if (!self) { return; }
     ct_thpool_close(self);
 
-    while (ct_atomic_long_load(&self->status.total_size) > 0) { ct_msleep(10); }
+    // 等待所有工作者线程退出
+    ct_mutex_lock(self->worker_mutex);
+    while (ct_atomic_long_load(&self->status.total_size) > 0) {
+        ct_cond_wait_for(self->worker_cond, self->worker_mutex, 1000);
+    }
+    ct_mutex_unlock(self->worker_mutex);
     ct_mutex_destroy(self->worker_mutex);
     ct_cond_destroy(self->worker_cond);
 
-    if (self->config.thread_attr) {
-        ct_thread_attr_destroy(self->config.thread_attr);
-        free(self->config.thread_attr);
-        self->config.thread_attr = NULL;
-    }
+    if (self->has_thread_attr) { ct_thread_attr_destroy(&self->thread_attr); }
     free(self);
 }
 
@@ -182,30 +187,19 @@ void ct_thpool_default_config(ct_thpool_config_t* config) {
 // -------------------------[STATIC DEFINITION]-------------------------
 
 static void ctl_config_init(ct_thpool_t* self, ct_thpool_config_t* attr) {
-    ct_thpool_config_t* sattr = &self->config;
-    if (attr && attr->thread_attr) {
-        sattr->thread_attr = (ct_thread_attr_t*)malloc(sizeof(ct_thread_attr_t));
-        memcpy(sattr->thread_attr, attr->thread_attr, sizeof(ct_thread_attr_t));
-    } else {
-        sattr->thread_attr = NULL;
-    }
-
-    if (attr && attr->idle_timeout) {
-        sattr->idle_timeout = CT_MIN(attr->idle_timeout, 50U);
-    } else {
-        sattr->idle_timeout = 1000;
-    }
+    self->idle_timeout    = 1000;
+    self->non_blocking    = false;
+    self->max_tasks       = 1000;
+    self->has_thread_attr = false;
 
     if (attr) {
-        sattr->non_blocking = attr->non_blocking;
-    } else {
-        sattr->non_blocking = false;
-    }
-
-    if (attr && attr->max_tasks) {
-        sattr->max_tasks = attr->max_tasks;
-    } else {
-        sattr->max_tasks = 1000;
+        if (attr->thread_attr) {
+            memcpy(&self->thread_attr, attr->thread_attr, sizeof(ct_thread_attr_t));
+            self->has_thread_attr = true;
+        }
+        self->idle_timeout = attr->idle_timeout == 0 ? 0 : CT_MAX(attr->idle_timeout, 50U);
+        self->non_blocking = attr->non_blocking;
+        self->max_tasks    = attr->max_tasks;
     }
 }
 
@@ -239,8 +233,8 @@ Retry:
         return 0;
     }
 
-    if (self->config.non_blocking ||
-        (self->config.max_tasks > 0 && ct_atomic_long_load(&self->status.wait_size) >= (long)self->config.max_tasks)) {
+    if (self->non_blocking ||
+        (self->max_tasks > 0 && ct_atomic_long_load(&self->status.wait_size) >= (long)self->max_tasks)) {
         ct_mutex_unlock(self->worker_mutex);
         return CTThPoolError_Overload;
     }
@@ -288,7 +282,8 @@ static worker_t* ctl_worker_create(ct_thpool_t* self) {
     worker->last_use = ct_getuptime_ms();
     ct_msgqueue_init(worker->tasks, worker->task_buff, sizeof(task_t), 1);
 
-    const int ret = ct_thread_create(&worker->thread, self->config.thread_attr, ctl_worker_thread, worker);
+    const int ret =
+        ct_thread_create(&worker->thread, self->has_thread_attr ? &self->thread_attr : NULL, ctl_worker_thread, worker);
     if (ret != 0) {
         ct_msgqueue_destroy(worker->tasks);
         free(worker);
@@ -308,7 +303,7 @@ static int ctl_worker_thread(void* arg) {
     while (ct_msgqueue_pop(worker->tasks, &task) == 0) {
         task.routine(task.arg);
         if (!ctl_revert_worker(worker->thpool, worker)) {
-            ct_thread_detach(worker->thread);
+            ct_thread_detach(&worker->thread);
             ct_msgqueue_destroy(worker->tasks);
             free(worker);
             break;
@@ -341,10 +336,10 @@ static int ctl_monitor_thread(void* arg) {
     while (!ctl_is_closed(pool)) {
         now = ct_getuptime_ms();
 
-        if (now >= last + (ct_time64_t)pool->config.idle_timeout) {
+        if (now >= last + (ct_time64_t)pool->idle_timeout) {
             last = now;
 
-            const ct_time64_t expiry_time = now - pool->config.idle_timeout;
+            const ct_time64_t expiry_time = now - pool->idle_timeout;
             const size_t      total_size  = ct_atomic_long_load(&pool->status.total_size);
 
             ct_list_t stale_head[1];
@@ -363,7 +358,7 @@ static int ctl_monitor_thread(void* arg) {
 
             size_t stale_size = 0;
             ct_list_foreach_entry_safe(worker, stale_head, worker_t, list) {
-                ct_thread_join(worker->thread, NULL);
+                ct_thread_join(&worker->thread, NULL);
                 ct_msgqueue_destroy(worker->tasks);
                 free(worker);
                 ++stale_size;

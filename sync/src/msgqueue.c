@@ -60,6 +60,16 @@ bool ct_msgqueue_is_full(ct_msgqueue_t* self) {
     return is_full;
 }
 
+size_t ct_msgqueue_size(ct_msgqueue_t* self) {
+    if (!self) { return 0; }
+
+    size_t size;
+    ct_mutex_lock(&self->mutex);
+    size = ct_queue_size(self->queue);
+    ct_mutex_unlock(&self->mutex);
+    return size;
+}
+
 int ct_msgqueue_push(ct_msgqueue_t* self, const void* item) {
     if (!self || !item) { return EINVAL; }
 

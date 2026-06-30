@@ -5,12 +5,12 @@
 
 #include <catch.hpp>
 #include <cinttypes>
+#include <thread>
 
 #include "coter/core/platform.h"
 #include "coter/core/time.h"
 #include "coter/sync/mutex.h"
 #include "coter/thread/jobpool.h"
-#include "coter/thread/thread.h"
 
 typedef struct {
     int        count;
@@ -160,21 +160,11 @@ TEST_CASE("multiple threads can submit tasks concurrently", "[thpool]") {
     counter.count = 0;
     ct_mutex_init(&counter.mutex);
 
-    ct_thread_t threads[NUM_THREADS];
+    std::thread threads[NUM_THREADS];
 
-    ct_thread_attr_t attr;
-    ct_thread_attr_init(&attr);
-    ct_thread_attr_set_stack_size(&attr, 8 * 1024 * 1024);
-    for (int i = 0; i < NUM_THREADS; ++i) {
-        const int ret = ct_thread_create(&threads[i], &attr, submit_tasks, &counter);
-        REQUIRE(ret == 0);
-    }
-    ct_thread_attr_destroy(&attr);
+    for (int i = 0; i < NUM_THREADS; ++i) { threads[i] = std::thread(submit_tasks, &counter); }
 
-    for (int i = 0; i < NUM_THREADS; ++i) {
-        const int ret = ct_thread_join(threads[i], nullptr);
-        REQUIRE(ret == 0);
-    }
+    for (int i = 0; i < NUM_THREADS; ++i) { threads[i].join(); }
 
     for (int i = 0; i < 200; ++i) {
         if (counter.count == NUM_THREADS * TASKS_PER_THREAD) { break; }
@@ -223,7 +213,7 @@ TEST_CASE("thread pool outperforms raw thread creation for many tasks", "[thpool
     ct_time64_t start, end, duration_without_pool, duration_with_pool, duration_with_jobpool;
 
     {
-        ct_jobpool_t* jobpool = ct_jobpool_create(64, 1024);
+        ct_jobpool_t* jobpool = ct_jobpool_create(64, 1024, NULL);
         REQUIRE(jobpool != nullptr);
 
         counter_t counter_jobpool;
@@ -255,21 +245,14 @@ TEST_CASE("thread pool outperforms raw thread creation for many tasks", "[thpool
     }
 
     {
-        ct_thread_t* threads = (ct_thread_t*)malloc(sizeof(ct_thread_t) * NUM_TASKS);
-        if (!threads) {
-            printf("Failed to allocate memory for threads.");
-            REQUIRE(false);
-        }
+        std::thread* threads = new std::thread[NUM_TASKS];
 
         counter_t counter_no_pool;
         counter_no_pool.count = 0;
         ct_mutex_init(&counter_no_pool.mutex);
         start = ct_getuptime_ms();
 
-        for (int i = 0; i < NUM_TASKS; ++i) {
-            const int ret = ct_thread_create(&threads[i], nullptr, thread_task, &counter_no_pool);
-            REQUIRE(ret == 0);
-        }
+        for (int i = 0; i < NUM_TASKS; ++i) { threads[i] = std::thread(thread_task, &counter_no_pool); }
 
         for (int i = 0; i < 1000; ++i) {
             ct_mutex_lock(&counter_no_pool.mutex);
@@ -284,12 +267,9 @@ TEST_CASE("thread pool outperforms raw thread creation for many tasks", "[thpool
         end                   = ct_getuptime_ms();
         duration_without_pool = end - start;
 
-        for (int i = 0; i < NUM_TASKS; ++i) {
-            const int ret = ct_thread_join(threads[i], nullptr);
-            REQUIRE(ret == 0);
-        }
+        for (int i = 0; i < NUM_TASKS; ++i) { threads[i].join(); }
 
-        free(threads);
+        delete[] threads;
 
         printf("Without thread pool: %" PRIu64 "ms\n", (uint64_t)duration_without_pool);
 
