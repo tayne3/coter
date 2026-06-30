@@ -56,7 +56,7 @@ TEST_CASE("thread_create_and_join_returns_value", "[thread]") {
     int         result = 0;
 
     REQUIRE(ct_thread_create(&thread, NULL, return_worker, (void*)0x1234) == 0);
-    REQUIRE(ct_thread_join(thread, &result) == 0);
+    REQUIRE(ct_thread_join(&thread, &result) == 0);
     REQUIRE(result == 0x1234);
 }
 
@@ -65,7 +65,7 @@ TEST_CASE("thread_once_runs_once", "[thread]") {
 
     ct_atomic_int_store(&g_once_counter, 0);
     for (int i = 0; i < 4; ++i) { REQUIRE(ct_thread_create(&threads[i], NULL, once_worker, NULL) == 0); }
-    for (int i = 0; i < 4; ++i) { REQUIRE(ct_thread_join(threads[i], NULL) == 0); }
+    for (int i = 0; i < 4; ++i) { REQUIRE(ct_thread_join(&threads[i], NULL) == 0); }
     REQUIRE(ct_atomic_int_load(&g_once_counter) == 1);
 }
 
@@ -76,7 +76,7 @@ TEST_CASE("thread_tls_runs_destructor_on_exit", "[thread]") {
     ct_atomic_int_store(&g_tls_destructor_count, 0);
     REQUIRE(ct_tls_create(&g_tls_key, tls_destructor) == 0);
     REQUIRE(ct_thread_create(&thread, NULL, tls_worker, NULL) == 0);
-    REQUIRE(ct_thread_join(thread, &result) == 0);
+    REQUIRE(ct_thread_join(&thread, &result) == 0);
     REQUIRE(result == 0);
     REQUIRE(ct_atomic_int_load(&g_tls_destructor_count) == 1);
     REQUIRE(ct_tls_destroy(g_tls_key) == 0);
@@ -87,7 +87,7 @@ TEST_CASE("thread_detach_allows_background_completion", "[thread]") {
     detach_env  env;
 
     REQUIRE(ct_thread_create(&thread, NULL, detach_worker, &env) == 0);
-    REQUIRE(ct_thread_detach(thread) == 0);
+    REQUIRE(ct_thread_detach(&thread) == 0);
 
     for (int i = 0; i < 20 && ct_atomic_int_load(&env.done) == 0; ++i) { ct_msleep(5); }
 

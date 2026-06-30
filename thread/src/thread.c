@@ -64,35 +64,48 @@ int ct_thread_create(ct_thread_t* thread, const ct_thread_attr_t* attr, ct_threa
 #endif
 }
 
-int ct_thread_join(ct_thread_t thread, int* result) {
+int ct_thread_join(ct_thread_t* thread, int* result) {
+    if (!thread) { return EINVAL; }
 #ifdef CT_OS_WIN
-    if (!thread.handle) { return EINVAL; }
-    if (WaitForSingleObject(thread.handle, INFINITE) != WAIT_OBJECT_0) { return (int)GetLastError(); }
+    if (!thread->handle) { return EINVAL; }
+    if (WaitForSingleObject(thread->handle, INFINITE) != WAIT_OBJECT_0) { return (int)GetLastError(); }
     if (result) {
         DWORD exit_code = 0;
-        if (!GetExitCodeThread(thread.handle, &exit_code)) {
-            CloseHandle(thread.handle);
+        if (!GetExitCodeThread(thread->handle, &exit_code)) {
+            CloseHandle(thread->handle);
+            thread->handle = NULL;
+            thread->id     = 0;
             return (int)GetLastError();
         }
         *result = (int)exit_code;
     }
-    CloseHandle(thread.handle);
+    CloseHandle(thread->handle);
+    thread->handle = NULL;
+    thread->id     = 0;
     return 0;
 #else
     void* retval = NULL;
-    int   ret    = pthread_join(thread, &retval);
+    int   ret    = pthread_join(*thread, &retval);
     if (ret != 0) { return ret; }
     if (result) { *result = (int)(intptr_t)retval; }
+    memset(thread, 0, sizeof(ct_thread_t));
     return 0;
 #endif
 }
 
-int ct_thread_detach(ct_thread_t thread) {
+int ct_thread_detach(ct_thread_t* thread) {
+    if (!thread) { return EINVAL; }
 #ifdef CT_OS_WIN
-    if (!thread.handle) { return EINVAL; }
-    return CloseHandle(thread.handle) ? 0 : (int)GetLastError();
+    if (!thread->handle) { return EINVAL; }
+    BOOL success   = CloseHandle(thread->handle);
+    thread->handle = NULL;
+    thread->id     = 0;
+    return success ? 0 : (int)GetLastError();
 #else
-    return pthread_detach(thread);
+    int ret = pthread_detach(*thread);
+    if (ret != 0) { return ret; }
+    memset(thread, 0, sizeof(ct_thread_t));
+    return 0;
 #endif
 }
 
@@ -104,30 +117,19 @@ int ct_thread_yield(void) {
 #endif
 }
 
-int ct_thread_set_win_priority(ct_thread_t thread, int priority) {
 #ifdef CT_OS_WIN
+int ct_thread_set_win_priority(ct_thread_t thread, int priority) {
     if (!thread.handle) { return EINVAL; }
     return SetThreadPriority(thread.handle, priority) ? 0 : (int)GetLastError();
-#else
-    CT_UNUSED(thread);
-    CT_UNUSED(priority);
-    return ENOTSUP;
-#endif
 }
-
-int ct_thread_set_posix_sched(ct_thread_t thread, int policy, int priority) {
-#ifdef CT_OS_WIN
-    CT_UNUSED(thread);
-    CT_UNUSED(policy);
-    CT_UNUSED(priority);
-    return ENOTSUP;
 #else
+int ct_thread_set_posix_sched(ct_thread_t thread, int policy, int priority) {
     struct sched_param sched_param;
     memset(&sched_param, 0, sizeof(sched_param));
     sched_param.sched_priority = priority;
     return pthread_setschedparam(thread, policy, &sched_param);
-#endif
 }
+#endif
 
 ct_thread_t ct_thread_self(void) {
 #ifdef CT_OS_WIN

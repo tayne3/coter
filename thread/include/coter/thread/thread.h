@@ -18,28 +18,31 @@ typedef pthread_t ct_tid_t;
 #endif
 
 /**
- * @brief 线程创建属性
+ * @brief Thread creation attributes.
  */
 typedef struct ct_thread_attr {
-    size_t stack_size;  // 线程栈大小 (0 表示平台默认值)
+    size_t stack_size;  // Stack size in bytes (0 for platform default)
 } ct_thread_attr_t;
 
 #define CT_THREAD_ATTR_INIT {0}
 
 /**
- * @brief 初始化线程属性
+ * @brief Initializes thread attributes to default values.
+ * @param attr Pointer to the attributes to initialize.
  */
 CT_API void ct_thread_attr_init(ct_thread_attr_t* attr);
 
 /**
- * @brief 销毁线程属性
+ * @brief Destroys thread attributes.
+ * @param attr Pointer to the attributes to destroy.
  */
 CT_API void ct_thread_attr_destroy(ct_thread_attr_t* attr);
 
 /**
- * @brief 设置线程栈大小
- * @param stack_size 栈大小，0 表示平台默认值
- * @return 0=成功，非0=失败
+ * @brief Sets the desired stack size for the thread.
+ * @param attr Pointer to the thread attributes.
+ * @param stack_size The stack size in bytes. 0 indicates the platform default.
+ * @return 0 on success, non-zero error code on failure.
  */
 CT_API int ct_thread_attr_set_stack_size(ct_thread_attr_t* attr, size_t stack_size);
 
@@ -53,58 +56,85 @@ typedef pthread_t ct_thread_t;
 #endif
 
 /**
- * @brief 线程执行函数
- * @return 线程退出码
+ * @brief Thread execution routine signature.
+ * @return Thread exit code.
  */
 typedef int (*ct_thread_routine_t)(void*);
 
 /**
- * @brief 创建线程
- * @param attr 线程属性 (可为 NULL)
- * @return 0=成功，非0=失败
+ * @brief Creates a new thread of execution.
+ * @param thread Output pointer to the created thread handle.
+ * @param attr Optional thread attributes. Can be NULL for defaults.
+ * @param routine The function to execute in the new thread.
+ * @param arg Argument passed to the routine.
+ * @return 0 on success, non-zero error code on failure.
  */
 CT_API int ct_thread_create(ct_thread_t* thread, const ct_thread_attr_t* attr, ct_thread_routine_t routine, void* arg);
 
 /**
- * @brief 等待线程结束
- * @param result 可选线程退出码输出
- * @return 0=成功，非0=失败
+ * @brief Waits for a thread to terminate and cleans up its resources.
+ *
+ * To enforce defensive lifecycle management and prevent dangling pointers,
+ * the thread handle pointed to by `thread` is zeroed out upon return.
+ *
+ * @param thread Pointer to the thread handle. Will be zeroed out.
+ * @param result Optional pointer to store the thread's exit code.
+ * @return 0 on success, non-zero error code on failure.
  */
-CT_API int ct_thread_join(ct_thread_t thread, int* result);
+CT_API int ct_thread_join(ct_thread_t* thread, int* result);
 
 /**
- * @brief 分离线程
- * @return 0=成功，非0=失败
+ * @brief Detaches a thread, allowing it to execute independently.
+ *
+ * Its resources will be automatically released upon termination.
+ * To prevent dangling pointers, the thread handle is zeroed out.
+ *
+ * @param thread Pointer to the thread handle. Will be zeroed out.
+ * @return 0 on success, non-zero error code on failure.
  */
-CT_API int ct_thread_detach(ct_thread_t thread);
+CT_API int ct_thread_detach(ct_thread_t* thread);
 
 /**
- * @brief 主动让出当前线程时间片
+ * @brief Voluntarily yields the current thread's time slice to the scheduler.
+ * @return 0 on success, non-zero error code on failure.
  */
 CT_API int ct_thread_yield(void);
 
+#ifdef CT_OS_WIN
 /**
- * @brief 设置 Windows 线程优先级
+ * @brief Sets the priority for a Windows thread.
+ * @param thread The target thread handle.
+ * @param priority The priority level to set.
+ * @return 0 on success, non-zero error code on failure.
  */
 CT_API int ct_thread_set_win_priority(ct_thread_t thread, int priority);
-
+#else
 /**
- * @brief 设置 POSIX 线程调度策略与优先级
+ * @brief Sets the POSIX scheduling policy and priority.
+ * @param thread The target thread handle.
+ * @param policy The scheduling policy (e.g., SCHED_FIFO, SCHED_RR).
+ * @param priority The priority level to set.
+ * @return 0 on success, non-zero error code on failure.
  */
 CT_API int ct_thread_set_posix_sched(ct_thread_t thread, int policy, int priority);
+#endif
 
 /**
- * @brief 获取当前线程句柄
+ * @brief Retrieves the handle of the calling thread.
+ * @return The current thread handle.
  */
 CT_API ct_thread_t ct_thread_self(void);
 
 /**
- * @brief 获取当前线程 ID
+ * @brief Retrieves the ID of the calling thread.
+ * @return The current thread ID.
  */
 CT_API ct_tid_t ct_thread_current_id(void);
 
 /**
- * @brief 获取指定线程 ID
+ * @brief Retrieves the ID of a given thread.
+ * @param thread The target thread handle.
+ * @return The thread ID.
  */
 CT_INLINE ct_tid_t ct_thread_get_id(ct_thread_t thread) {
 #ifdef CT_OS_WIN
@@ -115,8 +145,10 @@ CT_INLINE ct_tid_t ct_thread_get_id(ct_thread_t thread) {
 }
 
 /**
- * @brief 比较两个线程是否表示同一线程
- * @return 1=相等，0=不相等
+ * @brief Compares two thread handles for equality.
+ * @param left First thread handle.
+ * @param right Second thread handle.
+ * @return 1 if they represent the same thread, 0 otherwise.
  */
 CT_INLINE int ct_thread_equal(ct_thread_t left, ct_thread_t right) {
 #ifdef CT_OS_WIN
@@ -127,8 +159,9 @@ CT_INLINE int ct_thread_equal(ct_thread_t left, ct_thread_t right) {
 }
 
 /**
- * @brief 判断指定线程是否为当前线程
- * @return 1=是，0=否
+ * @brief Checks if a given thread is the calling thread.
+ * @param thread The thread handle to check.
+ * @return 1 if the thread is the calling thread, 0 otherwise.
  */
 CT_INLINE int ct_thread_is_self(ct_thread_t thread) {
     return ct_thread_equal(thread, ct_thread_self());
