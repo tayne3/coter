@@ -54,9 +54,13 @@ TEST_CASE("base64_encode", "[base64]") {
         const auto&  it     = ct_base64_test_all[i];
         const size_t length = std::strlen(it.source);
 
+        ct_base64_encoder_t encoder;
+        ct_base64_encoder_init(&encoder);
         size_t n = 0;
-        for (size_t j = 0; j < length; ++j) { n = ct_base64_update(it.source[j], buf, n); }
-        n = ct_base64_final(buf, n);
+        for (size_t j = 0; j < length; ++j) {
+            n += ct_base64_encoder_update(&encoder, (const uint8_t*)&it.source[j], 1, buf + n, sizeof(buf) - n);
+        }
+        n += ct_base64_encoder_final(&encoder, buf + n, sizeof(buf) - n);
         REQUIRE(strcmp(buf, it.target) == 0);
 
         ct_base64_encode((uint8_t*)it.source, length, buf, sizeof(buf));

@@ -1,80 +1,8 @@
 /**
  * @file base64.c
- * @brief base64算法
+ * @brief Base64 algorithm
  */
 #include "coter/encoding/base64.h"
-
-// -------------------------[STATIC DECLARATION]-------------------------
-
-// 对单个字符进行编码
-static int ct_base64_encode_single(int c);
-// 对单个编码字符进行解码
-static int ct_base64_decode_single(int c);
-
-// -------------------------[GLOBAL DEFINITION]-------------------------
-
-size_t ct_base64_update(uint8_t ch, char* to, size_t n) {
-    const size_t rem = (n & 3) % 3;
-    if (rem == 0) {
-        to[n]   = (char)ct_base64_encode_single(ch >> 2);
-        to[++n] = (char)((ch & 3) << 4);
-    } else if (rem == 1) {
-        to[n]   = (char)ct_base64_encode_single(to[n] | (ch >> 4));
-        to[++n] = (char)((ch & 15) << 2);
-    } else {
-        to[n]   = (char)ct_base64_encode_single(to[n] | (ch >> 6));
-        to[++n] = (char)ct_base64_encode_single(ch & 63);
-        ++n;
-    }
-    return n;
-}
-
-size_t ct_base64_final(char* to, size_t n) {
-    const size_t saved = n;
-    if (n & 3) { n = ct_base64_update(0, to, n); }
-    if ((saved & 3) == 2) { n--; }
-    for (; n & 3;) { to[n++] = '='; }
-    to[n] = '\0';
-    return n;
-}
-
-size_t ct_base64_encode(const uint8_t* p, size_t n, char* to, size_t dl) {
-    if (dl > 0) { to[0] = '\0'; }
-    if (dl < ((n / 3) + (n % 3 ? 1 : 0)) * 4 + 1) { return 0; }
-    size_t i   = 0;
-    size_t len = 0;
-    for (i = 0; i < n; ++i) { len = ct_base64_update(p[i], to, len); }
-    len = ct_base64_final(to, len);
-    return len;
-}
-
-size_t ct_base64_decode(const char* src, size_t n, char* dst, size_t dl) {
-    if (dl > 0) { dst[0] = '\0'; }
-    if (dl < n / 4 * 3 + 1) { return 0; }
-
-    size_t len = 0;
-    int    a, b, c, d;
-    // 无法添加到空
-    const char* end = src == NULL ? NULL : src + n;
-
-    for (; src != NULL && src + 3 < end;) {
-        a = ct_base64_decode_single(src[0]);
-        b = ct_base64_decode_single(src[1]);
-        c = ct_base64_decode_single(src[2]);
-        d = ct_base64_decode_single(src[3]);
-        if (a == 64 || a < 0 || b == 64 || b < 0 || c < 0 || d < 0) { return 0; }
-        dst[len++] = (char)((a << 2) | (b >> 4));
-        if (src[2] != '=') {
-            dst[len++] = (char)((b << 4) | (c >> 2));
-            if (src[3] != '=') { dst[len++] = (char)((c << 6) | d); }
-        }
-        src += 4;
-    }
-    dst[len] = '\0';
-    return len;
-}
-
-// -------------------------[STATIC DEFINITION]-------------------------
 
 static int ct_base64_encode_single(int c) {
     if (c < 26) {
@@ -104,4 +32,122 @@ static int ct_base64_decode_single(int c) {
     } else {
         return -1;
     }
+}
+
+void ct_base64_encoder_init(ct_base64_encoder_t* encoder) {
+    if (encoder != NULL) {
+        encoder->state_bytes[0] = 0;
+        encoder->state_bytes[1] = 0;
+        encoder->state_bytes[2] = 0;
+        encoder->state_count    = 0;
+    }
+}
+
+size_t ct_base64_encoder_update(ct_base64_encoder_t* encoder, const uint8_t* in, size_t in_len, char* out,
+                                size_t out_max) {
+    if (encoder == NULL || in == NULL || out == NULL) { return 0; }
+    size_t written = 0;
+
+    if (encoder->state_count == 3) {
+        if (written + 4 > out_max) { return 0; }
+        out[written++] = (char)ct_base64_encode_single(encoder->state_bytes[0] >> 2);
+        out[written++] =
+            (char)ct_base64_encode_single(((encoder->state_bytes[0] & 3) << 4) | (encoder->state_bytes[1] >> 4));
+        out[written++] =
+            (char)ct_base64_encode_single(((encoder->state_bytes[1] & 15) << 2) | (encoder->state_bytes[2] >> 6));
+        out[written++]       = (char)ct_base64_encode_single(encoder->state_bytes[2] & 63);
+        encoder->state_count = 0;
+    }
+
+    for (size_t i = 0; i < in_len; ++i) {
+        encoder->state_bytes[encoder->state_count] = in[i];
+        encoder->state_count++;
+        if (encoder->state_count == 3) {
+            if (written + 4 > out_max) { return 0; }
+            out[written++] = (char)ct_base64_encode_single(encoder->state_bytes[0] >> 2);
+            out[written++] =
+                (char)ct_base64_encode_single(((encoder->state_bytes[0] & 3) << 4) | (encoder->state_bytes[1] >> 4));
+            out[written++] =
+                (char)ct_base64_encode_single(((encoder->state_bytes[1] & 15) << 2) | (encoder->state_bytes[2] >> 6));
+            out[written++]       = (char)ct_base64_encode_single(encoder->state_bytes[2] & 63);
+            encoder->state_count = 0;
+        }
+    }
+    return written;
+}
+
+size_t ct_base64_encoder_final(ct_base64_encoder_t* encoder, char* out, size_t out_max) {
+    if (encoder == NULL || out == NULL) { return 0; }
+    size_t written = 0;
+    if (encoder->state_count > 0) {
+        if (encoder->state_count == 3) {
+            if (out_max < 5) { return 0; }
+            out[written++] = (char)ct_base64_encode_single(encoder->state_bytes[0] >> 2);
+            out[written++] =
+                (char)ct_base64_encode_single(((encoder->state_bytes[0] & 3) << 4) | (encoder->state_bytes[1] >> 4));
+            out[written++] =
+                (char)ct_base64_encode_single(((encoder->state_bytes[1] & 15) << 2) | (encoder->state_bytes[2] >> 6));
+            out[written++]       = (char)ct_base64_encode_single(encoder->state_bytes[2] & 63);
+            encoder->state_count = 0;
+        } else if (encoder->state_count == 1) {
+            if (out_max < 5) { return 0; }
+            uint8_t b1           = encoder->state_bytes[0];
+            out[written++]       = (char)ct_base64_encode_single(b1 >> 2);
+            out[written++]       = (char)ct_base64_encode_single((b1 & 3) << 4);
+            out[written++]       = '=';
+            out[written++]       = '=';
+            encoder->state_count = 0;
+        } else if (encoder->state_count == 2) {
+            if (out_max < 5) { return 0; }
+            uint8_t b1           = encoder->state_bytes[0];
+            uint8_t b2           = encoder->state_bytes[1];
+            out[written++]       = (char)ct_base64_encode_single(b1 >> 2);
+            out[written++]       = (char)ct_base64_encode_single(((b1 & 3) << 4) | (b2 >> 4));
+            out[written++]       = (char)ct_base64_encode_single((b2 & 15) << 2);
+            out[written++]       = '=';
+            encoder->state_count = 0;
+        }
+    } else {
+        if (out_max < 1) { return 0; }
+    }
+    out[written] = '\0';
+    return written;
+}
+
+size_t ct_base64_encode(const uint8_t* p, size_t n, char* to, size_t dl) {
+    if (dl > 0) { to[0] = '\0'; }
+    if (dl < ((n / 3) + (n % 3 ? 1 : 0)) * 4 + 1) { return 0; }
+
+    ct_base64_encoder_t encoder;
+    ct_base64_encoder_init(&encoder);
+
+    size_t written       = ct_base64_encoder_update(&encoder, p, n, to, dl - 1);
+    size_t final_written = ct_base64_encoder_final(&encoder, to + written, dl - written);
+
+    return written + final_written;
+}
+
+size_t ct_base64_decode(const char* src, size_t n, char* dst, size_t dl) {
+    if (dl > 0) { dst[0] = '\0'; }
+    if (dl < n / 4 * 3 + 1) { return 0; }
+
+    size_t      len = 0;
+    int         a, b, c, d;
+    const char* end = src == NULL ? NULL : src + n;
+
+    for (; src != NULL && src + 3 < end;) {
+        a = ct_base64_decode_single(src[0]);
+        b = ct_base64_decode_single(src[1]);
+        c = ct_base64_decode_single(src[2]);
+        d = ct_base64_decode_single(src[3]);
+        if (a == 64 || a < 0 || b == 64 || b < 0 || c < 0 || d < 0) { return 0; }
+        dst[len++] = (char)((a << 2) | (b >> 4));
+        if (src[2] != '=') {
+            dst[len++] = (char)((b << 4) | (c >> 2));
+            if (src[3] != '=') { dst[len++] = (char)((c << 6) | d); }
+        }
+        src += 4;
+    }
+    dst[len] = '\0';
+    return len;
 }
