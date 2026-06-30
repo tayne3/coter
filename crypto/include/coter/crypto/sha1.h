@@ -1,9 +1,12 @@
 /**
  * @file sha1.h
- * @brief SHA1加密算法
+ * @brief SHA1 algorithm
  */
 #ifndef COTER_CRYPTO_SHA1_H
 #define COTER_CRYPTO_SHA1_H
+
+#include <stddef.h>
+#include <stdint.h>
 
 #include "coter/core/macro.h"
 
@@ -13,90 +16,55 @@ extern "C" {
 
 /**
  * @struct ct_sha1_ctx_t
- * @brief SHA1算法上下文结构体
+ * @brief SHA1 algorithm context structure
  *
- * 此结构体用于存储SHA1算法的状态信息，包括状态变量、处理的位数和数据缓冲区。
+ * This structure is used to store the state information of the SHA1 algorithm,
+ * including state variables, processed bit count, and data buffer.
  */
 typedef struct {
-    uint32_t      state[5];   /**< SHA1状态变量 */
-    uint32_t      count[2];   /**< 处理的位数，低位在前 */
-    unsigned char buffer[64]; /**< 数据缓冲区 */
+    uint32_t      state[5];   /**< SHA1 state variables */
+    uint32_t      count[2];   /**< Processed bit count, low-order word first */
+    unsigned char buffer[64]; /**< Data buffer */
 } ct_sha1_ctx_t;
 
 /**
- * @brief 对一个512位的数据块进行SHA1变换
+ * @brief Initialize SHA1 context
  *
- * 该函数是SHA1算法的核心部分，处理单个512位的数据块并更新状态变量。
+ * This function initializes the SHA1 context structure, setting the initial state variables and bit count.
  *
- * @param state 当前SHA1状态变量数组
- * @param buffer 输入的512位（64字节）数据块
- */
-CT_API void ct_sha1_transform(uint32_t state[5], const unsigned char* buffer);
-
-/**
- * @brief 初始化SHA1上下文
- *
- * 该函数初始化SHA1上下文结构，设置初始的状态变量和位计数。
- *
- * @param context 指向SHA1上下文结构的指针
+ * @param context Pointer to the SHA1 context structure
  */
 CT_API void ct_sha1_init(ct_sha1_ctx_t* context);
 
 /**
- * @brief 更新SHA1上下文处理数据
+ * @brief Update SHA1 context with input data
  *
- * 该函数将输入数据分块处理并更新SHA1上下文的状态。
+ * This function processes the input data in blocks and updates the state of the SHA1 context.
  *
- * @param context 指向SHA1上下文结构的指针
- * @param data 输入的数据字节数组
- * @param len 输入数据的长度（字节数）
+ * @param context Pointer to the SHA1 context structure
+ * @param data Pointer to the input data
+ * @param len Length of the input data in bytes
  */
-CT_API void ct_sha1_update(ct_sha1_ctx_t* context, const unsigned char* data, uint32_t len);
+CT_API void ct_sha1_update(ct_sha1_ctx_t* context, const void* data, size_t len);
 
 /**
- * @brief 完成SHA1运算并获取摘要
+ * @brief Finalize SHA1 operation and output the digest
  *
- * 该函数完成SHA1的最终运算，生成20字节的消息摘要。
+ * This function completes the final SHA1 operations and generates the 20-byte message digest.
  *
- * @param digest 输出的20字节消息摘要
- * @param context 指向SHA1上下文结构的指针
+ * @param context Pointer to the SHA1 context structure
+ * @param digest Output 20-byte message digest
  */
-CT_API void ct_sha1_final(unsigned char digest[20], ct_sha1_ctx_t* context);
+CT_API void ct_sha1_final(ct_sha1_ctx_t* context, uint8_t digest[20]);
 
 /**
- * @brief 将字符串转换为SHA1摘要
+ * @brief Calculate the SHA1 digest of a data block
  *
- * 该函数对输入的字符串进行SHA1哈希计算，并将结果存储为字符串形式的摘要。
- *
- * @param hash_out 输出的摘要字符串（至少21字节，包含终止符）
- * @param str 输入的字符串
- * @param len 输入字符串的长度（字节数）
+ * @param data Pointer to the input data
+ * @param len Length of the input data in bytes
+ * @param digest Output 20-byte message digest
  */
-CT_API void ct_sha1_string(char* hash_out, const char* str, uint32_t len);
-
-/**
- * @brief 将字节数组转换为SHA1摘要
- *
- * 该函数对输入的字节数组进行SHA1哈希计算，生成20字节的消息摘要。
- *
- * @param input 输入的字节数组
- * @param inputlen 输入字节数组的长度（字节数）
- * @param digest 输出的20字节消息摘要
- */
-CT_API void ct_sha1_bytes(unsigned char* input, uint32_t inputlen, unsigned char digest[20]);
-
-/**
- * @brief 将输入数据转换为十六进制格式的SHA1摘要
- *
- * 该函数对输入数据进行SHA1哈希计算，并将结果转换为十六进制字符串形式的摘要。
- * 如果输出缓冲区长度大于40字节，会在第41字节添加终止符。
- *
- * @param input 输入的数据字节数组
- * @param inputlen 输入数据的长度（字节数）
- * @param output 输出的十六进制摘要字符串
- * @param outputlen 输出缓冲区的长度（字节数）
- */
-CT_API void ct_sha1_hex(unsigned char* input, uint32_t inputlen, char* output, uint32_t outputlen);
+CT_API void ct_sha1_sum(const void* data, size_t len, uint8_t digest[20]);
 
 #ifdef __cplusplus
 }

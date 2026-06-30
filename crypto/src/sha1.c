@@ -1,6 +1,6 @@
 /**
  * @file sha1.c
- * @brief SHA1加密算法
+ * @brief SHA1 algorithm
  * @note
  *   SHA-1 in C
  *   By Steve Reid <steve@edmweb.com>
@@ -54,7 +54,7 @@
 
 /* Hash a single 512-bit block. This is the core of the algorithm. */
 
-void ct_sha1_transform(uint32_t state[5], const unsigned char* buffer) {
+static void ct_sha1_transform(uint32_t state[5], const unsigned char* buffer) {
     uint32_t a, b, c, d, e;
 
     typedef union {
@@ -65,7 +65,6 @@ void ct_sha1_transform(uint32_t state[5], const unsigned char* buffer) {
     CHAR64LONG16 block[1];
     memcpy(block, buffer, 64);
 
-    /* Copy context->state[] to working vars */
     a = state[0];
     b = state[1];
     c = state[2];
@@ -164,8 +163,6 @@ void ct_sha1_transform(uint32_t state[5], const unsigned char* buffer) {
     memset(block, '\0', sizeof(block));
 }
 
-/* ct_sha1_init - Initialize new context */
-
 void ct_sha1_init(ct_sha1_ctx_t* context) {
     /* SHA1 initialization constants */
     context->state[0] = 0x67452301;
@@ -176,29 +173,26 @@ void ct_sha1_init(ct_sha1_ctx_t* context) {
     context->count[0] = context->count[1] = 0;
 }
 
-/* Run your data through this. */
-
-void ct_sha1_update(ct_sha1_ctx_t* context, const unsigned char* data, uint32_t len) {
-    uint32_t i, j;
+void ct_sha1_update(ct_sha1_ctx_t* context, const void* data, size_t len) {
+    const unsigned char* p = (const unsigned char*)data;
+    uint32_t             i, j;
 
     j = context->count[0];
-    if ((context->count[0] += len << 3) < j) { context->count[1]++; }
-    context->count[1] += (len >> 29);
+    if ((context->count[0] += (uint32_t)len << 3) < j) { context->count[1]++; }
+    context->count[1] += (uint32_t)(len >> 29);
     j = (j >> 3) & 63;
     if ((j + len) > 63) {
-        memcpy(&context->buffer[j], data, (size_t)(i = 64 - j));
+        memcpy(&context->buffer[j], p, (size_t)(i = 64 - j));
         ct_sha1_transform(context->state, context->buffer);
-        for (; i + 64 <= len; i += 64) { ct_sha1_transform(context->state, &data[i]); }
+        for (; (size_t)i + 64 <= len; i += 64) { ct_sha1_transform(context->state, &p[i]); }
         j = 0;
     } else {
         i = 0;
     }
-    memcpy(&context->buffer[j], &data[i], (size_t)len - i);
+    memcpy(&context->buffer[j], &p[i], len - i);
 }
 
-/* Add padding and return the message digest. */
-
-void ct_sha1_final(unsigned char digest[20], ct_sha1_ctx_t* context) {
+void ct_sha1_final(ct_sha1_ctx_t* context, uint8_t digest[20]) {
     unsigned      i;
     unsigned char finalcount[8] = {0};
     unsigned char c;
@@ -214,41 +208,14 @@ void ct_sha1_final(unsigned char digest[20], ct_sha1_ctx_t* context) {
         ct_sha1_update(context, &c, 1);
     }
     ct_sha1_update(context, finalcount, 8); /* Should cause a ct_sha1_transform() */
-    for (i = 0; i < 20; ++i) { digest[i] = (unsigned char)((context->state[i >> 2] >> ((3 - (i & 3)) * 8)) & 255); }
-    /* Wipe variables */
+    for (i = 0; i < 20; ++i) { digest[i] = (uint8_t)((context->state[i >> 2] >> ((3 - (i & 3)) * 8)) & 255); }
     memset(context, '\0', sizeof(*context));
     memset(&finalcount, '\0', sizeof(finalcount));
 }
 
-void ct_sha1_string(char* hash_out, const char* str, uint32_t len) {
-    ct_sha1_ctx_t ctx;
-    unsigned int  ii;
-
-    ct_sha1_init(&ctx);
-    for (ii = 0; ii < len; ii += 1) { ct_sha1_update(&ctx, (const unsigned char*)str + ii, 1); }
-    ct_sha1_final((unsigned char*)hash_out, &ctx);
-    hash_out[20] = '\0';
-}
-
-void ct_sha1_bytes(unsigned char* input, uint32_t inputlen, unsigned char digest[20]) {
+void ct_sha1_sum(const void* data, size_t len, uint8_t digest[20]) {
     ct_sha1_ctx_t ctx;
     ct_sha1_init(&ctx);
-    ct_sha1_update(&ctx, input, inputlen);
-    ct_sha1_final(digest, &ctx);
-}
-
-static char i2hex(unsigned char i) {
-    return i < 10 ? i + '0' : i - 10 + 'a';
-}
-
-void ct_sha1_hex(unsigned char* input, uint32_t inputlen, char* output, uint32_t outputlen) {
-    int           i;
-    unsigned char digest[20];
-    if (outputlen < 40) { return; }
-    ct_sha1_bytes(input, inputlen, digest);
-    for (i = 0; i < 20; ++i) {
-        *output++ = i2hex(digest[i] >> 4);
-        *output++ = i2hex(digest[i] & 0x0F);
-    }
-    if (outputlen > 40) { *output = '\0'; }
+    ct_sha1_update(&ctx, data, len);
+    ct_sha1_final(&ctx, digest);
 }
