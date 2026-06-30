@@ -118,24 +118,22 @@ TEST_CASE("queue_traverse", "[queue]") {
     const size_t max = sizeof(buffer) / sizeof(buffer[0]);
     ct_queue_init(&queue, buffer, sizeof(int), max);
     {
-        int item;
         struct {
             int sum;
             int count;
         } result = {0, 0};
-        REQUIRE(ct_queue_traverse(&queue, traverse_callback, &item, &result) == 0);
+        REQUIRE(ct_queue_traverse(&queue, traverse_callback, &result) == 0);
         REQUIRE(result.sum == 0);
         REQUIRE(result.count == 0);
     }
     for (int i = 1; i <= 5; ++i) { ct_queue_enqueue(&queue, &i); }
     REQUIRE(ct_queue_size(&queue) == 5);
     {
-        int item;
         struct {
             int sum;
             int count;
         } result = {0, 0};
-        REQUIRE(ct_queue_traverse(&queue, traverse_callback, &item, &result) == 0);
+        REQUIRE(ct_queue_traverse(&queue, traverse_callback, &result) == 0);
         REQUIRE(result.sum == 15);
         REQUIRE(result.count == 5);
         REQUIRE(ct_queue_size(&queue) == 5);
@@ -145,12 +143,11 @@ TEST_CASE("queue_traverse", "[queue]") {
     for (int i = 1; i <= 5; ++i) { ct_queue_enqueue(&queue, &i); }
     REQUIRE(ct_queue_size(&queue) == 10);
     {
-        int item;
         struct {
             int sum;
             int count;
         } result = {0, 0};
-        REQUIRE(ct_queue_traverse(&queue, traverse_callback, &item, &result) == 0);
+        REQUIRE(ct_queue_traverse(&queue, traverse_callback, &result) == 0);
         REQUIRE(result.sum == 30);
         REQUIRE(result.count == 10);
         REQUIRE(ct_queue_size(&queue) == 10);
@@ -160,12 +157,11 @@ TEST_CASE("queue_traverse", "[queue]") {
     for (int i = 1; i <= 5; ++i) { ct_queue_enqueue(&queue, &i); }
     REQUIRE(ct_queue_size(&queue) == 10);
     {
-        int item;
         struct {
             int sum;
             int count;
         } result = {0, 0};
-        REQUIRE(ct_queue_traverse(&queue, traverse_callback, &item, &result) == 0);
+        REQUIRE(ct_queue_traverse(&queue, traverse_callback, &result) == 0);
         REQUIRE(result.sum == 30);
         REQUIRE(result.count == 10);
         REQUIRE(ct_queue_size(&queue) == 10);
@@ -178,12 +174,11 @@ TEST_CASE("queue_traverse", "[queue]") {
     REQUIRE(ct_queue_is_empty(&queue));
     REQUIRE(!ct_queue_is_full(&queue));
     {
-        int item;
         struct {
             int sum;
             int count;
         } result = {0, 0};
-        REQUIRE(ct_queue_traverse(&queue, traverse_callback, &item, &result) == 0);
+        REQUIRE(ct_queue_traverse(&queue, traverse_callback, &result) == 0);
         REQUIRE(result.sum == 0);
         REQUIRE(result.count == 0);
     }

@@ -51,15 +51,13 @@ bool ct_queue_head(ct_queue_t* self, void* item) {
     return true;
 }
 
-int ct_queue_traverse(ct_queue_t* self, int (*callback)(void* item, void* arg), void* item, void* arg) {
+int ct_queue_traverse(ct_queue_t* self, int (*callback)(void* item, void* arg), void* arg) {
     if (!self || !self->_byte || !callback) { return -1; }
 
-    size_t idx = self->_head;
-    for (size_t i = 0; i < self->_size; ++i) {
-        memcpy(item, CT_QUEUE_ITEM(self, idx), self->_byte);
-        const int ret = callback(item, arg);
-        if (ret) { return ret; }
+    int rc = 0;
+    for (size_t i = 0, idx = self->_head; i < self->_size; ++i) {
+        if ((rc = callback(CT_QUEUE_ITEM(self, idx), arg)) != 0) { break; }
         idx = CT_QUEUE_INDEX_INC(self, idx);
     }
-    return 0;
+    return rc;
 }

@@ -73,7 +73,7 @@ CT_API bool ct_queue_head(ct_queue_t* self, void* item);
  * @param arg 回调函数的参数
  * @return 遍历执行结果
  */
-CT_API int ct_queue_traverse(ct_queue_t* self, int (*callback)(void* item, void* arg), void* item, void* arg);
+CT_API int ct_queue_traverse(ct_queue_t* self, int (*callback)(void* item, void* arg), void* arg);
 
 #ifdef __cplusplus
 }
