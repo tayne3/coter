@@ -1,20 +1,19 @@
 #include "coter/time/timer.h"
 
 #include <catch.hpp>
+#include <thread>
 
 #include "coter/core/macro.h"
 #include "coter/core/time.h"
 #include "coter/sync/atomic.h"
 #include "coter/sync/event.h"
-#include "coter/thread/thread.h"
-#include "coter/time/ticker.h"
 
 namespace {
 
 struct test_env {
     ct_atomic_long_t monotonic       = CT_ATOMIC_VAR_INIT(0);
     ct_atomic_int_t  manager_stopped = CT_ATOMIC_VAR_INIT(0);
-    ct_thread_t      manager_thread;
+    std::thread      manager_thread;
     ct_timer_t       wakeup;
     ct_event_t       wakeup_event;
     bool             started = false;
@@ -26,7 +25,7 @@ struct test_env {
     void stop() {
         if (!started) { return; }
         ct_timer_mgr_close();
-        (void)ct_thread_join(manager_thread, nullptr);
+        manager_thread.join();
         ct_event_destroy(&wakeup_event);
         started = false;
     }
@@ -86,8 +85,8 @@ void start() {
     g_env.started = false;
     ct_event_init(&g_env.wakeup_event);
     ct_timer_mgr_init(mock_gettime_ms);
-    REQUIRE(ct_thread_create(&g_env.manager_thread, nullptr, timer_thread_run, &g_env) == 0);
-    g_env.started = true;
+    g_env.manager_thread = std::thread(timer_thread_run, &g_env);
+    g_env.started        = true;
 
     ct_timer_init(&g_env.wakeup);
     ct_timer_start(&g_env.wakeup, 1000000, wakeup_cb, &g_env.wakeup_event);

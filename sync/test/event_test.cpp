@@ -1,10 +1,10 @@
 #include "coter/sync/event.h"
 
 #include <catch.hpp>
+#include <thread>
 
 #include "coter/core/time.h"
 #include "coter/sync/atomic.h"
-#include "coter/thread/thread.h"
 
 namespace {
 struct event_env {
@@ -64,14 +64,14 @@ TEST_CASE("multiple signals do not accumulate", "[sync][event]") {
 
 TEST_CASE("wait blocks until signal arrives", "[sync][event]") {
     event_env   env;
-    ct_thread_t thread;
+    std::thread thread;
 
     auto wait_worker = [](void* arg) -> int {
         event_env* env = (event_env*)arg;
         if (ct_event_wait(&env->event) == 0) { ct_atomic_int_store(&env->waiter_done, 1); }
         return 0;
     };
-    REQUIRE(ct_thread_create(&thread, NULL, wait_worker, &env) == 0);
+    thread = std::thread(wait_worker, &env);
 
     for (int i = 0; i < 10; ++i) {
         REQUIRE(ct_atomic_int_load(&env.waiter_done) == 0);
@@ -79,7 +79,7 @@ TEST_CASE("wait blocks until signal arrives", "[sync][event]") {
     }
 
     REQUIRE(ct_event_signal(&env.event) == 0);
-    REQUIRE(ct_thread_join(thread, NULL) == 0);
+    thread.join();
     REQUIRE(ct_atomic_int_load(&env.waiter_done) == 1);
 }
 
@@ -91,18 +91,18 @@ TEST_CASE("timedwait times out without signal", "[sync][event]") {
 
 TEST_CASE("signal wakes only one waiter", "[sync][event]") {
     timed_wait_env env;
-    ct_thread_t    threads[2];
+    std::thread    threads[2];
 
     env.timeout_ms = 200;
 
-    for (int i = 0; i < 2; ++i) { REQUIRE(ct_thread_create(&threads[i], NULL, timed_wait_worker, &env) == 0); }
+    for (int i = 0; i < 2; ++i) { threads[i] = std::thread(timed_wait_worker, &env); }
 
     for (int i = 0; i < 40 && ct_atomic_int_load(&env.ready_count) != 2; ++i) { ct_msleep(5); }
 
     REQUIRE(ct_atomic_int_load(&env.ready_count) == 2);
     REQUIRE(ct_event_signal(&env.event) == 0);
 
-    for (int i = 0; i < 2; ++i) { REQUIRE(ct_thread_join(threads[i], NULL) == 0); }
+    for (int i = 0; i < 2; ++i) { threads[i].join(); }
 
     REQUIRE(ct_atomic_int_load(&env.success_count) == 1);
     REQUIRE(ct_atomic_int_load(&env.timeout_count) == 1);
@@ -111,11 +111,11 @@ TEST_CASE("signal wakes only one waiter", "[sync][event]") {
 
 TEST_CASE("two signals wake two waiters when signaled separately", "[sync][event]") {
     timed_wait_env env;
-    ct_thread_t    threads[2];
+    std::thread    threads[2];
 
     env.timeout_ms = 500;
 
-    for (int i = 0; i < 2; ++i) { REQUIRE(ct_thread_create(&threads[i], NULL, timed_wait_worker, &env) == 0); }
+    for (int i = 0; i < 2; ++i) { threads[i] = std::thread(timed_wait_worker, &env); }
 
     for (int i = 0; i < 40 && ct_atomic_int_load(&env.ready_count) != 2; ++i) { ct_msleep(5); }
 
@@ -125,7 +125,7 @@ TEST_CASE("two signals wake two waiters when signaled separately", "[sync][event
     REQUIRE(ct_atomic_int_load(&env.success_count) == 1);
     REQUIRE(ct_event_signal(&env.event) == 0);
 
-    for (int i = 0; i < 2; ++i) { REQUIRE(ct_thread_join(threads[i], NULL) == 0); }
+    for (int i = 0; i < 2; ++i) { threads[i].join(); }
 
     REQUIRE(ct_atomic_int_load(&env.success_count) == 2);
     REQUIRE(ct_atomic_int_load(&env.timeout_count) == 0);

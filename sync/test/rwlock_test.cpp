@@ -1,10 +1,10 @@
 #include "coter/sync/rwlock.h"
 
 #include <catch.hpp>
+#include <thread>
 
 #include "coter/core/time.h"
 #include "coter/sync/atomic.h"
-#include "coter/thread/thread.h"
 
 namespace {
 struct rwlock_env {
@@ -52,39 +52,37 @@ static int try_writer_thread(void* arg) {
 }  // namespace
 
 TEST_CASE("try write lock fails while reader holds", "[sync][rwlock]") {
-    rwlock_env  env;
-    ct_thread_t thread;
+    rwlock_env env;
 
     REQUIRE(ct_rwlock_rdlock(&env.lock) == 0);
-    REQUIRE(ct_thread_create(&thread, NULL, try_writer_thread, &env) == 0);
-    REQUIRE(ct_thread_join(thread, NULL) == 0);
+    std::thread thread(try_writer_thread, &env);
+    thread.join();
     REQUIRE(ct_atomic_int_load(&env.try_result) != 0);
     REQUIRE(ct_rwlock_rdunlock(&env.lock) == 0);
 }
 
 TEST_CASE("try read lock fails while writer holds", "[sync][rwlock]") {
-    rwlock_env  env;
-    ct_thread_t thread;
+    rwlock_env env;
 
     REQUIRE(ct_rwlock_wrlock(&env.lock) == 0);
-    REQUIRE(ct_thread_create(&thread, NULL, try_reader_thread, &env) == 0);
-    REQUIRE(ct_thread_join(thread, NULL) == 0);
+    std::thread thread(try_reader_thread, &env);
+    thread.join();
     REQUIRE(ct_atomic_int_load(&env.try_result) != 0);
     REQUIRE(ct_rwlock_wrunlock(&env.lock) == 0);
 }
 
 TEST_CASE("parallel readers are allowed and writer is blocked", "[sync][rwlock]") {
     rwlock_env  env;
-    ct_thread_t readers[2];
-    ct_thread_t writer;
+    std::thread readers[2];
+    std::thread writer;
 
-    REQUIRE(ct_thread_create(&readers[0], NULL, reader_thread, &env) == 0);
-    REQUIRE(ct_thread_create(&readers[1], NULL, reader_thread, &env) == 0);
+    readers[0] = std::thread(reader_thread, &env);
+    readers[1] = std::thread(reader_thread, &env);
 
     for (int i = 0; i < 40 && ct_atomic_int_load(&env.readers_inside) < 2; ++i) { ct_msleep(5); }
 
     REQUIRE(ct_atomic_int_load(&env.readers_inside) == 2);
-    REQUIRE(ct_thread_create(&writer, NULL, writer_thread, &env) == 0);
+    writer = std::thread(writer_thread, &env);
 
     for (int i = 0; i < 10; ++i) {
         REQUIRE(ct_atomic_int_load(&env.writer_acquired) == 0);
@@ -92,11 +90,11 @@ TEST_CASE("parallel readers are allowed and writer is blocked", "[sync][rwlock]"
     }
 
     ct_atomic_int_store(&env.release_readers, 1);
-    REQUIRE(ct_thread_join(readers[0], NULL) == 0);
-    REQUIRE(ct_thread_join(readers[1], NULL) == 0);
+    readers[0].join();
+    readers[1].join();
 
     for (int i = 0; i < 20 && ct_atomic_int_load(&env.writer_acquired) == 0; ++i) { ct_msleep(5); }
 
     REQUIRE(ct_atomic_int_load(&env.writer_acquired) == 1);
-    REQUIRE(ct_thread_join(writer, NULL) == 0);
+    writer.join();
 }

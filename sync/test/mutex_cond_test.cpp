@@ -1,9 +1,9 @@
 #include <catch.hpp>
+#include <thread>
 
 #include "coter/sync/atomic.h"
 #include "coter/sync/cond.h"
 #include "coter/sync/mutex.h"
-#include "coter/thread/thread.h"
 
 namespace {
 struct cond_env {
@@ -71,11 +71,9 @@ static int cond_wait_for_worker(void* arg) {
 }  // namespace
 
 TEST_CASE("mutex blocks other threads from entering", "[sync][mutex]") {
-    mutex_env   env;
-    ct_thread_t thread;
-
+    mutex_env env;
     REQUIRE(ct_mutex_lock(&env.mutex) == 0);
-    REQUIRE(ct_thread_create(&thread, NULL, mutex_waiter, &env) == 0);
+    std::thread thread(mutex_waiter, &env);
 
     for (int i = 0; i < 10; ++i) {
         REQUIRE(ct_atomic_int_load(&env.entered) == 0);
@@ -88,7 +86,7 @@ TEST_CASE("mutex blocks other threads from entering", "[sync][mutex]") {
 
     REQUIRE(ct_atomic_int_load(&env.entered) == 1);
     ct_atomic_int_store(&env.release, 1);
-    REQUIRE(ct_thread_join(thread, NULL) == 0);
+    thread.join();
 }
 
 TEST_CASE("trylock reports busy when already locked", "[sync][mutex]") {
@@ -101,9 +99,7 @@ TEST_CASE("trylock reports busy when already locked", "[sync][mutex]") {
 
 TEST_CASE("condition signal wakes waiter", "[sync][cond]") {
     cond_env    env;
-    ct_thread_t thread;
-
-    REQUIRE(ct_thread_create(&thread, NULL, cond_waiter, &env) == 0);
+    std::thread thread(cond_waiter, &env);
 
     for (int i = 0; i < 20 && ct_atomic_int_load(&env.waiter_ready) == 0; ++i) { ct_msleep(5); }
 
@@ -112,7 +108,7 @@ TEST_CASE("condition signal wakes waiter", "[sync][cond]") {
     ct_atomic_int_store(&env.should_exit, 1);
     REQUIRE(ct_cond_signal(&env.cond) == 0);
     REQUIRE(ct_mutex_unlock(&env.mutex) == 0);
-    REQUIRE(ct_thread_join(thread, NULL) == 0);
+    thread.join();
     REQUIRE(ct_atomic_int_load(&env.awakened) == 1);
 }
 
@@ -134,9 +130,7 @@ TEST_CASE("condition wait_for times out after positive timeout", "[sync][cond]")
 
 TEST_CASE("condition wait_for with negative timeout waits until signaled", "[sync][cond]") {
     cond_env    env;
-    ct_thread_t thread;
-
-    REQUIRE(ct_thread_create(&thread, NULL, cond_wait_for_worker, &env) == 0);
+    std::thread thread(cond_wait_for_worker, &env);
 
     for (int i = 0; i < 20 && ct_atomic_int_load(&env.waiter_ready) == 0; ++i) { ct_msleep(5); }
 
@@ -145,13 +139,13 @@ TEST_CASE("condition wait_for with negative timeout waits until signaled", "[syn
     ct_atomic_int_store(&env.should_exit, 1);
     REQUIRE(ct_cond_signal(&env.cond) == 0);
     REQUIRE(ct_mutex_unlock(&env.mutex) == 0);
-    REQUIRE(ct_thread_join(thread, NULL) == 0);
+    thread.join();
     REQUIRE(ct_atomic_int_load(&env.awakened) == 1);
 }
 
 TEST_CASE("condition wait_for handles timeouts larger than uint32 max", "[sync][cond]") {
     cond_env    env;
-    ct_thread_t thread;
+    std::thread thread;
 
     auto long_wait_worker = [](void* arg) -> int {
         cond_env* env = (cond_env*)arg;
@@ -169,7 +163,7 @@ TEST_CASE("condition wait_for handles timeouts larger than uint32 max", "[sync][
         return 0;
     };
 
-    REQUIRE(ct_thread_create(&thread, NULL, long_wait_worker, &env) == 0);
+    thread = std::thread(long_wait_worker, &env);
 
     for (int i = 0; i < 20 && ct_atomic_int_load(&env.waiter_ready) == 0; ++i) { ct_msleep(5); }
 
@@ -178,6 +172,6 @@ TEST_CASE("condition wait_for handles timeouts larger than uint32 max", "[sync][
     ct_atomic_int_store(&env.should_exit, 1);
     REQUIRE(ct_cond_signal(&env.cond) == 0);
     REQUIRE(ct_mutex_unlock(&env.mutex) == 0);
-    REQUIRE(ct_thread_join(thread, NULL) == 0);
+    thread.join();
     REQUIRE(ct_atomic_int_load(&env.awakened) == 1);
 }

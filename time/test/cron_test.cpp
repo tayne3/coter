@@ -3,16 +3,16 @@
 #include <atomic>
 #include <catch.hpp>
 #include <cstring>
+#include <thread>
 
 #include "coter/core/macro.h"
 #include "coter/sync/atomic.h"
 #include "coter/sync/event.h"
-#include "coter/thread/thread.h"
 
 namespace {
 
 struct test_env final {
-    ct_thread_t          manager_thread;
+    std::thread          manager_thread;
     ct_cron_t            wakeup;
     bool                 started{false};
     std::atomic<int64_t> realtime{0};
@@ -23,7 +23,7 @@ struct test_env final {
     ~test_env() noexcept {
         if (!started) { return; }
         ct_cron_mgr_close();
-        (void)ct_thread_join(manager_thread, nullptr);
+        manager_thread.join();
         started = false;
     }
 };
@@ -100,7 +100,7 @@ void start() {
 
     ct_cron_mgr_init(mock_realtime_ms, mock_monotonic_ms);
 
-    REQUIRE(ct_thread_create(&g_env.manager_thread, nullptr, cron_thread_run, &g_env) == 0);
+    g_env.manager_thread = std::thread(cron_thread_run, &g_env);
 
     ct_cron_init(&g_env.wakeup);
     REQUIRE(ct_cron_start(&g_env.wakeup, -1, -1, -1, -1, -1, do_nothing_cb, nullptr) == 0);
@@ -110,7 +110,7 @@ void start() {
 void stop() {
     if (!g_env.started) { return; }
     ct_cron_mgr_close();
-    REQUIRE(ct_thread_join(g_env.manager_thread, nullptr) == 0);
+    g_env.manager_thread.join();
     REQUIRE(g_env.manager_stopped.load() == 1);
     g_env.started = false;
 }

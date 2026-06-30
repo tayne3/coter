@@ -3,9 +3,9 @@
  * @brief Atomic pointer and CAS operations test with high concurrency
  */
 #include <catch.hpp>
+#include <thread>
 
 #include "coter/sync/atomic.h"
-#include "coter/thread/thread.h"
 
 #define NUM_THREADS    16
 #define NUM_ITERATIONS 100000
@@ -25,17 +25,13 @@ static int thread_decrement_routine(void* arg) {
 }
 
 TEST_CASE("concurrent increments and decrements cancel out", "[atomic]") {
-    ct_thread_t threads[NUM_THREADS];
+    std::thread threads[NUM_THREADS];
 
     ct_atomic_long_store(&g_shared_counter, 0);
 
-    for (int i = 0; i < NUM_THREADS / 2; ++i) {
-        REQUIRE(ct_thread_create(&threads[i], nullptr, thread_increment_routine, nullptr) == 0);
-    }
-    for (int i = NUM_THREADS / 2; i < NUM_THREADS; ++i) {
-        REQUIRE(ct_thread_create(&threads[i], nullptr, thread_decrement_routine, nullptr) == 0);
-    }
-    for (int i = 0; i < NUM_THREADS; ++i) { REQUIRE(ct_thread_join(threads[i], nullptr) == 0); }
+    for (int i = 0; i < NUM_THREADS / 2; ++i) { threads[i] = std::thread(thread_increment_routine, nullptr); }
+    for (int i = NUM_THREADS / 2; i < NUM_THREADS; ++i) { threads[i] = std::thread(thread_decrement_routine, nullptr); }
+    for (int i = 0; i < NUM_THREADS; ++i) { threads[i].join(); }
 
     REQUIRE(ct_atomic_long_load(&g_shared_counter) == 0);
 }
@@ -95,24 +91,22 @@ static int thread_pop_routine(void* arg) {
 }
 
 TEST_CASE("concurrent Treiber stack push and pop preserves all items", "[atomic]") {
-    ct_thread_t threads[NUM_THREADS];
+    std::thread threads[NUM_THREADS];
 
     ct_atomic_ptr_store(&g_stack_head, nullptr);
 
-    for (long i = 0; i < NUM_THREADS; ++i) {
-        REQUIRE(ct_thread_create(&threads[i], nullptr, thread_push_routine, (void*)(intptr_t)i) == 0);
-    }
-    for (int i = 0; i < NUM_THREADS; ++i) { REQUIRE(ct_thread_join(threads[i], nullptr) == 0); }
+    for (long i = 0; i < NUM_THREADS; ++i) { threads[i] = std::thread(thread_push_routine, (void*)(intptr_t)i); }
+    for (int i = 0; i < NUM_THREADS; ++i) { threads[i].join(); }
 
+    int pop_results[NUM_THREADS] = {0};
     for (long i = 0; i < NUM_THREADS; ++i) {
-        REQUIRE(ct_thread_create(&threads[i], nullptr, thread_pop_routine, (void*)(intptr_t)i) == 0);
+        threads[i] = std::thread([i, &pop_results]() { pop_results[i] = thread_pop_routine((void*)(intptr_t)i); });
     }
 
     long total_popped = 0;
     for (int i = 0; i < NUM_THREADS; ++i) {
-        int popped_count = 0;
-        REQUIRE(ct_thread_join(threads[i], &popped_count) == 0);
-        total_popped += popped_count;
+        threads[i].join();
+        total_popped += pop_results[i];
     }
 
     REQUIRE(total_popped == NUM_THREADS * ITEMS_PER_THREAD);

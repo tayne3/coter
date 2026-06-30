@@ -152,6 +152,8 @@ CT_INLINE bool ct_atomic_ptr_compare_exchange(ct_atomic_ptr_t* p, void** expecte
 #undef CT_ATOMIC_ADD
 #undef CT_ATOMIC_SUB
 #undef CT_ATOMIC_CAS
+#undef CT_ATOMIC_GEN_BASE_OP
+#undef CT_ATOMIC_GEN_ARITH_OP
 
 #ifdef __cplusplus
 }

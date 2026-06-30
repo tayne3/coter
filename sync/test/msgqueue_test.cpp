@@ -1,12 +1,12 @@
 #include "coter/sync/msgqueue.h"
 
 #include <catch.hpp>
+#include <thread>
 #include <vector>
 
 #include "coter/core/macro.h"
 #include "coter/core/rand.h"
 #include "coter/sync/atomic.h"
-#include "coter/thread/thread.h"
 
 namespace {
 struct int_queue_env {
@@ -84,8 +84,7 @@ static void run_blocking_fifo_case(size_t data_size, size_t capacity) {
         return 0;
     };
 
-    ct_thread_t thread;
-    REQUIRE(ct_thread_create(&thread, NULL, producer_routine, &producer) == 0);
+    std::thread thread(producer_routine, &producer);
 
     int item = 0;
     for (size_t i = 0; i < data.size(); ++i) {
@@ -93,9 +92,7 @@ static void run_blocking_fifo_case(size_t data_size, size_t capacity) {
         REQUIRE(item == data[i]);
     }
 
-    int producer_result = 0;
-    REQUIRE(ct_thread_join(thread, &producer_result) == 0);
-    REQUIRE(producer_result == 0);
+    thread.join();
     REQUIRE(ct_msgqueue_is_empty(&env.queue));
     REQUIRE_FALSE(ct_msgqueue_is_full(&env.queue));
 }
@@ -148,15 +145,13 @@ TEST_CASE("push_for times out when queue stays full", "[event][msgqueue]") {
 TEST_CASE("pop_for succeeds when producer arrives before timeout", "[event][msgqueue]") {
     int_queue_env  env(1);
     timed_call_env worker = make_timed_call_env(&env.queue, 0, 200);
-    ct_thread_t    thread;
-
-    REQUIRE(ct_thread_create(&thread, NULL, dequeue_worker, &worker) == 0);
+    std::thread    thread(dequeue_worker, &worker);
     wait_until_ready(worker);
     ct_msleep(10);
 
     int value = 42;
     REQUIRE(ct_msgqueue_push(&env.queue, &value) == 0);
-    REQUIRE(ct_thread_join(thread, NULL) == 0);
+    thread.join();
     REQUIRE(ct_atomic_int_load(&worker.result) == 0);
     REQUIRE(worker.value == value);
 }
@@ -167,16 +162,14 @@ TEST_CASE("push_for succeeds when consumer frees slot before timeout", "[event][
     REQUIRE(ct_msgqueue_try_push(&env.queue, &initial) == 0);
 
     timed_call_env worker = make_timed_call_env(&env.queue, 99, 200);
-    ct_thread_t    thread;
-
-    REQUIRE(ct_thread_create(&thread, NULL, enqueue_worker, &worker) == 0);
+    std::thread    thread(enqueue_worker, &worker);
     wait_until_ready(worker);
     ct_msleep(10);
 
     int out = 0;
     REQUIRE(ct_msgqueue_pop(&env.queue, &out) == 0);
     REQUIRE(out == initial);
-    REQUIRE(ct_thread_join(thread, NULL) == 0);
+    thread.join();
     REQUIRE(ct_atomic_int_load(&worker.result) == 0);
 
     REQUIRE(ct_msgqueue_pop(&env.queue, &out) == 0);
@@ -186,14 +179,12 @@ TEST_CASE("push_for succeeds when consumer frees slot before timeout", "[event][
 TEST_CASE("close wakes blocked pop_for with closed error", "[event][msgqueue]") {
     int_queue_env  env(1);
     timed_call_env worker = make_timed_call_env(&env.queue, 0, 2000);
-    ct_thread_t    thread;
-
-    REQUIRE(ct_thread_create(&thread, NULL, dequeue_worker, &worker) == 0);
+    std::thread    thread(dequeue_worker, &worker);
     wait_until_ready(worker);
     ct_msleep(10);
 
     ct_msgqueue_close(&env.queue);
-    REQUIRE(ct_thread_join(thread, NULL) == 0);
+    thread.join();
     REQUIRE(ct_atomic_int_load(&worker.result) == EPIPE);
 }
 
@@ -203,29 +194,25 @@ TEST_CASE("close wakes blocked push_for with closed error", "[event][msgqueue]")
     REQUIRE(ct_msgqueue_try_push(&env.queue, &initial) == 0);
 
     timed_call_env worker = make_timed_call_env(&env.queue, 2, 2000);
-    ct_thread_t    thread;
-
-    REQUIRE(ct_thread_create(&thread, NULL, enqueue_worker, &worker) == 0);
+    std::thread    thread(enqueue_worker, &worker);
     wait_until_ready(worker);
     ct_msleep(10);
 
     ct_msgqueue_close(&env.queue);
-    REQUIRE(ct_thread_join(thread, NULL) == 0);
+    thread.join();
     REQUIRE(ct_atomic_int_load(&worker.result) == EPIPE);
 }
 
 TEST_CASE("negative timeout means wait forever", "[event][msgqueue]") {
     int_queue_env  env(1);
     timed_call_env worker = make_timed_call_env(&env.queue, 0, -1);
-    ct_thread_t    thread;
-
-    REQUIRE(ct_thread_create(&thread, NULL, dequeue_worker, &worker) == 0);
+    std::thread    thread(dequeue_worker, &worker);
     wait_until_ready(worker);
     ct_msleep(10);
 
     int value = 123;
     REQUIRE(ct_msgqueue_push(&env.queue, &value) == 0);
-    REQUIRE(ct_thread_join(thread, NULL) == 0);
+    thread.join();
     REQUIRE(ct_atomic_int_load(&worker.result) == 0);
     REQUIRE(worker.value == value);
 }

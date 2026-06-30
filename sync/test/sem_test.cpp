@@ -1,10 +1,10 @@
 #include "coter/sync/sem.h"
 
 #include <catch.hpp>
+#include <thread>
 
 #include "coter/core/time.h"
 #include "coter/sync/atomic.h"
-#include "coter/thread/thread.h"
 
 namespace {
 struct sem_env {
@@ -56,9 +56,7 @@ TEST_CASE("post then wait consumes the token", "[sync][sem]") {
 
 TEST_CASE("wait blocks until post", "[sync][sem]") {
     sem_env     env(0);
-    ct_thread_t thread;
-
-    REQUIRE(ct_thread_create(&thread, NULL, wait_worker, &env) == 0);
+    std::thread thread(wait_worker, &env);
 
     for (int i = 0; i < 10; ++i) {
         REQUIRE(ct_atomic_int_load(&env.waiter_done) == 0);
@@ -66,16 +64,16 @@ TEST_CASE("wait blocks until post", "[sync][sem]") {
     }
 
     REQUIRE(ct_sem_post(&env.sem) == 0);
-    REQUIRE(ct_thread_join(thread, NULL) == 0);
+    thread.join();
     REQUIRE(ct_atomic_int_load(&env.waiter_done) == 1);
 }
 
 TEST_CASE("multiple posts release multiple waiters", "[sync][sem]") {
     sem_env     env(0);
-    ct_thread_t threads[2];
+    std::thread threads[2];
 
-    REQUIRE(ct_thread_create(&threads[0], NULL, wait_worker, &env) == 0);
-    REQUIRE(ct_thread_create(&threads[1], NULL, wait_worker, &env) == 0);
+    threads[0] = std::thread(wait_worker, &env);
+    threads[1] = std::thread(wait_worker, &env);
 
     for (int i = 0; i < 10; ++i) {
         REQUIRE(ct_atomic_int_load(&env.waiter_count) == 0);
@@ -84,7 +82,7 @@ TEST_CASE("multiple posts release multiple waiters", "[sync][sem]") {
 
     REQUIRE(ct_sem_post(&env.sem) == 0);
     REQUIRE(ct_sem_post(&env.sem) == 0);
-    REQUIRE(ct_thread_join(threads[0], NULL) == 0);
-    REQUIRE(ct_thread_join(threads[1], NULL) == 0);
+    threads[0].join();
+    threads[1].join();
     REQUIRE(ct_atomic_int_load(&env.waiter_count) == 2);
 }
