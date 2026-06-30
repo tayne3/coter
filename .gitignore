@@ -3,11 +3,9 @@
 /.idea/
 /.zed/
 /.cursor/
-/.trae/
-/.task/
 /.claude/
-/.gemini/
 /.codex/
+/.agents/
 
 /out/
 /build/
