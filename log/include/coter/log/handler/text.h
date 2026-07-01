@@ -5,7 +5,7 @@
 #ifndef COTER_LOG_HANDLER_TEXT_H
 #define COTER_LOG_HANDLER_TEXT_H
 
-#include "coter/log/handler/record.h"
+#include "coter/log/handler.h"
 
 #ifdef __cplusplus
 extern "C" {

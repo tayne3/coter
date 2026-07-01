@@ -9,10 +9,10 @@
 #include <string.h>
 
 #include "coter/core/fs.h"
-#include "coter/core/platform.h"
 #include "coter/core/strings.h"
+#include "coter/core/time.h"
 
-#define LOG_ROTATOR_FILE_FORMAT "%s" STR_SEPARATOR "%s.log%d"
+#define LOG_ROTATOR_FILE_FORMAT     "%s" STR_SEPARATOR "%s.log%d"
 #define CT_LOG_ROTATOR_FILENAME_MAX (CT_LOG_PATH_MAX * 2 + 32)
 
 struct ct_log_rotator {
@@ -203,9 +203,7 @@ static bool rotator_folder_create_recursive(const char* path) {
     char*  p = NULL;
     size_t len;
 
-    if (ct_snprintf_s(tmp, sizeof(tmp), "%s", path) >= (int)sizeof(tmp)) {
-        return false;
-    }
+    if (ct_snprintf_s(tmp, sizeof(tmp), "%s", path) >= (int)sizeof(tmp)) { return false; }
     len = strlen(tmp);
     if (tmp[len - 1] == STR_SEPARATOR_CHAR) { tmp[len - 1] = 0; }
     for (p = tmp + 1; *p; ++p) {

@@ -9,15 +9,6 @@
 
 typedef struct ct_log_formatter {
     bool color;
-
-    ct_time_t cached_time_sec;
-    char      cached_time_prefix[20];
-
-    const char* cached_file;
-    const char* cached_basename;
-
-    uint32_t cached_tid;
-    char     cached_tid_text[11];
 } ct_log_formatter_t;
 
 void   ct_log_formatter_init(ct_log_formatter_t* formatter, bool color);
