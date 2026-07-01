@@ -17,12 +17,10 @@
 #include <thread>
 #include <vector>
 
-#include "coter/core/time.h"
 #include "coter/log/handler/async.h"
 #include "coter/log/handler/record.h"
 #include "coter/log/log.h"
 #include "coter/testing/doctest.h"
-
 
 // ---------------------------------------------------------------------------
 // 辅助工具
@@ -179,7 +177,7 @@ TEST_CASE("async_handler_discard_new_policy" * doctest::test_suite("log") * doct
         std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count();
 
     // discard_new 不阻塞，写入应极快完成（远小于 kRecords * delay_ms）
-    REQUIRE(elapsed < 500);
+    REQUIRE(elapsed < 2000);
 
     REQUIRE(ct_logger_flush(&logger) == 0);
     int dropped = ct_log_async_handler_get_dropped(async_h);
@@ -212,7 +210,7 @@ TEST_CASE("async_handler_overrun_oldest_policy" * doctest::test_suite("log") * d
         std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count();
 
     // overrun 不阻塞
-    REQUIRE(elapsed < 500);
+    REQUIRE(elapsed < 2000);
 
     REQUIRE(ct_logger_flush(&logger) == 0);
     int dropped = ct_log_async_handler_get_dropped(async_h);

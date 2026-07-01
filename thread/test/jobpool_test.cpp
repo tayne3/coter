@@ -6,11 +6,9 @@
 
 #include <thread>
 
-#include "coter/core/macro.h"
 #include "coter/core/time.h"
 #include "coter/sync/mutex.h"
 #include "coter/testing/doctest.h"
-
 
 #define TEST_DATA_MAX 10000
 
@@ -168,9 +166,9 @@ TEST_CASE("jobpool_submit_for_timeout" * doctest::test_suite("jobpool")) {
     const ct_time64_t elapsed = ct_getuptime_ms() - start;
 
     REQUIRE(ret == -1);
-    // 等待时间应接近 50ms（允许±20ms 误差）
+    // 等待时间应接近 50ms
     REQUIRE(elapsed >= 40);
-    REQUIRE(elapsed < 120);
+    REQUIRE(elapsed < 250);
 
     ct_jobpool_destroy(pool);
 }

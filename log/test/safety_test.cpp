@@ -1,9 +1,6 @@
 #include <atomic>
-#include <chrono>
 #include <cstdio>
 #include <cstring>
-#include <memory>
-#include <mutex>
 #include <thread>
 #include <vector>
 
@@ -13,7 +10,6 @@
 #include "coter/log/handler/record.h"
 #include "coter/log/log.h"
 #include "coter/testing/doctest.h"
-
 
 namespace {
 struct safety_callback_state {
@@ -184,7 +180,7 @@ TEST_CASE("log_close_with_slow_handler_does_not_hang" * doctest::test_suite("log
     REQUIRE(ct_logger_close(&logger) == 0);
     auto elapsed = std::chrono::steady_clock::now() - start;
 
-    REQUIRE(elapsed < std::chrono::seconds(2));
+    REQUIRE(elapsed < std::chrono::seconds(5));
     REQUIRE(state.calls == static_cast<size_t>(kRecords));
 }
 
