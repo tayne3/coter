@@ -1,10 +1,11 @@
 #include "coter/core/time.h"
 
+#include <cmath>
+#include <cstdlib>
 #include <thread>
 #include <vector>
 
 #include "coter/testing/doctest.h"
-
 
 TEST_CASE("uptime_monotonic") {
     const ct_time64_t t1 = ct_getuptime_ms();
@@ -57,7 +58,7 @@ TEST_CASE("localtime_now_consistency" * doctest::test_suite("concurrency")) {
     ct_localtime_now(&tmv);
     const ct_time_t t_now = ct_current_second();
     const ct_time_t t_mk  = ct_mktime(&tmv);
-    REQUIRE(std::llabs((long long)t_mk - (long long)t_now) <= 1);
+    REQUIRE(std::abs((long long)t_mk - (long long)t_now) <= 1);
     REQUIRE(tmv.tm_mon >= 0);
     REQUIRE(tmv.tm_mon <= 11);
     REQUIRE(tmv.tm_mday >= 1);
@@ -82,7 +83,7 @@ TEST_CASE("localtime_now_concurrent" * doctest::test_suite("concurrency")) {
                 ct_localtime_now(&tmv);
                 const ct_time_t now = ct_current_second();
                 const ct_time_t mk  = ct_mktime(&tmv);
-                REQUIRE(std::llabs((long long)mk - (long long)now) <= 1);
+                REQUIRE(std::abs((long long)mk - (long long)now) <= 1);
             }
         });
     }
