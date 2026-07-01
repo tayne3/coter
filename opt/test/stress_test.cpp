@@ -2,10 +2,10 @@
 #include <string>
 #include <vector>
 
-#include "catch.hpp"
 #include "coter/opt/opt.h"
+#include "coter/testing/doctest.h"
 
-TEST_CASE("stress: recursion depth with permutation", "[stress]") {
+TEST_CASE("stress: recursion depth with permutation" * doctest::test_suite("stress")) {
     const int num_non_options = 50000;
 
     std::vector<std::string> args;
@@ -29,14 +29,14 @@ TEST_CASE("stress: recursion depth with permutation", "[stress]") {
     int             id;
     ct_opt_status_t result = ct_opt_next(&options, defs, &id);
 
-    SECTION("check result") {
+    SUBCASE("check result") {
         REQUIRE(result == CT_OPT_OK);
         REQUIRE(id == 'a');
         REQUIRE(options.optind == 2);  // 'prog' + '-a'
     }
 }
 
-TEST_CASE("stress: recursion depth with next", "[stress]") {
+TEST_CASE("stress: recursion depth with next" * doctest::test_suite("stress")) {
     const int num_non_options = 10000;
 
     std::vector<std::string> args;
@@ -59,7 +59,7 @@ TEST_CASE("stress: recursion depth with next", "[stress]") {
     int             id     = -1;
     ct_opt_status_t result = ct_opt_next(&options, defs, &id);
 
-    SECTION("check result") {
+    SUBCASE("check result") {
         REQUIRE(result == CT_OPT_OK);
         REQUIRE(id == 't');
         REQUIRE(options.optind == 2);

@@ -1,8 +1,8 @@
-#include <catch.hpp>
-
 #include "common.hpp"
+#include "coter/testing/doctest.h"
 
-TEST_CASE("Basic Save - Save basic", "[serializer]") {
+
+TEST_CASE("Basic Save - Save basic" * doctest::test_suite("serializer")) {
     const char* path = test_tmp_path("save_basic.ini");
 
     ct_ini_t*         ini = ct_ini_empty();
@@ -16,7 +16,7 @@ TEST_CASE("Basic Save - Save basic", "[serializer]") {
     remove(path);
 }
 
-TEST_CASE("Basic Save - Save multiple sections", "[serializer]") {
+TEST_CASE("Basic Save - Save multiple sections" * doctest::test_suite("serializer")) {
     const char* path = test_tmp_path("save_multi.ini");
 
     ct_ini_t* ini = ct_ini_empty();
@@ -36,7 +36,7 @@ TEST_CASE("Basic Save - Save multiple sections", "[serializer]") {
     remove(path);
 }
 
-TEST_CASE("Round-trip - Round-trip basic", "[serializer]") {
+TEST_CASE("Round-trip - Round-trip basic" * doctest::test_suite("serializer")) {
     const char*       path = test_tmp_path("roundtrip.ini");
     ct_ini_t*         ini1 = ct_ini_empty();
     ct_ini_section_t* sec1 = ct_ini_get_section(ini1, "data");
@@ -61,7 +61,7 @@ TEST_CASE("Round-trip - Round-trip basic", "[serializer]") {
     remove(path);
 }
 
-TEST_CASE("Round-trip - Round-trip special chars", "[serializer]") {
+TEST_CASE("Round-trip - Round-trip special chars" * doctest::test_suite("serializer")) {
     const char*       path = test_tmp_path("roundtrip_special.ini");
     ct_ini_t*         ini1 = ct_ini_empty();
     ct_ini_section_t* sec1 = ct_ini_get_section(ini1, "special");
@@ -84,7 +84,7 @@ TEST_CASE("Round-trip - Round-trip special chars", "[serializer]") {
     remove(path);
 }
 
-TEST_CASE("Round-trip - Round-trip empty values", "[serializer]") {
+TEST_CASE("Round-trip - Round-trip empty values" * doctest::test_suite("serializer")) {
     const char* path = test_tmp_path("roundtrip_empty.ini");
 
     ct_ini_t*         ini1 = ct_ini_empty();
@@ -109,7 +109,7 @@ TEST_CASE("Round-trip - Round-trip empty values", "[serializer]") {
     remove(path);
 }
 
-TEST_CASE("Round-trip - Round-trip unicode", "[serializer]") {
+TEST_CASE("Round-trip - Round-trip unicode" * doctest::test_suite("serializer")) {
     const char* path = test_tmp_path("roundtrip_unicode.ini");
 
     ct_ini_t*         ini1 = ct_ini_empty();
@@ -137,7 +137,7 @@ TEST_CASE("Round-trip - Round-trip unicode", "[serializer]") {
     remove(path);
 }
 
-TEST_CASE("Large Files - Save large file", "[serializer]") {
+TEST_CASE("Large Files - Save large file" * doctest::test_suite("serializer")) {
     const char* path = test_tmp_path("large.ini");
 
     ct_ini_t* ini = ct_ini_empty();

@@ -1,8 +1,8 @@
-#include <catch.hpp>
-
 #include "common.hpp"
+#include "coter/testing/doctest.h"
 
-TEST_CASE("Error Codes - Last error after success", "[error_handling]") {
+
+TEST_CASE("Error Codes - Last error after success" * doctest::test_suite("error_handling")) {
     ct_ini_t* ini = ct_ini_empty();
     REQUIRE(ini != nullptr);
     REQUIRE(ct_ini_last_error(ini) == 0);
@@ -10,7 +10,7 @@ TEST_CASE("Error Codes - Last error after success", "[error_handling]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Error Codes - Error string", "[error_handling]") {
+TEST_CASE("Error Codes - Error string" * doctest::test_suite("error_handling")) {
     const char* msg = ct_ini_error_string(0);
     REQUIRE(msg != nullptr);
 
@@ -18,13 +18,13 @@ TEST_CASE("Error Codes - Error string", "[error_handling]") {
     REQUIRE(unknown != nullptr);
 }
 
-TEST_CASE("File Errors - Create nonexistent file", "[error_handling]") {
+TEST_CASE("File Errors - Create nonexistent file" * doctest::test_suite("error_handling")) {
     ct_ini_t* ini = ct_ini_create(test_res_path("this_file_does_not_exist.ini"));
     REQUIRE(ini != nullptr);
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("File Errors - Save to invalid path", "[error_handling]") {
+TEST_CASE("File Errors - Save to invalid path" * doctest::test_suite("error_handling")) {
     ct_ini_t* ini = ct_ini_empty();
     REQUIRE(ini != nullptr);
     REQUIRE(ct_ini_save_to(ini, "/nonexistent/path/test.ini") != 0);
@@ -32,7 +32,7 @@ TEST_CASE("File Errors - Save to invalid path", "[error_handling]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Malformed Input - Missing section close", "[error_handling]") {
+TEST_CASE("Malformed Input - Missing section close" * doctest::test_suite("error_handling")) {
     const char* content = "[unclosed\n"
                           "key = value\n";
 
@@ -44,7 +44,7 @@ TEST_CASE("Malformed Input - Missing section close", "[error_handling]") {
     test_remove_temp_ini("malformed1.ini");
 }
 
-TEST_CASE("Malformed Input - Key without value", "[error_handling]") {
+TEST_CASE("Malformed Input - Key without value" * doctest::test_suite("error_handling")) {
     const char* content = "[section]\n"
                           "key_only\n"
                           "key2 = value2\n";
@@ -65,7 +65,7 @@ TEST_CASE("Malformed Input - Key without value", "[error_handling]") {
     test_remove_temp_ini("malformed2.ini");
 }
 
-TEST_CASE("Malformed Input - Duplicate sections", "[error_handling]") {
+TEST_CASE("Malformed Input - Duplicate sections" * doctest::test_suite("error_handling")) {
     const char* content = "[section]\n"
                           "key1 = value1\n"
                           "[section]\n"
@@ -86,7 +86,7 @@ TEST_CASE("Malformed Input - Duplicate sections", "[error_handling]") {
     test_remove_temp_ini("duplicate.ini");
 }
 
-TEST_CASE("Malformed Input - Duplicate keys", "[error_handling]") {
+TEST_CASE("Malformed Input - Duplicate keys" * doctest::test_suite("error_handling")) {
     const char* content = "[section]\n"
                           "key = value1\n"
                           "key = value2\n";
@@ -106,7 +106,7 @@ TEST_CASE("Malformed Input - Duplicate keys", "[error_handling]") {
     test_remove_temp_ini("dupkey.ini");
 }
 
-TEST_CASE("NULL Handling - NULL ini operations", "[error_handling]") {
+TEST_CASE("NULL Handling - NULL ini operations" * doctest::test_suite("error_handling")) {
     ct_ini_destroy(nullptr);
 
     REQUIRE(ct_ini_find_section(nullptr, "section") == nullptr);
@@ -115,7 +115,7 @@ TEST_CASE("NULL Handling - NULL ini operations", "[error_handling]") {
     REQUIRE(ct_ini_save_to(nullptr, "/tmp/test.ini") != 0);
 }
 
-TEST_CASE("NULL Handling - NULL section operations", "[error_handling]") {
+TEST_CASE("NULL Handling - NULL section operations" * doctest::test_suite("error_handling")) {
     REQUIRE(ct_ini_section_find_key(nullptr, "key") == nullptr);
     REQUIRE(ct_ini_section_get_key(nullptr, "key") == nullptr);
     REQUIRE(ct_ini_section_add_key(nullptr, "key", "value") == nullptr);
@@ -123,7 +123,7 @@ TEST_CASE("NULL Handling - NULL section operations", "[error_handling]") {
     REQUIRE(ct_ini_section_has_key(nullptr, "key") == false);
 }
 
-TEST_CASE("NULL Handling - NULL key operations", "[error_handling]") {
+TEST_CASE("NULL Handling - NULL key operations" * doctest::test_suite("error_handling")) {
     REQUIRE(std::string(ct_ini_key_get_value(nullptr)) == "");
     REQUIRE(std::string(ct_ini_key_get(nullptr, "default")) == "default");
     REQUIRE(std::string(ct_ini_key_get_string(nullptr, "default")) == "default");

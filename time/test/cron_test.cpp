@@ -1,13 +1,14 @@
 #include "coter/time/cron.h"
 
 #include <atomic>
-#include <catch.hpp>
 #include <cstring>
 #include <thread>
 
 #include "coter/core/macro.h"
 #include "coter/sync/atomic.h"
 #include "coter/sync/event.h"
+#include "coter/testing/doctest.h"
+
 
 namespace {
 
@@ -133,7 +134,7 @@ void advance_seconds_skew(ct_time_t r, ct_time_t m) {
 
 }  // namespace
 
-TEST_CASE("minutely cron fires at correct interval with mock time", "[cron]") {
+TEST_CASE("minutely cron fires at correct interval with mock time" * doctest::test_suite("cron")) {
     start();
 
     callback_ctx ctx;
@@ -157,7 +158,7 @@ TEST_CASE("minutely cron fires at correct interval with mock time", "[cron]") {
     stop();
 }
 
-TEST_CASE("stopping cron prevents future executions", "[cron]") {
+TEST_CASE("stopping cron prevents future executions" * doctest::test_suite("cron")) {
     start();
 
     callback_ctx ctx;
@@ -177,7 +178,7 @@ TEST_CASE("stopping cron prevents future executions", "[cron]") {
     stop();
 }
 
-TEST_CASE("time jump reschedules without catchup burst", "[cron]") {
+TEST_CASE("time jump reschedules without catchup burst" * doctest::test_suite("cron")) {
     start();
 
     callback_ctx ctx;
@@ -199,7 +200,7 @@ TEST_CASE("time jump reschedules without catchup burst", "[cron]") {
     stop();
 }
 
-TEST_CASE("multiple tasks due at same time can fire together", "[cron]") {
+TEST_CASE("multiple tasks due at same time can fire together" * doctest::test_suite("cron")) {
     start();
 
     callback_ctx minute_ctx;
@@ -228,32 +229,32 @@ TEST_CASE("multiple tasks due at same time can fire together", "[cron]") {
     stop();
 }
 
-TEST_CASE("cron functions reject null pointer arguments", "[cron]") {
+TEST_CASE("cron functions reject null pointer arguments" * doctest::test_suite("cron")) {
     ct_cron_init(nullptr);
     REQUIRE(ct_cron_start(nullptr, -1, -1, -1, -1, -1, do_nothing_cb, nullptr) == -1);
     REQUIRE(ct_cron_reset(nullptr, -1, -1, -1, -1, -1) == -1);
     REQUIRE(ct_cron_stop(nullptr) == -1);
 }
 
-TEST_CASE("starting a cron with null callback returns error", "[cron]") {
+TEST_CASE("starting a cron with null callback returns error" * doctest::test_suite("cron")) {
     ct_cron_t cron;
     ct_cron_init(&cron);
     REQUIRE(ct_cron_start(&cron, -1, -1, -1, -1, -1, nullptr, nullptr) == -1);
 }
 
-TEST_CASE("stopping an unstarted cron returns error", "[cron]") {
+TEST_CASE("stopping an unstarted cron returns error" * doctest::test_suite("cron")) {
     ct_cron_t cron;
     ct_cron_init(&cron);
     REQUIRE(ct_cron_stop(&cron) == -1);
 }
 
-TEST_CASE("resetting a cron that was never started returns error", "[cron]") {
+TEST_CASE("resetting a cron that was never started returns error" * doctest::test_suite("cron")) {
     ct_cron_t cron;
     ct_cron_init(&cron);
     REQUIRE(ct_cron_reset(&cron, -1, -1, -1, -1, -1) == -1);
 }
 
-TEST_CASE("ct_cron_stop returns error when manager is not running", "[cron]") {
+TEST_CASE("ct_cron_stop returns error when manager is not running" * doctest::test_suite("cron")) {
     ct_cron_t cron;
     ct_cron_init(&cron);
     start();
@@ -262,7 +263,7 @@ TEST_CASE("ct_cron_stop returns error when manager is not running", "[cron]") {
     REQUIRE(ct_cron_stop(&cron) == -1);
 }
 
-TEST_CASE("starting a cron twice replaces its schedule", "[cron]") {
+TEST_CASE("starting a cron twice replaces its schedule" * doctest::test_suite("cron")) {
     start();
 
     callback_ctx ctx;
@@ -284,7 +285,7 @@ TEST_CASE("starting a cron twice replaces its schedule", "[cron]") {
     stop();
 }
 
-TEST_CASE("cron callback receives the correct user argument", "[cron]") {
+TEST_CASE("cron callback receives the correct user argument" * doctest::test_suite("cron")) {
     start();
 
     arg_holder holder;
@@ -304,7 +305,7 @@ TEST_CASE("cron callback receives the correct user argument", "[cron]") {
     stop();
 }
 
-TEST_CASE("minutely cron remains stable over many consecutive ticks", "[cron]") {
+TEST_CASE("minutely cron remains stable over many consecutive ticks" * doctest::test_suite("cron")) {
     start();
 
     callback_ctx ctx;

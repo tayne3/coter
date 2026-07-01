@@ -1,9 +1,10 @@
-#include <catch.hpp>
 #include <thread>
 
-#include "coter/bytes/bytes.h"
+#include "coter/bytes/msgbuf.h"
 #include "coter/sync/cond.h"
 #include "coter/sync/mutex.h"
+#include "coter/testing/doctest.h"
+
 
 static constexpr int NUM_PRODUCER_THREADS  = 4;
 static constexpr int BUFFER_SIZE           = 100;
@@ -22,7 +23,7 @@ typedef struct {
 typedef struct {
     buffer_pool_t* free_pool;
     buffer_pool_t* filled_pool;
-    ct_bytes_t*    current_buffer;
+    ct_msgbuf_t*   current_buffer;
     ct_mutex_t     mutex;
     char           sample_data[CHUNK_SIZE];
     bool           test_complete;
@@ -42,20 +43,20 @@ static void destroy_buffer_pool(buffer_pool_t* pool) {
     ct_cond_destroy(&pool->cond);
 }
 
-static ct_bytes_t* get_free_buffer(buffer_pool_t* pool) {
+static ct_msgbuf_t* get_free_buffer(buffer_pool_t* pool) {
     ct_mutex_lock(&pool->mutex);
-    ct_bytes_t* buffer;
+    ct_msgbuf_t* buffer;
     if (ct_list_isempty(&pool->free_buffers)) {
-        buffer = ct_bytes_create(BUFFER_SIZE);
+        buffer = ct_msgbuf_create(BUFFER_SIZE);
     } else {
-        buffer = ct_list_first_entry(&pool->free_buffers, ct_bytes_t, list);
+        buffer = ct_list_first_entry(&pool->free_buffers, ct_msgbuf_t, list);
         ct_list_remove(buffer->list);
     }
     ct_mutex_unlock(&pool->mutex);
     return buffer;
 }
 
-static void return_filled_buffer(buffer_pool_t* pool, ct_bytes_t* buffer) {
+static void return_filled_buffer(buffer_pool_t* pool, ct_msgbuf_t* buffer) {
     ct_mutex_lock(&pool->mutex);
     ct_list_append(&pool->filled_buffers, buffer->list);
     ++pool->total_chunks;
@@ -72,16 +73,16 @@ static void consume_chunks(test_context_t* ctx) {
         ct_mutex_unlock(&ctx->filled_pool->mutex);
         return;
     }
-    ct_bytes_t* buffer = ct_list_first_entry(&ctx->filled_pool->filled_buffers, ct_bytes_t, list);
+    ct_msgbuf_t* buffer = ct_list_first_entry(&ctx->filled_pool->filled_buffers, ct_msgbuf_t, list);
     ct_list_remove(buffer->list);
     ct_mutex_unlock(&ctx->filled_pool->mutex);
-    uint8_t* buffer_data = (uint8_t*)ct_bytes_buffer(buffer);
-    size_t   buffer_size = ct_bytes_size(buffer);
+    uint8_t* buffer_data = (uint8_t*)ct_msgbuf_buffer(buffer);
+    size_t   buffer_size = ct_msgbuf_size(buffer);
     for (size_t i = 0; i < buffer_size; ++i) {
         REQUIRE(buffer_data[i] == (uint8_t)(0x31 + ctx->filled_pool->idx));
         if (++ctx->filled_pool->idx >= CHUNK_SIZE) { ctx->filled_pool->idx = 0; }
     }
-    ct_bytes_clear(buffer);
+    ct_msgbuf_clear(buffer);
     ct_mutex_lock(&ctx->free_pool->mutex);
     ct_list_append(&ctx->free_pool->free_buffers, buffer->list);
     ++ctx->free_pool->total_chunks;
@@ -93,13 +94,13 @@ static void produce_chunk(test_context_t* ctx) {
     size_t      remaining = CHUNK_SIZE;
     ct_mutex_lock(&ctx->mutex);
     while (remaining > 0) {
-        size_t written =
-            ct_bytes_write(ctx->current_buffer, write_ptr, CT_MIN(remaining, ct_bytes_available(ctx->current_buffer)));
+        size_t written = ct_msgbuf_write(ctx->current_buffer, write_ptr,
+                                         CT_MIN(remaining, ct_msgbuf_available(ctx->current_buffer)));
         write_ptr += written;
         remaining -= written;
-        if (ct_bytes_isfull(ctx->current_buffer)) {
-            uint8_t* buffer_data = (uint8_t*)ct_bytes_buffer(ctx->current_buffer);
-            size_t   buffer_size = ct_bytes_size(ctx->current_buffer);
+        if (ct_msgbuf_isfull(ctx->current_buffer)) {
+            uint8_t* buffer_data = (uint8_t*)ct_msgbuf_buffer(ctx->current_buffer);
+            size_t   buffer_size = ct_msgbuf_size(ctx->current_buffer);
             for (size_t i = 0; i < buffer_size; ++i) {
                 REQUIRE(buffer_data[i] == (uint8_t)(0x31 + ctx->free_pool->idx));
                 if (++ctx->free_pool->idx >= CHUNK_SIZE) { ctx->free_pool->idx = 0; }
@@ -129,14 +130,14 @@ static int consumer_thread_func(void* arg) {
     return 0;
 }
 
-TEST_CASE("bytes concurrent", "[bytes][concurrency]") {
+TEST_CASE("msgbuf concurrent" * doctest::test_suite("msgbuf") * doctest::test_suite("concurrency")) {
     test_context_t ctx;
     buffer_pool_t  free_pool, filled_pool;
     init_buffer_pool(&free_pool);
     init_buffer_pool(&filled_pool);
     ctx.free_pool      = &free_pool;
     ctx.filled_pool    = &filled_pool;
-    ctx.current_buffer = ct_bytes_create(BUFFER_SIZE);
+    ctx.current_buffer = ct_msgbuf_create(BUFFER_SIZE);
     ct_mutex_init(&ctx.mutex);
     ctx.test_complete = false;
     for (int i = 0; i < CHUNK_SIZE; ++i) { ctx.sample_data[i] = (char)(0x31 + (i % 26)); }
@@ -150,7 +151,7 @@ TEST_CASE("bytes concurrent", "[bytes][concurrency]") {
         consumer_thread.join();
     }
     while (!ct_list_isempty(&filled_pool.filled_buffers)) { consume_chunks(&ctx); }
-    ct_bytes_destroy(ctx.current_buffer);
+    ct_msgbuf_destroy(ctx.current_buffer);
     ct_mutex_destroy(&ctx.mutex);
     destroy_buffer_pool(&free_pool);
     destroy_buffer_pool(&filled_pool);

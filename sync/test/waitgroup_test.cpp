@@ -5,8 +5,10 @@
  */
 #include "coter/sync/waitgroup.h"
 
-#include <catch.hpp>
 #include <thread>
+
+#include "coter/testing/doctest.h"
+
 
 typedef struct {
     ct_waitgroup_t* wg;
@@ -21,7 +23,7 @@ static int thread_task(void* arg) {
     return 0;
 }
 
-TEST_CASE("init and destroy work correctly", "[waitgroup]") {
+TEST_CASE("init and destroy work correctly" * doctest::test_suite("waitgroup")) {
     ct_waitgroup_t wg;
     int            init_result = ct_waitgroup_init(&wg);
     REQUIRE(init_result == 0);
@@ -31,7 +33,7 @@ TEST_CASE("init and destroy work correctly", "[waitgroup]") {
     ct_waitgroup_destroy(&wg);
 }
 
-TEST_CASE("single task completes with wait", "[waitgroup]") {
+TEST_CASE("single task completes with wait" * doctest::test_suite("waitgroup")) {
     ct_waitgroup_t wg;
     ct_waitgroup_init(&wg);
 
@@ -48,7 +50,7 @@ TEST_CASE("single task completes with wait", "[waitgroup]") {
     ct_waitgroup_destroy(&wg);
 }
 
-TEST_CASE("multiple concurrent tasks complete", "[waitgroup]") {
+TEST_CASE("multiple concurrent tasks complete" * doctest::test_suite("waitgroup")) {
 #define NUM_THREADS 10
     ct_waitgroup_t wg;
     ct_waitgroup_init(&wg);
@@ -75,7 +77,7 @@ TEST_CASE("multiple concurrent tasks complete", "[waitgroup]") {
 #undef NUM_THREADS
 }
 
-TEST_CASE("repeated add and done maintain correct counter", "[waitgroup]") {
+TEST_CASE("repeated add and done maintain correct counter" * doctest::test_suite("waitgroup")) {
     ct_waitgroup_t wg;
     ct_waitgroup_init(&wg);
 
@@ -97,7 +99,7 @@ TEST_CASE("repeated add and done maintain correct counter", "[waitgroup]") {
     ct_waitgroup_destroy(&wg);
 }
 
-TEST_CASE("waitgroup can be reused across multiple rounds", "[waitgroup]") {
+TEST_CASE("waitgroup can be reused across multiple rounds" * doctest::test_suite("waitgroup")) {
     ct_waitgroup_t wg;
     ct_waitgroup_init(&wg);
 
@@ -127,7 +129,7 @@ TEST_CASE("waitgroup can be reused across multiple rounds", "[waitgroup]") {
     ct_waitgroup_destroy(&wg);
 }
 
-TEST_CASE("adding zero tasks has no effect", "[waitgroup]") {
+TEST_CASE("adding zero tasks has no effect" * doctest::test_suite("waitgroup")) {
     ct_waitgroup_t wg;
     ct_waitgroup_init(&wg);
 
@@ -139,7 +141,7 @@ TEST_CASE("adding zero tasks has no effect", "[waitgroup]") {
     ct_waitgroup_destroy(&wg);
 }
 
-TEST_CASE("done exceeding add leaves counter negative", "[waitgroup]") {
+TEST_CASE("done exceeding add leaves counter negative" * doctest::test_suite("waitgroup")) {
     ct_waitgroup_t wg;
     ct_waitgroup_init(&wg);
 
@@ -158,7 +160,7 @@ TEST_CASE("done exceeding add leaves counter negative", "[waitgroup]") {
     ct_waitgroup_destroy(&wg);
 }
 
-TEST_CASE("dynamically added tasks are waited on", "[waitgroup]") {
+TEST_CASE("dynamically added tasks are waited on" * doctest::test_suite("waitgroup")) {
 #define INITIAL_THREADS    5
 #define ADDITIONAL_THREADS 3
     ct_waitgroup_t wg;
@@ -199,7 +201,7 @@ TEST_CASE("dynamically added tasks are waited on", "[waitgroup]") {
 #undef ADDITIONAL_THREADS
 }
 
-TEST_CASE("concurrent add and done with multiple threads", "[waitgroup]") {
+TEST_CASE("concurrent add and done with multiple threads" * doctest::test_suite("waitgroup")) {
 #define NUM_THREADS 20
     ct_waitgroup_t wg;
     ct_waitgroup_init(&wg);

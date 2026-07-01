@@ -1,12 +1,13 @@
 #include "coter/sync/msgqueue.h"
 
-#include <catch.hpp>
 #include <thread>
 #include <vector>
 
 #include "coter/core/macro.h"
 #include "coter/core/rand.h"
 #include "coter/sync/atomic.h"
+#include "coter/testing/doctest.h"
+
 
 namespace {
 struct int_queue_env {
@@ -98,14 +99,16 @@ static void run_blocking_fifo_case(size_t data_size, size_t capacity) {
 }
 }  // namespace
 
-TEST_CASE("blocking push and pop preserve fifo order", "[event][msgqueue]") {
+TEST_CASE("blocking push and pop preserve fifo order" * doctest::test_suite("event") *
+          doctest::test_suite("msgqueue")) {
     run_blocking_fifo_case(10, 1);
     run_blocking_fifo_case(1, 10);
     run_blocking_fifo_case(500, 10);
     run_blocking_fifo_case(500, 500);
 }
 
-TEST_CASE("try operations reflect full and empty state", "[event][msgqueue]") {
+TEST_CASE("try operations reflect full and empty state" * doctest::test_suite("event") *
+          doctest::test_suite("msgqueue")) {
     int_queue_env env(2);
     int           one = 1;
     int           two = 2;
@@ -124,7 +127,7 @@ TEST_CASE("try operations reflect full and empty state", "[event][msgqueue]") {
     REQUIRE(ct_msgqueue_is_empty(&env.queue));
 }
 
-TEST_CASE("pop_for times out when queue stays empty", "[event][msgqueue]") {
+TEST_CASE("pop_for times out when queue stays empty" * doctest::test_suite("event") * doctest::test_suite("msgqueue")) {
     int_queue_env env(1);
     int           out = 0;
 
@@ -132,7 +135,7 @@ TEST_CASE("pop_for times out when queue stays empty", "[event][msgqueue]") {
     REQUIRE(ct_msgqueue_pop_for(&env.queue, &out, 0) == ETIMEDOUT);
 }
 
-TEST_CASE("push_for times out when queue stays full", "[event][msgqueue]") {
+TEST_CASE("push_for times out when queue stays full" * doctest::test_suite("event") * doctest::test_suite("msgqueue")) {
     int_queue_env env(1);
     int           one = 1;
     int           two = 2;
@@ -142,7 +145,8 @@ TEST_CASE("push_for times out when queue stays full", "[event][msgqueue]") {
     REQUIRE(ct_msgqueue_push_for(&env.queue, &two, 0) == ETIMEDOUT);
 }
 
-TEST_CASE("pop_for succeeds when producer arrives before timeout", "[event][msgqueue]") {
+TEST_CASE("pop_for succeeds when producer arrives before timeout" * doctest::test_suite("event") *
+          doctest::test_suite("msgqueue")) {
     int_queue_env  env(1);
     timed_call_env worker = make_timed_call_env(&env.queue, 0, 200);
     std::thread    thread(dequeue_worker, &worker);
@@ -156,7 +160,8 @@ TEST_CASE("pop_for succeeds when producer arrives before timeout", "[event][msgq
     REQUIRE(worker.value == value);
 }
 
-TEST_CASE("push_for succeeds when consumer frees slot before timeout", "[event][msgqueue]") {
+TEST_CASE("push_for succeeds when consumer frees slot before timeout" * doctest::test_suite("event") *
+          doctest::test_suite("msgqueue")) {
     int_queue_env env(1);
     int           initial = 7;
     REQUIRE(ct_msgqueue_try_push(&env.queue, &initial) == 0);
@@ -176,7 +181,8 @@ TEST_CASE("push_for succeeds when consumer frees slot before timeout", "[event][
     REQUIRE(out == worker.value);
 }
 
-TEST_CASE("close wakes blocked pop_for with closed error", "[event][msgqueue]") {
+TEST_CASE("close wakes blocked pop_for with closed error" * doctest::test_suite("event") *
+          doctest::test_suite("msgqueue")) {
     int_queue_env  env(1);
     timed_call_env worker = make_timed_call_env(&env.queue, 0, 2000);
     std::thread    thread(dequeue_worker, &worker);
@@ -188,7 +194,8 @@ TEST_CASE("close wakes blocked pop_for with closed error", "[event][msgqueue]") 
     REQUIRE(ct_atomic_int_load(&worker.result) == EPIPE);
 }
 
-TEST_CASE("close wakes blocked push_for with closed error", "[event][msgqueue]") {
+TEST_CASE("close wakes blocked push_for with closed error" * doctest::test_suite("event") *
+          doctest::test_suite("msgqueue")) {
     int_queue_env env(1);
     int           initial = 1;
     REQUIRE(ct_msgqueue_try_push(&env.queue, &initial) == 0);
@@ -203,7 +210,7 @@ TEST_CASE("close wakes blocked push_for with closed error", "[event][msgqueue]")
     REQUIRE(ct_atomic_int_load(&worker.result) == EPIPE);
 }
 
-TEST_CASE("negative timeout means wait forever", "[event][msgqueue]") {
+TEST_CASE("negative timeout means wait forever" * doctest::test_suite("event") * doctest::test_suite("msgqueue")) {
     int_queue_env  env(1);
     timed_call_env worker = make_timed_call_env(&env.queue, 0, -1);
     std::thread    thread(dequeue_worker, &worker);
@@ -217,7 +224,8 @@ TEST_CASE("negative timeout means wait forever", "[event][msgqueue]") {
     REQUIRE(worker.value == value);
 }
 
-TEST_CASE("close causes subsequent operations to fail immediately", "[event][msgqueue]") {
+TEST_CASE("close causes subsequent operations to fail immediately" * doctest::test_suite("event") *
+          doctest::test_suite("msgqueue")) {
     int_queue_env env(2);
     int           value = 5;
     int           out   = 0;

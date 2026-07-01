@@ -1,6 +1,5 @@
 #include "../src/handler/rotator.h"
 
-#include <catch.hpp>
 #include <cstdio>
 #include <cstring>
 #include <memory>
@@ -9,6 +8,8 @@
 
 #include "coter/core/fs.h"
 #include "coter/core/strings.h"
+#include "coter/testing/doctest.h"
+
 
 namespace {
 static const char* kDir = "test_log_rotator_out";
@@ -48,10 +49,10 @@ struct RotatorDeleter {
 using RotatorPtr = std::unique_ptr<ct_log_rotator_t, RotatorDeleter>;
 }  // namespace
 
-TEST_CASE("log_rotator_logic", "[log][rotator]") {
+TEST_CASE("log_rotator_logic" * doctest::test_suite("log") * doctest::test_suite("rotator")) {
     RotatorFixture fixture;
 
-    SECTION("rotates across bounded files") {
+    SUBCASE("rotates across bounded files") {
         ct_log_rotator_config_t config = {};
         std::strncpy(config.dir, kDir, sizeof(config.dir) - 1);
         std::strncpy(config.name, "rotate", sizeof(config.name) - 1);
@@ -70,7 +71,7 @@ TEST_CASE("log_rotator_logic", "[log][rotator]") {
         REQUIRE(RotatorFixture::read_file("test_log_rotator_out/rotate.log1") == "fghij");
     }
 
-    SECTION("appends newest file when it has space") {
+    SUBCASE("appends newest file when it has space") {
         REQUIRE(ct_mkdir(kDir) == 0);
         {
             FILE* file = std::fopen("test_log_rotator_out/append.log0", "wb");
@@ -93,13 +94,13 @@ TEST_CASE("log_rotator_logic", "[log][rotator]") {
         REQUIRE(RotatorFixture::read_file("test_log_rotator_out/append.log0") == "abcde");
     }
 
-    SECTION("rejects invalid config") {
+    SUBCASE("rejects invalid config") {
         ct_log_rotator_config_t config = {};
         REQUIRE(ct_log_rotator_create(&config) == nullptr);
     }
 }
 
-TEST_CASE("log_rotator_wraps_around_correctly", "[log][rotator]") {
+TEST_CASE("log_rotator_wraps_around_correctly" * doctest::test_suite("log") * doctest::test_suite("rotator")) {
     // 配置极小的轮转（每个文件 256 字节，最多 2 个文件）
     // 写入超过 512 字节，验证文件从 index 0 -> 1 -> 0 循环覆盖
 

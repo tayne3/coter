@@ -1,14 +1,16 @@
 #include "coter/bytes/rbuf.h"
 
-#include <catch.hpp>
 #include <cstring>
+
+#include "coter/testing/doctest.h"
+
 
 #define TEST_BUF_CAPACITY 16
 
 static uint8_t   test_buf[TEST_BUF_CAPACITY + 1];
 static ct_rbuf_t rbuf;
 
-TEST_CASE("init", "[rbuf]") {
+TEST_CASE("init" * doctest::test_suite("rbuf")) {
     ct_rbuf_init(&rbuf, test_buf, TEST_BUF_CAPACITY);
     REQUIRE(ct_rbuf_capacity(&rbuf) == TEST_BUF_CAPACITY);
     REQUIRE(ct_rbuf_count(&rbuf) == 0);
@@ -18,7 +20,7 @@ TEST_CASE("init", "[rbuf]") {
     REQUIRE(memset(test_buf, 0xAA, sizeof(test_buf)));
 }
 
-TEST_CASE("static init", "[rbuf]") {
+TEST_CASE("static init" * doctest::test_suite("rbuf")) {
     ct_rbuf_t local_rbuf = CT_RBUF_INIT(test_buf, TEST_BUF_CAPACITY);
     REQUIRE(ct_rbuf_capacity(&local_rbuf) == TEST_BUF_CAPACITY);
     REQUIRE(ct_rbuf_count(&local_rbuf) == 0);
@@ -28,7 +30,7 @@ TEST_CASE("static init", "[rbuf]") {
     REQUIRE(local_rbuf.data == test_buf);
 }
 
-TEST_CASE("basic", "[rbuf]") {
+TEST_CASE("basic" * doctest::test_suite("rbuf")) {
     ct_rbuf_clear(&rbuf);
     REQUIRE(ct_rbuf_is_empty(&rbuf) == true);
 
@@ -49,7 +51,7 @@ TEST_CASE("basic", "[rbuf]") {
     REQUIRE(ct_rbuf_is_empty(&rbuf) == true);
 }
 
-TEST_CASE("wrap around", "[rbuf]") {
+TEST_CASE("wrap around" * doctest::test_suite("rbuf")) {
     ct_rbuf_clear(&rbuf);
 
     uint8_t fill_data[16] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
@@ -77,7 +79,7 @@ TEST_CASE("wrap around", "[rbuf]") {
     REQUIRE(rbuf.head == 4);
 }
 
-TEST_CASE("full handling", "[rbuf]") {
+TEST_CASE("full handling" * doctest::test_suite("rbuf")) {
     ct_rbuf_clear(&rbuf);
 
     uint8_t fill_data[16] = {0xFF};
@@ -97,7 +99,7 @@ TEST_CASE("full handling", "[rbuf]") {
     REQUIRE(ct_rbuf_is_empty(&rbuf) == true);
 }
 
-TEST_CASE("skip", "[rbuf]") {
+TEST_CASE("skip" * doctest::test_suite("rbuf")) {
     ct_rbuf_clear(&rbuf);
 
     uint8_t data[] = {10, 20, 30, 40, 50};
@@ -115,7 +117,7 @@ TEST_CASE("skip", "[rbuf]") {
     REQUIRE(ct_rbuf_remove(&rbuf, 5) == 0);
 }
 
-TEST_CASE("zero copy", "[rbuf]") {
+TEST_CASE("zero copy" * doctest::test_suite("rbuf")) {
     ct_rbuf_clear(&rbuf);
 
     size_t   chunk_len = 0;

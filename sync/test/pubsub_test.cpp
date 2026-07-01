@@ -1,8 +1,10 @@
 #include "coter/sync/pubsub.h"
 
-#include <catch.hpp>
 #include <cstring>
 #include <string>
+
+#include "coter/testing/doctest.h"
+
 
 enum test_event_type {
     EVENT_TYPE_A = 1,
@@ -45,7 +47,7 @@ static void handler_data_check(uint32_t type, void* data, void* user_data) {
     }
 }
 
-TEST_CASE("pubsub_single_subscriber", "[pubsub]") {
+TEST_CASE("pubsub_single_subscriber" * doctest::test_suite("pubsub")) {
     test_context_t ctx = TEST_CONTEXT_INITIALIZER;
     ct_pubsub_t    ps[1];
     ct_pubsub_init(ps);
@@ -57,7 +59,7 @@ TEST_CASE("pubsub_single_subscriber", "[pubsub]") {
     ct_pubsub_destroy(ps);
 }
 
-TEST_CASE("pubsub_multiple_subscribers", "[pubsub]") {
+TEST_CASE("pubsub_multiple_subscribers" * doctest::test_suite("pubsub")) {
     test_context_t ctx = TEST_CONTEXT_INITIALIZER;
     ct_pubsub_t    ps[1];
     ct_pubsub_init(ps);
@@ -69,7 +71,7 @@ TEST_CASE("pubsub_multiple_subscribers", "[pubsub]") {
     ct_pubsub_destroy(ps);
 }
 
-TEST_CASE("pubsub_unsubscribe", "[pubsub]") {
+TEST_CASE("pubsub_unsubscribe" * doctest::test_suite("pubsub")) {
     test_context_t ctx = TEST_CONTEXT_INITIALIZER;
     ct_pubsub_t    ps[1];
     ct_pubsub_init(ps);
@@ -82,7 +84,7 @@ TEST_CASE("pubsub_unsubscribe", "[pubsub]") {
     ct_pubsub_destroy(ps);
 }
 
-TEST_CASE("pubsub_publish_no_subscriber", "[pubsub]") {
+TEST_CASE("pubsub_publish_no_subscriber" * doctest::test_suite("pubsub")) {
     test_context_t ctx = TEST_CONTEXT_INITIALIZER;
     ct_pubsub_t    ps[1];
     ct_pubsub_init(ps);
@@ -93,7 +95,7 @@ TEST_CASE("pubsub_publish_no_subscriber", "[pubsub]") {
     ct_pubsub_destroy(ps);
 }
 
-TEST_CASE("pubsub_data_passing", "[pubsub]") {
+TEST_CASE("pubsub_data_passing" * doctest::test_suite("pubsub")) {
     test_context_t ctx = TEST_CONTEXT_INITIALIZER;
     ct_pubsub_t    ps[1];
     ct_pubsub_init(ps);
@@ -105,7 +107,7 @@ TEST_CASE("pubsub_data_passing", "[pubsub]") {
     ct_pubsub_destroy(ps);
 }
 
-TEST_CASE("pubsub_multiple_event_types", "[pubsub]") {
+TEST_CASE("pubsub_multiple_event_types" * doctest::test_suite("pubsub")) {
     test_context_t ctx = TEST_CONTEXT_INITIALIZER;
     ct_pubsub_t    ps[1];
     ct_pubsub_init(ps);
@@ -120,7 +122,7 @@ TEST_CASE("pubsub_multiple_event_types", "[pubsub]") {
     ct_pubsub_destroy(ps);
 }
 
-TEST_CASE("pubsub_edge_cases", "[pubsub]") {
+TEST_CASE("pubsub_edge_cases" * doctest::test_suite("pubsub")) {
     test_context_t ctx = TEST_CONTEXT_INITIALIZER;
     ct_pubsub_t    ps[1];
     ct_pubsub_init(ps);

@@ -1,8 +1,8 @@
 #include <string>
 #include <vector>
 
-#include "catch.hpp"
 #include "coter/opt/opt.h"
+#include "coter/testing/doctest.h"
 
 // -----------------------------------------------------------------------
 // Helpers
@@ -49,14 +49,14 @@ static const ct_opt_def_t kDefs[] = {
     {nullptr, 0, CT_OPT_NONE, NULL, NULL},
 };
 
-TEST_CASE("short: no arguments", "[short]") {
+TEST_CASE("short: no arguments" * doctest::test_suite("short")) {
     Argv av{};
     auto o = av.to_opts();
     int  id;
     REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_DONE);
 }
 
-TEST_CASE("short: single flag", "[short]") {
+TEST_CASE("short: single flag" * doctest::test_suite("short")) {
     Argv av{"-a"};
     auto o = av.to_opts();
     int  id;
@@ -65,7 +65,7 @@ TEST_CASE("short: single flag", "[short]") {
     REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_DONE);
 }
 
-TEST_CASE("short: multiple flags", "[short]") {
+TEST_CASE("short: multiple flags" * doctest::test_suite("short")) {
     Argv av{"-a", "-b", "-e"};
     auto o = av.to_opts();
     int  id;
@@ -78,7 +78,7 @@ TEST_CASE("short: multiple flags", "[short]") {
     REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_DONE);
 }
 
-TEST_CASE("short: combined cluster -abe", "[short]") {
+TEST_CASE("short: combined cluster -abe" * doctest::test_suite("short")) {
     Argv av{"-abe"};
     auto o = av.to_opts();
     int  id;
@@ -91,7 +91,7 @@ TEST_CASE("short: combined cluster -abe", "[short]") {
     REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_DONE);
 }
 
-TEST_CASE("short: required argument — separate token", "[short]") {
+TEST_CASE("short: required argument — separate token" * doctest::test_suite("short")) {
     Argv av{"-c", "red"};
     auto o = av.to_opts();
     int  id;
@@ -101,7 +101,7 @@ TEST_CASE("short: required argument — separate token", "[short]") {
     REQUIRE(std::string(o.optarg) == "red");
 }
 
-TEST_CASE("short: required argument — inline (no space)", "[short]") {
+TEST_CASE("short: required argument — inline (no space)" * doctest::test_suite("short")) {
     Argv av{"-cred"};
     auto o = av.to_opts();
     int  id;
@@ -110,7 +110,7 @@ TEST_CASE("short: required argument — inline (no space)", "[short]") {
     REQUIRE(std::string(o.optarg) == "red");
 }
 
-TEST_CASE("short: required argument — combined cluster with arg", "[short]") {
+TEST_CASE("short: required argument — combined cluster with arg" * doctest::test_suite("short")) {
     Argv                      av{"-abeblue"};
     auto                      o = av.to_opts();
     int                       id;
@@ -129,7 +129,7 @@ TEST_CASE("short: required argument — combined cluster with arg", "[short]") {
     REQUIRE(std::string(o.optarg) == "blue");
 }
 
-TEST_CASE("short: optional argument — present inline", "[short]") {
+TEST_CASE("short: optional argument — present inline" * doctest::test_suite("short")) {
     Argv av{"-d10"};
     auto o = av.to_opts();
     int  id;
@@ -139,7 +139,7 @@ TEST_CASE("short: optional argument — present inline", "[short]") {
     REQUIRE(std::string(o.optarg) == "10");
 }
 
-TEST_CASE("short: optional argument — absent", "[short]") {
+TEST_CASE("short: optional argument — absent" * doctest::test_suite("short")) {
     Argv av{"-d", "10"};
     auto o = av.to_opts();
     int  id;
@@ -152,7 +152,7 @@ TEST_CASE("short: optional argument — absent", "[short]") {
     REQUIRE(args == expected);
 }
 
-TEST_CASE("short: unknown option returns ERR_UNKNOWN", "[short][error]") {
+TEST_CASE("short: unknown option returns ERR_UNKNOWN" * doctest::test_suite("short") * doctest::test_suite("error")) {
     Argv av{"-z"};
     auto o = av.to_opts();
     int  id;
@@ -160,7 +160,8 @@ TEST_CASE("short: unknown option returns ERR_UNKNOWN", "[short][error]") {
     REQUIRE(o.optopt == 'z');
 }
 
-TEST_CASE("short: missing required argument returns ERR_MISSING", "[short][error]") {
+TEST_CASE("short: missing required argument returns ERR_MISSING" * doctest::test_suite("short") *
+          doctest::test_suite("error")) {
     Argv av{"-c"};
     auto o = av.to_opts();
     int  id;
@@ -168,7 +169,7 @@ TEST_CASE("short: missing required argument returns ERR_MISSING", "[short][error
     REQUIRE(o.optopt == 'c');
 }
 
-TEST_CASE("short: repeated flag increments count", "[short]") {
+TEST_CASE("short: repeated flag increments count" * doctest::test_suite("short")) {
     Argv av{"-eeeeee"};
     auto o     = av.to_opts();
     int  count = 0;
@@ -180,7 +181,7 @@ TEST_CASE("short: repeated flag increments count", "[short]") {
     REQUIRE(count == 6);
 }
 
-TEST_CASE("long: single flag --amend", "[long]") {
+TEST_CASE("long: single flag --amend" * doctest::test_suite("long")) {
     Argv av{"--amend"};
     auto o  = av.to_opts();
     int  id = -1;
@@ -188,7 +189,7 @@ TEST_CASE("long: single flag --amend", "[long]") {
     REQUIRE(id == 'a');
 }
 
-TEST_CASE("long: multiple flags", "[long]") {
+TEST_CASE("long: multiple flags" * doctest::test_suite("long")) {
     Argv av{"--amend", "--brief"};
     auto o = av.to_opts();
     int  id;
@@ -199,7 +200,7 @@ TEST_CASE("long: multiple flags", "[long]") {
     REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_DONE);
 }
 
-TEST_CASE("long: required argument — separate token", "[long]") {
+TEST_CASE("long: required argument — separate token" * doctest::test_suite("long")) {
     Argv av{"--delay", "500"};
     auto o = av.to_opts();
     int  id;
@@ -208,7 +209,7 @@ TEST_CASE("long: required argument — separate token", "[long]") {
     REQUIRE(std::string(o.optarg) == "500");
 }
 
-TEST_CASE("long: required argument — inline with '='", "[long]") {
+TEST_CASE("long: required argument — inline with '='" * doctest::test_suite("long")) {
     Argv av{"--color=red"};
     auto o = av.to_opts();
     int  id;
@@ -217,7 +218,7 @@ TEST_CASE("long: required argument — inline with '='", "[long]") {
     REQUIRE(std::string(o.optarg) == "red");
 }
 
-TEST_CASE("long: optional argument — present inline", "[long]") {
+TEST_CASE("long: optional argument — present inline" * doctest::test_suite("long")) {
     Argv av{"--color=blue"};
     auto o = av.to_opts();
     int  id;
@@ -226,7 +227,7 @@ TEST_CASE("long: optional argument — present inline", "[long]") {
     REQUIRE(std::string(o.optarg) == "blue");
 }
 
-TEST_CASE("long: optional argument — absent", "[long]") {
+TEST_CASE("long: optional argument — absent" * doctest::test_suite("long")) {
     Argv av{"--color"};
     auto o = av.to_opts();
     int  id;
@@ -235,7 +236,8 @@ TEST_CASE("long: optional argument — absent", "[long]") {
     REQUIRE(o.optarg == nullptr);
 }
 
-TEST_CASE("long: required argument missing returns ERR_MISSING", "[long][error]") {
+TEST_CASE("long: required argument missing returns ERR_MISSING" * doctest::test_suite("long") *
+          doctest::test_suite("error")) {
     Argv av{"--delay"};
     auto o = av.to_opts();
     int  id;
@@ -243,7 +245,7 @@ TEST_CASE("long: required argument missing returns ERR_MISSING", "[long][error]"
     REQUIRE(o.optopt == 'd');
 }
 
-TEST_CASE("long: unknown option returns ERR_UNKNOWN", "[long][error]") {
+TEST_CASE("long: unknown option returns ERR_UNKNOWN" * doctest::test_suite("long") * doctest::test_suite("error")) {
     Argv av{"--foo"};
     auto o = av.to_opts();
     int  id;
@@ -251,7 +253,7 @@ TEST_CASE("long: unknown option returns ERR_UNKNOWN", "[long][error]") {
     REQUIRE(o.optopt == 0);  // Unknown long opts set optopt to 0
 }
 
-TEST_CASE("long: TOOMANY when flag given an argument", "[long][error]") {
+TEST_CASE("long: TOOMANY when flag given an argument" * doctest::test_suite("long") * doctest::test_suite("error")) {
     Argv av{"--amend=yes"};
     auto o = av.to_opts();
     int  id;
@@ -259,7 +261,7 @@ TEST_CASE("long: TOOMANY when flag given an argument", "[long][error]") {
     REQUIRE(o.optopt == 'a');
 }
 
-TEST_CASE("long: long-only option (shortname > 127)", "[long]") {
+TEST_CASE("long: long-only option (shortname > 127)" * doctest::test_suite("long")) {
     static const ct_opt_def_t lo[] = {
         {"verbose", 256, CT_OPT_NONE, NULL, NULL},
         {"output", 257, CT_OPT_REQUIRED, NULL, NULL},
@@ -277,7 +279,7 @@ TEST_CASE("long: long-only option (shortname > 127)", "[long]") {
     REQUIRE(std::string(o.optarg) == "file.txt");
 }
 
-TEST_CASE("long: mix of short and long options", "[long]") {
+TEST_CASE("long: mix of short and long options" * doctest::test_suite("long")) {
     Argv        av{"-a", "--brief", "--color=green", "--delay", "42"};
     auto        o     = av.to_opts();
     bool        amend = false, brief = false;
@@ -300,7 +302,7 @@ TEST_CASE("long: mix of short and long options", "[long]") {
     REQUIRE(delay == 42);
 }
 
-TEST_CASE("permute: non-option before option", "[permute]") {
+TEST_CASE("permute: non-option before option" * doctest::test_suite("permute")) {
     Argv av{"foo", "--amend", "bar"};
     auto o = av.to_opts();
     int  id;
@@ -312,7 +314,7 @@ TEST_CASE("permute: non-option before option", "[permute]") {
     REQUIRE(args == expected);
 }
 
-TEST_CASE("permute: options interspersed with positionals", "[permute]") {
+TEST_CASE("permute: options interspersed with positionals" * doctest::test_suite("permute")) {
     Argv        av{"foo", "--delay", "1234", "bar", "-cred"};
     auto        o = av.to_opts();
     std::string color;
@@ -331,7 +333,7 @@ TEST_CASE("permute: options interspersed with positionals", "[permute]") {
     REQUIRE(args == expected);
 }
 
-TEST_CASE("permute: all positionals, no options", "[permute]") {
+TEST_CASE("permute: all positionals, no options" * doctest::test_suite("permute")) {
     Argv av{"foo", "bar", "baz"};
     auto o = av.to_opts();
     int  id;
@@ -341,7 +343,7 @@ TEST_CASE("permute: all positionals, no options", "[permute]") {
     REQUIRE(args == expected);
 }
 
-TEST_CASE("posix: stop at first non-option", "[posix]") {
+TEST_CASE("posix: stop at first non-option" * doctest::test_suite("posix")) {
     Argv av{"-a", "stop", "-b"};
     auto o    = av.to_opts();
     o.permute = 0;
@@ -354,7 +356,7 @@ TEST_CASE("posix: stop at first non-option", "[posix]") {
     REQUIRE(args[0] == "stop");
 }
 
-TEST_CASE("arg: basic positional collection", "[arg]") {
+TEST_CASE("arg: basic positional collection" * doctest::test_suite("arg")) {
     Argv av{"-a", "foo", "bar"};
     auto o = av.to_opts();
     int  id;
@@ -365,7 +367,7 @@ TEST_CASE("arg: basic positional collection", "[arg]") {
     REQUIRE(args == expected);
 }
 
-TEST_CASE("arg: step over subcommand and re-parse", "[arg]") {
+TEST_CASE("arg: step over subcommand and re-parse" * doctest::test_suite("arg")) {
     Argv av{"-a", "subcmd", "-b"};
     auto o    = av.to_opts();
     o.permute = 0;
@@ -384,13 +386,13 @@ TEST_CASE("arg: step over subcommand and re-parse", "[arg]") {
     REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_DONE);
 }
 
-TEST_CASE("arg: returns NULL when exhausted", "[arg]") {
+TEST_CASE("arg: returns NULL when exhausted" * doctest::test_suite("arg")) {
     Argv av{};
     auto o = av.to_opts();
     REQUIRE(ct_opt_shift(&o) == nullptr);
 }
 
-TEST_CASE("edge: double-dash '--' terminates option parsing", "[edge]") {
+TEST_CASE("edge: double-dash '--' terminates option parsing" * doctest::test_suite("edge")) {
     Argv av{"--", "foobar"};
     auto o = av.to_opts();
     int  id;
@@ -400,7 +402,7 @@ TEST_CASE("edge: double-dash '--' terminates option parsing", "[edge]") {
     REQUIRE(args == expected);
 }
 
-TEST_CASE("edge: single dash '-' is treated as positional", "[edge]") {
+TEST_CASE("edge: single dash '-' is treated as positional" * doctest::test_suite("edge")) {
     Argv av{"-"};
     auto o = av.to_opts();
     int  id;
@@ -410,7 +412,7 @@ TEST_CASE("edge: single dash '-' is treated as positional", "[edge]") {
     REQUIRE(args == expected);
 }
 
-TEST_CASE("edge: re-initialise resets state", "[edge]") {
+TEST_CASE("edge: re-initialise resets state" * doctest::test_suite("edge")) {
     Argv av{"-a", "-b"};
     auto o = av.to_opts();
     int  id;
@@ -424,7 +426,7 @@ TEST_CASE("edge: re-initialise resets state", "[edge]") {
     REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_DONE);
 }
 
-TEST_CASE("edge: id pointer nullptr does not crash", "[edge]") {
+TEST_CASE("edge: id pointer nullptr does not crash" * doctest::test_suite("edge")) {
     Argv av{"--amend"};
     auto o = av.to_opts();
     REQUIRE(ct_opt_next(&o, kDefs, nullptr) == CT_OPT_OK);
@@ -464,7 +466,7 @@ static Config run_long(char** argv_raw, const ct_opt_def_t* lo = kDefs) {
     return cfg;
 }
 
-TEST_CASE("regression: -- foobar", "[regression]") {
+TEST_CASE("regression: -- foobar" * doctest::test_suite("regression")) {
     Argv av{"--", "foobar"};
     auto cfg = run_long(av.data());
     auto o   = av.to_opts();
@@ -477,7 +479,7 @@ TEST_CASE("regression: -- foobar", "[regression]") {
     REQUIRE(args == expected);
 }
 
-TEST_CASE("regression: -a -b -c -d 10 -e", "[regression]") {
+TEST_CASE("regression: -a -b -c -d 10 -e" * doctest::test_suite("regression")) {
     Argv av{"-a", "-b", "-c", "-d", "10", "-e"};
     auto cfg = run_long(av.data());
     REQUIRE(cfg.amend);
@@ -489,7 +491,7 @@ TEST_CASE("regression: -a -b -c -d 10 -e", "[regression]") {
     REQUIRE(cfg.err == CT_OPT_OK);
 }
 
-TEST_CASE("regression: --amend --brief --color --delay 10 --erase", "[regression]") {
+TEST_CASE("regression: --amend --brief --color --delay 10 --erase" * doctest::test_suite("regression")) {
     Argv av{"--amend", "--brief", "--color", "--delay", "10", "--erase"};
     auto cfg = run_long(av.data());
     REQUIRE(cfg.amend);
@@ -500,7 +502,7 @@ TEST_CASE("regression: --amend --brief --color --delay 10 --erase", "[regression
     REQUIRE(cfg.erase == 1);
 }
 
-TEST_CASE("regression: -a -b -cred -d 10 -e", "[regression]") {
+TEST_CASE("regression: -a -b -cred -d 10 -e" * doctest::test_suite("regression")) {
     Argv av{"-a", "-b", "-cred", "-d", "10", "-e"};
     auto cfg = run_long(av.data());
     REQUIRE(cfg.amend);
@@ -510,31 +512,31 @@ TEST_CASE("regression: -a -b -cred -d 10 -e", "[regression]") {
     REQUIRE(cfg.erase == 1);
 }
 
-TEST_CASE("regression: -eeeeee increments to 6", "[regression]") {
+TEST_CASE("regression: -eeeeee increments to 6" * doctest::test_suite("regression")) {
     Argv av{"-eeeeee"};
     auto cfg = run_long(av.data());
     REQUIRE(cfg.erase == 6);
 }
 
-TEST_CASE("regression: --delay (missing arg) gives MISSING error", "[regression]") {
+TEST_CASE("regression: --delay (missing arg) gives MISSING error" * doctest::test_suite("regression")) {
     Argv av{"--delay"};
     auto cfg = run_long(av.data());
     REQUIRE(cfg.err == CT_OPT_ERR_MISSING);
 }
 
-TEST_CASE("regression: --foo bar leaves foo and bar as positionals", "[regression]") {
+TEST_CASE("regression: --foo bar leaves foo and bar as positionals" * doctest::test_suite("regression")) {
     Argv av{"--foo", "bar"};
     auto cfg = run_long(av.data());
     REQUIRE(cfg.err == CT_OPT_ERR_INVALID);
 }
 
-TEST_CASE("regression: -x leaves -x as positional", "[regression]") {
+TEST_CASE("regression: -x leaves -x as positional" * doctest::test_suite("regression")) {
     Argv av{"-x"};
     auto cfg = run_long(av.data());
     REQUIRE(cfg.err == CT_OPT_ERR_INVALID);
 }
 
-TEST_CASE("regression: - is positional", "[regression]") {
+TEST_CASE("regression: - is positional" * doctest::test_suite("regression")) {
     Argv     av{"-"};
     ct_opt_t o;
     ct_opt_init(&o, av.data());
@@ -545,7 +547,7 @@ TEST_CASE("regression: - is positional", "[regression]") {
     REQUIRE(args == expected);
 }
 
-TEST_CASE("regression: -e foo bar baz -a quux", "[regression]") {
+TEST_CASE("regression: -e foo bar baz -a quux" * doctest::test_suite("regression")) {
     Argv     av{"-e", "foo", "bar", "baz", "-a", "quux"};
     ct_opt_t o;
     ct_opt_init(&o, av.data());

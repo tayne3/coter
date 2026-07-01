@@ -1,9 +1,10 @@
-#include <catch.hpp>
 #include <cstring>
 
 #include "common.hpp"
+#include "coter/testing/doctest.h"
 
-TEST_CASE("Long Strings - Very long key", "[edge_cases]") {
+
+TEST_CASE("Long Strings - Very long key" * doctest::test_suite("edge_cases")) {
     const size_t SIZE = 10 * 1024;
 
     char* long_key = (char*)malloc(SIZE);
@@ -25,7 +26,7 @@ TEST_CASE("Long Strings - Very long key", "[edge_cases]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Long Strings - Very long value", "[edge_cases]") {
+TEST_CASE("Long Strings - Very long value" * doctest::test_suite("edge_cases")) {
     const size_t SIZE = 10 * 1024;
 
     char* long_value = (char*)malloc(SIZE);
@@ -44,7 +45,7 @@ TEST_CASE("Long Strings - Very long value", "[edge_cases]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Long Strings - Very long section name", "[edge_cases]") {
+TEST_CASE("Long Strings - Very long section name" * doctest::test_suite("edge_cases")) {
     const size_t SIZE = 1024;
 
     char* long_name = (char*)malloc(SIZE);
@@ -63,7 +64,7 @@ TEST_CASE("Long Strings - Very long section name", "[edge_cases]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Empty/NULL Values - Empty string value", "[edge_cases]") {
+TEST_CASE("Empty/NULL Values - Empty string value" * doctest::test_suite("edge_cases")) {
     ct_ini_t*         ini = ct_ini_empty();
     ct_ini_section_t* sec = ct_ini_get_section(ini, "test");
 
@@ -74,7 +75,7 @@ TEST_CASE("Empty/NULL Values - Empty string value", "[edge_cases]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Empty/NULL Values - NULL value", "[edge_cases]") {
+TEST_CASE("Empty/NULL Values - NULL value" * doctest::test_suite("edge_cases")) {
     ct_ini_t*         ini = ct_ini_empty();
     ct_ini_section_t* sec = ct_ini_get_section(ini, "test");
 
@@ -85,7 +86,7 @@ TEST_CASE("Empty/NULL Values - NULL value", "[edge_cases]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Special Characters - Special chars in value", "[edge_cases]") {
+TEST_CASE("Special Characters - Special chars in value" * doctest::test_suite("edge_cases")) {
     ct_ini_t*         ini = ct_ini_empty();
     ct_ini_section_t* sec = ct_ini_get_section(ini, "special");
 
@@ -105,7 +106,7 @@ TEST_CASE("Special Characters - Special chars in value", "[edge_cases]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Special Characters - Quoted special values", "[edge_cases]") {
+TEST_CASE("Special Characters - Quoted special values" * doctest::test_suite("edge_cases")) {
     ct_ini_t*         ini = ct_ini_empty();
     ct_ini_section_t* sec = ct_ini_get_section(ini, "quotes");
 
@@ -124,7 +125,7 @@ TEST_CASE("Special Characters - Quoted special values", "[edge_cases]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Bulk Operations - Many keys in section", "[edge_cases]") {
+TEST_CASE("Bulk Operations - Many keys in section" * doctest::test_suite("edge_cases")) {
     ct_ini_t*         ini = ct_ini_empty();
     ct_ini_section_t* sec = ct_ini_get_section(ini, "bulk");
 
@@ -142,7 +143,7 @@ TEST_CASE("Bulk Operations - Many keys in section", "[edge_cases]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Bulk Operations - Massive section count", "[edge_cases]") {
+TEST_CASE("Bulk Operations - Massive section count" * doctest::test_suite("edge_cases")) {
     ct_ini_t* ini = ct_ini_empty();
 
     for (int i = 0; i < 500; i++) {
@@ -159,7 +160,7 @@ TEST_CASE("Bulk Operations - Massive section count", "[edge_cases]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Whitespace - Whitespace only value", "[edge_cases]") {
+TEST_CASE("Whitespace - Whitespace only value" * doctest::test_suite("edge_cases")) {
     ct_ini_t*         ini = ct_ini_empty();
     ct_ini_section_t* sec = ct_ini_get_section(ini, "test");
 

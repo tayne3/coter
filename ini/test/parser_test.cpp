@@ -1,9 +1,10 @@
-#include <catch.hpp>
 #include <cstring>
 
 #include "common.hpp"
+#include "coter/testing/doctest.h"
 
-TEST_CASE("Inline Comments - Semicolon comments", "[parser]") {
+
+TEST_CASE("Inline Comments - Semicolon comments" * doctest::test_suite("parser")) {
     const char* content = "[comments]\n"
                           "basic = value1 ; this is a comment\n"
                           "spacing = value2   ;   spaced comment\n"
@@ -25,7 +26,7 @@ TEST_CASE("Inline Comments - Semicolon comments", "[parser]") {
     test_remove_temp_ini("inline_semi.ini");
 }
 
-TEST_CASE("Inline Comments - Hash comments", "[parser]") {
+TEST_CASE("Inline Comments - Hash comments" * doctest::test_suite("parser")) {
     const char* content = "[comments]\n"
                           "hash = value1 # this is a comment\n"
                           "hash_attach = value2#attached\n";
@@ -45,7 +46,7 @@ TEST_CASE("Inline Comments - Hash comments", "[parser]") {
     test_remove_temp_ini("inline_hash.ini");
 }
 
-TEST_CASE("Quote Handling - Double quotes", "[parser]") {
+TEST_CASE("Quote Handling - Double quotes" * doctest::test_suite("parser")) {
     const char* content = "[quotes]\n"
                           "basic = \"hello world\"\n"
                           "spaces = \"  spaced  \"\n"
@@ -67,7 +68,7 @@ TEST_CASE("Quote Handling - Double quotes", "[parser]") {
     test_remove_temp_ini("double_quotes.ini");
 }
 
-TEST_CASE("Quote Handling - Single quotes", "[parser]") {
+TEST_CASE("Quote Handling - Single quotes" * doctest::test_suite("parser")) {
     const char* content = "[quotes]\n"
                           "basic = 'hello world'\n"
                           "spaces = '  spaced  '\n";
@@ -87,7 +88,7 @@ TEST_CASE("Quote Handling - Single quotes", "[parser]") {
     test_remove_temp_ini("single_quotes.ini");
 }
 
-TEST_CASE("Quote Handling - Quotes protect comments", "[parser]") {
+TEST_CASE("Quote Handling - Quotes protect comments" * doctest::test_suite("parser")) {
     const char* content = "[quotes]\n"
                           "semi = \"val;ue\"\n"
                           "hash = 'val#ue'\n"
@@ -109,7 +110,7 @@ TEST_CASE("Quote Handling - Quotes protect comments", "[parser]") {
     test_remove_temp_ini("quotes_comment.ini");
 }
 
-TEST_CASE("Whitespace Handling - Whitespace trimming", "[parser]") {
+TEST_CASE("Whitespace Handling - Whitespace trimming" * doctest::test_suite("parser")) {
     const char* content = "[whitespace]\n"
                           "  key1  =  value1  \n"
                           "\tkey2\t=\tvalue2\t\n";
@@ -132,7 +133,7 @@ TEST_CASE("Whitespace Handling - Whitespace trimming", "[parser]") {
     test_remove_temp_ini("whitespace.ini");
 }
 
-TEST_CASE("Whitespace Handling - Preserved whitespace in quotes", "[parser]") {
+TEST_CASE("Whitespace Handling - Preserved whitespace in quotes" * doctest::test_suite("parser")) {
     const char* content = "[ws]\n"
                           "key1 = \"  spaced  \"\n"
                           "key2 = '\ttabbed\t'\n";
@@ -150,13 +151,13 @@ TEST_CASE("Whitespace Handling - Preserved whitespace in quotes", "[parser]") {
     test_remove_temp_ini("ws_quotes.ini");
 }
 
-TEST_CASE("Encoding - UTF-8 parsing", "[parser]") {
+TEST_CASE("Encoding - UTF-8 parsing" * doctest::test_suite("parser")) {
     ct_ini_t* ini = ct_ini_create(test_res_path("unicode.ini"));
     REQUIRE(ini != nullptr);
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Edge Cases - Massive line", "[parser]") {
+TEST_CASE("Edge Cases - Massive line" * doctest::test_suite("parser")) {
     const size_t SIZE      = 4096;
     char*        large_val = (char*)malloc(SIZE + 1);
     memset(large_val, 'x', SIZE);
@@ -188,7 +189,7 @@ TEST_CASE("Edge Cases - Massive line", "[parser]") {
     test_remove_temp_ini("massive.ini");
 }
 
-TEST_CASE("Edge Cases - Global keys", "[parser]") {
+TEST_CASE("Edge Cases - Global keys" * doctest::test_suite("parser")) {
     const char* content = "global_key1 = value1\n"
                           "global_key2 = value2\n"
                           "[section]\n"
@@ -212,7 +213,7 @@ TEST_CASE("Edge Cases - Global keys", "[parser]") {
     test_remove_temp_ini("global.ini");
 }
 
-TEST_CASE("Parser Config - No-section keys can be enabled explicitly", "[parser]") {
+TEST_CASE("Parser Config - No-section keys can be enabled explicitly" * doctest::test_suite("parser")) {
     const char* content = "global_key1 = value1\n"
                           "global_key2 = value2\n"
                           "[section]\n"
@@ -239,7 +240,7 @@ TEST_CASE("Parser Config - No-section keys can be enabled explicitly", "[parser]
     test_remove_temp_ini("global_options.ini");
 }
 
-TEST_CASE("Parser Config - Colon delimiter can be enabled explicitly", "[parser]") {
+TEST_CASE("Parser Config - Colon delimiter can be enabled explicitly" * doctest::test_suite("parser")) {
     const char* content = "+IPR:9\n"
                           "+LFR:868\n"
                           "+PATH:C:\\\\temp\\\\file\n"
@@ -269,7 +270,7 @@ TEST_CASE("Parser Config - Colon delimiter can be enabled explicitly", "[parser]
     test_remove_temp_ini("colon_options.ini");
 }
 
-TEST_CASE("Parser Config - Delimiter is strict", "[parser]") {
+TEST_CASE("Parser Config - Delimiter is strict" * doctest::test_suite("parser")) {
     const char* content = "eq = value1\n"
                           "colon:value2\n";
 

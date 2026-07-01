@@ -3,14 +3,15 @@
 #endif
 #include "coter/thread/thpool.h"
 
-#include <catch.hpp>
 #include <cinttypes>
 #include <thread>
 
 #include "coter/core/platform.h"
 #include "coter/core/time.h"
 #include "coter/sync/mutex.h"
+#include "coter/testing/doctest.h"
 #include "coter/thread/jobpool.h"
+
 
 typedef struct {
     int        count;
@@ -29,7 +30,7 @@ static int thread_task(void* arg) {
     return 0;
 }
 
-TEST_CASE("thread pool can be created and destroyed", "[thpool]") {
+TEST_CASE("thread pool can be created and destroyed" * doctest::test_suite("thpool")) {
     ct_thpool_config_t config;
     ct_thpool_default_config(&config);
     ct_thpool_t* pool = ct_thpool_create(4, &config);
@@ -37,7 +38,7 @@ TEST_CASE("thread pool can be created and destroyed", "[thpool]") {
     ct_thpool_destroy(pool);
 }
 
-TEST_CASE("submitted tasks are executed by the thread pool", "[thpool]") {
+TEST_CASE("submitted tasks are executed by the thread pool" * doctest::test_suite("thpool")) {
     ct_thpool_config_t config;
     ct_thpool_default_config(&config);
     ct_thpool_t* pool = ct_thpool_create(4, &config);
@@ -62,7 +63,7 @@ TEST_CASE("submitted tasks are executed by the thread pool", "[thpool]") {
     ct_thpool_destroy(pool);
 }
 
-TEST_CASE("submitting a null task returns an error", "[thpool]") {
+TEST_CASE("submitting a null task returns an error" * doctest::test_suite("thpool")) {
     ct_thpool_config_t config;
     ct_thpool_default_config(&config);
     ct_thpool_t* pool = ct_thpool_create(2, &config);
@@ -75,7 +76,7 @@ TEST_CASE("submitting a null task returns an error", "[thpool]") {
     ct_thpool_destroy(pool);
 }
 
-TEST_CASE("thread pool handles more tasks than worker threads", "[thpool]") {
+TEST_CASE("thread pool handles more tasks than worker threads" * doctest::test_suite("thpool")) {
     ct_thpool_config_t config;
     ct_thpool_default_config(&config);
     ct_thpool_t* pool = ct_thpool_create(2, &config);
@@ -100,7 +101,7 @@ TEST_CASE("thread pool handles more tasks than worker threads", "[thpool]") {
     ct_thpool_destroy(pool);
 }
 
-TEST_CASE("non-blocking mode rejects submissions when overloaded", "[thpool]") {
+TEST_CASE("non-blocking mode rejects submissions when overloaded" * doctest::test_suite("thpool")) {
     ct_thpool_config_t config;
     ct_thpool_default_config(&config);
     config.non_blocking = true;
@@ -150,7 +151,7 @@ static int submit_tasks(void* arg) {
     return 0;
 }
 
-TEST_CASE("multiple threads can submit tasks concurrently", "[thpool]") {
+TEST_CASE("multiple threads can submit tasks concurrently" * doctest::test_suite("thpool")) {
     ct_thpool_config_t config;
     ct_thpool_default_config(&config);
     submit_pool = ct_thpool_create(2, &config);
@@ -177,7 +178,7 @@ TEST_CASE("multiple threads can submit tasks concurrently", "[thpool]") {
     submit_pool = nullptr;
 }
 
-TEST_CASE("submitting after close returns an error", "[thpool]") {
+TEST_CASE("submitting after close returns an error" * doctest::test_suite("thpool")) {
     ct_thpool_config_t config;
     ct_thpool_default_config(&config);
     ct_thpool_t* pool = ct_thpool_create(2, &config);
@@ -208,7 +209,7 @@ TEST_CASE("submitting after close returns an error", "[thpool]") {
     ct_mutex_destroy(&counter.mutex);
 }
 
-TEST_CASE("thread pool outperforms raw thread creation for many tasks", "[thpool]") {
+TEST_CASE("thread pool outperforms raw thread creation for many tasks" * doctest::test_suite("thpool")) {
     const int   NUM_TASKS = 10000;
     ct_time64_t start, end, duration_without_pool, duration_with_pool, duration_with_jobpool;
 

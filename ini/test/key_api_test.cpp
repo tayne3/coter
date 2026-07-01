@@ -1,8 +1,8 @@
-#include <catch.hpp>
-
 #include "common.hpp"
+#include "coter/testing/doctest.h"
 
-TEST_CASE("Add/Get/Find Key - Add key", "[key_api]") {
+
+TEST_CASE("Add/Get/Find Key - Add key" * doctest::test_suite("key_api")) {
     ct_ini_t*         ini = ct_ini_empty();
     ct_ini_section_t* sec = ct_ini_get_section(ini, "test");
 
@@ -13,7 +13,7 @@ TEST_CASE("Add/Get/Find Key - Add key", "[key_api]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Add/Get/Find Key - Get key creates", "[key_api]") {
+TEST_CASE("Add/Get/Find Key - Get key creates" * doctest::test_suite("key_api")) {
     ct_ini_t*         ini = ct_ini_empty();
     ct_ini_section_t* sec = ct_ini_get_section(ini, "test");
 
@@ -26,7 +26,7 @@ TEST_CASE("Add/Get/Find Key - Get key creates", "[key_api]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Add/Get/Find Key - Find key does not create", "[key_api]") {
+TEST_CASE("Add/Get/Find Key - Find key does not create" * doctest::test_suite("key_api")) {
     ct_ini_t*         ini = ct_ini_empty();
     ct_ini_section_t* sec = ct_ini_get_section(ini, "test");
 
@@ -36,7 +36,7 @@ TEST_CASE("Add/Get/Find Key - Find key does not create", "[key_api]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Add/Get/Find Key - Has key", "[key_api]") {
+TEST_CASE("Add/Get/Find Key - Has key" * doctest::test_suite("key_api")) {
     ct_ini_t*         ini = ct_ini_empty();
     ct_ini_section_t* sec = ct_ini_get_section(ini, "test");
 
@@ -48,7 +48,7 @@ TEST_CASE("Add/Get/Find Key - Has key", "[key_api]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Add/Get/Find Key - Key case insensitivity", "[key_api]") {
+TEST_CASE("Add/Get/Find Key - Key case insensitivity" * doctest::test_suite("key_api")) {
     ct_ini_t*         ini = ct_ini_empty();
     ct_ini_section_t* sec = ct_ini_get_section(ini, "test");
 
@@ -62,7 +62,7 @@ TEST_CASE("Add/Get/Find Key - Key case insensitivity", "[key_api]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Add/Get/Find Key - Key complex names", "[key_api]") {
+TEST_CASE("Add/Get/Find Key - Key complex names" * doctest::test_suite("key_api")) {
     const char* names[] = {
         "key_with_underscore",
         "key-with-hyphen",
@@ -84,7 +84,7 @@ TEST_CASE("Add/Get/Find Key - Key complex names", "[key_api]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Set/Modify Value - Set value", "[key_api]") {
+TEST_CASE("Set/Modify Value - Set value" * doctest::test_suite("key_api")) {
     ct_ini_t*         ini = ct_ini_empty();
     ct_ini_section_t* sec = ct_ini_get_section(ini, "test");
 
@@ -97,7 +97,7 @@ TEST_CASE("Set/Modify Value - Set value", "[key_api]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Set/Modify Value - Overwrite key", "[key_api]") {
+TEST_CASE("Set/Modify Value - Overwrite key" * doctest::test_suite("key_api")) {
     ct_ini_t*         ini = ct_ini_empty();
     ct_ini_section_t* sec = ct_ini_get_section(ini, "test");
 
@@ -111,7 +111,7 @@ TEST_CASE("Set/Modify Value - Overwrite key", "[key_api]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Remove Key - Remove key", "[key_api]") {
+TEST_CASE("Remove Key - Remove key" * doctest::test_suite("key_api")) {
     ct_ini_t*         ini = ct_ini_empty();
     ct_ini_section_t* sec = ct_ini_get_section(ini, "test");
 
@@ -124,7 +124,7 @@ TEST_CASE("Remove Key - Remove key", "[key_api]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Remove Key - Remove key not found", "[key_api]") {
+TEST_CASE("Remove Key - Remove key not found" * doctest::test_suite("key_api")) {
     ct_ini_t*         ini = ct_ini_empty();
     ct_ini_section_t* sec = ct_ini_get_section(ini, "test");
 
@@ -133,7 +133,7 @@ TEST_CASE("Remove Key - Remove key not found", "[key_api]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Remove Key - Remove key case insensitive", "[key_api]") {
+TEST_CASE("Remove Key - Remove key case insensitive" * doctest::test_suite("key_api")) {
     ct_ini_t*         ini = ct_ini_empty();
     ct_ini_section_t* sec = ct_ini_get_section(ini, "test");
 
@@ -145,7 +145,7 @@ TEST_CASE("Remove Key - Remove key case insensitive", "[key_api]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Direct Key Access - Direct get key", "[key_api]") {
+TEST_CASE("Direct Key Access - Direct get key" * doctest::test_suite("key_api")) {
     ct_ini_t* ini = ct_ini_empty();
 
     ct_ini_key_t* key = ct_ini_get_key(ini, "section", "key");
@@ -157,7 +157,7 @@ TEST_CASE("Direct Key Access - Direct get key", "[key_api]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Direct Key Access - Direct find key", "[key_api]") {
+TEST_CASE("Direct Key Access - Direct find key" * doctest::test_suite("key_api")) {
     ct_ini_t* ini = ct_ini_empty();
 
     REQUIRE(ct_ini_find_key(ini, "section", "key") == nullptr);
@@ -172,7 +172,7 @@ TEST_CASE("Direct Key Access - Direct find key", "[key_api]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Direct Key Access - Direct key default section", "[key_api]") {
+TEST_CASE("Direct Key Access - Direct key default section" * doctest::test_suite("key_api")) {
     ct_ini_t*     ini       = ct_ini_empty();
     ct_ini_key_t* key_null  = ct_ini_get_key(ini, nullptr, "default_key");
     ct_ini_key_t* key_empty = ct_ini_get_key(ini, "", "default_key");

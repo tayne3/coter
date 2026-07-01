@@ -1,10 +1,11 @@
 #include "coter/sync/event.h"
 
-#include <catch.hpp>
 #include <thread>
 
 #include "coter/core/time.h"
 #include "coter/sync/atomic.h"
+#include "coter/testing/doctest.h"
+
 
 namespace {
 struct event_env {
@@ -45,7 +46,7 @@ static int timed_wait_worker(void* arg) {
 }
 }  // namespace
 
-TEST_CASE("signal then wait consumes the signal", "[sync][event]") {
+TEST_CASE("signal then wait consumes the signal" * doctest::test_suite("sync") * doctest::test_suite("event")) {
     event_env env;
 
     REQUIRE(ct_event_signal(&env.event) == 0);
@@ -53,7 +54,7 @@ TEST_CASE("signal then wait consumes the signal", "[sync][event]") {
     REQUIRE(ct_event_timedwait(&env.event, 20) == ETIMEDOUT);
 }
 
-TEST_CASE("multiple signals do not accumulate", "[sync][event]") {
+TEST_CASE("multiple signals do not accumulate" * doctest::test_suite("sync") * doctest::test_suite("event")) {
     event_env env;
 
     REQUIRE(ct_event_signal(&env.event) == 0);
@@ -62,7 +63,7 @@ TEST_CASE("multiple signals do not accumulate", "[sync][event]") {
     REQUIRE(ct_event_timedwait(&env.event, 20) == ETIMEDOUT);
 }
 
-TEST_CASE("wait blocks until signal arrives", "[sync][event]") {
+TEST_CASE("wait blocks until signal arrives" * doctest::test_suite("sync") * doctest::test_suite("event")) {
     event_env   env;
     std::thread thread;
 
@@ -83,13 +84,13 @@ TEST_CASE("wait blocks until signal arrives", "[sync][event]") {
     REQUIRE(ct_atomic_int_load(&env.waiter_done) == 1);
 }
 
-TEST_CASE("timedwait times out without signal", "[sync][event]") {
+TEST_CASE("timedwait times out without signal" * doctest::test_suite("sync") * doctest::test_suite("event")) {
     event_env env;
 
     REQUIRE(ct_event_timedwait(&env.event, 20) == ETIMEDOUT);
 }
 
-TEST_CASE("signal wakes only one waiter", "[sync][event]") {
+TEST_CASE("signal wakes only one waiter" * doctest::test_suite("sync") * doctest::test_suite("event")) {
     timed_wait_env env;
     std::thread    threads[2];
 
@@ -109,7 +110,8 @@ TEST_CASE("signal wakes only one waiter", "[sync][event]") {
     REQUIRE(ct_atomic_int_load(&env.error_count) == 0);
 }
 
-TEST_CASE("two signals wake two waiters when signaled separately", "[sync][event]") {
+TEST_CASE("two signals wake two waiters when signaled separately" * doctest::test_suite("sync") *
+          doctest::test_suite("event")) {
     timed_wait_env env;
     std::thread    threads[2];
 
@@ -132,7 +134,7 @@ TEST_CASE("two signals wake two waiters when signaled separately", "[sync][event
     REQUIRE(ct_atomic_int_load(&env.error_count) == 0);
 }
 
-TEST_CASE("reset clears pending signal", "[sync][event]") {
+TEST_CASE("reset clears pending signal" * doctest::test_suite("sync") * doctest::test_suite("event")) {
     event_env env;
 
     REQUIRE(ct_event_signal(&env.event) == 0);

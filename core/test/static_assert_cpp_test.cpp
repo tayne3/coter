@@ -1,6 +1,5 @@
-#include <catch.hpp>
-
 #include "coter/core/macro.h"
+#include "coter/testing/doctest.h"
 
 struct test_struct {
     char a;

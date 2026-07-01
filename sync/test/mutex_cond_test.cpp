@@ -1,9 +1,10 @@
-#include <catch.hpp>
 #include <thread>
 
 #include "coter/sync/atomic.h"
 #include "coter/sync/cond.h"
 #include "coter/sync/mutex.h"
+#include "coter/testing/doctest.h"
+
 
 namespace {
 struct cond_env {
@@ -70,7 +71,7 @@ static int cond_wait_for_worker(void* arg) {
 }
 }  // namespace
 
-TEST_CASE("mutex blocks other threads from entering", "[sync][mutex]") {
+TEST_CASE("mutex blocks other threads from entering" * doctest::test_suite("sync") * doctest::test_suite("mutex")) {
     mutex_env env;
     REQUIRE(ct_mutex_lock(&env.mutex) == 0);
     std::thread thread(mutex_waiter, &env);
@@ -89,7 +90,7 @@ TEST_CASE("mutex blocks other threads from entering", "[sync][mutex]") {
     thread.join();
 }
 
-TEST_CASE("trylock reports busy when already locked", "[sync][mutex]") {
+TEST_CASE("trylock reports busy when already locked" * doctest::test_suite("sync") * doctest::test_suite("mutex")) {
     mutex_env env;
 
     REQUIRE(ct_mutex_lock(&env.mutex) == 0);
@@ -97,7 +98,7 @@ TEST_CASE("trylock reports busy when already locked", "[sync][mutex]") {
     REQUIRE(ct_mutex_unlock(&env.mutex) == 0);
 }
 
-TEST_CASE("condition signal wakes waiter", "[sync][cond]") {
+TEST_CASE("condition signal wakes waiter" * doctest::test_suite("sync") * doctest::test_suite("cond")) {
     cond_env    env;
     std::thread thread(cond_waiter, &env);
 
@@ -112,7 +113,8 @@ TEST_CASE("condition signal wakes waiter", "[sync][cond]") {
     REQUIRE(ct_atomic_int_load(&env.awakened) == 1);
 }
 
-TEST_CASE("condition wait_for times out immediately when timeout is zero", "[sync][cond]") {
+TEST_CASE("condition wait_for times out immediately when timeout is zero" * doctest::test_suite("sync") *
+          doctest::test_suite("cond")) {
     cond_env env;
 
     REQUIRE(ct_mutex_lock(&env.mutex) == 0);
@@ -120,7 +122,8 @@ TEST_CASE("condition wait_for times out immediately when timeout is zero", "[syn
     REQUIRE(ct_mutex_unlock(&env.mutex) == 0);
 }
 
-TEST_CASE("condition wait_for times out after positive timeout", "[sync][cond]") {
+TEST_CASE("condition wait_for times out after positive timeout" * doctest::test_suite("sync") *
+          doctest::test_suite("cond")) {
     cond_env env;
 
     REQUIRE(ct_mutex_lock(&env.mutex) == 0);
@@ -128,7 +131,8 @@ TEST_CASE("condition wait_for times out after positive timeout", "[sync][cond]")
     REQUIRE(ct_mutex_unlock(&env.mutex) == 0);
 }
 
-TEST_CASE("condition wait_for with negative timeout waits until signaled", "[sync][cond]") {
+TEST_CASE("condition wait_for with negative timeout waits until signaled" * doctest::test_suite("sync") *
+          doctest::test_suite("cond")) {
     cond_env    env;
     std::thread thread(cond_wait_for_worker, &env);
 
@@ -143,7 +147,8 @@ TEST_CASE("condition wait_for with negative timeout waits until signaled", "[syn
     REQUIRE(ct_atomic_int_load(&env.awakened) == 1);
 }
 
-TEST_CASE("condition wait_for handles timeouts larger than uint32 max", "[sync][cond]") {
+TEST_CASE("condition wait_for handles timeouts larger than uint32 max" * doctest::test_suite("sync") *
+          doctest::test_suite("cond")) {
     cond_env    env;
     std::thread thread;
 

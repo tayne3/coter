@@ -1,7 +1,9 @@
 #include "coter/container/heap.h"
 
-#include <catch.hpp>
 #include <vector>
+
+#include "coter/testing/doctest.h"
+
 
 typedef struct {
     ct_heap_node_t node;
@@ -14,7 +16,7 @@ static int my_item_cmp(const ct_heap_node_t* a, const ct_heap_node_t* b) {
     return ia->val - ib->val;
 }
 
-TEST_CASE("Heap Intrusive Basic", "[heap]") {
+TEST_CASE("Heap Intrusive Basic" * doctest::test_suite("heap")) {
     ct_heap_t heap;
     ct_heap_init(&heap, my_item_cmp);
 
@@ -28,7 +30,7 @@ TEST_CASE("Heap Intrusive Basic", "[heap]") {
     REQUIRE(ct_heap_size(&heap) == 5);
     REQUIRE(((my_item_t*)ct_heap_top(&heap))->val == 10);
 
-    SECTION("Pop items") {
+    SUBCASE("Pop items") {
         int expected[] = {10, 20, 30, 50, 100};
         for (int i = 0; i < 5; ++i) {
             ct_heap_node_t* top = ct_heap_pop(&heap);
@@ -37,7 +39,7 @@ TEST_CASE("Heap Intrusive Basic", "[heap]") {
         REQUIRE(ct_heap_is_empty(&heap));
     }
 
-    SECTION("Remove arbitrary") {
+    SUBCASE("Remove arbitrary") {
         /* Remove 20 */
         ct_heap_remove(&heap, &items[1].node);
         REQUIRE(ct_heap_size(&heap) == 4);
@@ -50,7 +52,7 @@ TEST_CASE("Heap Intrusive Basic", "[heap]") {
     }
 }
 
-TEST_CASE("Heap Update Priority", "[heap]") {
+TEST_CASE("Heap Update Priority" * doctest::test_suite("heap")) {
     ct_heap_t heap;
     ct_heap_init(&heap, my_item_cmp);
 
@@ -71,7 +73,7 @@ TEST_CASE("Heap Update Priority", "[heap]") {
     REQUIRE(ct_heap_pop(&heap) == &items[2].node);
 }
 
-TEST_CASE("Heap Clear", "[heap]") {
+TEST_CASE("Heap Clear" * doctest::test_suite("heap")) {
     ct_heap_t heap;
     ct_heap_init(&heap, my_item_cmp);
 
@@ -87,14 +89,14 @@ TEST_CASE("Heap Clear", "[heap]") {
     REQUIRE(ct_heap_top(&heap) == nullptr);
 }
 
-TEST_CASE("Heap Move", "[heap]") {
+TEST_CASE("Heap Move" * doctest::test_suite("heap")) {
     my_item_t items_a[3], items_b[3];
     for (int i = 0; i < 3; ++i) {
         items_a[i].val = (i + 1) * 10;      // 10, 20, 30
         items_b[i].val = (i + 1) * 10 + 5;  // 15, 25, 35
     }
 
-    SECTION("Move to empty heap") {
+    SUBCASE("Move to empty heap") {
         ct_heap_t heap_a, heap_b;
         ct_heap_init(&heap_a, my_item_cmp);
         ct_heap_init(&heap_b, my_item_cmp);
@@ -108,7 +110,7 @@ TEST_CASE("Heap Move", "[heap]") {
         REQUIRE(((my_item_t*)ct_heap_top(&heap_a))->val == 15);
     }
 
-    SECTION("Merge two non-empty heaps") {
+    SUBCASE("Merge two non-empty heaps") {
         ct_heap_t heap_a, heap_b;
         ct_heap_init(&heap_a, my_item_cmp);
         ct_heap_init(&heap_b, my_item_cmp);
@@ -130,7 +132,7 @@ TEST_CASE("Heap Move", "[heap]") {
         }
     }
 
-    SECTION("Move from empty heap") {
+    SUBCASE("Move from empty heap") {
         ct_heap_t heap_a, heap_b;
         ct_heap_init(&heap_a, my_item_cmp);
         ct_heap_init(&heap_b, my_item_cmp);

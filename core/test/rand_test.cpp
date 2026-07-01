@@ -1,9 +1,11 @@
 #include "coter/core/rand.h"
 
-#include <catch.hpp>
 #include <cstring>
 
-TEST_CASE("rand_null_safety", "[rand]") {
+#include "coter/testing/doctest.h"
+
+
+TEST_CASE("rand_null_safety" * doctest::test_suite("rand")) {
     REQUIRE(ct_random_u64(nullptr) == 0);
     REQUIRE(ct_random_i64(nullptr) == 0);
     REQUIRE(ct_random_u64_range(nullptr, 10, 20) == 0);
@@ -17,7 +19,7 @@ TEST_CASE("rand_null_safety", "[rand]") {
     ct_random_bytes(nullptr, nullptr, sizeof(buffer));
 }
 
-TEST_CASE("rand_seed_is_reproducible", "[rand]") {
+TEST_CASE("rand_seed_is_reproducible" * doctest::test_suite("rand")) {
     ct_random_t lhs;
     ct_random_t rhs;
 
@@ -27,7 +29,7 @@ TEST_CASE("rand_seed_is_reproducible", "[rand]") {
     for (int i = 0; i < 64; ++i) { REQUIRE(ct_random_u64(&lhs) == ct_random_u64(&rhs)); }
 }
 
-TEST_CASE("rand_i64_is_reproducible", "[rand]") {
+TEST_CASE("rand_i64_is_reproducible" * doctest::test_suite("rand")) {
     ct_random_t lhs;
     ct_random_t rhs;
 
@@ -37,7 +39,7 @@ TEST_CASE("rand_i64_is_reproducible", "[rand]") {
     for (int i = 0; i < 64; ++i) { REQUIRE(ct_random_i64(&lhs) == ct_random_i64(&rhs)); }
 }
 
-TEST_CASE("rand_edge_seeds_are_reproducible", "[rand]") {
+TEST_CASE("rand_edge_seeds_are_reproducible" * doctest::test_suite("rand")) {
     ct_random_t zero_a;
     ct_random_t zero_b;
     ct_random_t max_a;
@@ -54,7 +56,7 @@ TEST_CASE("rand_edge_seeds_are_reproducible", "[rand]") {
     }
 }
 
-TEST_CASE("rand_different_seeds_diverge", "[rand]") {
+TEST_CASE("rand_different_seeds_diverge" * doctest::test_suite("rand")) {
     ct_random_t lhs;
     ct_random_t rhs;
 
@@ -71,7 +73,7 @@ TEST_CASE("rand_different_seeds_diverge", "[rand]") {
     REQUIRE_FALSE(all_same);
 }
 
-TEST_CASE("rand_auto_init_changes_state", "[rand]") {
+TEST_CASE("rand_auto_init_changes_state" * doctest::test_suite("rand")) {
     ct_random_t rng;
     ct_random_init(&rng);
 
@@ -81,7 +83,7 @@ TEST_CASE("rand_auto_init_changes_state", "[rand]") {
     REQUIRE(a != b);
 }
 
-TEST_CASE("rand_u64_range_uses_half_open_interval", "[rand]") {
+TEST_CASE("rand_u64_range_uses_half_open_interval" * doctest::test_suite("rand")) {
     ct_random_t rng;
     ct_random_seed(&rng, 1);
 
@@ -97,7 +99,7 @@ TEST_CASE("rand_u64_range_uses_half_open_interval", "[rand]") {
     REQUIRE(ct_random_u64_range(&rng, UINT64_MAX - 5, UINT64_MAX) < UINT64_MAX);
 }
 
-TEST_CASE("rand_i64_range_uses_half_open_interval", "[rand]") {
+TEST_CASE("rand_i64_range_uses_half_open_interval" * doctest::test_suite("rand")) {
     ct_random_t rng;
     ct_random_seed(&rng, 2);
 
@@ -111,7 +113,7 @@ TEST_CASE("rand_i64_range_uses_half_open_interval", "[rand]") {
     REQUIRE(ct_random_i64_range(&rng, 50, -50) == 50);
 }
 
-TEST_CASE("rand_i64_range_handles_extreme_bounds", "[rand]") {
+TEST_CASE("rand_i64_range_handles_extreme_bounds" * doctest::test_suite("rand")) {
     ct_random_t rng;
     ct_random_seed(&rng, 4);
 
@@ -126,7 +128,7 @@ TEST_CASE("rand_i64_range_handles_extreme_bounds", "[rand]") {
     }
 }
 
-TEST_CASE("rand_f64_is_unit_interval", "[rand]") {
+TEST_CASE("rand_f64_is_unit_interval" * doctest::test_suite("rand")) {
     ct_random_t rng;
     ct_random_seed(&rng, 3);
 
@@ -137,7 +139,7 @@ TEST_CASE("rand_f64_is_unit_interval", "[rand]") {
     }
 }
 
-TEST_CASE("rand_bytes_are_reproducible", "[rand]") {
+TEST_CASE("rand_bytes_are_reproducible" * doctest::test_suite("rand")) {
     ct_random_t lhs;
     ct_random_t rhs;
     uint8_t     a[33] = {0};
@@ -152,7 +154,7 @@ TEST_CASE("rand_bytes_are_reproducible", "[rand]") {
     REQUIRE(std::memcmp(a, b, sizeof(a)) == 0);
 }
 
-TEST_CASE("rand_bytes_writes_data", "[rand]") {
+TEST_CASE("rand_bytes_writes_data" * doctest::test_suite("rand")) {
     ct_random_t rng;
     uint8_t     buffer[31] = {0};
 
@@ -169,7 +171,7 @@ TEST_CASE("rand_bytes_writes_data", "[rand]") {
     REQUIRE(any_non_zero);
 }
 
-TEST_CASE("rand_bytes_zero_length_is_noop", "[rand]") {
+TEST_CASE("rand_bytes_zero_length_is_noop" * doctest::test_suite("rand")) {
     ct_random_t rng;
     uint8_t     buffer[4] = {1, 2, 3, 4};
 

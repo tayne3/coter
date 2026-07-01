@@ -1,10 +1,11 @@
 #include "coter/sync/rwlock.h"
 
-#include <catch.hpp>
 #include <thread>
 
 #include "coter/core/time.h"
 #include "coter/sync/atomic.h"
+#include "coter/testing/doctest.h"
+
 
 namespace {
 struct rwlock_env {
@@ -51,7 +52,7 @@ static int try_writer_thread(void* arg) {
 }
 }  // namespace
 
-TEST_CASE("try write lock fails while reader holds", "[sync][rwlock]") {
+TEST_CASE("try write lock fails while reader holds" * doctest::test_suite("sync") * doctest::test_suite("rwlock")) {
     rwlock_env env;
 
     REQUIRE(ct_rwlock_rdlock(&env.lock) == 0);
@@ -61,7 +62,7 @@ TEST_CASE("try write lock fails while reader holds", "[sync][rwlock]") {
     REQUIRE(ct_rwlock_rdunlock(&env.lock) == 0);
 }
 
-TEST_CASE("try read lock fails while writer holds", "[sync][rwlock]") {
+TEST_CASE("try read lock fails while writer holds" * doctest::test_suite("sync") * doctest::test_suite("rwlock")) {
     rwlock_env env;
 
     REQUIRE(ct_rwlock_wrlock(&env.lock) == 0);
@@ -71,7 +72,8 @@ TEST_CASE("try read lock fails while writer holds", "[sync][rwlock]") {
     REQUIRE(ct_rwlock_wrunlock(&env.lock) == 0);
 }
 
-TEST_CASE("parallel readers are allowed and writer is blocked", "[sync][rwlock]") {
+TEST_CASE("parallel readers are allowed and writer is blocked" * doctest::test_suite("sync") *
+          doctest::test_suite("rwlock")) {
     rwlock_env  env;
     std::thread readers[2];
     std::thread writer;

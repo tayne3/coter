@@ -1,8 +1,10 @@
 #include "coter/core/time.h"
 
-#include <catch.hpp>
 #include <thread>
 #include <vector>
+
+#include "coter/testing/doctest.h"
+
 
 TEST_CASE("uptime_monotonic") {
     const ct_time64_t t1 = ct_getuptime_ms();
@@ -16,7 +18,7 @@ TEST_CASE("uptime_monotonic") {
     }
 }
 
-TEST_CASE("sleep_timing", "[timing]") {
+TEST_CASE("sleep_timing" * doctest::test_suite("timing")) {
     const int durations[] = {10, 50, 100, 200};
     for (int i = 0; i < 4; ++i) {
         const ct_time64_t start_us = ct_gethrtime_us();
@@ -42,7 +44,7 @@ TEST_CASE("hrtime_monotonic") {
     }
 }
 
-TEST_CASE("timeofday_consistency", "[timing]") {
+TEST_CASE("timeofday_consistency" * doctest::test_suite("timing")) {
     const ct_time64_t us1 = ct_gettimeofday_us();
     const ct_time64_t ms1 = us1 / 1000;
     const ct_time64_t ms2 = ct_gettimeofday_ms();
@@ -50,7 +52,7 @@ TEST_CASE("timeofday_consistency", "[timing]") {
     REQUIRE(ms2 <= ms1 + 10);
 }
 
-TEST_CASE("localtime_now_consistency", "[concurrency]") {
+TEST_CASE("localtime_now_consistency" * doctest::test_suite("concurrency")) {
     struct tm tmv{};
     ct_localtime_now(&tmv);
     const ct_time_t t_now = ct_current_second();
@@ -68,7 +70,7 @@ TEST_CASE("localtime_now_consistency", "[concurrency]") {
     REQUIRE(tmv.tm_sec <= 60);
 }
 
-TEST_CASE("localtime_now_concurrent", "[concurrency]") {
+TEST_CASE("localtime_now_concurrent" * doctest::test_suite("concurrency")) {
     const int                threads = 4;
     const int                loops   = 20;
     std::vector<std::thread> ts;
@@ -87,7 +89,7 @@ TEST_CASE("localtime_now_concurrent", "[concurrency]") {
     for (auto& th : ts) th.join();
 }
 
-TEST_CASE("current_time_macros", "[timing]") {
+TEST_CASE("current_time_macros" * doctest::test_suite("timing")) {
     const ct_time64_t us1 = ct_gettimeofday_us();
     const ct_time64_t ms1 = us1 / 1000;
     const ct_time64_t ms2 = ct_current_millisecond();
@@ -98,7 +100,7 @@ TEST_CASE("current_time_macros", "[timing]") {
     REQUIRE(us2 <= us1 + 5000);
 }
 
-TEST_CASE("sleep_seconds_quick", "[timing]") {
+TEST_CASE("sleep_seconds_quick" * doctest::test_suite("timing")) {
     const ct_time64_t start_us = ct_gethrtime_us();
     ct_sleep(0);
     const ct_time64_t end_us   = ct_gethrtime_us();
@@ -106,7 +108,7 @@ TEST_CASE("sleep_seconds_quick", "[timing]") {
     REQUIRE(quick_ms <= 5);
 }
 
-TEST_CASE("usleep_minimum_behavior", "[timing]") {
+TEST_CASE("usleep_minimum_behavior" * doctest::test_suite("timing")) {
     const ct_time64_t s1 = ct_gethrtime_us();
     ct_usleep(1);
     const ct_time64_t e1  = ct_gethrtime_us();

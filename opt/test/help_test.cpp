@@ -4,8 +4,8 @@
 #include <string>
 #include <vector>
 
-#include "catch.hpp"
 #include "coter/opt/opt.h"
+#include "coter/testing/doctest.h"
 
 namespace {
 
@@ -92,42 +92,42 @@ ct_opt_help_config_t fixed_cfg(int width = 80, int min_desc = 26, int max_left =
 
 }  // namespace
 
-TEST_CASE("help / basic rendering", "[help][basic]") {
+TEST_CASE("help / basic rendering" * doctest::test_suite("help") * doctest::test_suite("basic")) {
     CaptureFile          cap;
     ct_opt_help_config_t cfg = fixed_cfg();
     ct_opt_help(cap.fp(), kTypical, -1, &cfg);
     const std::string out = cap.read();
     INFO(out);
 
-    SECTION("long names appear") {
+    SUBCASE("long names appear") {
         REQUIRE(out.find("--help") != std::string::npos);
         REQUIRE(out.find("--output") != std::string::npos);
         REQUIRE(out.find("--verbose") != std::string::npos);
         REQUIRE(out.find("--config") != std::string::npos);
     }
 
-    SECTION("short names appear") {
+    SUBCASE("short names appear") {
         REQUIRE(out.find("-h") != std::string::npos);
         REQUIRE(out.find("-o") != std::string::npos);
         REQUIRE(out.find("-v") != std::string::npos);
         REQUIRE(out.find("-c") != std::string::npos);
     }
 
-    SECTION("argtype suffixes are correct") {
+    SUBCASE("argtype suffixes are correct") {
         REQUIRE(out.find("--output=ARG") != std::string::npos);
         REQUIRE(out.find("--config[=ARG]") != std::string::npos);
         REQUIRE(out.find("--help=") == std::string::npos);
         REQUIRE(out.find("--verbose=") == std::string::npos);
     }
 
-    SECTION("description text appears") {
+    SUBCASE("description text appears") {
         REQUIRE(out.find("Show this help message") != std::string::npos);
         REQUIRE(out.find("Write output to FILE") != std::string::npos);
         REQUIRE(out.find("Enable verbose mode") != std::string::npos);
         REQUIRE(out.find("Load config from FILE") != std::string::npos);
     }
 
-    SECTION("output is non-empty and multi-line") {
+    SUBCASE("output is non-empty and multi-line") {
         REQUIRE(!out.empty());
         int newlines = 0;
         for (char c : out) {
@@ -137,8 +137,8 @@ TEST_CASE("help / basic rendering", "[help][basic]") {
     }
 }
 
-TEST_CASE("help / visibility", "[help][visibility]") {
-    SECTION("NULL description hides option") {
+TEST_CASE("help / visibility" * doctest::test_suite("help") * doctest::test_suite("visibility")) {
+    SUBCASE("NULL description hides option") {
         static const ct_opt_def_t opts[] = {
             {"visible", 'v', CT_OPT_NONE, "I am visible", NULL},
             {"hidden", 'x', CT_OPT_NONE, NULL, NULL},
@@ -155,7 +155,7 @@ TEST_CASE("help / visibility", "[help][visibility]") {
         REQUIRE(out.find("-x") == std::string::npos);
     }
 
-    SECTION("empty description also hides option") {
+    SUBCASE("empty description also hides option") {
         static const ct_opt_def_t opts[] = {
             {"shown", 's', CT_OPT_NONE, "Shown", NULL},
             {"silent", 'q', CT_OPT_NONE, "", NULL},
@@ -171,7 +171,7 @@ TEST_CASE("help / visibility", "[help][visibility]") {
         REQUIRE(out.find("--silent") == std::string::npos);
     }
 
-    SECTION("all-hidden produces empty output") {
+    SUBCASE("all-hidden produces empty output") {
         static const ct_opt_def_t opts[] = {
             {"a", 'a', CT_OPT_NONE, NULL, NULL},
             {"b", 'b', CT_OPT_NONE, NULL, NULL},
@@ -184,14 +184,14 @@ TEST_CASE("help / visibility", "[help][visibility]") {
     }
 }
 
-TEST_CASE("help / column alignment", "[help][layout]") {
+TEST_CASE("help / column alignment" * doctest::test_suite("help") * doctest::test_suite("layout")) {
     CaptureFile          cap;
     ct_opt_help_config_t cfg = fixed_cfg();
     ct_opt_help(cap.fp(), kTypical, -1, &cfg);
     const std::string out = cap.read();
     INFO(out);
 
-    SECTION("all description texts start at the same column") {
+    SUBCASE("all description texts start at the same column") {
         int col_h = find_col(out, "Show this help message");
         int col_o = find_col(out, "Write output to FILE");
         int col_v = find_col(out, "Enable verbose mode");
@@ -203,7 +203,7 @@ TEST_CASE("help / column alignment", "[help][layout]") {
         REQUIRE(col_c == col_h);
     }
 
-    SECTION("long-only option does not have a short-name prefix") {
+    SUBCASE("long-only option does not have a short-name prefix") {
         static const ct_opt_def_t opts[] = {
             {"long-only", 0, CT_OPT_NONE, "No short form", NULL},
             {"normal", 'n', CT_OPT_NONE, "Has short form", NULL},
@@ -223,7 +223,7 @@ TEST_CASE("help / column alignment", "[help][layout]") {
     }
 }
 
-TEST_CASE("help / line width constraint", "[help][width]") {
+TEST_CASE("help / line width constraint" * doctest::test_suite("help") * doctest::test_suite("width")) {
     static const ct_opt_def_t opts[] = {
         {"output", 'o', CT_OPT_REQUIRED,
          "Write output to this file; if the path contains spaces it must be "
@@ -242,12 +242,12 @@ TEST_CASE("help / line width constraint", "[help][width]") {
     INFO("width=" << width);
     INFO(out);
 
-    SECTION("no line exceeds the configured width") {
+    SUBCASE("no line exceeds the configured width") {
         REQUIRE(all_lines_within(out, width));
     }
 }
 
-TEST_CASE("help / custom metavar", "[help][argname]") {
+TEST_CASE("help / custom metavar" * doctest::test_suite("help") * doctest::test_suite("argname")) {
     static const ct_opt_def_t opts[] = {
         {"output", 'o', CT_OPT_REQUIRED, "Write to FILE", "FILE"},
         {"config", 'c', CT_OPT_OPTIONAL, "Use CONFIG", "CONFIG"},
@@ -264,7 +264,7 @@ TEST_CASE("help / custom metavar", "[help][argname]") {
     REQUIRE(out.find("=ARG") == std::string::npos);
 }
 
-TEST_CASE("usage / basic usage", "[usage]") {
+TEST_CASE("usage / basic usage" * doctest::test_suite("usage")) {
     CaptureFile cap;
     ct_opt_usage(cap.fp(), "testapp", NULL, -1, NULL);
     std::string out = cap.read();
@@ -272,7 +272,7 @@ TEST_CASE("usage / basic usage", "[usage]") {
     REQUIRE(out == "Usage: testapp\n");
 }
 
-TEST_CASE("usage / with options", "[usage]") {
+TEST_CASE("usage / with options" * doctest::test_suite("usage")) {
     static const ct_opt_def_t opts[] = {
         {"help", 'h', CT_OPT_NONE, "Help", NULL},
         CT_OPT_DEF_NULL,
@@ -284,14 +284,15 @@ TEST_CASE("usage / with options", "[usage]") {
     REQUIRE(out == "Usage: testapp [options]\n");
 }
 
-TEST_CASE("long / short option parsing without optstring", "[long][parsing]") {
+TEST_CASE("long / short option parsing without optstring" * doctest::test_suite("long") *
+          doctest::test_suite("parsing")) {
     static const ct_opt_def_t opts[] = {
         {"verbose", 'v', CT_OPT_NONE, "Verbose", NULL},
         {"output", 'o', CT_OPT_REQUIRED, "Output", NULL},
         CT_OPT_DEF_NULL,
     };
 
-    SECTION("simple short option") {
+    SUBCASE("simple short option") {
         char*    argv[] = {(char*)"app", (char*)"-v", NULL};
         ct_opt_t options;
         ct_opt_init(&options, argv);
@@ -301,7 +302,7 @@ TEST_CASE("long / short option parsing without optstring", "[long][parsing]") {
         REQUIRE(id == 'v');
     }
 
-    SECTION("short option with required argument") {
+    SUBCASE("short option with required argument") {
         char*    argv[] = {(char*)"app", (char*)"-o", (char*)"file.txt", NULL};
         ct_opt_t options;
         ct_opt_init(&options, argv);
@@ -312,7 +313,7 @@ TEST_CASE("long / short option parsing without optstring", "[long][parsing]") {
         REQUIRE(std::string(options.optarg) == "file.txt");
     }
 
-    SECTION("invalid short option") {
+    SUBCASE("invalid short option") {
         char*    argv[] = {(char*)"app", (char*)"-x", NULL};
         ct_opt_t options;
         ct_opt_init(&options, argv);

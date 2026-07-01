@@ -1,6 +1,6 @@
 #include "coter/container/vector.h"
 
-#include <catch.hpp>
+#include "coter/testing/doctest.h"
 
 // 声明类型 (IntVec -> IntVec_t)
 CT_VEC_DECL(int, IntVec);
@@ -8,7 +8,7 @@ CT_VEC_DECL(int, IntVec);
 // 定义实现
 CT_VEC_IMPL(int, IntVec);
 
-TEST_CASE("Vec Init and Destroy", "[vec]") {
+TEST_CASE("Vec Init and Destroy" * doctest::test_suite("vec")) {
     IntVec_t v;
     REQUIRE(IntVec_init(&v, 4) == 0);
 
@@ -22,7 +22,7 @@ TEST_CASE("Vec Init and Destroy", "[vec]") {
     REQUIRE(IntVec_init(nullptr, 10) == -1);
 }
 
-TEST_CASE("Vec Push and Pop", "[vec]") {
+TEST_CASE("Vec Push and Pop" * doctest::test_suite("vec")) {
     IntVec_t v;
     IntVec_init(&v, 0);
 
@@ -45,7 +45,7 @@ TEST_CASE("Vec Push and Pop", "[vec]") {
     IntVec_destroy(&v);
 }
 
-TEST_CASE("Vec Resize and Reserve", "[vec]") {
+TEST_CASE("Vec Resize and Reserve" * doctest::test_suite("vec")) {
     IntVec_t v;
     IntVec_init(&v, 0);
 

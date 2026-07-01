@@ -1,5 +1,4 @@
 #include <atomic>
-#include <catch.hpp>
 #include <chrono>
 #include <cstdint>
 #include <cstring>
@@ -9,6 +8,8 @@
 
 #include "coter/log/handler/record.h"
 #include "coter/log/log.h"
+#include "coter/testing/doctest.h"
+
 
 namespace {
 struct callback_state {
@@ -54,7 +55,7 @@ void destroy_handler(ct_log_handler_t* handler) {
 }
 }  // namespace
 
-TEST_CASE("log_default_logger_zero_init", "[log]") {
+TEST_CASE("log_default_logger_zero_init" * doctest::test_suite("log")) {
     ct_logger_t* logger = ct_logger_get_default();
     REQUIRE(logger != nullptr);
     REQUIRE(ct_logger_is_enabled(logger, CT_LOG_LEVEL_TRACE));
@@ -64,7 +65,7 @@ TEST_CASE("log_default_logger_zero_init", "[log]") {
     REQUIRE(ct_logger_close(logger) == -1);
 }
 
-TEST_CASE("log_default_logger_is_sealed_after_first_use", "[log]") {
+TEST_CASE("log_default_logger_is_sealed_after_first_use" * doctest::test_suite("log")) {
     ct_logger_t* builtin = ct_logger_get_default();
     REQUIRE(builtin != nullptr);
 
@@ -95,7 +96,7 @@ TEST_CASE("log_default_logger_is_sealed_after_first_use", "[log]") {
     REQUIRE(ct_logger_close(&unstarted) == 0);
 }
 
-TEST_CASE("log_logger_object_api", "[log]") {
+TEST_CASE("log_logger_object_api" * doctest::test_suite("log")) {
     ct_logger_t logger;
     ct_logger_init(&logger);
 
@@ -132,7 +133,7 @@ TEST_CASE("log_logger_object_api", "[log]") {
     REQUIRE(strcmp(state.data, "object") == 0);
 }
 
-TEST_CASE("log_handler_belongs_to_one_logger", "[log]") {
+TEST_CASE("log_handler_belongs_to_one_logger" * doctest::test_suite("log")) {
     ct_logger_t first;
     ct_logger_t second;
     ct_logger_init(&first);
@@ -153,7 +154,7 @@ TEST_CASE("log_handler_belongs_to_one_logger", "[log]") {
     REQUIRE(ct_logger_close(&second) == 0);
 }
 
-TEST_CASE("log_unstarted_logger_does_not_write", "[log]") {
+TEST_CASE("log_unstarted_logger_does_not_write" * doctest::test_suite("log")) {
     callback_state state;
     ct_logger_t    logger;
     ct_logger_init(&logger);
@@ -172,7 +173,7 @@ TEST_CASE("log_unstarted_logger_does_not_write", "[log]") {
     REQUIRE(ct_logger_close(&logger) == 0);
 }
 
-TEST_CASE("log_invalid_level_is_rejected", "[log]") {
+TEST_CASE("log_invalid_level_is_rejected" * doctest::test_suite("log")) {
     callback_state state;
     ct_logger_t    logger;
     ct_logger_init(&logger);
@@ -199,7 +200,7 @@ TEST_CASE("log_invalid_level_is_rejected", "[log]") {
     REQUIRE(state.calls == 0);
 }
 
-TEST_CASE("log_logger_close_flushes_handlers", "[log]") {
+TEST_CASE("log_logger_close_flushes_handlers" * doctest::test_suite("log")) {
     flush_state state;
     ct_logger_t logger;
     ct_logger_init(&logger);
@@ -223,7 +224,7 @@ TEST_CASE("log_logger_close_flushes_handlers", "[log]") {
     REQUIRE(state.flushes == 2);
 }
 
-TEST_CASE("log_logger_add_handler_after_start_fails", "[log]") {
+TEST_CASE("log_logger_add_handler_after_start_fails" * doctest::test_suite("log")) {
     ct_logger_t logger;
     ct_logger_init(&logger);
 
@@ -275,7 +276,7 @@ TEST_CASE("log_logger_add_handler_after_start_fails", "[log]") {
     REQUIRE(second.calls == 0);
 }
 
-TEST_CASE("log_logger_level_is_atomic", "[log]") {
+TEST_CASE("log_logger_level_is_atomic" * doctest::test_suite("log")) {
     ct_logger_t logger;
     ct_logger_init(&logger);
     REQUIRE(ct_logger_start(&logger) == 0);

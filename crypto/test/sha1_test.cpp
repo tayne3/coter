@@ -1,8 +1,10 @@
 #include "coter/crypto/sha1.h"
 
-#include <catch.hpp>
 #include <cstring>
 #include <string>
+
+#include "coter/testing/doctest.h"
+
 
 namespace {
 
@@ -19,7 +21,7 @@ std::string digest_to_hex(const uint8_t digest[20]) {
 
 }  // namespace
 
-TEST_CASE("sha1", "[sha1]") {
+TEST_CASE("sha1" * doctest::test_suite("sha1")) {
     struct ct_sha1_test {
         const char* data;
         const char* target;

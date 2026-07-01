@@ -1,9 +1,10 @@
 #include "coter/core/macro.h"
 
-#include <catch.hpp>
 #include <string>
 #include <thread>
 #include <vector>
+
+#include "coter/testing/doctest.h"
 
 TEST_CASE("offset_of") {
     struct TestStruct {
@@ -59,10 +60,10 @@ TEST_CASE("container_of") {
     auto* container_ptr3 = CT_CONTAINER_OF(&test_instance1.c[0], TestStruct, c);
     REQUIRE(container_ptr3 == &test_instance1);
 
-    REQUIRE(container_ptr1->a == Approx(1.0));
+    REQUIRE(container_ptr1->a == doctest::Approx(1.0));
     REQUIRE(container_ptr1->b == 2);
     REQUIRE(container_ptr1->c[0] == 'a');
-    REQUIRE(container_ptr1->d == Approx(3.14f));
+    REQUIRE(container_ptr1->d == doctest::Approx(3.14f));
 
     TestStruct test_array[3] = {
         {1.1, 11, {'w', 'x', 'y', 'z'}, 1.1f},

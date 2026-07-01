@@ -1,9 +1,11 @@
 #include "coter/encoding/hex.h"
 
-#include <catch.hpp>
 #include <cstring>
 
-TEST_CASE("hex_encode", "[hex]") {
+#include "coter/testing/doctest.h"
+
+
+TEST_CASE("hex_encode" * doctest::test_suite("hex")) {
     char    output[32];
     uint8_t data[] = {0x48, 0x65, 0x6c, 0x6c, 0x6f};
     int     len    = ct_hex_encode(data, sizeof(data), output, sizeof(output));
@@ -19,7 +21,7 @@ TEST_CASE("hex_encode", "[hex]") {
     REQUIRE(strcmp(tiny_output, "4865") == 0);
 }
 
-TEST_CASE("hex_decode", "[hex]") {
+TEST_CASE("hex_decode" * doctest::test_suite("hex")) {
     uint8_t     output[32];
     const char* hex = "48656c6c6f";
     int         len = ct_hex_decode(hex, 0, output, sizeof(output));
@@ -53,7 +55,7 @@ TEST_CASE("hex_decode", "[hex]") {
     REQUIRE(len == -1);
 }
 
-TEST_CASE("hex_encode_edge", "[hex]") {
+TEST_CASE("hex_encode_edge" * doctest::test_suite("hex")) {
     char    output[32];
     uint8_t data[] = {0x48, 0x65};
     REQUIRE(ct_hex_encode(nullptr, sizeof(data), output, sizeof(output)) == -1);

@@ -4,10 +4,12 @@
  */
 #include "coter/sync/atomic.h"
 
-#include <catch.hpp>
 #include <climits>
 
-TEST_CASE("atomic flag can be set, tested, and cleared", "[atomic]") {
+#include "coter/testing/doctest.h"
+
+
+TEST_CASE("atomic flag can be set, tested, and cleared" * doctest::test_suite("atomic")) {
     ct_atomic_flag_t flag = CT_ATOMIC_FLAG_INIT;
 
     REQUIRE(!ct_atomic_flag_test_and_set(&flag));
@@ -20,7 +22,7 @@ TEST_CASE("atomic flag can be set, tested, and cleared", "[atomic]") {
     REQUIRE(ct_atomic_flag_test_and_set(&flag));
 }
 
-TEST_CASE("atomic load and store operate correctly", "[atomic]") {
+TEST_CASE("atomic load and store operate correctly" * doctest::test_suite("atomic")) {
     ct_atomic_long_t val = CT_ATOMIC_VAR_INIT(42);
     REQUIRE(ct_atomic_long_load(&val) == 42);
 
@@ -34,7 +36,7 @@ TEST_CASE("atomic load and store operate correctly", "[atomic]") {
     REQUIRE(ct_atomic_long_load(&val) == LONG_MIN);
 }
 
-TEST_CASE("atomic add and sub work in a single thread", "[atomic]") {
+TEST_CASE("atomic add and sub work in a single thread" * doctest::test_suite("atomic")) {
     ct_atomic_long_t val = CT_ATOMIC_VAR_INIT(0);
     REQUIRE(ct_atomic_long_load(&val) == 0);
 
@@ -51,7 +53,7 @@ TEST_CASE("atomic add and sub work in a single thread", "[atomic]") {
     REQUIRE(ct_atomic_long_load(&val) == 10);
 }
 
-TEST_CASE("atomic operations return the previous value", "[atomic]") {
+TEST_CASE("atomic operations return the previous value" * doctest::test_suite("atomic")) {
     ct_atomic_long_t val = CT_ATOMIC_VAR_INIT(10);
 
     REQUIRE(ct_atomic_long_sub(&val, 1) == 10);
@@ -67,7 +69,7 @@ TEST_CASE("atomic operations return the previous value", "[atomic]") {
     REQUIRE(ct_atomic_long_load(&val) == 10);
 }
 
-TEST_CASE("atomic operations handle integer overflow", "[atomic]") {
+TEST_CASE("atomic operations handle integer overflow" * doctest::test_suite("atomic")) {
     ct_atomic_long_t max_val = CT_ATOMIC_VAR_INIT(LONG_MAX);
     ct_atomic_long_add(&max_val, 1);
     REQUIRE(ct_atomic_long_load(&max_val) == LONG_MIN);
@@ -77,7 +79,7 @@ TEST_CASE("atomic operations handle integer overflow", "[atomic]") {
     REQUIRE(ct_atomic_long_load(&min_val) == LONG_MAX);
 }
 
-TEST_CASE("explicit atomic types work correctly", "[atomic]") {
+TEST_CASE("explicit atomic types work correctly" * doctest::test_suite("atomic")) {
     ct_atomic_int_t atomic_int = CT_ATOMIC_VAR_INIT(0);
     ct_atomic_int_store(&atomic_int, 123);
     REQUIRE(ct_atomic_int_load(&atomic_int) == 123);
@@ -95,7 +97,7 @@ TEST_CASE("explicit atomic types work correctly", "[atomic]") {
     REQUIRE(ct_atomic_llong_load(&atomic_llong) == 9999999999LL);
 }
 
-TEST_CASE("atomic pointer load, store, and exchange", "[atomic]") {
+TEST_CASE("atomic pointer load, store, and exchange" * doctest::test_suite("atomic")) {
     int             val1 = 10;
     int             val2 = 20;
     ct_atomic_ptr_t ptr  = CT_ATOMIC_VAR_INIT(&val1);
@@ -110,7 +112,7 @@ TEST_CASE("atomic pointer load, store, and exchange", "[atomic]") {
     REQUIRE(ct_atomic_ptr_load(&ptr) == &val1);
 }
 
-TEST_CASE("atomic pointer compare exchange succeeds and fails correctly", "[atomic]") {
+TEST_CASE("atomic pointer compare exchange succeeds and fails correctly" * doctest::test_suite("atomic")) {
     int             val1 = 10;
     int             val2 = 20;
     int             val3 = 30;
@@ -129,7 +131,7 @@ TEST_CASE("atomic pointer compare exchange succeeds and fails correctly", "[atom
     REQUIRE(expected == &val2);
 }
 
-TEST_CASE("CAS allows ABA value reuse", "[atomic]") {
+TEST_CASE("CAS allows ABA value reuse" * doctest::test_suite("atomic")) {
     int             val1 = 10;
     int             val2 = 20;
     ct_atomic_ptr_t ptr  = CT_ATOMIC_VAR_INIT(&val1);
@@ -146,7 +148,7 @@ TEST_CASE("CAS allows ABA value reuse", "[atomic]") {
     REQUIRE(ct_atomic_ptr_load(&ptr) == &val3);
 }
 
-TEST_CASE("atomic exchange for integers", "[atomic]") {
+TEST_CASE("atomic exchange for integers" * doctest::test_suite("atomic")) {
     ct_atomic_int_t val = CT_ATOMIC_VAR_INIT(10);
     REQUIRE(ct_atomic_int_exchange(&val, 20) == 10);
     REQUIRE(ct_atomic_int_load(&val) == 20);
@@ -160,7 +162,7 @@ TEST_CASE("atomic exchange for integers", "[atomic]") {
     REQUIRE(ct_atomic_bool_load(&bval) == true);
 }
 
-TEST_CASE("atomic compare exchange for integers", "[atomic]") {
+TEST_CASE("atomic compare exchange for integers" * doctest::test_suite("atomic")) {
     ct_atomic_int_t val = CT_ATOMIC_VAR_INIT(10);
     int             exp = 10;
     REQUIRE(ct_atomic_int_compare_exchange(&val, &exp, 20));

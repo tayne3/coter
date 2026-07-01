@@ -1,11 +1,11 @@
 #include "coter/thread/thread.h"
 
-#include <catch.hpp>
-
 #include "coter/core/time.h"
 #include "coter/sync/atomic.h"
+#include "coter/testing/doctest.h"
 #include "coter/thread/once.h"
 #include "coter/thread/tls.h"
+
 
 namespace {
 ct_once_t       g_once         = CT_ONCE_INIT;
@@ -51,7 +51,7 @@ static int detach_worker(void* arg) {
 
 }  // namespace
 
-TEST_CASE("thread_create_and_join_returns_value", "[thread]") {
+TEST_CASE("thread_create_and_join_returns_value" * doctest::test_suite("thread")) {
     ct_thread_t thread;
     int         result = 0;
 
@@ -60,7 +60,7 @@ TEST_CASE("thread_create_and_join_returns_value", "[thread]") {
     REQUIRE(result == 0x1234);
 }
 
-TEST_CASE("thread_once_runs_once", "[thread]") {
+TEST_CASE("thread_once_runs_once" * doctest::test_suite("thread")) {
     ct_thread_t threads[4];
 
     ct_atomic_int_store(&g_once_counter, 0);
@@ -69,7 +69,7 @@ TEST_CASE("thread_once_runs_once", "[thread]") {
     REQUIRE(ct_atomic_int_load(&g_once_counter) == 1);
 }
 
-TEST_CASE("thread_tls_runs_destructor_on_exit", "[thread]") {
+TEST_CASE("thread_tls_runs_destructor_on_exit" * doctest::test_suite("thread")) {
     ct_thread_t thread;
     int         result = -1;
 
@@ -82,7 +82,7 @@ TEST_CASE("thread_tls_runs_destructor_on_exit", "[thread]") {
     REQUIRE(ct_tls_destroy(g_tls_key) == 0);
 }
 
-TEST_CASE("thread_detach_allows_background_completion", "[thread]") {
+TEST_CASE("thread_detach_allows_background_completion" * doctest::test_suite("thread")) {
     ct_thread_t thread;
     detach_env  env;
 
@@ -94,7 +94,7 @@ TEST_CASE("thread_detach_allows_background_completion", "[thread]") {
     REQUIRE(ct_atomic_int_load(&env.done) == 1);
 }
 
-TEST_CASE("thread_self_identity_helpers", "[thread]") {
+TEST_CASE("thread_self_identity_helpers" * doctest::test_suite("thread")) {
     ct_thread_t self = ct_thread_self();
 
     REQUIRE(ct_thread_equal(self, ct_thread_self()) != 0);

@@ -1,14 +1,16 @@
 #include "coter/container/list.h"
 
-#include <catch.hpp>
 #include <cstring>
+
+#include "coter/testing/doctest.h"
+
 
 typedef struct my_struct {
     ct_list_t list[1];
     int       data;
 } my_struct_t;
 
-TEST_CASE("list_basic", "[list]") {
+TEST_CASE("list_basic" * doctest::test_suite("list")) {
     ct_list_t head[1];
     ct_list_init(head);
     REQUIRE(ct_list_isempty(head));
@@ -75,7 +77,7 @@ TEST_CASE("list_basic", "[list]") {
     REQUIRE(ct_list_size(head) == 0);
 }
 
-TEST_CASE("list_operations", "[list]") {
+TEST_CASE("list_operations" * doctest::test_suite("list")) {
     ct_list_t head[1], node1[1], node2[1], node3[1], node4[1];
     ct_list_init(head);
     REQUIRE(ct_list_isempty(head));
@@ -147,7 +149,7 @@ TEST_CASE("list_operations", "[list]") {
     REQUIRE(ct_list_last(head) == head);
 }
 
-TEST_CASE("list_splice", "[list]") {
+TEST_CASE("list_splice" * doctest::test_suite("list")) {
     ct_list_t head1[1], head2[1], head3[1];
     ct_list_t node1[1], node2[1], node3[1], node4[1], node5[1], node6[1];
     int       count;
@@ -215,7 +217,7 @@ TEST_CASE("list_splice", "[list]") {
     REQUIRE(ct_list_size(empty_head) == 0);
 }
 
-TEST_CASE("list_foreach", "[list]") {
+TEST_CASE("list_foreach" * doctest::test_suite("list")) {
     ct_list_t head[1];
     ct_list_init(head);
     ct_list_t node1[1];
@@ -229,7 +231,7 @@ TEST_CASE("list_foreach", "[list]") {
     REQUIRE(count == 2);
 }
 
-TEST_CASE("list_foreach_entry", "[list]") {
+TEST_CASE("list_foreach_entry" * doctest::test_suite("list")) {
     ct_list_t head[1];
     ct_list_init(head);
     my_struct_t node1;
@@ -249,7 +251,7 @@ TEST_CASE("list_foreach_entry", "[list]") {
     REQUIRE(sum == 3);
 }
 
-TEST_CASE("list_foreach_entry_from", "[list]") {
+TEST_CASE("list_foreach_entry_from" * doctest::test_suite("list")) {
     ct_list_t head[1];
     ct_list_init(head);
     my_struct_t node1;
@@ -280,7 +282,7 @@ TEST_CASE("list_foreach_entry_from", "[list]") {
     REQUIRE(sum == 0);
 }
 
-TEST_CASE("list_foreach_entry_safe", "[list]") {
+TEST_CASE("list_foreach_entry_safe" * doctest::test_suite("list")) {
     ct_list_t head[1];
     ct_list_init(head);
     my_struct_t node1;

@@ -1,8 +1,8 @@
 #include "coter/core/bit_cast.h"
 
-#include <catch.hpp>
+#include "coter/testing/doctest.h"
 
-TEST_CASE("BitCast: Float32 Conversion", "[bit_cast]") {
+TEST_CASE("BitCast: Float32 Conversion" * doctest::test_suite("bit_cast")) {
     float    f1 = 1.0f;
     uint32_t u1 = ct_bits_from_float32(f1);
     REQUIRE(u1 == 0x3F800000);
@@ -25,7 +25,7 @@ TEST_CASE("BitCast: Float32 Conversion", "[bit_cast]") {
     REQUIRE(ct_bits_to_float32(0x80000000) == -0.0f);
 }
 
-TEST_CASE("BitCast: Float64 Conversion", "[bit_cast]") {
+TEST_CASE("BitCast: Float64 Conversion" * doctest::test_suite("bit_cast")) {
     double   d1 = 1.0;
     uint64_t u1 = ct_bits_from_float64(d1);
     REQUIRE(u1 == 0x3FF0000000000000ULL);
@@ -37,7 +37,7 @@ TEST_CASE("BitCast: Float64 Conversion", "[bit_cast]") {
     REQUIRE(ct_bits_to_float64(0xBFF0000000000000ULL) == -1.0);
 }
 
-TEST_CASE("BitCast: Round Trip", "[bit_cast]") {
+TEST_CASE("BitCast: Round Trip" * doctest::test_suite("bit_cast")) {
     float    f_in   = 123.456f;
     uint32_t f_bits = ct_bits_from_float32(f_in);
     float    f_out  = ct_bits_to_float32(f_bits);

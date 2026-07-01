@@ -1,5 +1,4 @@
 #include <atomic>
-#include <catch.hpp>
 #include <chrono>
 #include <cstdio>
 #include <cstring>
@@ -8,8 +7,13 @@
 #include <thread>
 #include <vector>
 
+#include "coter/core/fs.h"
+#include "coter/log/handler/console.h"
+#include "coter/log/handler/file.h"
 #include "coter/log/handler/record.h"
 #include "coter/log/log.h"
+#include "coter/testing/doctest.h"
+
 
 namespace {
 struct safety_callback_state {
@@ -60,7 +64,7 @@ void close_log_callback(const ct_log_record_t* record, void* userdata) {
 }
 }  // namespace
 
-TEST_CASE("log_safety_lifecycle", "[log][safety]") {
+TEST_CASE("log_safety_lifecycle" * doctest::test_suite("log") * doctest::test_suite("safety")) {
     safety_callback_state state;
 
     // 1. Create a logger on heap
@@ -120,7 +124,7 @@ TEST_CASE("log_safety_lifecycle", "[log][safety]") {
     free(logger);
 }
 
-TEST_CASE("log_close_rejects_concurrent_producers", "[log][safety]") {
+TEST_CASE("log_close_rejects_concurrent_producers" * doctest::test_suite("log") * doctest::test_suite("safety")) {
     safety_callback_state state;
 
     ct_logger_t logger;
@@ -159,7 +163,7 @@ TEST_CASE("log_close_rejects_concurrent_producers", "[log][safety]") {
     REQUIRE(state.calls > 0);
 }
 
-TEST_CASE("log_close_with_slow_handler_does_not_hang", "[log][safety]") {
+TEST_CASE("log_close_with_slow_handler_does_not_hang" * doctest::test_suite("log") * doctest::test_suite("safety")) {
     constexpr int         kRecords = 300;
     safety_callback_state state;
 
@@ -184,7 +188,7 @@ TEST_CASE("log_close_with_slow_handler_does_not_hang", "[log][safety]") {
     REQUIRE(state.calls == static_cast<size_t>(kRecords));
 }
 
-TEST_CASE("log_queue_full_blocks_without_dropping", "[log][safety]") {
+TEST_CASE("log_queue_full_blocks_without_dropping" * doctest::test_suite("log") * doctest::test_suite("safety")) {
     constexpr int         kRecords = 1500;
     safety_callback_state state;
 
@@ -209,7 +213,7 @@ TEST_CASE("log_queue_full_blocks_without_dropping", "[log][safety]") {
     REQUIRE(state.calls == static_cast<size_t>(kRecords));
 }
 
-TEST_CASE("log_recursive_handler_log_does_not_deadlock", "[log][safety]") {
+TEST_CASE("log_recursive_handler_log_does_not_deadlock" * doctest::test_suite("log") * doctest::test_suite("safety")) {
     ct_logger_t logger;
     ct_logger_init(&logger);
 
@@ -230,7 +234,7 @@ TEST_CASE("log_recursive_handler_log_does_not_deadlock", "[log][safety]") {
     REQUIRE(state.calls == 1);
 }
 
-TEST_CASE("log_close_inside_handler_does_not_deadlock", "[log][safety]") {
+TEST_CASE("log_close_inside_handler_does_not_deadlock" * doctest::test_suite("log") * doctest::test_suite("safety")) {
     ct_logger_t logger;
     ct_logger_init(&logger);
 
@@ -250,4 +254,87 @@ TEST_CASE("log_close_inside_handler_does_not_deadlock", "[log][safety]") {
 
     REQUIRE(state.calls == 1);
     REQUIRE(state.close_result == -1);
+}
+
+// ---------------------------------------------------------------------------
+// T4-A: console handler 并发写安全
+// ---------------------------------------------------------------------------
+
+TEST_CASE("log_console_handler_concurrent_write" * doctest::test_suite("log") * doctest::test_suite("safety") *
+          doctest::test_suite("handler")) {
+    constexpr int kThreads   = 4;
+    constexpr int kPerThread = 500;
+
+    ct_logger_t logger;
+    ct_logger_init(&logger);
+
+    ct_log_console_handler_config_t cfg;
+    ct_log_console_handler_config_default(&cfg);
+    cfg.stream = stderr;  // 避免干扰 doctest 的 stdout 捕获
+    REQUIRE(ct_logger_add_handler(&logger, ct_log_console_handler_create(&cfg)) == 0);
+    REQUIRE(ct_logger_start(&logger) == 0);
+
+    std::vector<std::thread> threads;
+    for (int i = 0; i < kThreads; ++i) {
+        threads.emplace_back([&, i]() {
+            for (int j = 0; j < kPerThread; ++j) { CT_LOGGER_INFO(&logger, "t=%d s=%d", i, j); }
+        });
+    }
+    for (auto& t : threads) { t.join(); }
+
+    // close 内部调用 flush + destroy，正常退出即证明无死锁、无崩溃
+    REQUIRE(ct_logger_close(&logger) == 0);
+}
+
+// ---------------------------------------------------------------------------
+// T4-B: file handler 并发写不丢行
+// ---------------------------------------------------------------------------
+
+TEST_CASE("log_file_handler_concurrent_write" * doctest::test_suite("log") * doctest::test_suite("safety") *
+          doctest::test_suite("handler")) {
+    constexpr int kThreads   = 4;
+    constexpr int kPerThread = 1000;
+    constexpr int kExpected  = kThreads * kPerThread;
+    const char*   kDir       = "test_concurrent_file_out";
+    const char*   kName      = "concurrent";
+    const char*   kFilePath  = "test_concurrent_file_out/concurrent.log0";
+
+    std::remove(kFilePath);
+    ct_rmdir(kDir);
+
+    ct_logger_t logger;
+    ct_logger_init(&logger);
+
+    ct_log_file_handler_config_t cfg;
+    ct_log_file_handler_config_default(&cfg);
+    std::strncpy(cfg.dir, kDir, sizeof(cfg.dir) - 1);
+    std::strncpy(cfg.name, kName, sizeof(cfg.name) - 1);
+    cfg.size_max  = 256UL * 1024 * 1024;  // 256 MB，不触发轮转
+    cfg.count_max = 1;
+    REQUIRE(ct_logger_add_handler(&logger, ct_log_file_handler_create(&cfg)) == 0);
+    REQUIRE(ct_logger_start(&logger) == 0);
+
+    std::vector<std::thread> threads;
+    for (int i = 0; i < kThreads; ++i) {
+        threads.emplace_back([&, i]() {
+            for (int j = 0; j < kPerThread; ++j) { CT_LOGGER_INFO(&logger, "t%d-%d", i, j); }
+        });
+    }
+    for (auto& t : threads) { t.join(); }
+    REQUIRE(ct_logger_close(&logger) == 0);
+
+    // 统计文件行数：必须等于总发送条数（有锁且正确时不丢行）
+    FILE* f = std::fopen(kFilePath, "rb");
+    REQUIRE(f != nullptr);
+    int lines = 0;
+    int c;
+    while ((c = std::fgetc(f)) != EOF) {
+        if (c == '\n') { ++lines; }
+    }
+    std::fclose(f);
+
+    std::remove(kFilePath);
+    ct_rmdir(kDir);
+
+    REQUIRE(lines == kExpected);
 }

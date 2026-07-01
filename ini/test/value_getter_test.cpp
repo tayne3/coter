@@ -2,11 +2,11 @@
 #include <limits.h>
 #include <math.h>
 
-#include <catch.hpp>
-
 #include "common.hpp"
+#include "coter/testing/doctest.h"
 
-TEST_CASE("String Getters - ct_ini_key_get", "[value_getter]") {
+
+TEST_CASE("String Getters - ct_ini_key_get" * doctest::test_suite("value_getter")) {
     ct_ini_t*         ini = ct_ini_empty();
     ct_ini_section_t* sec = ct_ini_get_section(ini, "test");
     ct_ini_key_t*     key = ct_ini_section_add_key(sec, "str", "hello");
@@ -19,7 +19,7 @@ TEST_CASE("String Getters - ct_ini_key_get", "[value_getter]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("String Getters - ct_ini_key_get_string", "[value_getter]") {
+TEST_CASE("String Getters - ct_ini_key_get_string" * doctest::test_suite("value_getter")) {
     ct_ini_t*         ini = ct_ini_empty();
     ct_ini_section_t* sec = ct_ini_get_section(ini, "test");
     ct_ini_key_t*     key = ct_ini_section_add_key(sec, "str", "hello");
@@ -35,7 +35,7 @@ TEST_CASE("String Getters - ct_ini_key_get_string", "[value_getter]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Integer Getters - int valid", "[value_getter]") {
+TEST_CASE("Integer Getters - int valid" * doctest::test_suite("value_getter")) {
     struct {
         int         expected;
         const char* value;
@@ -56,7 +56,7 @@ TEST_CASE("Integer Getters - int valid", "[value_getter]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Integer Getters - int invalid", "[value_getter]") {
+TEST_CASE("Integer Getters - int invalid" * doctest::test_suite("value_getter")) {
     const char* bad_values[] = {"", "notanumber", "0x", "k2000", "   ", "0xG1"};
 
     ct_ini_t*         ini = ct_ini_empty();
@@ -71,7 +71,7 @@ TEST_CASE("Integer Getters - int invalid", "[value_getter]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("64-bit Integer Getters - i64 valid", "[value_getter]") {
+TEST_CASE("64-bit Integer Getters - i64 valid" * doctest::test_suite("value_getter")) {
     struct {
         int64_t     expected;
         const char* value;
@@ -96,7 +96,7 @@ TEST_CASE("64-bit Integer Getters - i64 valid", "[value_getter]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("64-bit Integer Getters - i64 invalid", "[value_getter]") {
+TEST_CASE("64-bit Integer Getters - i64 invalid" * doctest::test_suite("value_getter")) {
     const char* bad_values[] = {"", "abc", "123abc", "0x", "0xGGG", "   "};
 
     ct_ini_t*         ini = ct_ini_empty();
@@ -111,7 +111,7 @@ TEST_CASE("64-bit Integer Getters - i64 invalid", "[value_getter]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("64-bit Integer Getters - u64 valid", "[value_getter]") {
+TEST_CASE("64-bit Integer Getters - u64 valid" * doctest::test_suite("value_getter")) {
     struct {
         uint64_t    expected;
         const char* value;
@@ -134,7 +134,7 @@ TEST_CASE("64-bit Integer Getters - u64 valid", "[value_getter]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("64-bit Integer Getters - u64 invalid", "[value_getter]") {
+TEST_CASE("64-bit Integer Getters - u64 invalid" * doctest::test_suite("value_getter")) {
     const char* bad_values[] = {"", "-1", "-0", "abc", "123abc", "   "};
 
     ct_ini_t*         ini = ct_ini_empty();
@@ -149,7 +149,7 @@ TEST_CASE("64-bit Integer Getters - u64 invalid", "[value_getter]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Double Getters - double valid", "[value_getter]") {
+TEST_CASE("Double Getters - double valid" * doctest::test_suite("value_getter")) {
     struct {
         double      expected;
         const char* value;
@@ -177,7 +177,7 @@ TEST_CASE("Double Getters - double valid", "[value_getter]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Double Getters - double invalid", "[value_getter]") {
+TEST_CASE("Double Getters - double invalid" * doctest::test_suite("value_getter")) {
     const char* bad_values[] = {"foo", "not_a_number", "NaN_text"};
 
     ct_ini_t*         ini = ct_ini_empty();
@@ -195,7 +195,7 @@ TEST_CASE("Double Getters - double invalid", "[value_getter]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Boolean Getters - bool true values", "[value_getter]") {
+TEST_CASE("Boolean Getters - bool true values" * doctest::test_suite("value_getter")) {
     const char* true_values[] = {
         "1", "true", "t", "TRUE", "T", "yes", "y", "YES", "Y",
     };
@@ -211,7 +211,7 @@ TEST_CASE("Boolean Getters - bool true values", "[value_getter]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Boolean Getters - bool false values", "[value_getter]") {
+TEST_CASE("Boolean Getters - bool false values" * doctest::test_suite("value_getter")) {
     const char* false_values[] = {
         "0", "false", "f", "FALSE", "F", "no", "n", "NO", "N",
     };
@@ -227,7 +227,7 @@ TEST_CASE("Boolean Getters - bool false values", "[value_getter]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Boolean Getters - bool invalid values", "[value_getter]") {
+TEST_CASE("Boolean Getters - bool invalid values" * doctest::test_suite("value_getter")) {
     const char* invalid_values[] = {"", "m'kay", "42", "_true", "maybe"};
 
     ct_ini_t*         ini = ct_ini_empty();

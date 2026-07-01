@@ -2,10 +2,11 @@
  * @file atomic_stress_test.cpp
  * @brief Atomic pointer and CAS operations test with high concurrency
  */
-#include <catch.hpp>
 #include <thread>
 
 #include "coter/sync/atomic.h"
+#include "coter/testing/doctest.h"
+
 
 #define NUM_THREADS    16
 #define NUM_ITERATIONS 100000
@@ -24,7 +25,7 @@ static int thread_decrement_routine(void* arg) {
     return 0;
 }
 
-TEST_CASE("concurrent increments and decrements cancel out", "[atomic]") {
+TEST_CASE("concurrent increments and decrements cancel out" * doctest::test_suite("atomic")) {
     std::thread threads[NUM_THREADS];
 
     ct_atomic_long_store(&g_shared_counter, 0);
@@ -90,7 +91,7 @@ static int thread_pop_routine(void* arg) {
     return popped_count;
 }
 
-TEST_CASE("concurrent Treiber stack push and pop preserves all items", "[atomic]") {
+TEST_CASE("concurrent Treiber stack push and pop preserves all items" * doctest::test_suite("atomic")) {
     std::thread threads[NUM_THREADS];
 
     ct_atomic_ptr_store(&g_stack_head, nullptr);

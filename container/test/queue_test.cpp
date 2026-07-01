@@ -1,6 +1,6 @@
 #include "coter/container/queue.h"
 
-#include <catch.hpp>
+#include "coter/testing/doctest.h"
 
 namespace {
 int traverse_callback(void* item, void* arg) {
@@ -17,7 +17,7 @@ int traverse_callback(void* item, void* arg) {
 }
 }  // namespace
 
-TEST_CASE("queue_init", "[queue]") {
+TEST_CASE("queue_init" * doctest::test_suite("queue")) {
     ct_queue_t   queue;
     uint32_t     buffer[1000];
     const size_t max = sizeof(buffer) / sizeof(buffer[0]);
@@ -30,7 +30,7 @@ TEST_CASE("queue_init", "[queue]") {
     }
 }
 
-TEST_CASE("queue_enqueue", "[queue]") {
+TEST_CASE("queue_enqueue" * doctest::test_suite("queue")) {
     ct_queue_t    queue;
     int32_t       buffer[777];
     const int32_t max = (int32_t)(sizeof(buffer) / sizeof(buffer[0]));
@@ -52,7 +52,7 @@ TEST_CASE("queue_enqueue", "[queue]") {
     REQUIRE(!ct_queue_is_full(&queue));
 }
 
-TEST_CASE("queue_dequeue", "[queue]") {
+TEST_CASE("queue_dequeue" * doctest::test_suite("queue")) {
     ct_queue_t     queue;
     uint64_t       buffer[777];
     const uint64_t max = (uint64_t)(sizeof(buffer) / sizeof(buffer[0]));
@@ -82,7 +82,7 @@ TEST_CASE("queue_dequeue", "[queue]") {
     REQUIRE(!ct_queue_is_full(&queue));
 }
 
-TEST_CASE("queue_head", "[queue]") {
+TEST_CASE("queue_head" * doctest::test_suite("queue")) {
     ct_queue_t   queue;
     int          buffer[777];
     const size_t max = sizeof(buffer) / sizeof(buffer[0]);
@@ -112,7 +112,7 @@ TEST_CASE("queue_head", "[queue]") {
     REQUIRE(!ct_queue_is_full(&queue));
 }
 
-TEST_CASE("queue_traverse", "[queue]") {
+TEST_CASE("queue_traverse" * doctest::test_suite("queue")) {
     ct_queue_t   queue;
     int          buffer[10];
     const size_t max = sizeof(buffer) / sizeof(buffer[0]);

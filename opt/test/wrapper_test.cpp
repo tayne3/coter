@@ -3,12 +3,12 @@
 #include <type_traits>
 #include <vector>
 
-#include "catch.hpp"
 #include "coter/opt/opt.h"
+#include "coter/testing/doctest.h"
 
 using namespace coter::opt;
 
-TEST_CASE("wrapper: inheritance and constructors", "[wrapper]") {
+TEST_CASE("wrapper: inheritance and constructors" * doctest::test_suite("wrapper")) {
     // Memory layout safety: size must be identical for array traversal
     static_assert(sizeof(Option) == sizeof(ct_opt_def_t), "Option size mismatch");
 
@@ -43,14 +43,14 @@ TEST_CASE("wrapper: inheritance and constructors", "[wrapper]") {
     REQUIRE(parser.shift() == nullptr);
 }
 
-TEST_CASE("wrapper: Parser copy control", "[wrapper]") {
+TEST_CASE("wrapper: Parser copy control" * doctest::test_suite("wrapper")) {
     STATIC_REQUIRE_FALSE(std::is_copy_constructible<Parser>::value);
     STATIC_REQUIRE_FALSE(std::is_copy_assignable<Parser>::value);
     STATIC_REQUIRE_FALSE(std::is_move_constructible<Parser>::value);
     STATIC_REQUIRE_FALSE(std::is_move_assignable<Parser>::value);
 }
 
-TEST_CASE("wrapper: error handling", "[wrapper]") {
+TEST_CASE("wrapper: error handling" * doctest::test_suite("wrapper")) {
     const char* argv_raw[] = {"prog", "-z", "--delay", nullptr};
     char**      argv       = const_cast<char**>(argv_raw);
 
@@ -70,8 +70,8 @@ TEST_CASE("wrapper: error handling", "[wrapper]") {
     REQUIRE(parser.next(defs) == Status::Done);
 }
 
-TEST_CASE("wrapper: boundary and edge cases", "[wrapper]") {
-    SECTION("empty argv list (NULL pointer)") {
+TEST_CASE("wrapper: boundary and edge cases" * doctest::test_suite("wrapper")) {
+    SUBCASE("empty argv list (NULL pointer)") {
         char*  argv[] = {nullptr};
         Parser parser(argv);
         Option defs[] = {Option("test", 't', ArgType::None), Option()};
@@ -79,7 +79,7 @@ TEST_CASE("wrapper: boundary and edge cases", "[wrapper]") {
         REQUIRE(parser.shift() == nullptr);
     }
 
-    SECTION("argv with only program name") {
+    SUBCASE("argv with only program name") {
         char*  argv[] = {const_cast<char*>("prog"), nullptr};
         Parser parser(argv);
         Option defs[] = {Option("test", 't', ArgType::None), Option()};
@@ -87,7 +87,7 @@ TEST_CASE("wrapper: boundary and edge cases", "[wrapper]") {
         REQUIRE(parser.shift() == nullptr);
     }
 
-    SECTION("mixed short clusters and positionals") {
+    SUBCASE("mixed short clusters and positionals") {
         const char* argv_raw[] = {"prog", "-abc", "pos1", "-d", "val", "pos2", nullptr};
         char**      argv       = const_cast<char**>(argv_raw);
         Parser      parser(argv);
@@ -111,7 +111,7 @@ TEST_CASE("wrapper: boundary and edge cases", "[wrapper]") {
         REQUIRE(std::string(parser.shift()) == "pos2");
     }
 
-    SECTION("permutation disabled (POSIX mode)") {
+    SUBCASE("permutation disabled (POSIX mode)") {
         const char* argv_raw[] = {"prog", "-a", "pos", "-b", nullptr};
         char**      argv       = const_cast<char**>(argv_raw);
         Parser      parser(argv);
@@ -129,7 +129,7 @@ TEST_CASE("wrapper: boundary and edge cases", "[wrapper]") {
     }
 }
 
-TEST_CASE("wrapper: usage and help formatting", "[wrapper]") {
+TEST_CASE("wrapper: usage and help formatting" * doctest::test_suite("wrapper")) {
     Option defs[] = {Option("verbose", 'v', ArgType::None, "Enable verbose logging"),
                      Option("output", 'o', ArgType::Required, "Output file path", "FILE"), Option()};
 

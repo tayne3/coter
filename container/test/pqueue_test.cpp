@@ -1,9 +1,11 @@
 #include "coter/container/pqueue.h"
 
 #include <algorithm>
-#include <catch.hpp>
 #include <cstring>
 #include <vector>
+
+#include "coter/testing/doctest.h"
+
 
 static int int_cmp(const void* a, const void* b) {
     int va = *(const int*)a;
@@ -11,11 +13,11 @@ static int int_cmp(const void* a, const void* b) {
     return va - vb;
 }
 
-TEST_CASE("PQueue Basic Operations", "[pqueue]") {
+TEST_CASE("PQueue Basic Operations" * doctest::test_suite("pqueue")) {
     ct_pqueue_t pq;
     ct_pqueue_init(&pq, int, int_cmp);
 
-    SECTION("Push and Pop order") {
+    SUBCASE("Push and Pop order") {
         int vals[] = {50, 10, 30, 20, 40};
         for (int v : vals) { REQUIRE(ct_pqueue_push(&pq, &v)); }
 
@@ -36,7 +38,7 @@ TEST_CASE("PQueue Basic Operations", "[pqueue]") {
         REQUIRE(ct_pqueue_is_empty(&pq));
     }
 
-    SECTION("Top check") {
+    SUBCASE("Top check") {
         int v = 100;
         ct_pqueue_push(&pq, &v);
         v = 50;
@@ -48,12 +50,12 @@ TEST_CASE("PQueue Basic Operations", "[pqueue]") {
     ct_pqueue_destroy(&pq);
 }
 
-TEST_CASE("PQueue Static Mode", "[pqueue]") {
+TEST_CASE("PQueue Static Mode" * doctest::test_suite("pqueue")) {
     ct_pqueue_t pq;
     int         buffer[10];
     ct_pqueue_init_s(&pq, int, buffer, 10, int_cmp);
 
-    SECTION("Static push limit") {
+    SUBCASE("Static push limit") {
         for (int i = 0; i < 10; ++i) {
             int v = 10 - i;
             REQUIRE(ct_pqueue_push(&pq, &v));
@@ -67,7 +69,7 @@ TEST_CASE("PQueue Static Mode", "[pqueue]") {
     ct_pqueue_destroy(&pq);
 }
 
-TEST_CASE("PQueue Alignment and Large Elements", "[pqueue]") {
+TEST_CASE("PQueue Alignment and Large Elements" * doctest::test_suite("pqueue")) {
     struct large {
         char data[500];
     };

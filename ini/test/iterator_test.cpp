@@ -1,8 +1,8 @@
-#include <catch.hpp>
-
 #include "common.hpp"
+#include "coter/testing/doctest.h"
 
-TEST_CASE("Section Iteration - Empty config", "[iterator]") {
+
+TEST_CASE("Section Iteration - Empty config" * doctest::test_suite("iterator")) {
     ct_ini_t* ini = ct_ini_empty();
 
     ct_ini_section_t* sec = ct_ini_first_section(ini);
@@ -11,7 +11,7 @@ TEST_CASE("Section Iteration - Empty config", "[iterator]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Section Iteration - Single section", "[iterator]") {
+TEST_CASE("Section Iteration - Single section" * doctest::test_suite("iterator")) {
     ct_ini_t* ini = ct_ini_empty();
     ct_ini_get_section(ini, "only");
 
@@ -24,7 +24,7 @@ TEST_CASE("Section Iteration - Single section", "[iterator]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Section Iteration - Multiple sections", "[iterator]") {
+TEST_CASE("Section Iteration - Multiple sections" * doctest::test_suite("iterator")) {
     ct_ini_t* ini = ct_ini_empty();
 
     ct_ini_get_section(ini, "a");
@@ -41,7 +41,7 @@ TEST_CASE("Section Iteration - Multiple sections", "[iterator]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Section Iteration - Section name", "[iterator]") {
+TEST_CASE("Section Iteration - Section name" * doctest::test_suite("iterator")) {
     ct_ini_t* ini = ct_ini_empty();
 
     ct_ini_section_t* sec = ct_ini_get_section(ini, "TestSection");
@@ -53,13 +53,13 @@ TEST_CASE("Section Iteration - Section name", "[iterator]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Section Iteration - NULL safety", "[iterator]") {
+TEST_CASE("Section Iteration - NULL safety" * doctest::test_suite("iterator")) {
     REQUIRE(ct_ini_first_section(nullptr) == nullptr);
     REQUIRE(ct_ini_section_next(nullptr) == nullptr);
     REQUIRE(ct_ini_section_name(nullptr) == nullptr);
 }
 
-TEST_CASE("Key Iteration - Empty section", "[iterator]") {
+TEST_CASE("Key Iteration - Empty section" * doctest::test_suite("iterator")) {
     ct_ini_t*         ini = ct_ini_empty();
     ct_ini_section_t* sec = ct_ini_get_section(ini, "test");
 
@@ -69,7 +69,7 @@ TEST_CASE("Key Iteration - Empty section", "[iterator]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Key Iteration - Single key", "[iterator]") {
+TEST_CASE("Key Iteration - Single key" * doctest::test_suite("iterator")) {
     ct_ini_t*         ini = ct_ini_empty();
     ct_ini_section_t* sec = ct_ini_get_section(ini, "test");
     ct_ini_section_add_key(sec, "only_key", "value");
@@ -84,7 +84,7 @@ TEST_CASE("Key Iteration - Single key", "[iterator]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Key Iteration - Multiple keys", "[iterator]") {
+TEST_CASE("Key Iteration - Multiple keys" * doctest::test_suite("iterator")) {
     ct_ini_t*         ini = ct_ini_empty();
     ct_ini_section_t* sec = ct_ini_get_section(ini, "test");
 
@@ -102,7 +102,7 @@ TEST_CASE("Key Iteration - Multiple keys", "[iterator]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Key Iteration - Key name", "[iterator]") {
+TEST_CASE("Key Iteration - Key name" * doctest::test_suite("iterator")) {
     ct_ini_t*         ini = ct_ini_empty();
     ct_ini_section_t* sec = ct_ini_get_section(ini, "test");
 
@@ -112,13 +112,13 @@ TEST_CASE("Key Iteration - Key name", "[iterator]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Key Iteration - NULL safety", "[iterator]") {
+TEST_CASE("Key Iteration - NULL safety" * doctest::test_suite("iterator")) {
     REQUIRE(ct_ini_section_first_key(nullptr) == nullptr);
     REQUIRE(ct_ini_key_next(nullptr) == nullptr);
     REQUIRE(ct_ini_key_name(nullptr) == nullptr);
 }
 
-TEST_CASE("Full Enumeration - Nested iteration", "[iterator]") {
+TEST_CASE("Full Enumeration - Nested iteration" * doctest::test_suite("iterator")) {
     ct_ini_t* ini = ct_ini_empty();
 
     for (int i = 1; i <= 3; i++) {

@@ -1,13 +1,14 @@
 #include <atomic>
-#include <catch.hpp>
 #include <chrono>
 #include <thread>
 #include <vector>
 
 #include "coter/log/handler/record.h"
 #include "coter/log/log.h"
+#include "coter/testing/doctest.h"
 
-TEST_CASE("log_system_ready_after_first_use", "[log][system]") {
+
+TEST_CASE("log_system_ready_after_first_use" * doctest::test_suite("log") * doctest::test_suite("system")) {
     // 触发懒初始化
     ct_logger_t* def = ct_logger_get_default();
     REQUIRE(def != nullptr);
@@ -32,7 +33,7 @@ TEST_CASE("log_system_ready_after_first_use", "[log][system]") {
     REQUIRE(call_count == 1);
 }
 
-TEST_CASE("log_concurrent_start_close_stress", "[log][system]") {
+TEST_CASE("log_concurrent_start_close_stress" * doctest::test_suite("log") * doctest::test_suite("system")) {
     // 大量并发创建/启动/关闭 logger，验证 dispatcher 全局队列无竞态，
     // 并验证每条提交的日志均被处理（端到端连通）
     constexpr int kThreads = 8;
@@ -84,7 +85,7 @@ TEST_CASE("log_concurrent_start_close_stress", "[log][system]") {
     REQUIRE(total_received == total_sent);
 }
 
-TEST_CASE("log_seal_default_concurrent", "[log][system]") {
+TEST_CASE("log_seal_default_concurrent" * doctest::test_suite("log") * doctest::test_suite("system")) {
     // default logger 在首次 get_default() 调用后即被封印（全局一次性副作用）。
     // 本测试验证封印后并发调用 set_default() 全部失败的稳态行为。
     // 注意：封印可能已由进程内其他测试（如 logger_test）更早触发，这是预期的。

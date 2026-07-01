@@ -1,7 +1,9 @@
 #include "coter/encoding/base64.h"
 
-#include <catch.hpp>
 #include <cstring>
+
+#include "coter/testing/doctest.h"
+
 
 struct ct_base64_test {
     const char* source;
@@ -23,7 +25,7 @@ struct ct_base64_test {
     {" ABCDE abcde 12345 ABCDE abcde 12345 ", "IEFCQ0RFIGFiY2RlIDEyMzQ1IEFCQ0RFIGFiY2RlIDEyMzQ1IA=="},
 };
 
-TEST_CASE("base64_decode", "[base64]") {
+TEST_CASE("base64_decode" * doctest::test_suite("base64")) {
     char buf[1024];
     REQUIRE(ct_base64_decode("AAA=", 4, buf, 0) == 0);
     REQUIRE(ct_base64_decode("AAA=", 4, buf, 1) == 0);
@@ -40,7 +42,7 @@ TEST_CASE("base64_decode", "[base64]") {
     }
 }
 
-TEST_CASE("base64_encode", "[base64]") {
+TEST_CASE("base64_encode" * doctest::test_suite("base64")) {
     char buf[1024];
     REQUIRE(ct_base64_encode((uint8_t*)"a", 1, buf, 0) == 0);
     REQUIRE(ct_base64_encode((uint8_t*)"a", 1, buf, 1) == 0);

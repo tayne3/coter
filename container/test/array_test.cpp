@@ -1,6 +1,9 @@
 #include "coter/container/array.h"
 
-#include <catch.hpp>
+#include <vector>
+
+#include "coter/testing/doctest.h"
+
 
 void check_array_content(const ct_array_t* arr, const std::vector<int>& expected) {
     REQUIRE(ct_array_size(arr) == expected.size());
@@ -11,10 +14,10 @@ void check_array_content(const ct_array_t* arr, const std::vector<int>& expected
     }
 }
 
-TEST_CASE("Array Lifecycle and properties", "[array][lifecycle]") {
+TEST_CASE("Array Lifecycle and properties" * doctest::test_suite("array") * doctest::test_suite("lifecycle")) {
     ct_array_t arr;
 
-    SECTION("Init with zero capacity") {
+    SUBCASE("Init with zero capacity") {
         REQUIRE(ct_array_init(&arr, sizeof(int), 0) == 0);
         REQUIRE(ct_array_size(&arr) == 0);
         REQUIRE(ct_array_capacity(&arr) == 0);
@@ -23,7 +26,7 @@ TEST_CASE("Array Lifecycle and properties", "[array][lifecycle]") {
         ct_array_destroy(&arr);
     }
 
-    SECTION("Init with initial capacity") {
+    SUBCASE("Init with initial capacity") {
         REQUIRE(ct_array_init(&arr, sizeof(int), 10) == 0);
         REQUIRE(ct_array_size(&arr) == 0);
         REQUIRE(ct_array_capacity(&arr) >= 10);
@@ -32,17 +35,17 @@ TEST_CASE("Array Lifecycle and properties", "[array][lifecycle]") {
         ct_array_destroy(&arr);
     }
 
-    SECTION("Init failure checking") {
+    SUBCASE("Init failure checking") {
         REQUIRE(ct_array_init(nullptr, sizeof(int), 0) == -1);
         REQUIRE(ct_array_init(&arr, 0, 10) == -1);
     }
 }
 
-TEST_CASE("Array Capacity Management", "[array][capacity]") {
+TEST_CASE("Array Capacity Management" * doctest::test_suite("array") * doctest::test_suite("capacity")) {
     ct_array_t arr;
     ct_array_init(&arr, sizeof(int), 0);
 
-    SECTION("Reserve increases capacity") {
+    SUBCASE("Reserve increases capacity") {
         REQUIRE(ct_array_reserve(&arr, 100) == true);
         REQUIRE(ct_array_capacity(&arr) >= 100);
         REQUIRE(ct_array_size(&arr) == 0);
@@ -52,7 +55,7 @@ TEST_CASE("Array Capacity Management", "[array][capacity]") {
         REQUIRE(ct_array_capacity(&arr) == old_cap);
     }
 
-    SECTION("Resize changes size and initializes") {
+    SUBCASE("Resize changes size and initializes") {
         REQUIRE(ct_array_resize(&arr, 5) == true);
         REQUIRE(ct_array_size(&arr) == 5);
         REQUIRE(ct_array_capacity(&arr) >= 5);
@@ -64,7 +67,7 @@ TEST_CASE("Array Capacity Management", "[array][capacity]") {
         check_array_content(&arr, {0, 0});
     }
 
-    SECTION("Shrink fits capacity to size") {
+    SUBCASE("Shrink fits capacity to size") {
         REQUIRE(ct_array_reserve(&arr, 100) == true);
         int val = 1;
         ct_array_push(&arr, &val);
@@ -77,7 +80,7 @@ TEST_CASE("Array Capacity Management", "[array][capacity]") {
         check_array_content(&arr, {1});
     }
 
-    SECTION("Shrink empty array") {
+    SUBCASE("Shrink empty array") {
         REQUIRE(ct_array_reserve(&arr, 100) == true);
         REQUIRE(ct_array_shrink(&arr) == true);
         REQUIRE(ct_array_capacity(&arr) == 0);
@@ -87,11 +90,11 @@ TEST_CASE("Array Capacity Management", "[array][capacity]") {
     ct_array_destroy(&arr);
 }
 
-TEST_CASE("Array Data Manipulation", "[array][data]") {
+TEST_CASE("Array Data Manipulation" * doctest::test_suite("array") * doctest::test_suite("data")) {
     ct_array_t arr;
     ct_array_init(&arr, sizeof(int), 0);
 
-    SECTION("Push and Pop") {
+    SUBCASE("Push and Pop") {
         int val = 10;
         REQUIRE(ct_array_push(&arr, &val) == true);
         val = 20;
@@ -110,7 +113,7 @@ TEST_CASE("Array Data Manipulation", "[array][data]") {
         REQUIRE(ct_array_pop(&arr) == false);
     }
 
-    SECTION("Insert") {
+    SUBCASE("Insert") {
         int vals[] = {1, 2, 3};
         ct_array_push(&arr, &vals[0]);  // [1]
         ct_array_push(&arr, &vals[2]);  // [1, 3]
@@ -129,7 +132,7 @@ TEST_CASE("Array Data Manipulation", "[array][data]") {
         REQUIRE(ct_array_insert(&arr, 6, &val5) == false);
     }
 
-    SECTION("Erase") {
+    SUBCASE("Erase") {
         int vals[] = {1, 2, 3, 4, 5};
         for (int v : vals) ct_array_push(&arr, &v);
 
@@ -147,7 +150,7 @@ TEST_CASE("Array Data Manipulation", "[array][data]") {
         REQUIRE(ct_array_erase(&arr, 0) == false);
     }
 
-    SECTION("Clear") {
+    SUBCASE("Clear") {
         int val = 1;
         ct_array_push(&arr, &val);
         size_t cap = ct_array_capacity(&arr);
@@ -161,13 +164,13 @@ TEST_CASE("Array Data Manipulation", "[array][data]") {
     ct_array_destroy(&arr);
 }
 
-TEST_CASE("Array Accessors and Safety", "[array][safety]") {
+TEST_CASE("Array Accessors and Safety" * doctest::test_suite("array") * doctest::test_suite("safety")) {
     ct_array_t arr;
     ct_array_init(&arr, sizeof(int), 10);
     int val = 99;
     ct_array_push(&arr, &val);
 
-    SECTION("At and Value") {
+    SUBCASE("At and Value") {
         REQUIRE(*(int*)ct_array_at(&arr, 0) == 99);
         REQUIRE(*(const int*)ct_array_value(&arr, 0) == 99);
 
@@ -175,19 +178,19 @@ TEST_CASE("Array Accessors and Safety", "[array][safety]") {
         REQUIRE(*(int*)ct_array_at(&arr, 0) == 88);
     }
 
-    SECTION("Out of bounds access") {
+    SUBCASE("Out of bounds access") {
         REQUIRE(ct_array_at(&arr, 1) == nullptr);
         REQUIRE(ct_array_value(&arr, 1) == nullptr);
         REQUIRE(ct_array_at(&arr, 100) == nullptr);
     }
 
-    SECTION("Front and Back on empty") {
+    SUBCASE("Front and Back on empty") {
         ct_array_clear(&arr);
         REQUIRE(ct_array_front(&arr) == nullptr);
         REQUIRE(ct_array_back(&arr) == nullptr);
     }
 
-    SECTION("nullptr self checks") {
+    SUBCASE("nullptr self checks") {
         REQUIRE(ct_array_capacity(nullptr) == 0);
         REQUIRE(ct_array_size(nullptr) == 0);
         REQUIRE(ct_array_empty(nullptr) == true);
@@ -213,11 +216,11 @@ TEST_CASE("Array Accessors and Safety", "[array][safety]") {
     ct_array_destroy(&arr);
 }
 
-TEST_CASE("Array Foreach Macro", "[array][foreach]") {
+TEST_CASE("Array Foreach Macro" * doctest::test_suite("array") * doctest::test_suite("foreach")) {
     ct_array_t arr;
     ct_array_init(&arr, sizeof(int), 0);
 
-    SECTION("Iterate populated array") {
+    SUBCASE("Iterate populated array") {
         std::vector<int> expected = {10, 20, 30, 40};
         for (int v : expected) ct_array_push(&arr, &v);
 
@@ -229,7 +232,7 @@ TEST_CASE("Array Foreach Macro", "[array][foreach]") {
         REQUIRE(idx == 4);
     }
 
-    SECTION("Modify in loop") {
+    SUBCASE("Modify in loop") {
         int val = 1;
         ct_array_push(&arr, &val);
         ct_array_foreach(&arr, int, it) {
@@ -239,7 +242,7 @@ TEST_CASE("Array Foreach Macro", "[array][foreach]") {
         REQUIRE(*(int*)ct_array_at(&arr, 0) == 100);
     }
 
-    SECTION("Break from loop") {
+    SUBCASE("Break from loop") {
         for (int i = 0; i < 10; ++i) ct_array_push(&arr, &i);
 
         int count = 0;
@@ -250,7 +253,7 @@ TEST_CASE("Array Foreach Macro", "[array][foreach]") {
         REQUIRE(count == 5);
     }
 
-    SECTION("Iterate empty") {
+    SUBCASE("Iterate empty") {
         int count = 0;
         ct_array_foreach(&arr, int, it) {
             ++count;

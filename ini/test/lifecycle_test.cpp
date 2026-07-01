@@ -1,30 +1,30 @@
-#include <catch.hpp>
-
 #include "common.hpp"
+#include "coter/testing/doctest.h"
 
-TEST_CASE("Create/Destroy - Create from file", "[lifecycle]") {
+
+TEST_CASE("Create/Destroy - Create from file" * doctest::test_suite("lifecycle")) {
     ct_ini_t* ini = ct_ini_create(test_res_path("basic.ini"));
     REQUIRE(ini != nullptr);
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Create/Destroy - Create file not found", "[lifecycle]") {
+TEST_CASE("Create/Destroy - Create file not found" * doctest::test_suite("lifecycle")) {
     ct_ini_t* ini = ct_ini_create(test_res_path("nonexistent.ini"));
     REQUIRE(ini != nullptr);
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Create/Destroy - Create empty", "[lifecycle]") {
+TEST_CASE("Create/Destroy - Create empty" * doctest::test_suite("lifecycle")) {
     ct_ini_t* ini = ct_ini_empty();
     REQUIRE(ini != nullptr);
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Create/Destroy - Destroy NULL", "[lifecycle]") {
+TEST_CASE("Create/Destroy - Destroy NULL" * doctest::test_suite("lifecycle")) {
     ct_ini_destroy(nullptr);
 }
 
-TEST_CASE("Create/Destroy - Multiple create/destroy cycles", "[lifecycle]") {
+TEST_CASE("Create/Destroy - Multiple create/destroy cycles" * doctest::test_suite("lifecycle")) {
     for (int i = 0; i < 100; i++) {
         ct_ini_t* ini = ct_ini_empty();
         REQUIRE(ini != nullptr);
@@ -36,7 +36,7 @@ TEST_CASE("Create/Destroy - Multiple create/destroy cycles", "[lifecycle]") {
     }
 }
 
-TEST_CASE("Save - Save to file", "[lifecycle]") {
+TEST_CASE("Save - Save to file" * doctest::test_suite("lifecycle")) {
     const char* path = test_tmp_path("save_test.ini");
 
     ct_ini_t* ini = ct_ini_empty();
@@ -52,7 +52,7 @@ TEST_CASE("Save - Save to file", "[lifecycle]") {
     remove(path);
 }
 
-TEST_CASE("Save - Save then reload", "[lifecycle]") {
+TEST_CASE("Save - Save then reload" * doctest::test_suite("lifecycle")) {
     const char* path = test_tmp_path("reload_test.ini");
 
     ct_ini_t*         ini1 = ct_ini_empty();
@@ -81,7 +81,7 @@ TEST_CASE("Save - Save then reload", "[lifecycle]") {
     remove(path);
 }
 
-TEST_CASE("Save - Save empty INI", "[lifecycle]") {
+TEST_CASE("Save - Save empty INI" * doctest::test_suite("lifecycle")) {
     const char* path = test_tmp_path("empty_save.ini");
 
     ct_ini_t* ini = ct_ini_empty();
@@ -95,7 +95,7 @@ TEST_CASE("Save - Save empty INI", "[lifecycle]") {
     remove(path);
 }
 
-TEST_CASE("Clear - Clear and reuse", "[lifecycle]") {
+TEST_CASE("Clear - Clear and reuse" * doctest::test_suite("lifecycle")) {
     ct_ini_t* ini = ct_ini_empty();
     REQUIRE(ini != nullptr);
 
@@ -118,7 +118,7 @@ TEST_CASE("Clear - Clear and reuse", "[lifecycle]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Clear - Clear idempotency", "[lifecycle]") {
+TEST_CASE("Clear - Clear idempotency" * doctest::test_suite("lifecycle")) {
     ct_ini_t* ini = ct_ini_empty();
 
     ct_ini_clear(ini);
@@ -131,7 +131,7 @@ TEST_CASE("Clear - Clear idempotency", "[lifecycle]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Load - Load merged (distinct)", "[lifecycle]") {
+TEST_CASE("Load - Load merged (distinct)" * doctest::test_suite("lifecycle")) {
     char path1[1024];
     char path2[1024];
     snprintf(path1, sizeof(path1), "%s", test_tmp_path("part1.ini"));
@@ -157,7 +157,7 @@ TEST_CASE("Load - Load merged (distinct)", "[lifecycle]") {
     remove(path2);
 }
 
-TEST_CASE("Load - Load merged (overwrite)", "[lifecycle]") {
+TEST_CASE("Load - Load merged (overwrite)" * doctest::test_suite("lifecycle")) {
     char path_def[1024];
     char path_ovr[1024];
     snprintf(path_def, sizeof(path_def), "%s", test_tmp_path("default.ini"));
@@ -187,7 +187,7 @@ TEST_CASE("Load - Load merged (overwrite)", "[lifecycle]") {
     remove(path_ovr);
 }
 
-TEST_CASE("Load - Load failure preservation", "[lifecycle]") {
+TEST_CASE("Load - Load failure preservation" * doctest::test_suite("lifecycle")) {
     char path_ok[1024];
     snprintf(path_ok, sizeof(path_ok), "%s", test_tmp_path("ok.ini"));
     test_write_temp_ini("ok.ini", "[data]\n"

@@ -4,12 +4,13 @@
  */
 #include "coter/thread/jobpool.h"
 
-#include <catch.hpp>
 #include <thread>
 
 #include "coter/core/macro.h"
 #include "coter/core/time.h"
 #include "coter/sync/mutex.h"
+#include "coter/testing/doctest.h"
+
 
 #define TEST_DATA_MAX 10000
 
@@ -100,26 +101,26 @@ static void test_jobpool_add(size_t data_count, size_t task_count, size_t job_co
     REQUIRE(test_data.end_number == test_data.data_size);
 }
 
-TEST_CASE("jobpool_add_10_1_10", "[jobpool]") {
+TEST_CASE("jobpool_add_10_1_10" * doctest::test_suite("jobpool")) {
     test_jobpool_add(10, 1, 10);
 }
 
-TEST_CASE("jobpool_add_10_10_1", "[jobpool]") {
+TEST_CASE("jobpool_add_10_10_1" * doctest::test_suite("jobpool")) {
     test_jobpool_add(10, 10, 1);
 }
 
-TEST_CASE("jobpool_add_500_10_1", "[jobpool]") {
+TEST_CASE("jobpool_add_500_10_1" * doctest::test_suite("jobpool")) {
     test_jobpool_add(500, 10, 1);
 }
 
-TEST_CASE("jobpool_create_invalid_params", "[jobpool]") {
+TEST_CASE("jobpool_create_invalid_params" * doctest::test_suite("jobpool")) {
     // thread_max=0 应返回 NULL
     REQUIRE(ct_jobpool_create(0, 10, NULL) == nullptr);
     // job_max=0 应返回 NULL
     REQUIRE(ct_jobpool_create(4, 0, NULL) == nullptr);
 }
 
-TEST_CASE("jobpool_create_with_config_stack_size", "[jobpool]") {
+TEST_CASE("jobpool_create_with_config_stack_size" * doctest::test_suite("jobpool")) {
     ct_thread_attr_t attr = CT_THREAD_ATTR_INIT;
     ct_thread_attr_set_stack_size(&attr, 512 * 1024);  // 512KB 栈
 
@@ -129,7 +130,7 @@ TEST_CASE("jobpool_create_with_config_stack_size", "[jobpool]") {
     ct_jobpool_destroy(pool);
 }
 
-TEST_CASE("jobpool_try_submit_full", "[jobpool]") {
+TEST_CASE("jobpool_try_submit_full" * doctest::test_suite("jobpool")) {
     // job_max=1，提交第一个后队列满，try_submit 应立即失败
     ct_jobpool_t* pool = ct_jobpool_create(1, 1, NULL);
     REQUIRE(pool != nullptr);
@@ -151,7 +152,7 @@ TEST_CASE("jobpool_try_submit_full", "[jobpool]") {
     ct_jobpool_destroy(pool);
 }
 
-TEST_CASE("jobpool_submit_for_timeout", "[jobpool]") {
+TEST_CASE("jobpool_submit_for_timeout" * doctest::test_suite("jobpool")) {
     // job_max=1，手动让队列满，然后用超时版本提交
     ct_jobpool_t* pool = ct_jobpool_create(1, 1, NULL);
     REQUIRE(pool != nullptr);
@@ -174,7 +175,7 @@ TEST_CASE("jobpool_submit_for_timeout", "[jobpool]") {
     ct_jobpool_destroy(pool);
 }
 
-TEST_CASE("jobpool_pending", "[jobpool]") {
+TEST_CASE("jobpool_pending" * doctest::test_suite("jobpool")) {
     // job_max=100，先不让线程执行，检查 pending 计数
     ct_jobpool_t* pool = ct_jobpool_create(1, 100, NULL);
     REQUIRE(pool != nullptr);
@@ -199,7 +200,7 @@ TEST_CASE("jobpool_pending", "[jobpool]") {
     ct_jobpool_destroy(pool);
 }
 
-TEST_CASE("jobpool_yield_every_dense_tasks", "[jobpool]") {
+TEST_CASE("jobpool_yield_every_dense_tasks" * doctest::test_suite("jobpool")) {
     // 验证 yield_every 不影响正确性：密集微任务场景下所有任务仍应全部完成
     const size_t TASK_COUNT = 5000;
 

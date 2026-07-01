@@ -1,10 +1,11 @@
 #include "coter/sync/sem.h"
 
-#include <catch.hpp>
 #include <thread>
 
 #include "coter/core/time.h"
 #include "coter/sync/atomic.h"
+#include "coter/testing/doctest.h"
+
 
 namespace {
 struct sem_env {
@@ -30,23 +31,23 @@ static int wait_worker(void* arg) {
 }
 }  // namespace
 
-TEST_CASE("init rejects null pointer", "[sync][sem]") {
+TEST_CASE("init rejects null pointer" * doctest::test_suite("sync") * doctest::test_suite("sem")) {
     REQUIRE(ct_sem_init(NULL, 0) == EINVAL);
 }
 
-TEST_CASE("trywait returns EAGAIN when empty", "[sync][sem]") {
+TEST_CASE("trywait returns EAGAIN when empty" * doctest::test_suite("sync") * doctest::test_suite("sem")) {
     sem_env env(0);
 
     REQUIRE(ct_sem_trywait(&env.sem) == EAGAIN);
 }
 
-TEST_CASE("wait_for returns ETIMEDOUT when empty", "[sync][sem]") {
+TEST_CASE("wait_for returns ETIMEDOUT when empty" * doctest::test_suite("sync") * doctest::test_suite("sem")) {
     sem_env env(0);
 
     REQUIRE(ct_sem_wait_for(&env.sem, 20) == ETIMEDOUT);
 }
 
-TEST_CASE("post then wait consumes the token", "[sync][sem]") {
+TEST_CASE("post then wait consumes the token" * doctest::test_suite("sync") * doctest::test_suite("sem")) {
     sem_env env(0);
 
     REQUIRE(ct_sem_post(&env.sem) == 0);
@@ -54,7 +55,7 @@ TEST_CASE("post then wait consumes the token", "[sync][sem]") {
     REQUIRE(ct_sem_trywait(&env.sem) == EAGAIN);
 }
 
-TEST_CASE("wait blocks until post", "[sync][sem]") {
+TEST_CASE("wait blocks until post" * doctest::test_suite("sync") * doctest::test_suite("sem")) {
     sem_env     env(0);
     std::thread thread(wait_worker, &env);
 
@@ -68,7 +69,7 @@ TEST_CASE("wait blocks until post", "[sync][sem]") {
     REQUIRE(ct_atomic_int_load(&env.waiter_done) == 1);
 }
 
-TEST_CASE("multiple posts release multiple waiters", "[sync][sem]") {
+TEST_CASE("multiple posts release multiple waiters" * doctest::test_suite("sync") * doctest::test_suite("sem")) {
     sem_env     env(0);
     std::thread threads[2];
 

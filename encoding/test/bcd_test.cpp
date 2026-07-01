@@ -1,9 +1,9 @@
 #include "coter/encoding/bcd.h"
 
-#include <catch.hpp>
+#include "coter/testing/doctest.h"
 
-TEST_CASE("bcd conversion u8", "[bcd][u8]") {
-    SECTION("ct_bcd_from_u8") {
+TEST_CASE("bcd conversion u8" * doctest::test_suite("bcd") * doctest::test_suite("u8")) {
+    SUBCASE("ct_bcd_from_u8") {
         CHECK(ct_bcd_from_u8(0) == 0x00);
         CHECK(ct_bcd_from_u8(9) == 0x09);
         CHECK(ct_bcd_from_u8(10) == 0x10);
@@ -11,7 +11,7 @@ TEST_CASE("bcd conversion u8", "[bcd][u8]") {
         CHECK(ct_bcd_from_u8(99) == 0x99);
     }
 
-    SECTION("ct_bcd_to_u8") {
+    SUBCASE("ct_bcd_to_u8") {
         CHECK(ct_bcd_to_u8(0x00) == 0);
         CHECK(ct_bcd_to_u8(0x09) == 9);
         CHECK(ct_bcd_to_u8(0x10) == 10);
@@ -20,8 +20,8 @@ TEST_CASE("bcd conversion u8", "[bcd][u8]") {
     }
 }
 
-TEST_CASE("bcd conversion u16", "[bcd][u16]") {
-    SECTION("ct_bcd_from_u16") {
+TEST_CASE("bcd conversion u16" * doctest::test_suite("bcd") * doctest::test_suite("u16")) {
+    SUBCASE("ct_bcd_from_u16") {
         CHECK(ct_bcd_from_u16(0) == 0x0000);
         CHECK(ct_bcd_from_u16(11) == 0x0011);
         CHECK(ct_bcd_from_u16(121) == 0x0121);
@@ -29,7 +29,7 @@ TEST_CASE("bcd conversion u16", "[bcd][u16]") {
         CHECK(ct_bcd_from_u16(9999) == 0x9999);
     }
 
-    SECTION("ct_bcd_to_u16") {
+    SUBCASE("ct_bcd_to_u16") {
         CHECK(ct_bcd_to_u16(0x0000) == 0);
         CHECK(ct_bcd_to_u16(0x0011) == 11);
         CHECK(ct_bcd_to_u16(0x0121) == 121);
@@ -38,8 +38,8 @@ TEST_CASE("bcd conversion u16", "[bcd][u16]") {
     }
 }
 
-TEST_CASE("bcd conversion u32", "[bcd][u32]") {
-    SECTION("ct_bcd_from_u32") {
+TEST_CASE("bcd conversion u32" * doctest::test_suite("bcd") * doctest::test_suite("u32")) {
+    SUBCASE("ct_bcd_from_u32") {
         CHECK(ct_bcd_from_u32(0) == 0x00000000);
         CHECK(ct_bcd_from_u32(11) == 0x00000011);
         CHECK(ct_bcd_from_u32(1213) == 0x00001213);
@@ -48,7 +48,7 @@ TEST_CASE("bcd conversion u32", "[bcd][u32]") {
         CHECK(ct_bcd_from_u32(99999999) == 0x99999999);
     }
 
-    SECTION("ct_bcd_to_u32") {
+    SUBCASE("ct_bcd_to_u32") {
         CHECK(ct_bcd_to_u32(0x00000000) == 0);
         CHECK(ct_bcd_to_u32(0x00000011) == 11);
         CHECK(ct_bcd_to_u32(0x00001213) == 1213);
@@ -58,8 +58,8 @@ TEST_CASE("bcd conversion u32", "[bcd][u32]") {
     }
 }
 
-TEST_CASE("bcd conversion u64", "[bcd][u64]") {
-    SECTION("ct_bcd_from_u64") {
+TEST_CASE("bcd conversion u64" * doctest::test_suite("bcd") * doctest::test_suite("u64")) {
+    SUBCASE("ct_bcd_from_u64") {
         CHECK(ct_bcd_from_u64(0) == 0x0000000000000000);
         CHECK(ct_bcd_from_u64(11) == 0x0000000000000011);
         CHECK(ct_bcd_from_u64(1213) == 0x000000000001213);
@@ -72,7 +72,7 @@ TEST_CASE("bcd conversion u64", "[bcd][u64]") {
         CHECK(ct_bcd_from_u64(9999999999999999) == 0x9999999999999999);
     }
 
-    SECTION("ct_bcd_to_u64") {
+    SUBCASE("ct_bcd_to_u64") {
         CHECK(ct_bcd_to_u64(0x0000000000000000) == 0);
         CHECK(ct_bcd_to_u64(0x0000000000000011) == 11);
         CHECK(ct_bcd_to_u64(0x000000000001213) == 1213);

@@ -1,7 +1,7 @@
-#include <catch.hpp>
-
 #include "coter/log/handler/record.h"
 #include "coter/log/log.h"
+#include "coter/testing/doctest.h"
+
 
 namespace {
 struct default_setup_state {
@@ -15,7 +15,8 @@ void default_setup_callback(const ct_log_record_t* record, void* userdata) {
 }
 }  // namespace
 
-TEST_CASE("log_default_logger_can_be_configured_before_first_use", "[log][default]") {
+TEST_CASE("log_default_logger_can_be_configured_before_first_use" * doctest::test_suite("log") *
+          doctest::test_suite("default")) {
     static ct_logger_t             logger;
     static default_setup_state     state;
     ct_log_record_handler_config_t config;

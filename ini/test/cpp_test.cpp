@@ -1,11 +1,12 @@
-#include <catch.hpp>
 #include <cmath>
 #include <string>
 #include <vector>
 
 #include "common.hpp"
+#include "coter/testing/doctest.h"
 
-TEST_CASE("C++ API - Basic", "[cpp]") {
+
+TEST_CASE("C++ API - Basic" * doctest::test_suite("cpp")) {
     coter::ini::Ini ini;
     REQUIRE(ini.lastError() == 0);
     ini.getSection("test").addKey("foo", "bar1");
@@ -57,7 +58,7 @@ TEST_CASE("C++ API - Basic", "[cpp]") {
     remove(path);
 }
 
-TEST_CASE("C++ API - Parser config", "[cpp]") {
+TEST_CASE("C++ API - Parser config" * doctest::test_suite("cpp")) {
     const char* content = "+IPR:9\n"
                           "+LFR:868\n"
                           "[section]\n"

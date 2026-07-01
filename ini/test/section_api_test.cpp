@@ -1,8 +1,8 @@
-#include <catch.hpp>
-
 #include "common.hpp"
+#include "coter/testing/doctest.h"
 
-TEST_CASE("Get/Find Section - Get section creates", "[section_api]") {
+
+TEST_CASE("Get/Find Section - Get section creates" * doctest::test_suite("section_api")) {
     ct_ini_t*         ini = ct_ini_empty();
     ct_ini_section_t* sec = ct_ini_get_section(ini, "new_section");
     REQUIRE(sec != nullptr);
@@ -12,14 +12,14 @@ TEST_CASE("Get/Find Section - Get section creates", "[section_api]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Get/Find Section - Find section does not create", "[section_api]") {
+TEST_CASE("Get/Find Section - Find section does not create" * doctest::test_suite("section_api")) {
     ct_ini_t*         ini = ct_ini_empty();
     ct_ini_section_t* sec = ct_ini_find_section(ini, "nonexistent");
     REQUIRE(sec == nullptr);
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Get/Find Section - Section case insensitivity", "[section_api]") {
+TEST_CASE("Get/Find Section - Section case insensitivity" * doctest::test_suite("section_api")) {
     ct_ini_t* ini = ct_ini_empty();
 
     ct_ini_section_t* sec = ct_ini_get_section(ini, "TestSection");
@@ -33,7 +33,7 @@ TEST_CASE("Get/Find Section - Section case insensitivity", "[section_api]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Get/Find Section - Section empty name", "[section_api]") {
+TEST_CASE("Get/Find Section - Section empty name" * doctest::test_suite("section_api")) {
     ct_ini_t*         ini       = ct_ini_empty();
     ct_ini_section_t* sec_empty = ct_ini_get_section(ini, "");
     REQUIRE(sec_empty != nullptr);
@@ -43,7 +43,7 @@ TEST_CASE("Get/Find Section - Section empty name", "[section_api]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Get/Find Section - Section complex names", "[section_api]") {
+TEST_CASE("Get/Find Section - Section complex names" * doctest::test_suite("section_api")) {
     const char* names[] = {
         "Section One", "Section_Two", "Section-Three", "Sec.tion.Four", "Sec@tion#Five",
     };
@@ -62,7 +62,7 @@ TEST_CASE("Get/Find Section - Section complex names", "[section_api]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Remove Section - Remove section", "[section_api]") {
+TEST_CASE("Remove Section - Remove section" * doctest::test_suite("section_api")) {
     ct_ini_t* ini = ct_ini_empty();
 
     ct_ini_section_t* sec = ct_ini_get_section(ini, "to_remove");
@@ -77,14 +77,14 @@ TEST_CASE("Remove Section - Remove section", "[section_api]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Remove Section - Remove section not found", "[section_api]") {
+TEST_CASE("Remove Section - Remove section not found" * doctest::test_suite("section_api")) {
     ct_ini_t* ini    = ct_ini_empty();
     int       result = ct_ini_remove_section(ini, "nonexistent");
     REQUIRE(result != 0);
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Remove Section - Remove section case insensitive", "[section_api]") {
+TEST_CASE("Remove Section - Remove section case insensitive" * doctest::test_suite("section_api")) {
     ct_ini_t* ini = ct_ini_empty();
 
     ct_ini_get_section(ini, "MySection");
@@ -95,7 +95,7 @@ TEST_CASE("Remove Section - Remove section case insensitive", "[section_api]") {
     ct_ini_destroy(ini);
 }
 
-TEST_CASE("Bulk Operations - Many sections", "[section_api]") {
+TEST_CASE("Bulk Operations - Many sections" * doctest::test_suite("section_api")) {
     ct_ini_t* ini = ct_ini_empty();
 
     for (int i = 0; i < 100; i++) {

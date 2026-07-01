@@ -1,12 +1,13 @@
 #include "coter/core/strings.h"
 
 #include <algorithm>
-#include <catch.hpp>
 #include <cstring>
 
 #include "coter/core/macro.h"
+#include "coter/testing/doctest.h"
 
-TEST_CASE("strings_snprintf", "[strings]") {
+
+TEST_CASE("strings_snprintf" * doctest::test_suite("strings")) {
     char       buf[100];
     const char truncate[100] = "Truncate";
     int        len           = ct_snprintf(buf, sizeof(buf), "Hello %s %d 5678", "World", 1234);
@@ -32,7 +33,7 @@ TEST_CASE("strings_snprintf", "[strings]") {
     REQUIRE(strcmp(buf, "Truncate") == 0);
 }
 
-TEST_CASE("strings_snprintf_s", "[strings]") {
+TEST_CASE("strings_snprintf_s" * doctest::test_suite("strings")) {
     char buf[100];
     int  len = ct_snprintf_s(buf, sizeof(buf), "Hello %s %d", "World", 42);
     REQUIRE(len == 14);
@@ -64,7 +65,7 @@ TEST_CASE("strings_snprintf_s", "[strings]") {
     REQUIRE(buf[sizeof(buf) - 1] == 0);
 }
 
-TEST_CASE("strings_strncpy_s", "[strings]") {
+TEST_CASE("strings_strncpy_s" * doctest::test_suite("strings")) {
     char buf[20];
     int  len = ct_strncpy_s(buf, sizeof(buf), "Hello", 5);
     REQUIRE(len == 5);
@@ -90,7 +91,7 @@ TEST_CASE("strings_strncpy_s", "[strings]") {
     REQUIRE(strcmp(buf, "") == 0);
 }
 
-TEST_CASE("strings_reverse_memcpy_basic", "[strings]") {
+TEST_CASE("strings_reverse_memcpy_basic" * doctest::test_suite("strings")) {
     {
         char src[]    = "Hello, World!";
         char dest[20] = {0};
@@ -141,7 +142,7 @@ TEST_CASE("strings_reverse_memcpy_basic", "[strings]") {
     }
 }
 
-TEST_CASE("strings_reverse_memcpy_long", "[strings]") {
+TEST_CASE("strings_reverse_memcpy_long" * doctest::test_suite("strings")) {
     char src[1000];
     char dest[1000] = {0};
     for (int i = 0; i < 999; ++i) { src[i] = 'A' + (char)(i % 26); }
@@ -150,7 +151,7 @@ TEST_CASE("strings_reverse_memcpy_long", "[strings]") {
     for (int i = 0; i < 999; ++i) { REQUIRE(dest[i] == src[998 - i]); }
 }
 
-TEST_CASE("strings_reverse_memmove_basic", "[strings]") {
+TEST_CASE("strings_reverse_memmove_basic" * doctest::test_suite("strings")) {
     {
         char src[]    = "Hello, World!";
         char dest[20] = {0};
@@ -201,7 +202,7 @@ TEST_CASE("strings_reverse_memmove_basic", "[strings]") {
     }
 }
 
-TEST_CASE("strings_reverse_memmove_long", "[strings]") {
+TEST_CASE("strings_reverse_memmove_long" * doctest::test_suite("strings")) {
     char src[1000];
     char dest[1000] = {0};
     for (int i = 0; i < 999; ++i) { src[i] = 'A' + (char)(i % 26); }
@@ -210,7 +211,7 @@ TEST_CASE("strings_reverse_memmove_long", "[strings]") {
     for (int i = 0; i < 999; ++i) { REQUIRE(dest[i] == src[998 - i]); }
 }
 
-TEST_CASE("strings_reverse_memmove_complex", "[strings]") {
+TEST_CASE("strings_reverse_memmove_complex" * doctest::test_suite("strings")) {
     {
         char dest[] = "Hello, World!";
         REQUIRE(ct_reverse_memmove(dest, dest, sizeof(dest) - 1) == dest);

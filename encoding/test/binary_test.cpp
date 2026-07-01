@@ -1,8 +1,8 @@
 #include "coter/encoding/binary.h"
 
-#include <catch.hpp>
+#include "coter/testing/doctest.h"
 
-TEST_CASE("binary_le_uint16", "[binary]") {
+TEST_CASE("binary_le_uint16" * doctest::test_suite("binary")) {
     uint8_t buf[2] = {0};
     ct_le_set_u16(buf, 0x1234);
     REQUIRE(buf[0] == 0x34);
@@ -11,7 +11,7 @@ TEST_CASE("binary_le_uint16", "[binary]") {
     REQUIRE(val == 0x1234);
 }
 
-TEST_CASE("binary_le_uint32", "[binary]") {
+TEST_CASE("binary_le_uint32" * doctest::test_suite("binary")) {
     uint8_t buf[4] = {0};
     ct_le_set_u32(buf, 0x12345678);
     REQUIRE(buf[0] == 0x78);
@@ -22,7 +22,7 @@ TEST_CASE("binary_le_uint32", "[binary]") {
     REQUIRE(val == 0x12345678);
 }
 
-TEST_CASE("binary_le_uint64", "[binary]") {
+TEST_CASE("binary_le_uint64" * doctest::test_suite("binary")) {
     uint8_t buf[8] = {0};
     ct_le_set_u64(buf, 0x0102030405060708ULL);
     REQUIRE(buf[0] == 0x08);
@@ -37,7 +37,7 @@ TEST_CASE("binary_le_uint64", "[binary]") {
     REQUIRE(val == 0x0102030405060708ULL);
 }
 
-TEST_CASE("binary_be_uint16", "[binary]") {
+TEST_CASE("binary_be_uint16" * doctest::test_suite("binary")) {
     uint8_t buf[2] = {0};
     ct_be_set_u16(buf, 0x1234);
     REQUIRE(buf[0] == 0x12);
@@ -46,7 +46,7 @@ TEST_CASE("binary_be_uint16", "[binary]") {
     REQUIRE(val == 0x1234);
 }
 
-TEST_CASE("binary_be_uint32", "[binary]") {
+TEST_CASE("binary_be_uint32" * doctest::test_suite("binary")) {
     uint8_t buf[4] = {0};
     ct_be_set_u32(buf, 0x12345678);
     REQUIRE(buf[0] == 0x12);
@@ -57,7 +57,7 @@ TEST_CASE("binary_be_uint32", "[binary]") {
     REQUIRE(val == 0x12345678);
 }
 
-TEST_CASE("binary_be_uint64", "[binary]") {
+TEST_CASE("binary_be_uint64" * doctest::test_suite("binary")) {
     uint8_t buf[8] = {0};
     ct_be_set_u64(buf, 0x0102030405060708ULL);
     REQUIRE(buf[0] == 0x01);
@@ -72,7 +72,7 @@ TEST_CASE("binary_be_uint64", "[binary]") {
     REQUIRE(val == 0x0102030405060708ULL);
 }
 
-TEST_CASE("binary_zero_max", "[binary]") {
+TEST_CASE("binary_zero_max" * doctest::test_suite("binary")) {
     uint8_t buf[8] = {0};
     ct_le_set_u16(buf, 0);
     REQUIRE(ct_le_get_u16(buf) == 0);
@@ -88,7 +88,7 @@ TEST_CASE("binary_zero_max", "[binary]") {
     REQUIRE(ct_le_get_u64(buf) == UINT64_MAX);
 }
 
-TEST_CASE("binary_unaligned", "[binary]") {
+TEST_CASE("binary_unaligned" * doctest::test_suite("binary")) {
     uint8_t  storage[16] = {0};
     uint8_t* buf         = storage + 1;
     ct_le_set_u32(buf, 0xDEADBEEF);
@@ -97,7 +97,7 @@ TEST_CASE("binary_unaligned", "[binary]") {
     REQUIRE(ct_be_get_u64(buf) == 0x0123456789ABCDEFULL);
 }
 
-TEST_CASE("binary_bswap16_batch", "[binary]") {
+TEST_CASE("binary_bswap16_batch" * doctest::test_suite("binary")) {
     uint16_t data[16] = {0x0001, 0x0102, 0x0203, 0x0304, 0x0405, 0x0506, 0x0607, 0x0708,
                          0x0809, 0x090A, 0x0A0B, 0x0B0C, 0x0C0D, 0x0D0E, 0x0E0F, 0x0F10};
     ct_binary_bswap16_batch(data, 16);
@@ -106,21 +106,21 @@ TEST_CASE("binary_bswap16_batch", "[binary]") {
     REQUIRE(data[15] == 0x100F);
 }
 
-TEST_CASE("binary_bswap32_batch", "[binary]") {
+TEST_CASE("binary_bswap32_batch" * doctest::test_suite("binary")) {
     uint32_t data[8] = {0x01020304, 0x05060708, 0x090A0B0C, 0x0D0E0F10, 0x11121314, 0x15161718, 0x191A1B1C, 0x1D1E1F20};
     ct_binary_bswap32_batch(data, 8);
     REQUIRE(data[0] == 0x04030201);
     REQUIRE(data[7] == 0x201F1E1D);
 }
 
-TEST_CASE("binary_bswap64_batch", "[binary]") {
+TEST_CASE("binary_bswap64_batch" * doctest::test_suite("binary")) {
     uint64_t data[4] = {0x0102030405060708ULL, 0x090A0B0C0D0E0F10ULL, 0x1112131415161718ULL, 0x191A1B1C1D1E1F20ULL};
     ct_binary_bswap64_batch(data, 4);
     REQUIRE(data[0] == 0x0807060504030201ULL);
     REQUIRE(data[3] == 0x201F1E1D1C1B1A19ULL);
 }
 
-TEST_CASE("binary_batch_odd_count", "[binary]") {
+TEST_CASE("binary_batch_odd_count" * doctest::test_suite("binary")) {
     uint32_t data[7] = {1, 2, 3, 4, 5, 6, 7};
     ct_binary_bswap32_batch(data, 7);
     for (int i = 0; i < 7; ++i) { REQUIRE(data[i] != (uint32_t)(i + 1)); }
@@ -128,18 +128,18 @@ TEST_CASE("binary_batch_odd_count", "[binary]") {
     for (int i = 0; i < 7; ++i) { REQUIRE(data[i] == (uint32_t)(i + 1)); }
 }
 
-TEST_CASE("binary_bswap16_x2", "[binary]") {
+TEST_CASE("binary_bswap16_x2" * doctest::test_suite("binary")) {
     REQUIRE(ct_binary_bswap16_lanes32(0x11223344) == 0x22114433);
     REQUIRE(ct_binary_bswap16_lanes32(0x00000000) == 0x00000000);
     REQUIRE(ct_binary_bswap16_lanes32(0xFFFFFFFF) == 0xFFFFFFFF);
 }
 
-TEST_CASE("binary_bswap16_x4", "[binary]") {
+TEST_CASE("binary_bswap16_x4" * doctest::test_suite("binary")) {
     REQUIRE(ct_binary_bswap16_lanes64(0x1122334455667788ULL) == 0x2211443366558877ULL);
     REQUIRE(ct_binary_bswap16_lanes64(0x0000000000000000ULL) == 0x0000000000000000ULL);
 }
 
-TEST_CASE("binary_bswap16_x2_batch", "[binary]") {
+TEST_CASE("binary_bswap16_x2_batch" * doctest::test_suite("binary")) {
     uint32_t data[8] = {0x11223344, 0x55667788, 0x99AABBCC, 0xDDEEFF00, 0x01020304, 0x05060708, 0x090A0B0C, 0x0D0E0F10};
     ct_binary_bswap16_lanes32_batch(data, 8);
     REQUIRE(data[0] == 0x22114433);
@@ -150,7 +150,7 @@ TEST_CASE("binary_bswap16_x2_batch", "[binary]") {
     REQUIRE(data[7] == 0x0E0D100F);
 }
 
-TEST_CASE("binary_bswap16_x4_batch", "[binary]") {
+TEST_CASE("binary_bswap16_x4_batch" * doctest::test_suite("binary")) {
     uint64_t data[4] = {0x1122334455667788ULL, 0x99AABBCCDDEEFF00ULL, 0x0102030405060708ULL, 0x090A0B0C0D0E0F10ULL};
     ct_binary_bswap16_lanes64_batch(data, 4);
     REQUIRE(data[0] == 0x2211443366558877ULL);
@@ -159,20 +159,20 @@ TEST_CASE("binary_bswap16_x4_batch", "[binary]") {
     REQUIRE(data[3] == 0x0A090C0B0E0D100FULL);
 }
 
-TEST_CASE("binary_reverse_words32", "[binary]") {
+TEST_CASE("binary_reverse_words32" * doctest::test_suite("binary")) {
     REQUIRE(ct_binary_reverse16_lanes32(0x11223344) == 0x33441122);
     REQUIRE(ct_binary_reverse16_lanes32(0x00000000) == 0x00000000);
     REQUIRE(ct_binary_reverse16_lanes32(0xFFFFFFFF) == 0xFFFFFFFF);
     REQUIRE(ct_binary_reverse16_lanes32(0x01020304) == 0x03040102);
 }
 
-TEST_CASE("binary_reverse_words64", "[binary]") {
+TEST_CASE("binary_reverse_words64" * doctest::test_suite("binary")) {
     REQUIRE(ct_binary_reverse16_lanes64(0x1122334455667788ULL) == 0x7788556633441122ULL);
     REQUIRE(ct_binary_reverse16_lanes64(0x0000000000000000ULL) == 0x0000000000000000ULL);
     REQUIRE(ct_binary_reverse16_lanes64(0xFFFFFFFFFFFFFFFFULL) == 0xFFFFFFFFFFFFFFFFULL);
 }
 
-TEST_CASE("binary_reverse_words32_batch", "[binary]") {
+TEST_CASE("binary_reverse_words32_batch" * doctest::test_suite("binary")) {
     uint32_t data[8] = {0x11223344, 0x55667788, 0x99AABBCC, 0xDDEEFF00, 0x01020304, 0x05060708, 0x090A0B0C, 0x0D0E0F10};
     ct_binary_reverse16_lanes32_batch(data, 8);
     REQUIRE(data[0] == 0x33441122);
@@ -183,7 +183,7 @@ TEST_CASE("binary_reverse_words32_batch", "[binary]") {
     REQUIRE(data[7] == 0x0F100D0E);
 }
 
-TEST_CASE("binary_reverse_words64_batch", "[binary]") {
+TEST_CASE("binary_reverse_words64_batch" * doctest::test_suite("binary")) {
     uint64_t data[4] = {0x1122334455667788ULL, 0x99AABBCCDDEEFF00ULL, 0x0102030405060708ULL, 0x090A0B0C0D0E0F10ULL};
     ct_binary_reverse16_lanes64_batch(data, 4);
     REQUIRE(data[0] == 0x7788556633441122ULL);
@@ -192,7 +192,7 @@ TEST_CASE("binary_reverse_words64_batch", "[binary]") {
     REQUIRE(data[3] == 0X0F100D0E0B0C090AULL);
 }
 
-TEST_CASE("binary_reverse_words_batch_odd", "[binary]") {
+TEST_CASE("binary_reverse_words_batch_odd" * doctest::test_suite("binary")) {
     uint32_t data32[7] = {0x11223344, 0x55667788, 0x99AABBCC, 0xDDEEFF00, 0x01020304, 0x05060708, 0x090A0B0C};
     ct_binary_reverse16_lanes32_batch(data32, 7);
     REQUIRE(data32[0] == 0x33441122);
@@ -212,7 +212,7 @@ TEST_CASE("binary_reverse_words_batch_odd", "[binary]") {
     REQUIRE(data32[6] == 0x090A0B0C);
 }
 
-TEST_CASE("binary_at_and_roundtrip", "[binary]") {
+TEST_CASE("binary_at_and_roundtrip" * doctest::test_suite("binary")) {
     uint8_t buf[8] = {0};
     for (uint16_t i = 0; i < 1000; ++i) {
         ct_le_set_u16(buf, i);

@@ -1,10 +1,12 @@
 #include "coter/crypto/md5.h"
 
-#include <catch.hpp>
 #include <cstddef>
 #include <cstring>
 
-TEST_CASE("md5 test", "[md5]") {
+#include "coter/testing/doctest.h"
+
+
+TEST_CASE("md5 test" * doctest::test_suite("md5")) {
     struct md5_test {
         const char*   data;
         const uint8_t target[16];

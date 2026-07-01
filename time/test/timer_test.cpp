@@ -1,12 +1,13 @@
 #include "coter/time/timer.h"
 
-#include <catch.hpp>
 #include <thread>
 
 #include "coter/core/macro.h"
 #include "coter/core/time.h"
 #include "coter/sync/atomic.h"
 #include "coter/sync/event.h"
+#include "coter/testing/doctest.h"
+
 
 namespace {
 
@@ -106,7 +107,7 @@ void advance_ms(ct_time64_t ms) {
 
 }  // namespace
 
-TEST_CASE("one-shot timer fires exactly once", "[timer]") {
+TEST_CASE("one-shot timer fires exactly once" * doctest::test_suite("timer")) {
     start();
 
     callback_ctx ctx;
@@ -128,7 +129,7 @@ TEST_CASE("one-shot timer fires exactly once", "[timer]") {
     stop();
 }
 
-TEST_CASE("resetting a timer restarts its countdown", "[timer]") {
+TEST_CASE("resetting a timer restarts its countdown" * doctest::test_suite("timer")) {
     start();
 
     callback_ctx ctx;
@@ -153,7 +154,7 @@ TEST_CASE("resetting a timer restarts its countdown", "[timer]") {
     stop();
 }
 
-TEST_CASE("periodic ticker fires repeatedly at fixed intervals", "[ticker]") {
+TEST_CASE("periodic ticker fires repeatedly at fixed intervals" * doctest::test_suite("ticker")) {
     start();
 
     callback_ctx ctx;
@@ -180,7 +181,7 @@ TEST_CASE("periodic ticker fires repeatedly at fixed intervals", "[ticker]") {
     stop();
 }
 
-TEST_CASE("ct_set_timeout fires once after the specified delay", "[timer]") {
+TEST_CASE("ct_set_timeout fires once after the specified delay" * doctest::test_suite("timer")) {
     start();
 
     callback_ctx ctx;
@@ -196,7 +197,7 @@ TEST_CASE("ct_set_timeout fires once after the specified delay", "[timer]") {
     stop();
 }
 
-TEST_CASE("multiple timers fire independently at different deadlines", "[timer]") {
+TEST_CASE("multiple timers fire independently at different deadlines" * doctest::test_suite("timer")) {
     start();
 
     callback_ctx ctx1;
@@ -222,7 +223,7 @@ TEST_CASE("multiple timers fire independently at different deadlines", "[timer]"
     stop();
 }
 
-TEST_CASE("stopping a timer before expiry prevents its callback", "[timer]") {
+TEST_CASE("stopping a timer before expiry prevents its callback" * doctest::test_suite("timer")) {
     start();
 
     callback_ctx ctx;
@@ -245,7 +246,7 @@ TEST_CASE("stopping a timer before expiry prevents its callback", "[timer]") {
     stop();
 }
 
-TEST_CASE("stopping a timer that already fired returns error", "[timer]") {
+TEST_CASE("stopping a timer that already fired returns error" * doctest::test_suite("timer")) {
     start();
 
     callback_ctx ctx;
@@ -263,7 +264,7 @@ TEST_CASE("stopping a timer that already fired returns error", "[timer]") {
     stop();
 }
 
-TEST_CASE("stopping an unstarted timer returns error", "[timer]") {
+TEST_CASE("stopping an unstarted timer returns error" * doctest::test_suite("timer")) {
     ct_timer_t t1 = CT_TIMER_INITIALIZER;
     REQUIRE(ct_timer_stop(&t1) == -1);
 
@@ -272,7 +273,7 @@ TEST_CASE("stopping an unstarted timer returns error", "[timer]") {
     REQUIRE(ct_timer_stop(&t2) == -1);
 }
 
-TEST_CASE("stopping a ticker prevents future callbacks", "[timer]") {
+TEST_CASE("stopping a ticker prevents future callbacks" * doctest::test_suite("timer")) {
     start();
 
     callback_ctx ctx;
@@ -294,7 +295,7 @@ TEST_CASE("stopping a ticker prevents future callbacks", "[timer]") {
     stop();
 }
 
-TEST_CASE("resetting a ticker changes its callback interval", "[timer]") {
+TEST_CASE("resetting a ticker changes its callback interval" * doctest::test_suite("timer")) {
     start();
 
     callback_ctx ctx;
@@ -321,7 +322,7 @@ TEST_CASE("resetting a ticker changes its callback interval", "[timer]") {
     stop();
 }
 
-TEST_CASE("stopped ticker can be restarted with a new interval", "[timer]") {
+TEST_CASE("stopped ticker can be restarted with a new interval" * doctest::test_suite("timer")) {
     start();
 
     callback_ctx ctx;
@@ -346,45 +347,45 @@ TEST_CASE("stopped ticker can be restarted with a new interval", "[timer]") {
     stop();
 }
 
-TEST_CASE("timer functions reject null pointer arguments", "[timer]") {
+TEST_CASE("timer functions reject null pointer arguments" * doctest::test_suite("timer")) {
     ct_timer_init(nullptr);
     REQUIRE(ct_timer_start(nullptr, 100, event_count_cb, nullptr) == -1);
     REQUIRE(ct_timer_reset(nullptr, 100) == -1);
     REQUIRE(ct_timer_stop(nullptr) == -1);
 }
 
-TEST_CASE("starting a timer with null callback returns error", "[timer]") {
+TEST_CASE("starting a timer with null callback returns error" * doctest::test_suite("timer")) {
     ct_timer_t timer;
     ct_timer_init(&timer);
     REQUIRE(ct_timer_start(&timer, 100, nullptr, nullptr) == -1);
 }
 
-TEST_CASE("resetting a timer that was never started returns error", "[timer]") {
+TEST_CASE("resetting a timer that was never started returns error" * doctest::test_suite("timer")) {
     ct_timer_t timer;
     ct_timer_init(&timer);
     REQUIRE(ct_timer_reset(&timer, 100) == -1);
 }
 
-TEST_CASE("ticker functions reject null pointer arguments", "[timer]") {
+TEST_CASE("ticker functions reject null pointer arguments" * doctest::test_suite("timer")) {
     ct_ticker_init(nullptr);
     REQUIRE(ct_ticker_start(nullptr, 100, event_count_cb, nullptr) == -1);
     REQUIRE(ct_ticker_reset(nullptr, 100) == -1);
     REQUIRE(ct_ticker_stop(nullptr) == -1);
 }
 
-TEST_CASE("starting a ticker with null callback returns error", "[timer]") {
+TEST_CASE("starting a ticker with null callback returns error" * doctest::test_suite("timer")) {
     ct_ticker_t ticker;
     ct_ticker_init(&ticker);
     REQUIRE(ct_ticker_start(&ticker, 100, nullptr, nullptr) == -1);
 }
 
-TEST_CASE("resetting a ticker that was never started returns error", "[timer]") {
+TEST_CASE("resetting a ticker that was never started returns error" * doctest::test_suite("timer")) {
     ct_ticker_t ticker;
     ct_ticker_init(&ticker);
     REQUIRE(ct_ticker_reset(&ticker, 100) == -1);
 }
 
-TEST_CASE("resetting a ticker to a shorter interval reschedules correctly", "[timer]") {
+TEST_CASE("resetting a ticker to a shorter interval reschedules correctly" * doctest::test_suite("timer")) {
     start();
 
     callback_ctx ctx;
@@ -410,7 +411,7 @@ TEST_CASE("resetting a ticker to a shorter interval reschedules correctly", "[ti
     stop();
 }
 
-TEST_CASE("starting a timer twice resets its deadline", "[timer]") {
+TEST_CASE("starting a timer twice resets its deadline" * doctest::test_suite("timer")) {
     start();
 
     callback_ctx ctx;
@@ -435,7 +436,7 @@ TEST_CASE("starting a timer twice resets its deadline", "[timer]") {
     stop();
 }
 
-TEST_CASE("zero timeout fires immediately on next tick", "[timer]") {
+TEST_CASE("zero timeout fires immediately on next tick" * doctest::test_suite("timer")) {
     start();
 
     callback_ctx ctx;
@@ -451,7 +452,7 @@ TEST_CASE("zero timeout fires immediately on next tick", "[timer]") {
     stop();
 }
 
-TEST_CASE("starting a ticker twice restarts its interval", "[timer]") {
+TEST_CASE("starting a ticker twice restarts its interval" * doctest::test_suite("timer")) {
     start();
 
     callback_ctx ctx;
@@ -477,12 +478,12 @@ TEST_CASE("starting a ticker twice restarts its interval", "[timer]") {
     stop();
 }
 
-TEST_CASE("ct_set_timeout returns error when manager is not initialized", "[timer]") {
+TEST_CASE("ct_set_timeout returns error when manager is not initialized" * doctest::test_suite("timer")) {
     callback_ctx ctx;
     REQUIRE(ct_set_timeout(100, event_count_cb, &ctx) == -1);
 }
 
-TEST_CASE("timer callback receives the correct user argument", "[timer]") {
+TEST_CASE("timer callback receives the correct user argument" * doctest::test_suite("timer")) {
     start();
 
     arg_holder holder;
@@ -501,7 +502,7 @@ TEST_CASE("timer callback receives the correct user argument", "[timer]") {
     stop();
 }
 
-TEST_CASE("manager cleans up pending timers on close", "[timer]") {
+TEST_CASE("manager cleans up pending timers on close" * doctest::test_suite("timer")) {
     start();
 
     callback_ctx ctx;
@@ -520,7 +521,7 @@ TEST_CASE("manager cleans up pending timers on close", "[timer]") {
     stop();
 }
 
-TEST_CASE("ticker remains stable over many consecutive ticks", "[timer]") {
+TEST_CASE("ticker remains stable over many consecutive ticks" * doctest::test_suite("timer")) {
     start();
 
     callback_ctx ctx;

@@ -1,5 +1,6 @@
+// 本测试验证在路径 C（直接分发模型）下，多线程并发创建/销毁短生命周期 logger、
+// 并且同时向其提交日志时的并发安全性和生命周期安全性。
 #include <atomic>
-#include <catch.hpp>
 #include <chrono>
 #include <cstdlib>
 #include <thread>
@@ -7,6 +8,8 @@
 
 #include "coter/log/handler/record.h"
 #include "coter/log/log.h"
+#include "coter/testing/doctest.h"
+
 
 namespace {
 constexpr int kWorkerThreads = 4;
@@ -18,7 +21,7 @@ void chaos_callback(const ct_log_record_t* record, void* userdata) {
 }
 }  // namespace
 
-TEST_CASE("log_chaos_lifecycle", "[log][chaos]") {
+TEST_CASE("log_chaos_lifecycle" * doctest::test_suite("log") * doctest::test_suite("chaos")) {
     std::atomic<bool> stop{false};
     std::atomic<int>  error_count{0};
     std::atomic<int>  callback_count{0};

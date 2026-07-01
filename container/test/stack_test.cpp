@@ -1,8 +1,8 @@
 #include "coter/container/stack.h"
 
-#include <catch.hpp>
+#include "coter/testing/doctest.h"
 
-TEST_CASE("stack_init", "[stack]") {
+TEST_CASE("stack_init" * doctest::test_suite("stack")) {
     ct_stack_t   stack;
     int          buffer[1000];
     const size_t max = sizeof(buffer) / sizeof(buffer[0]);
@@ -15,7 +15,7 @@ TEST_CASE("stack_init", "[stack]") {
     }
 }
 
-TEST_CASE("stack_static_init", "[stack]") {
+TEST_CASE("stack_static_init" * doctest::test_suite("stack")) {
     int          buffer[100];
     const size_t max   = sizeof(buffer) / sizeof(buffer[0]);
     ct_stack_t   stack = CT_STACK_INIT(buffer, sizeof(int), max);
@@ -27,7 +27,7 @@ TEST_CASE("stack_static_init", "[stack]") {
     REQUIRE(stack._all == (char*)buffer);
 }
 
-TEST_CASE("stack_push", "[stack]") {
+TEST_CASE("stack_push" * doctest::test_suite("stack")) {
     ct_stack_t   stack;
     int          buffer[777];
     const size_t max = sizeof(buffer) / sizeof(buffer[0]);
@@ -50,7 +50,7 @@ TEST_CASE("stack_push", "[stack]") {
     REQUIRE(!ct_stack_isfull(&stack));
 }
 
-TEST_CASE("stack_pop", "[stack]") {
+TEST_CASE("stack_pop" * doctest::test_suite("stack")) {
     ct_stack_t   stack;
     int          buffer[777];
     const size_t max = sizeof(buffer) / sizeof(buffer[0]);
@@ -78,7 +78,7 @@ TEST_CASE("stack_pop", "[stack]") {
     REQUIRE(!ct_stack_isfull(&stack));
 }
 
-TEST_CASE("stack_top", "[stack]") {
+TEST_CASE("stack_top" * doctest::test_suite("stack")) {
     ct_stack_t   stack;
     int          buffer[777];
     const size_t max = sizeof(buffer) / sizeof(buffer[0]);
