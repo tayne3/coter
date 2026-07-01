@@ -6,15 +6,18 @@
 /.claude/
 /.codex/
 /.agents/
+/.discard/
 
-/out/
-/build/
-/build-*/
-/cmake-build-*/
-/cmake_modules/
-/[Bb]in/
-/.[Cc]ache/
-/.[Dd]iscard/
-
-/*.env
+# macOS
 .DS_Store
+
+# mise
+/mise.local.toml
+
+# cmake
+/CMakeUserPresets.json
+/cmake-build-*/
+/build-*/
+/build_*/
+/build/
+/out/
