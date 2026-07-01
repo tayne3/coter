@@ -25,10 +25,10 @@ if(BUILD_SHARED_LIBS)
 endif()
 target_link_libraries(coter PUBLIC coter::ini)
 
-if(COTER_BUILD_EXAMPLE)
+if(COTER_BUILD_EXAMPLES)
   add_subdirectory(example)
 endif()
 
-if(COTER_BUILD_TEST)
+if(COTER_BUILD_TESTS)
   add_subdirectory(test)
 endif()

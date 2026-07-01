@@ -5,7 +5,7 @@ foreach(SRC ${SRCS_G})
   add_test(NAME coter_log_${TEST_NAME} COMMAND coter_log_${TEST_NAME})
   target_link_libraries(coter_log_${TEST_NAME} PRIVATE
     coter_internal_options
-    coter::testing_main
+    coter::doctest_main
     coter::coter
   )
 endforeach()

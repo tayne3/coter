@@ -26,6 +26,6 @@ if(BUILD_SHARED_LIBS)
 endif()
 target_link_libraries(coter PUBLIC coter::container)
 
-if(COTER_BUILD_TEST)
+if(COTER_BUILD_TESTS)
   add_subdirectory(test)
 endif()

@@ -1,7 +1,7 @@
 file(GLOB_RECURSE SRCS_G CONFIGURE_DEPENDS "src/*.c" "src/*.cpp")
-add_library(coter_bytes OBJECT ${SRCS_G})
-add_library(coter::bytes ALIAS coter_bytes)
-target_include_directories(coter_bytes
+add_library(coter_msgbuf OBJECT ${SRCS_G})
+add_library(coter::msgbuf ALIAS coter_msgbuf)
+target_include_directories(coter_msgbuf
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
@@ -9,7 +9,7 @@ target_include_directories(coter_bytes
   PRIVATE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
 )
-target_link_libraries(coter_bytes
+target_link_libraries(coter_msgbuf
   PRIVATE
     coter_internal_options
   PUBLIC
@@ -19,15 +19,15 @@ target_link_libraries(coter_bytes
     coter::sync
 )
 if(BUILD_SHARED_LIBS)
-  target_compile_definitions(coter_bytes
+  target_compile_definitions(coter_msgbuf
     PRIVATE
       CT_LIB_EXPORT
     INTERFACE
       CT_SHARED
   )
 endif()
-target_link_libraries(coter PUBLIC coter::bytes)
+target_link_libraries(coter PUBLIC coter::msgbuf)
 
-if(COTER_BUILD_TEST)
+if(COTER_BUILD_TESTS)
   add_subdirectory(test)
 endif()

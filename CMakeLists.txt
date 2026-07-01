@@ -22,7 +22,7 @@ add_library(coter ${COTER_LIB_TYPE})
 add_library(coter::coter ALIAS coter)
 target_link_libraries(coter PRIVATE coter_internal_options)
 
-if(COTER_BUILD_TEST)
+if(COTER_BUILD_TESTS)
   enable_testing()
 endif()
 add_subdirectory(testing)

@@ -8,10 +8,10 @@ target_link_libraries(coter_fmt INTERFACE
 )
 target_link_libraries(coter PUBLIC coter::fmt)
 
-if(COTER_BUILD_EXAMPLE)
+if(COTER_BUILD_EXAMPLES)
   add_subdirectory(example)
 endif()
 
-if(COTER_BUILD_TEST)
+if(COTER_BUILD_TESTS)
   add_subdirectory(test)
 endif()

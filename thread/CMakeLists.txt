@@ -19,6 +19,6 @@ target_link_libraries(coter_thread
 )
 target_link_libraries(coter PUBLIC coter::thread)
 
-if(COTER_BUILD_TEST)
+if(COTER_BUILD_TESTS)
   add_subdirectory(test)
 endif()
