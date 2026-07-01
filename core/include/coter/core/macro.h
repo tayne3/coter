@@ -75,6 +75,12 @@
 #define CT_CLANG_HAS_EXTENSION(x_) 0
 #endif
 
+#if defined(__cplusplus) && (defined(__cpp_exceptions) || defined(__EXCEPTIONS) || defined(_CPPUNWIND))
+#define CT_HAS_EXCEPTIONS 1
+#else
+#define CT_HAS_EXCEPTIONS 0
+#endif
+
 // COMPILER
 #if defined(__clang__)
 #define CT_COMPILER_CLANG
@@ -234,12 +240,12 @@
 #if defined(__cplusplus)
 #if CT_CPLUSPLUS >= CT_CXX_11
     template <typename T, size_t N>
-    constexpr size_t ct_array_size_impl(const T (&)[N]) noexcept { return N; }
+    constexpr size_t ct_arrsize_impl(const T (&)[N]) noexcept { return N; }
 #else
     template <typename T, size_t N>
-    size_t ct_array_size_impl(const T (&)[N]) { return N; }
+    size_t ct_arrsize_impl(const T (&)[N]) { return N; }
 #endif
-#define CT_ARRSIZE(arr_) (ct_array_size_impl(arr_))
+#define CT_ARRSIZE(arr_) (ct_arrsize_impl(arr_))
 #elif defined(__GNUC__) || defined(__clang__)
 #define CT__BUILD_BUG_ON_ZERO(e_) (sizeof(struct { int : -!!(e_); }))
 #define CT__MUST_BE_ARRAY(arr_) \
