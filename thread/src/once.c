@@ -6,8 +6,6 @@
 
 #include <errno.h>
 
-#include "coter/core/platform.h"
-
 #ifdef CT_OS_WIN
 static BOOL CALLBACK ct_once__bridge(PINIT_ONCE once, PVOID param, PVOID* context) {
     CT_UNUSED(once);
@@ -17,7 +15,7 @@ static BOOL CALLBACK ct_once__bridge(PINIT_ONCE once, PVOID param, PVOID* contex
 }
 #endif
 
-int ct_once_exec(ct_once_t* once, void (*routine)(void)) {
+int ct_call_once(ct_once_flag_t* once, void (*routine)(void)) {
     if (!once || !routine) { return EINVAL; }
 #ifdef CT_OS_WIN
     if (InitOnceExecuteOnce((PINIT_ONCE)once, ct_once__bridge, (PVOID)routine, NULL)) { return 0; }

@@ -1,6 +1,6 @@
 /**
  * @file once.h
- * @brief Cross-platform Once-initialization
+ * @brief Cross-platform once-initialization primitive.
  */
 #ifndef COTER_THREAD_ONCE_H
 #define COTER_THREAD_ONCE_H
@@ -12,19 +12,20 @@ extern "C" {
 #endif
 
 #ifdef CT_OS_WIN
-typedef INIT_ONCE ct_once_t;
-#define CT_ONCE_INIT INIT_ONCE_STATIC_INIT
+typedef INIT_ONCE ct_once_flag_t;
+#define CT_ONCE_FLAG_INIT INIT_ONCE_STATIC_INIT
 #else
-typedef pthread_once_t ct_once_t;
-#define CT_ONCE_INIT PTHREAD_ONCE_INIT
+typedef pthread_once_t ct_once_flag_t;
+#define CT_ONCE_FLAG_INIT PTHREAD_ONCE_INIT
 #endif
 
 /**
- * @brief 执行一次初始化例程
- * @return 0=成功，非0=失败
- * @note 同一个 once 对象上的 routine 在进程内只会成功执行一次。
+ * @brief Executes a routine exactly once across all threads.
+ * @param flag Pointer to the once-flag control object.
+ * @param routine The initialization function to execute.
+ * @return 0 on success, non-zero on failure.
  */
-CT_API int ct_once_exec(ct_once_t* once, void (*routine)(void));
+CT_API int ct_call_once(ct_once_flag_t* flag, void (*routine)(void));
 
 #ifdef __cplusplus
 }

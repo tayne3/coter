@@ -39,13 +39,13 @@ static struct log_global {
     ct_atomic_ptr_t default_logger;
     ct_atomic_int_t default_state;
     ct_atomic_int_t runtime_state;
-    ct_once_t       once;
+    ct_once_flag_t  once;
     ct_mutex_t      default_mtx;
 } mgr[1] = {{
     .default_logger = CT_ATOMIC_VAR_INIT(NULL),
     .default_state  = CT_ATOMIC_VAR_INIT(CT_LOG_DEFAULT_OPEN),
     .runtime_state  = CT_ATOMIC_VAR_INIT(CT_LOG_SYSTEM_UNINIT),
-    .once           = CT_ONCE_INIT,
+    .once           = CT_ONCE_FLAG_INIT,
     .default_mtx    = CT_MUTEX_INITIALIZER,
 }};
 
@@ -78,7 +78,7 @@ static void logger__system_init_once(void) {
 }
 
 static void logger__system_ensure(void) {
-    ct_once_exec(&mgr->once, logger__system_init_once);
+    ct_call_once(&mgr->once, logger__system_init_once);
 }
 
 static void logger__atexit_flush(void) {
@@ -140,7 +140,7 @@ static int logger__deinit_internal(ct_logger_t* logger) {
     if (ct_atomic_int_compare_exchange(&logger->state, &expected, CT_LOGGER_STATE_CLOSING)) {
         logger__wait_active_writers(logger);
         ct_log_register_worker();
-        logger__flush_handlers(logger);   /* 路径 C：直接 flush，排空 async 队列 */
+        logger__flush_handlers(logger); /* 路径 C：直接 flush，排空 async 队列 */
         logger__destroy_handlers(logger);
         ct_log_unregister_worker();
         ct_atomic_int_store(&logger->state, CT_LOGGER_STATE_CLOSED);
