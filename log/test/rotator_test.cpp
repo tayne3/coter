@@ -32,7 +32,7 @@ TEST_CASE("rotator handles file size boundaries and appending to existing files"
             ct_remove("test_log_rotator_out/rotate.log0");
             ct_remove("test_log_rotator_out/rotate.log1");
             ct_remove("test_log_rotator_out/append.log0");
-            ct_rmdir(kDir);
+            ct_rmdir("test_log_rotator_out");
         }
 
         std::string read_file(const char* path) const {
