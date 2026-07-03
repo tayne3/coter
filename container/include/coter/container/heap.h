@@ -28,6 +28,8 @@ typedef struct ct_heap {
     ct_heap_compare_cb _cmp;
 } ct_heap_t;
 
+#define CT_HEAP_INIT(cmp) {NULL, 0, (cmp)}
+
 #define ct_heap_size(h)     ((h)->_size)
 #define ct_heap_is_empty(h) ((h)->_size == 0)
 

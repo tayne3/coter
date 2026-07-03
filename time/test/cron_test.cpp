@@ -1,38 +1,15 @@
 #include "coter/time/cron.h"
 
 #include <atomic>
-#include <cstring>
 #include <thread>
 
-#include "coter/core/macro.h"
-#include "coter/sync/atomic.h"
 #include "coter/sync/event.h"
 #include "coter/testing/doctest.h"
-
+#include "coter/testing/fff.h"
+#include "internal.h"
+#include "time_mock.h"
 
 namespace {
-
-struct test_env final {
-    std::thread          manager_thread;
-    ct_cron_t            wakeup;
-    bool                 started{false};
-    std::atomic<int64_t> realtime{0};
-    std::atomic<int64_t> monotonic{0};
-    std::atomic<int>     manager_stopped{0};
-
-    test_env() = default;
-    ~test_env() noexcept {
-        if (!started) { return; }
-        ct_cron_mgr_close();
-        manager_thread.join();
-        started = false;
-    }
-};
-
-static test_env g_env;
-
-void do_nothing_cb(void*) {
-}
 
 struct callback_ctx {
     ct_event_t       event;
@@ -43,8 +20,8 @@ struct callback_ctx {
         count.store(0);
     }
     ~callback_ctx() { ct_event_destroy(&event); }
-    void wait() { REQUIRE(ct_event_wait(&event) == 0); }
-    bool wait_timeout(uint32_t ms) { return ct_event_timedwait(&event, ms) == 0; }
+
+    void wait() { REQUIRE(ct_event_timedwait(&event, 2000) == 0); }
 };
 
 void event_count_cb(void* arg) {
@@ -53,272 +30,213 @@ void event_count_cb(void* arg) {
     ct_event_signal(&ctx->event);
 }
 
-struct arg_holder {
-    void*      captured;
-    ct_event_t event;
-};
+struct CronFixture {
+    ct_time64_t current_offs_real{0};
 
-void verify_arg_cb(void* arg) {
-    arg_holder* h = (arg_holder*)arg;
-    h->captured   = arg;
-    ct_event_signal(&h->event);
-}
+    CronFixture() {
+        RESET_FAKE(mock_ct_gettimeofday_ms);
+        RESET_FAKE(mock_ct_getuptime_ms);
 
-int cron_thread_run(void* arg) {
-    test_env* env = (test_env*)arg;
-    ct_cron_mgr_run();
-    env->manager_stopped.store(1);
-    return 0;
-}
+        mock_ct_gettimeofday_ms_fake.custom_fake = mock_realtime_ms;
+        mock_ct_getuptime_ms_fake.custom_fake    = mock_monotonic_ms;
 
-ct_time64_t mock_realtime_ms() {
-    return g_env.realtime.load();
-}
-
-ct_time64_t mock_monotonic_ms() {
-    return g_env.monotonic.load();
-}
-
-ct_time_t make_test_time(int year, int month, int day, int hour, int min, int sec) {
-    struct tm tm;
-    memset(&tm, 0, sizeof(tm));
-    tm.tm_year  = year - 1900;
-    tm.tm_mon   = month - 1;
-    tm.tm_mday  = day;
-    tm.tm_hour  = hour;
-    tm.tm_min   = min;
-    tm.tm_sec   = sec;
-    tm.tm_isdst = -1;
-    return mktime(&tm);
-}
-
-void start() {
-    const ct_time_t now = make_test_time(2020, 1, 1, 0, 0, 0);
-    g_env.realtime.store(static_cast<int64_t>(now) * 1000);
-    g_env.monotonic.store(0);
-    g_env.manager_stopped.store(0);
-    g_env.started = false;
-
-    ct_cron_mgr_init(mock_realtime_ms, mock_monotonic_ms);
-
-    g_env.manager_thread = std::thread(cron_thread_run, &g_env);
-
-    ct_cron_init(&g_env.wakeup);
-    REQUIRE(ct_cron_start(&g_env.wakeup, -1, -1, -1, -1, -1, do_nothing_cb, nullptr) == 0);
-    g_env.started = true;
-}
-
-void stop() {
-    if (!g_env.started) { return; }
-    ct_cron_mgr_close();
-    g_env.manager_thread.join();
-    REQUIRE(g_env.manager_stopped.load() == 1);
-    g_env.started = false;
-}
-
-void advance_seconds(ct_time_t seconds) {
-    for (ct_time_t i = 0; i < seconds; ++i) {
-        g_env.realtime.fetch_add(500);
-        g_env.monotonic.fetch_add(500);
-        g_env.realtime.fetch_add(500);
-        g_env.monotonic.fetch_add(500);
+        ct_time64_t fixed_time     = make_time(2023, 1, 1, 12, 0, 0);
+        ct_time64_t current_uptime = mock_monotonic_ms();
+        current_offs_real          = fixed_time * 1000 - current_uptime;
+        mock_time_set_offs_real(current_offs_real);
     }
-    REQUIRE(ct_cron_reset(&g_env.wakeup, -1, -1, -1, -1, -1) == 0);
-}
 
-void advance_seconds_skew(ct_time_t r, ct_time_t m) {
-    g_env.realtime.fetch_add(static_cast<int64_t>(r) * 1000);
-    g_env.monotonic.fetch_add(static_cast<int64_t>(m) * 1000);
-    REQUIRE(ct_cron_reset(&g_env.wakeup, -1, -1, -1, -1, -1) == 0);
-}
+    ~CronFixture() noexcept {
+        ct_cron_mgr_shutdown();
+        ct_cron_mgr_process_once();  // Process remaining events
+    }
+
+    void advance_seconds(ct_time64_t seconds) {
+        for (ct_time64_t i = 0; i < seconds; ++i) {
+            mock_time_advance(1000);
+            ct_cron_mgr_process_once();
+        }
+    }
+
+    void advance_seconds_skew(ct_time64_t r, ct_time64_t m) {
+        mock_time_advance(m * 1000);
+        current_offs_real += (r - m) * 1000;
+        mock_time_set_offs_real(current_offs_real);
+        ct_cron_mgr_process_once();
+    }
+};
 
 }  // namespace
 
-TEST_CASE("minutely cron fires at correct interval with mock time" * doctest::test_suite("cron")) {
-    start();
+TEST_SUITE_BEGIN("cron");
+
+TEST_CASE("cron basic API error handling") {
+    ct_cron_t cron;
+    ct_cron_init(&cron);
+
+    SUBCASE("functions reject null pointer arguments") {
+        ct_cron_init(nullptr);
+        REQUIRE(ct_cron_start(nullptr, -1, -1, -1, -1, -1, [](void*) {}, nullptr) == -1);
+        REQUIRE(ct_cron_reset(nullptr, -1, -1, -1, -1, -1) == -1);
+        REQUIRE(ct_cron_stop(nullptr) == -1);
+    }
+
+    SUBCASE("starting a cron with null callback returns error") {
+        REQUIRE(ct_cron_start(&cron, -1, -1, -1, -1, -1, nullptr, nullptr) == -1);
+    }
+
+    SUBCASE("stopping an unstarted cron returns error") {
+        REQUIRE(ct_cron_stop(&cron) == -1);
+    }
+
+    SUBCASE("resetting a cron that was never started returns error") {
+        REQUIRE(ct_cron_reset(&cron, -1, -1, -1, -1, -1) == -1);
+    }
+}
+
+TEST_CASE("ct_cron_stop returns error after manager cleanup") {
+    ct_cron_t cron;
+    ct_cron_init(&cron);
+
+    CronFixture env;
+    REQUIRE(ct_cron_start(&cron, -1, -1, -1, -1, -1, [](void*) {}, nullptr) == 0);
+    ct_cron_mgr_shutdown();
+    ct_cron_mgr_process_once();
+
+    REQUIRE(ct_cron_stop(&cron) == -1);
+}
+
+TEST_CASE_FIXTURE(CronFixture, "cron execution behaviors") {
+    ct_cron_t cron;
+    ct_cron_init(&cron);
 
     callback_ctx ctx;
-    ct_cron_t    cron;
+
+    SUBCASE("minutely cron fires at correct interval with mock time") {
+        REQUIRE(ct_cron_start(&cron, -1, -1, -1, -1, -1, event_count_cb, &ctx) == 0);
+
+        advance_seconds(59);
+        REQUIRE(ctx.count.load() == 0);
+
+        advance_seconds(1);
+        ctx.wait();
+        REQUIRE(ctx.count.load() == 1);
+
+        advance_seconds(60);
+        ctx.wait();
+        REQUIRE(ctx.count.load() == 2);
+
+        REQUIRE(ct_cron_stop(&cron) == 0);
+    }
+
+    SUBCASE("stopping cron prevents future executions") {
+        REQUIRE(ct_cron_start(&cron, -1, -1, -1, -1, -1, event_count_cb, &ctx) == 0);
+
+        advance_seconds(60);
+        ctx.wait();
+        REQUIRE(ctx.count.load() == 1);  // Exact assertion, not >= 1
+
+        REQUIRE(ct_cron_stop(&cron) == 0);
+
+        advance_seconds(120);
+        REQUIRE(ctx.count.load() == 1);  // Ensure it didn't fire again
+    }
+
+    SUBCASE("time jump reschedules without catchup burst") {
+        REQUIRE(ct_cron_start(&cron, 0, -1, -1, -1, -1, event_count_cb, &ctx) == 0);
+
+        advance_seconds(1800);
+        REQUIRE(ctx.count.load() == 0);
+
+        advance_seconds_skew(7200, 0);
+        REQUIRE(ctx.count.load() == 0);
+
+        advance_seconds(1800);
+        ctx.wait();
+        REQUIRE(ctx.count.load() == 1);
+
+        REQUIRE(ct_cron_stop(&cron) == 0);
+    }
+
+    SUBCASE("starting a cron twice replaces its schedule") {
+        REQUIRE(ct_cron_start(&cron, -1, -1, -1, -1, -1, event_count_cb, &ctx) == 0);
+
+        advance_seconds(30);
+        REQUIRE(ctx.count.load() == 0);
+
+        REQUIRE(ct_cron_start(&cron, -1, -1, -1, -1, -1, event_count_cb, &ctx) == 0);
+
+        advance_seconds(30);
+        ctx.wait();
+        REQUIRE(ctx.count.load() == 1);
+
+        REQUIRE(ct_cron_stop(&cron) == 0);
+    }
+
+    SUBCASE("minutely cron remains stable over many consecutive ticks") {
+        REQUIRE(ct_cron_start(&cron, -1, -1, -1, -1, -1, event_count_cb, &ctx) == 0);
+
+        for (int i = 0; i < 5; ++i) {
+            advance_seconds(60);
+            ctx.wait();
+        }
+        REQUIRE(ctx.count.load() == 5);
+
+        REQUIRE(ct_cron_stop(&cron) == 0);
+    }
+
+    SUBCASE("cron callback receives the correct user argument") {
+        struct arg_holder {
+            void*      captured;
+            ct_event_t event;
+        } holder;
+        holder.captured = nullptr;
+        ct_event_init(&holder.event);
+
+        REQUIRE(ct_cron_start(
+                    &cron, -1, -1, -1, -1, -1,
+                    [](void* arg) {
+                        arg_holder* h = (arg_holder*)arg;
+                        h->captured   = arg;
+                        ct_event_signal(&h->event);
+                    },
+                    &holder) == 0);
+
+        advance_seconds(60);
+        REQUIRE(ct_event_timedwait(&holder.event, 2000) == 0);
+        REQUIRE(holder.captured == &holder);
+
+        ct_cron_stop(&cron);
+        ct_event_destroy(&holder.event);
+    }
+}
+
+TEST_CASE_FIXTURE(CronFixture, "multiple tasks due at same time can fire together") {
+    callback_ctx ctx;
+
+    ct_cron_t cron;
     ct_cron_init(&cron);
     REQUIRE(ct_cron_start(&cron, -1, -1, -1, -1, -1, event_count_cb, &ctx) == 0);
 
-    advance_seconds(59);
-    REQUIRE(ctx.count.load() == 0);
-    REQUIRE_FALSE(ctx.wait_timeout(50));
-
-    advance_seconds(1);
-    ctx.wait();
-    REQUIRE(ctx.count.load() == 1);
-
-    advance_seconds(60);
-    ctx.wait();
-    REQUIRE(ctx.count.load() == 2);
-
-    REQUIRE(ct_cron_stop(&cron) == 0);
-    stop();
-}
-
-TEST_CASE("stopping cron prevents future executions" * doctest::test_suite("cron")) {
-    start();
-
-    callback_ctx ctx;
-    ct_cron_t    cron;
-    ct_cron_init(&cron);
-    REQUIRE(ct_cron_start(&cron, -1, -1, -1, -1, -1, event_count_cb, &ctx) == 0);
-
-    advance_seconds(60);
-    ctx.wait();
-    REQUIRE(ctx.count.load() >= 1);
-
-    REQUIRE(ct_cron_stop(&cron) == 0);
-
-    advance_seconds(120);
-    REQUIRE_FALSE(ctx.wait_timeout(100));
-
-    stop();
-}
-
-TEST_CASE("time jump reschedules without catchup burst" * doctest::test_suite("cron")) {
-    start();
-
-    callback_ctx ctx;
-    ct_cron_t    cron;
-    ct_cron_init(&cron);
-    REQUIRE(ct_cron_start(&cron, 0, -1, -1, -1, -1, event_count_cb, &ctx) == 0);
-
-    advance_seconds(1800);
-    REQUIRE_FALSE(ctx.wait_timeout(100));
-
-    advance_seconds_skew(7200, 0);
-    REQUIRE_FALSE(ctx.wait_timeout(100));
-
-    advance_seconds(1800);
-    ctx.wait();
-    REQUIRE(ctx.count.load() == 1);
-
-    REQUIRE(ct_cron_stop(&cron) == 0);
-    stop();
-}
-
-TEST_CASE("multiple tasks due at same time can fire together" * doctest::test_suite("cron")) {
-    start();
-
-    callback_ctx minute_ctx;
     callback_ctx hour_ctx;
-    ct_cron_t    minute_cron;
-    ct_cron_t    hour_cron;
-    ct_cron_init(&minute_cron);
-    ct_cron_init(&hour_cron);
 
-    REQUIRE(ct_cron_start(&minute_cron, -1, -1, -1, -1, -1, event_count_cb, &minute_ctx) == 0);
+    ct_cron_t hour_cron;
+    ct_cron_init(&hour_cron);
     REQUIRE(ct_cron_start(&hour_cron, 0, -1, -1, -1, -1, event_count_cb, &hour_ctx) == 0);
 
     advance_seconds(60);
-    minute_ctx.wait();
-    REQUIRE(minute_ctx.count.load() >= 1);
+    ctx.wait();
+    REQUIRE(ctx.count.load() == 1);
     REQUIRE(hour_ctx.count.load() == 0);
 
     advance_seconds(3540);
-    minute_ctx.wait();
-    hour_ctx.wait();
-    REQUIRE(minute_ctx.count.load() >= 2);
-    REQUIRE(hour_ctx.count.load() >= 1);
-
-    REQUIRE(ct_cron_stop(&minute_cron) == 0);
-    REQUIRE(ct_cron_stop(&hour_cron) == 0);
-    stop();
-}
-
-TEST_CASE("cron functions reject null pointer arguments" * doctest::test_suite("cron")) {
-    ct_cron_init(nullptr);
-    REQUIRE(ct_cron_start(nullptr, -1, -1, -1, -1, -1, do_nothing_cb, nullptr) == -1);
-    REQUIRE(ct_cron_reset(nullptr, -1, -1, -1, -1, -1) == -1);
-    REQUIRE(ct_cron_stop(nullptr) == -1);
-}
-
-TEST_CASE("starting a cron with null callback returns error" * doctest::test_suite("cron")) {
-    ct_cron_t cron;
-    ct_cron_init(&cron);
-    REQUIRE(ct_cron_start(&cron, -1, -1, -1, -1, -1, nullptr, nullptr) == -1);
-}
-
-TEST_CASE("stopping an unstarted cron returns error" * doctest::test_suite("cron")) {
-    ct_cron_t cron;
-    ct_cron_init(&cron);
-    REQUIRE(ct_cron_stop(&cron) == -1);
-}
-
-TEST_CASE("resetting a cron that was never started returns error" * doctest::test_suite("cron")) {
-    ct_cron_t cron;
-    ct_cron_init(&cron);
-    REQUIRE(ct_cron_reset(&cron, -1, -1, -1, -1, -1) == -1);
-}
-
-TEST_CASE("ct_cron_stop returns error when manager is not running" * doctest::test_suite("cron")) {
-    ct_cron_t cron;
-    ct_cron_init(&cron);
-    start();
-    REQUIRE(ct_cron_start(&cron, -1, -1, -1, -1, -1, do_nothing_cb, nullptr) == 0);
-    stop();
-    REQUIRE(ct_cron_stop(&cron) == -1);
-}
-
-TEST_CASE("starting a cron twice replaces its schedule" * doctest::test_suite("cron")) {
-    start();
-
-    callback_ctx ctx;
-    ct_cron_t    cron;
-    ct_cron_init(&cron);
-
-    REQUIRE(ct_cron_start(&cron, -1, -1, -1, -1, -1, event_count_cb, &ctx) == 0);
-
-    advance_seconds(30);
-    REQUIRE_FALSE(ctx.wait_timeout(50));
-
-    REQUIRE(ct_cron_start(&cron, -1, -1, -1, -1, -1, event_count_cb, &ctx) == 0);
-
-    advance_seconds(30);
     ctx.wait();
-    REQUIRE(ctx.count.load() == 1);
+    hour_ctx.wait();
+    REQUIRE(ctx.count.load() == 60);  // It advanced by 60 minutes overall, minutely fired 60 times total
+    REQUIRE(hour_ctx.count.load() == 1);
 
     REQUIRE(ct_cron_stop(&cron) == 0);
-    stop();
+    REQUIRE(ct_cron_stop(&hour_cron) == 0);
 }
 
-TEST_CASE("cron callback receives the correct user argument" * doctest::test_suite("cron")) {
-    start();
-
-    arg_holder holder;
-    ct_event_init(&holder.event);
-    holder.captured = nullptr;
-
-    ct_cron_t cron;
-    ct_cron_init(&cron);
-    REQUIRE(ct_cron_start(&cron, -1, -1, -1, -1, -1, verify_arg_cb, &holder) == 0);
-
-    advance_seconds(60);
-    REQUIRE(ct_event_wait(&holder.event) == 0);
-    REQUIRE(holder.captured == &holder);
-
-    ct_cron_stop(&cron);
-    ct_event_destroy(&holder.event);
-    stop();
-}
-
-TEST_CASE("minutely cron remains stable over many consecutive ticks" * doctest::test_suite("cron")) {
-    start();
-
-    callback_ctx ctx;
-    ct_cron_t    cron;
-    ct_cron_init(&cron);
-    REQUIRE(ct_cron_start(&cron, -1, -1, -1, -1, -1, event_count_cb, &ctx) == 0);
-
-    for (int i = 0; i < 5; ++i) {
-        advance_seconds(60);
-        ctx.wait();
-    }
-    REQUIRE(ctx.count.load() >= 5);
-
-    REQUIRE(ct_cron_stop(&cron) == 0);
-    stop();
-}
+TEST_SUITE_END();

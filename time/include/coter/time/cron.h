@@ -1,6 +1,6 @@
 /**
  * @file cron.h
- * @brief cron任务管理
+ * @brief Cron-style job scheduler.
  */
 #ifndef COTER_TIME_CRON_H
 #define COTER_TIME_CRON_H
@@ -13,38 +13,39 @@ extern "C" {
 #endif
 
 /**
- * @brief 计算下一个 cron 任务执行时间
+ * @brief Run the cron manager. Blocks until ct_cron_mgr_shutdown() is called.
+ */
+CT_API void ct_cron_mgr_run(void);
+
+/**
+ * @brief Stop the cron manager and release all scheduled jobs.
+ */
+CT_API void ct_cron_mgr_shutdown(void);
+
+/**
+ * @brief Compute the next fire time for a cron expression.
  *
- * 根据给定的 cron 表达式参数, 计算下一个符合条件的执行时间。
+ * Each field accepts a concrete value or -1 to mean "any". Fields take
+ * priority in order from coarsest to finest: month → week → day → hour →
+ * minute. Passing -1 for all fields schedules a minutely job.
  *
- * @param now 当前系统时间 (秒)
- * @param minute 分钟 (0-59, -1 表示每分钟)
- * @param hour 小时 (0-23, -1 表示每小时)
- * @param day 日期 (1-31, -1 表示每天)
- * @param week 星期 (0-6, 0 表示周日, -1 表示每周)
- * @param month 月份 (1-12, -1 表示每月)
- * @return ct_time_t 下一个执行时间的秒级时间戳, 如果参数无效则返回 -1
+ * @param now    Current wall-clock time in seconds.
+ * @param minute Minute of the hour  (0-59, or -1 for every minute).
+ * @param hour   Hour of the day     (0-23, or -1 for every hour).
+ * @param day    Day of the month    (1-31, or -1 for every day).
+ * @param week   Day of the week     (0-6,  0 = Sunday, or -1 for every day).
+ * @param month  Month of the year   (1-12, or -1 for every month).
+ * @return Next fire time as a Unix timestamp (seconds), or -1 on invalid input.
  *
- * @code
- * // 设置每天凌晨1:30执行
- * ct_time_t next_run = ct_datetime_cron_next_timeout(30, 1, -1, -1, -1);
- * if (next_run != -1) {
- *     char buf[CT_DATETIME_FMT_BUFLEN];
- *     ct_datetime_t dt = ct_datetime_datetime_localtime(next_run);
- *     ct_datetime_datetime_fmt(&dt, buf);
- *     printf("next run time: %s\n", buf);
- * }
- * @endcode
- *
- * @note 这个函数在实现定时任务或调度系统时非常有用, 可以灵活地设置各种周期性任务。
- * minute   hour    day     week    month       action
- * 0~59     0~23    1~31    0~6     1~12
- *  -1      -1      -1      -1      -1          cron.minutely
- *  30      -1      -1      -1      -1          cron.hourly
- *  30      1       -1      -1      -1          cron.daily
- *  30      1       15      -1      -1          cron.monthly
- *  30      1       -1       0      -1          cron.weekly
- *  30      1        1      -1      10          cron.yearly
+ * @note Common schedule examples:
+ * | minute | hour | day | week | month | description     |
+ * |--------|------|-----|------|-------|-----------------|
+ * |  -1    |  -1  | -1  |  -1  |  -1   | every minute    |
+ * |  30    |  -1  | -1  |  -1  |  -1   | every hour      |
+ * |  30    |   1  | -1  |  -1  |  -1   | daily at 01:30  |
+ * |  30    |   1  | 15  |  -1  |  -1   | monthly         |
+ * |  30    |   1  | -1  |   0  |  -1   | weekly (Sunday) |
+ * |  30    |   1  |  1  |  -1  |  10   | yearly (Oct 1)  |
  */
 CT_API ct_time_t ct_cron_next_timeout(ct_time_t now, int minute, int hour, int day, int week, int month);
 
@@ -67,59 +68,45 @@ typedef struct ct_cron {
 } ct_cron_t;
 
 /**
- * @brief 初始化cron任务
- * @param cron cron对象
+ * @brief Initialize a cron job.
+ * @param cron Pointer to the cron job.
  */
 CT_API void ct_cron_init(ct_cron_t* cron);
 
 /**
- * @brief 启动cron任务
- * @param cron cron对象
- * @param minute 分钟 (0-59, -1 表示每分钟)
- * @param hour 小时 (0-23, -1 表示每小时)
- * @param day 日期 (1-31, -1 表示每天)
- * @param week 星期 (0-6, 0 表示周日, -1 表示每周)
- * @param month 月份 (1-12, -1 表示每月)
- * @param callback 任务触发时的回调函数
- * @param arg 传递给回调函数的参数
+ * @brief Schedule and start a cron job.
+ *        If the job is already active, it is rescheduled with the new expression.
+ * @param cron     Pointer to the cron job.
+ * @param minute   Minute of the hour  (0-59, or -1 for every minute).
+ * @param hour     Hour of the day     (0-23, or -1 for every hour).
+ * @param day      Day of the month    (1-31, or -1 for every day).
+ * @param week     Day of the week     (0-6,  0 = Sunday, or -1 for every day).
+ * @param month    Month of the year   (1-12, or -1 for every month).
+ * @param callback Callback invoked on each fire.
+ * @param arg      User argument passed to the callback.
+ * @return 0 on success, -1 on failure.
  */
 CT_API int ct_cron_start(ct_cron_t* cron, int minute, int hour, int day, int week, int month,
                          ct_cron_callback_t callback, void* arg);
 
 /**
- * @brief 重置cron任务
- * @param cron cron对象
- * @param minute 分钟 (0-59, -1 表示每分钟)
- * @param hour 小时 (0-23, -1 表示每小时)
- * @param day 日期 (1-31, -1 表示每天)
- * @param week 星期 (0-6, 0 表示周日, -1 表示每周)
- * @param month 月份 (1-12, -1 表示每月)
+ * @brief Reschedule an active cron job with a new expression, keeping the existing callback.
+ * @param cron   Pointer to the cron job.
+ * @param minute Minute of the hour  (0-59, or -1 for every minute).
+ * @param hour   Hour of the day     (0-23, or -1 for every hour).
+ * @param day    Day of the month    (1-31, or -1 for every day).
+ * @param week   Day of the week     (0-6,  0 = Sunday, or -1 for every day).
+ * @param month  Month of the year   (1-12, or -1 for every month).
+ * @return 0 on success, -1 if the job has no callback set.
  */
 CT_API int ct_cron_reset(ct_cron_t* cron, int minute, int hour, int day, int week, int month);
 
 /**
- * @brief 停止cron任务
- * @param cron cron对象
+ * @brief Cancel a scheduled cron job.
+ * @param cron Pointer to the cron job.
+ * @return 0 on success, -1 if the job is not active.
  */
 CT_API int ct_cron_stop(ct_cron_t* cron);
-
-/**
- * @brief 初始化cron管理器
- * @param realtime_cb 系统时间回调 (为空时使用默认值)
- * @param monotonic_cb 单调时间回调 (为空时使用默认值)
- */
-CT_API void ct_cron_mgr_init(ct_cron_gettime_cb realtime_cb, ct_cron_gettime_cb monotonic_cb);
-
-/**
- * @brief 运行cron管理器
- * @note 阻塞运行
- */
-CT_API void ct_cron_mgr_run(void);
-
-/**
- * @brief 停止cron管理器
- */
-CT_API void ct_cron_mgr_close(void);
 
 #ifdef __cplusplus
 }

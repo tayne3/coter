@@ -1,6 +1,6 @@
 /**
  * @file timer.h
- * @brief 一次性定时器 (Timer)
+ * @brief software timer
  */
 #ifndef COTER_TIME_TIMER_H
 #define COTER_TIME_TIMER_H
@@ -12,6 +12,16 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * @brief Run the timer manager. Blocks until ct_timer_mgr_shutdown() is called.
+ */
+CT_API void ct_timer_mgr_run(void);
+
+/**
+ * @brief Stop the timer manager and release all pending timers.
+ */
+CT_API void ct_timer_mgr_shutdown(void);
 
 typedef void (*ct_timer_callback_t)(void*);
 
@@ -32,59 +42,45 @@ typedef struct ct_timer {
 #define CT_TIMER_INITIALIZER {{NULL, NULL, NULL}, NULL, NULL, 0, 0, 0, 0, 0}
 
 /**
- * @brief 初始化定时器
- * @param timer 定时器指针
+ * @brief Initialize a timer.
+ * @param timer Pointer to the timer.
  */
 CT_API void ct_timer_init(ct_timer_t* timer);
 
 /**
- * @brief 启动定时器
- * @param timer 定时器指针
- * @param timeout_ms 超时时间 (ms)
- * @param cb 回调函数
- * @param arg 回调参数
+ * @brief Start a one-shot timer.
+ * @param timer      Pointer to the timer.
+ * @param timeout_ms Timeout in milliseconds.
+ * @param cb         Callback invoked on expiry.
+ * @param arg        User argument passed to the callback.
+ * @return 0 on success, -1 on failure.
  */
 CT_API int ct_timer_start(ct_timer_t* timer, ct_time64_t timeout_ms, ct_timer_callback_t cb, void* arg);
 
 /**
- * @brief 重置定时器
- * @param timer 定时器指针
- * @param timeout_ms 超时时间 (ms)
+ * @brief Restart a timer with a new timeout, keeping the existing callback.
+ * @param timer      Pointer to the timer.
+ * @param timeout_ms New timeout in milliseconds.
+ * @return 0 on success, -1 if the timer has no callback set.
  */
 CT_API int ct_timer_reset(ct_timer_t* timer, ct_time64_t timeout_ms);
 
 /**
- * @brief 停止定时器
- * @param timer 定时器指针
+ * @brief Cancel a pending timer.
+ * @param timer Pointer to the timer.
+ * @return 0 on success, -1 if the timer is not active.
  */
 CT_API int ct_timer_stop(ct_timer_t* timer);
 
 /**
- * @brief 创建并启动一个定时器
- * @param timeout_ms 超时时间 (ms)
- * @param cb 回调函数
- * @param arg 回调参数
- * @return 成功返回 0, 失败返回 -1
- * @note 到期自动关闭, 无法手动停止
+ * @brief Schedule a fire-and-forget timeout.
+ *        The timer is allocated internally and freed automatically on expiry.
+ * @param timeout_ms Timeout in milliseconds.
+ * @param cb         Callback invoked on expiry.
+ * @param arg        User argument passed to the callback.
+ * @return 0 on success, -1 on failure.
  */
 CT_API int ct_set_timeout(ct_time64_t timeout_ms, void (*cb)(void*), void* arg);
-
-/**
- * @brief 初始化定时器管理器
- * @param gettime_cb 时间获取回调 (为空则使用默认系统时间)
- */
-CT_API void ct_timer_mgr_init(ct_time64_t (*gettime_cb)(void));
-
-/**
- * @brief 运行定时器管理器
- * @note 阻塞运行, 使用 ct_timer_mgr_close 停止
- */
-CT_API void ct_timer_mgr_run(void);
-
-/**
- * @brief 停止定时器管理器
- */
-CT_API void ct_timer_mgr_close(void);
 
 typedef void (*ct_ticker_callback_t)(void*);
 
@@ -96,30 +92,33 @@ typedef struct ct_ticker {
 #define CT_TICKER_INITIALIZER {{NULL, NULL, NULL}, NULL, NULL, 0, 0, 0, 0, 0, 0}
 
 /**
- * @brief 初始化定时器
- * @param ticker 定时器指针
+ * @brief Initialize a ticker.
+ * @param ticker Pointer to the ticker.
  */
 CT_API void ct_ticker_init(ct_ticker_t* ticker);
 
 /**
- * @brief 启动定时器
- * @param ticker 定时器指针
- * @param ms 周期间隔 (ms)
- * @param cb 回调函数
- * @param arg 回调参数
+ * @brief Start a periodic ticker.
+ * @param ticker Pointer to the ticker.
+ * @param ms     Interval in milliseconds.
+ * @param cb     Callback invoked on each tick.
+ * @param arg    User argument passed to the callback.
+ * @return 0 on success, -1 on failure.
  */
 CT_API int ct_ticker_start(ct_ticker_t* ticker, ct_time64_t ms, ct_ticker_callback_t cb, void* arg);
 
 /**
- * @brief 重置定时器
- * @param ticker 定时器指针
- * @param ms 周期间隔 (ms)
+ * @brief Change the interval of a running ticker.
+ * @param ticker Pointer to the ticker.
+ * @param ms     New interval in milliseconds.
+ * @return 0 on success, -1 if the ticker has no callback set.
  */
 CT_API int ct_ticker_reset(ct_ticker_t* ticker, ct_time64_t ms);
 
 /**
- * @brief 停止定时器
- * @param ticker 定时器指针
+ * @brief Stop a running ticker.
+ * @param ticker Pointer to the ticker.
+ * @return 0 on success, -1 if the ticker is not active.
  */
 CT_API int ct_ticker_stop(ct_ticker_t* ticker);
 

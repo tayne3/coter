@@ -1,71 +1,38 @@
 #include "coter/time/timer.h"
 
+#include <atomic>
 #include <thread>
 
-#include "coter/core/macro.h"
 #include "coter/core/time.h"
-#include "coter/sync/atomic.h"
 #include "coter/sync/event.h"
 #include "coter/testing/doctest.h"
-
+#include "coter/testing/fff.h"
+#include "internal.h"
+#include "time_mock.h"
 
 namespace {
 
-struct test_env {
-    ct_atomic_long_t monotonic       = CT_ATOMIC_VAR_INIT(0);
-    ct_atomic_int_t  manager_stopped = CT_ATOMIC_VAR_INIT(0);
-    std::thread      manager_thread;
-    ct_timer_t       wakeup;
-    ct_event_t       wakeup_event;
-    bool             started = false;
-
-    test_env() {}
-
-    ~test_env() { stop(); }
-
-    void stop() {
-        if (!started) { return; }
-        ct_timer_mgr_close();
-        manager_thread.join();
-        ct_event_destroy(&wakeup_event);
-        started = false;
-    }
-};
-
-static test_env g_env;
-
-ct_time64_t mock_gettime_ms() {
-    return (ct_time64_t)ct_atomic_long_load(&g_env.monotonic);
-}
-
-int timer_thread_run(void* arg) {
-    test_env* env = (test_env*)arg;
-    ct_timer_mgr_run();
-    ct_atomic_int_store(&env->manager_stopped, 1);
-    return 0;
-}
-
-void wakeup_cb(void* arg) {
-    ct_event_t* ev = (ct_event_t*)arg;
-    ct_event_signal(ev);
-}
-
 struct callback_ctx {
-    ct_event_t      event;
-    ct_atomic_int_t count;
+    ct_event_t       event;
+    std::atomic<int> count{0};
 
     callback_ctx() {
         ct_event_init(&event);
-        ct_atomic_int_store(&count, 0);
+        count.store(0);
     }
+
     ~callback_ctx() { ct_event_destroy(&event); }
-    void wait() { REQUIRE(ct_event_wait(&event) == 0); }
+
+    void wait() { REQUIRE(ct_event_timedwait(&event, 2000) == 0); }
+
     bool wait_timeout(uint32_t ms) { return ct_event_timedwait(&event, ms) == 0; }
+
+    int get_count() const { return count.load(); }
 };
 
 void event_count_cb(void* arg) {
     callback_ctx* ctx = (callback_ctx*)arg;
-    ct_atomic_int_add(&ctx->count, 1);
+    ctx->count.fetch_add(1);
     ct_event_signal(&ctx->event);
 }
 
@@ -80,487 +47,359 @@ void verify_arg_cb(void* arg) {
     ct_event_signal(&h->event);
 }
 
-void start() {
-    ct_atomic_long_store(&g_env.monotonic, 0);
-    ct_atomic_int_store(&g_env.manager_stopped, 0);
-    g_env.started = false;
-    ct_event_init(&g_env.wakeup_event);
-    ct_timer_mgr_init(mock_gettime_ms);
-    g_env.manager_thread = std::thread(timer_thread_run, &g_env);
-    g_env.started        = true;
+struct TimerFixture {
+    ct_timer_t wakeup;
+    ct_event_t wakeup_event;
 
-    ct_timer_init(&g_env.wakeup);
-    ct_timer_start(&g_env.wakeup, 1000000, wakeup_cb, &g_env.wakeup_event);
-}
+    callback_ctx ctx;
+    callback_ctx ctx1;
+    callback_ctx ctx2;
+    ct_timer_t   timer;
+    ct_timer_t   timer1;
+    ct_timer_t   timer2;
+    ct_ticker_t  ticker;
+    arg_holder   holder;
 
-void stop() {
-    g_env.stop();
-    REQUIRE(ct_atomic_int_load(&g_env.manager_stopped) == 1);
-}
+    TimerFixture() {
+        RESET_FAKE(mock_ct_gettimeofday_ms);
+        RESET_FAKE(mock_ct_getuptime_ms);
 
-void advance_ms(ct_time64_t ms) {
-    ct_atomic_long_add(&g_env.monotonic, (long)ms);
-    ct_event_reset(&g_env.wakeup_event);
-    ct_timer_reset(&g_env.wakeup, 0);
-    REQUIRE(ct_event_wait(&g_env.wakeup_event) == 0);
-}
+        mock_ct_gettimeofday_ms_fake.custom_fake = mock_realtime_ms;
+        mock_ct_getuptime_ms_fake.custom_fake    = mock_monotonic_ms;
+        mock_time_reset();
+    }
+
+    ~TimerFixture() {
+        ct_timer_mgr_shutdown();
+        ct_timer_mgr_process_once();
+    }
+
+    void advance_ms(ct_time64_t ms) {
+        mock_time_advance(ms);
+        ct_timer_mgr_process_once();
+    }
+};
 
 }  // namespace
 
-TEST_CASE("one-shot timer fires exactly once" * doctest::test_suite("timer")) {
-    start();
+TEST_SUITE_BEGIN("timer");
 
-    callback_ctx ctx;
-    ct_timer_t   timer = CT_TIMER_INITIALIZER;
+TEST_CASE("timer API error handling (uninitialized manager)") {
+    SUBCASE("ct_set_timeout returns error for null callback") {
+        REQUIRE(ct_set_timeout(100, nullptr, nullptr) == -1);
+    }
+    SUBCASE("stopping an unstarted timer returns error") {
+        ct_timer_t t1 = CT_TIMER_INITIALIZER;
+        REQUIRE(ct_timer_stop(&t1) == -1);
 
-    REQUIRE(ct_timer_start(&timer, 100, event_count_cb, &ctx) == 0);
+        ct_timer_t t2;
+        ct_timer_init(&t2);
+        REQUIRE(ct_timer_stop(&t2) == -1);
+    }
 
-    advance_ms(60);
-    REQUIRE(ct_atomic_int_load(&ctx.count) == 0);
-    REQUIRE_FALSE(ctx.wait_timeout(10));
+    SUBCASE("timer functions reject null pointer arguments") {
+        ct_timer_init(nullptr);
+        REQUIRE(ct_timer_start(nullptr, 100, event_count_cb, nullptr) == -1);
+        REQUIRE(ct_timer_reset(nullptr, 100) == -1);
+        REQUIRE(ct_timer_stop(nullptr) == -1);
+    }
 
-    advance_ms(60);
-    ctx.wait();
-    REQUIRE(ct_atomic_int_load(&ctx.count) == 1);
+    SUBCASE("starting a timer with null callback returns error") {
+        ct_timer_t timer;
+        ct_timer_init(&timer);
+        REQUIRE(ct_timer_start(&timer, 100, nullptr, nullptr) == -1);
+    }
 
-    advance_ms(300);
-    REQUIRE(ct_atomic_int_load(&ctx.count) == 1);
-
-    stop();
+    SUBCASE("resetting a timer that was never started returns error") {
+        ct_timer_t timer;
+        ct_timer_init(&timer);
+        REQUIRE(ct_timer_reset(&timer, 100) == -1);
+    }
 }
 
-TEST_CASE("resetting a timer restarts its countdown" * doctest::test_suite("timer")) {
-    start();
-
-    callback_ctx ctx;
-    ct_timer_t   timer;
+TEST_CASE_FIXTURE(TimerFixture, "timer core behavior") {
     ct_timer_init(&timer);
 
-    REQUIRE(ct_timer_start(&timer, 100, event_count_cb, &ctx) == 0);
+    SUBCASE("one-shot timer fires exactly once") {
+        REQUIRE(ct_timer_start(&timer, 100, event_count_cb, &ctx) == 0);
 
-    advance_ms(60);
-    REQUIRE(ct_atomic_int_load(&ctx.count) == 0);
+        advance_ms(60);
+        REQUIRE(ctx.get_count() == 0);
 
-    REQUIRE(ct_timer_reset(&timer, 100) == 0);
+        advance_ms(60);
+        ctx.wait();
+        REQUIRE(ctx.get_count() == 1);
 
-    advance_ms(60);
-    REQUIRE(ct_atomic_int_load(&ctx.count) == 0);
-    REQUIRE_FALSE(ctx.wait_timeout(10));
+        advance_ms(300);
+        REQUIRE(ctx.get_count() == 1);
+    }
 
-    advance_ms(60);
-    ctx.wait();
-    REQUIRE(ct_atomic_int_load(&ctx.count) == 1);
+    SUBCASE("resetting a timer restarts its countdown") {
+        REQUIRE(ct_timer_start(&timer, 100, event_count_cb, &ctx) == 0);
 
-    stop();
+        advance_ms(60);
+        REQUIRE(ctx.get_count() == 0);
+
+        REQUIRE(ct_timer_reset(&timer, 100) == 0);
+
+        advance_ms(60);
+        REQUIRE(ctx.get_count() == 0);
+
+        advance_ms(60);
+        ctx.wait();
+        REQUIRE(ctx.get_count() == 1);
+    }
+
+    SUBCASE("starting a timer twice resets its deadline") {
+        REQUIRE(ct_timer_start(&timer, 200, event_count_cb, &ctx) == 0);
+
+        advance_ms(100);
+        REQUIRE(ctx.get_count() == 0);
+
+        REQUIRE(ct_timer_start(&timer, 200, event_count_cb, &ctx) == 0);
+
+        advance_ms(150);
+        REQUIRE(ctx.get_count() == 0);
+
+        advance_ms(100);
+        ctx.wait();
+        REQUIRE(ctx.get_count() == 1);
+    }
+
+    SUBCASE("zero timeout fires immediately on next tick") {
+        REQUIRE(ct_timer_start(&timer, 0, event_count_cb, &ctx) == 0);
+        advance_ms(0);
+        ctx.wait();
+        REQUIRE(ctx.get_count() == 1);
+    }
+
+    SUBCASE("ct_set_timeout fires once after the specified delay") {
+        REQUIRE(ct_set_timeout(100, event_count_cb, &ctx) == 0);
+
+        advance_ms(110);
+        ctx.wait();
+        REQUIRE(ctx.get_count() == 1);
+
+        advance_ms(110);
+        REQUIRE(ctx.get_count() == 1);
+    }
+
+    SUBCASE("stopping a timer before expiry prevents its callback") {
+        REQUIRE(ct_timer_start(&timer, 100, event_count_cb, &ctx) == 0);
+
+        advance_ms(50);
+        REQUIRE(ctx.get_count() == 0);
+
+        REQUIRE(ct_timer_stop(&timer) == 0);
+
+        advance_ms(100);
+        REQUIRE(ctx.get_count() == 0);
+    }
+
+    SUBCASE("stopping a timer that already fired returns error") {
+        REQUIRE(ct_timer_start(&timer, 100, event_count_cb, &ctx) == 0);
+
+        advance_ms(110);
+        ctx.wait();
+        REQUIRE(ctx.get_count() == 1);
+
+        REQUIRE(ct_timer_stop(&timer) == -1);
+    }
+
+    SUBCASE("timer callback receives the correct user argument") {
+        ct_event_init(&holder.event);
+        holder.captured = nullptr;
+
+        REQUIRE(ct_timer_start(&timer, 100, verify_arg_cb, &holder) == 0);
+
+        advance_ms(110);
+        REQUIRE(ct_event_timedwait(&holder.event, 2000) == 0);
+        REQUIRE(holder.captured == &holder);
+
+        ct_event_destroy(&holder.event);
+    }
 }
 
-TEST_CASE("periodic ticker fires repeatedly at fixed intervals" * doctest::test_suite("ticker")) {
-    start();
-
-    callback_ctx ctx;
-    ct_ticker_t  ticker;
-    ct_ticker_init(&ticker);
-
-    REQUIRE(ct_ticker_start(&ticker, 100, event_count_cb, &ctx) == 0);
-
-    advance_ms(110);
-    ctx.wait();
-    REQUIRE(ct_atomic_int_load(&ctx.count) == 1);
-
-    advance_ms(110);
-    ctx.wait();
-    REQUIRE(ct_atomic_int_load(&ctx.count) == 2);
-
-    advance_ms(110);
-    ctx.wait();
-    advance_ms(110);
-    ctx.wait();
-    REQUIRE(ct_atomic_int_load(&ctx.count) == 4);
-
-    REQUIRE(ct_ticker_stop(&ticker) == 0);
-    stop();
-}
-
-TEST_CASE("ct_set_timeout fires once after the specified delay" * doctest::test_suite("timer")) {
-    start();
-
-    callback_ctx ctx;
-    REQUIRE(ct_set_timeout(100, event_count_cb, &ctx) == 0);
-
-    advance_ms(110);
-    ctx.wait();
-    REQUIRE(ct_atomic_int_load(&ctx.count) == 1);
-
-    advance_ms(110);
-    REQUIRE(ct_atomic_int_load(&ctx.count) == 1);
-
-    stop();
-}
-
-TEST_CASE("multiple timers fire independently at different deadlines" * doctest::test_suite("timer")) {
-    start();
-
-    callback_ctx ctx1;
-    callback_ctx ctx2;
-    ct_timer_t   timer1;
-    ct_timer_t   timer2;
+TEST_CASE_FIXTURE(TimerFixture, "multiple timers") {
     ct_timer_init(&timer1);
     ct_timer_init(&timer2);
 
-    REQUIRE(ct_timer_start(&timer1, 100, event_count_cb, &ctx1) == 0);
-    REQUIRE(ct_timer_start(&timer2, 200, event_count_cb, &ctx2) == 0);
+    SUBCASE("fire independently at different deadlines") {
+        REQUIRE(ct_timer_start(&timer1, 100, event_count_cb, &ctx1) == 0);
+        REQUIRE(ct_timer_start(&timer2, 200, event_count_cb, &ctx2) == 0);
 
-    advance_ms(150);
-    ctx1.wait();
-    REQUIRE(ct_atomic_int_load(&ctx1.count) == 1);
-    REQUIRE(ct_atomic_int_load(&ctx2.count) == 0);
+        advance_ms(150);
+        ctx1.wait();
+        REQUIRE(ctx1.get_count() == 1);
+        REQUIRE(ctx2.get_count() == 0);
 
-    advance_ms(110);
-    ctx2.wait();
-    REQUIRE(ct_atomic_int_load(&ctx1.count) == 1);
-    REQUIRE(ct_atomic_int_load(&ctx2.count) == 1);
+        advance_ms(110);
+        ctx2.wait();
+        REQUIRE(ctx1.get_count() == 1);
+        REQUIRE(ctx2.get_count() == 1);
+    }
 
-    stop();
+    SUBCASE("manager cleans up pending timers on close") {
+        REQUIRE(ct_timer_start(&timer1, 100, event_count_cb, &ctx1) == 0);
+        REQUIRE(ct_timer_start(&timer2, 10000, event_count_cb, &ctx1) == 0);
+
+        advance_ms(110);
+        ctx1.wait();
+        REQUIRE(ctx1.get_count() == 1);
+    }
 }
 
-TEST_CASE("stopping a timer before expiry prevents its callback" * doctest::test_suite("timer")) {
-    start();
+TEST_SUITE_END();
 
-    callback_ctx ctx;
-    ct_timer_t   timer;
-    ct_timer_init(&timer);
-    REQUIRE(ct_timer_stop(&timer) == -1);
+// =========================================================
+// Ticker Suite
+// =========================================================
+TEST_SUITE_BEGIN("ticker");
 
-    REQUIRE(ct_timer_start(&timer, 100, event_count_cb, &ctx) == 0);
+TEST_CASE("ticker API error handling") {
+    SUBCASE("ticker functions reject null pointer arguments") {
+        ct_ticker_init(nullptr);
+        REQUIRE(ct_ticker_start(nullptr, 100, event_count_cb, nullptr) == -1);
+        REQUIRE(ct_ticker_reset(nullptr, 100) == -1);
+        REQUIRE(ct_ticker_stop(nullptr) == -1);
+    }
 
-    advance_ms(50);
-    REQUIRE(ct_atomic_int_load(&ctx.count) == 0);
-    REQUIRE_FALSE(ctx.wait_timeout(10));
+    SUBCASE("starting a ticker with null callback returns error") {
+        ct_ticker_t ticker;
+        ct_ticker_init(&ticker);
+        REQUIRE(ct_ticker_start(&ticker, 100, nullptr, nullptr) == -1);
+    }
 
-    REQUIRE(ct_timer_stop(&timer) == 0);
-
-    advance_ms(100);
-    REQUIRE_FALSE(ctx.wait_timeout(50));
-    REQUIRE(ct_atomic_int_load(&ctx.count) == 0);
-
-    stop();
+    SUBCASE("resetting a ticker that was never started returns error") {
+        ct_ticker_t ticker;
+        ct_ticker_init(&ticker);
+        REQUIRE(ct_ticker_reset(&ticker, 100) == -1);
+    }
 }
 
-TEST_CASE("stopping a timer that already fired returns error" * doctest::test_suite("timer")) {
-    start();
-
-    callback_ctx ctx;
-    ct_timer_t   timer;
-    ct_timer_init(&timer);
-
-    REQUIRE(ct_timer_start(&timer, 100, event_count_cb, &ctx) == 0);
-
-    advance_ms(110);
-    ctx.wait();
-    REQUIRE(ct_atomic_int_load(&ctx.count) == 1);
-
-    REQUIRE(ct_timer_stop(&timer) == -1);
-
-    stop();
-}
-
-TEST_CASE("stopping an unstarted timer returns error" * doctest::test_suite("timer")) {
-    ct_timer_t t1 = CT_TIMER_INITIALIZER;
-    REQUIRE(ct_timer_stop(&t1) == -1);
-
-    ct_timer_t t2;
-    ct_timer_init(&t2);
-    REQUIRE(ct_timer_stop(&t2) == -1);
-}
-
-TEST_CASE("stopping a ticker prevents future callbacks" * doctest::test_suite("timer")) {
-    start();
-
-    callback_ctx ctx;
-    ct_ticker_t  ticker;
+TEST_CASE_FIXTURE(TimerFixture, "ticker core behavior") {
     ct_ticker_init(&ticker);
 
-    REQUIRE(ct_ticker_start(&ticker, 100, event_count_cb, &ctx) == 0);
+    SUBCASE("periodic ticker fires repeatedly at fixed intervals") {
+        REQUIRE(ct_ticker_start(&ticker, 100, event_count_cb, &ctx) == 0);
 
-    advance_ms(110);
-    ctx.wait();
-    REQUIRE(ct_atomic_int_load(&ctx.count) == 1);
+        advance_ms(110);
+        ctx.wait();
+        REQUIRE(ctx.get_count() == 1);
 
-    REQUIRE(ct_ticker_stop(&ticker) == 0);
+        advance_ms(110);
+        ctx.wait();
+        REQUIRE(ctx.get_count() == 2);
 
-    advance_ms(300);
-    REQUIRE_FALSE(ctx.wait_timeout(50));
-    REQUIRE(ct_atomic_int_load(&ctx.count) == 1);
+        advance_ms(110);
+        ctx.wait();
+        advance_ms(110);
+        ctx.wait();
+        REQUIRE(ctx.get_count() == 4);
 
-    stop();
+        REQUIRE(ct_ticker_stop(&ticker) == 0);
+    }
+
+    SUBCASE("stopping a ticker prevents future callbacks") {
+        REQUIRE(ct_ticker_start(&ticker, 100, event_count_cb, &ctx) == 0);
+
+        advance_ms(110);
+        ctx.wait();
+        REQUIRE(ctx.get_count() == 1);
+
+        REQUIRE(ct_ticker_stop(&ticker) == 0);
+
+        advance_ms(300);
+        REQUIRE(ctx.get_count() == 1);
+    }
+
+    SUBCASE("resetting a ticker changes its callback interval") {
+        REQUIRE(ct_ticker_start(&ticker, 100, event_count_cb, &ctx) == 0);
+
+        advance_ms(110);
+        ctx.wait();
+        REQUIRE(ctx.get_count() == 1);
+
+        REQUIRE(ct_ticker_reset(&ticker, 200) == 0);
+
+        advance_ms(150);
+        REQUIRE(ctx.get_count() == 1);
+
+        advance_ms(100);
+        ctx.wait();
+        REQUIRE(ctx.get_count() == 2);
+
+        REQUIRE(ct_ticker_stop(&ticker) == 0);
+    }
+
+    SUBCASE("stopped ticker can be restarted with a new interval") {
+        REQUIRE(ct_ticker_stop(&ticker) == -1);  // Unstarted ticker stop
+
+        REQUIRE(ct_ticker_start(&ticker, 100, event_count_cb, &ctx) == 0);
+
+        advance_ms(110);
+        ctx.wait();
+        REQUIRE(ctx.get_count() == 1);
+
+        REQUIRE(ct_ticker_stop(&ticker) == 0);
+
+        REQUIRE(ct_ticker_start(&ticker, 150, event_count_cb, &ctx) == 0);
+
+        advance_ms(160);
+        ctx.wait();
+        REQUIRE(ctx.get_count() == 2);
+
+        REQUIRE(ct_ticker_stop(&ticker) == 0);
+    }
+
+    SUBCASE("resetting a ticker to a shorter interval reschedules correctly") {
+        REQUIRE(ct_ticker_start(&ticker, 200, event_count_cb, &ctx) == 0);
+
+        advance_ms(110);
+        REQUIRE(ctx.get_count() == 0);
+
+        REQUIRE(ct_ticker_reset(&ticker, 50) == 0);
+
+        advance_ms(60);
+        ctx.wait();
+        REQUIRE(ctx.get_count() == 1);
+
+        advance_ms(60);
+        ctx.wait();
+        REQUIRE(ctx.get_count() == 2);
+
+        REQUIRE(ct_ticker_stop(&ticker) == 0);
+    }
+
+    SUBCASE("starting a ticker twice restarts its interval") {
+        REQUIRE(ct_ticker_start(&ticker, 200, event_count_cb, &ctx) == 0);
+
+        advance_ms(100);
+        REQUIRE(ctx.get_count() == 0);
+
+        REQUIRE(ct_ticker_start(&ticker, 200, event_count_cb, &ctx) == 0);
+
+        advance_ms(150);
+        REQUIRE(ctx.get_count() == 0);
+
+        advance_ms(100);
+        ctx.wait();
+        REQUIRE(ctx.get_count() == 1);
+
+        REQUIRE(ct_ticker_stop(&ticker) == 0);
+    }
+
+    SUBCASE("ticker remains stable over many consecutive ticks") {
+        REQUIRE(ct_ticker_start(&ticker, 50, event_count_cb, &ctx) == 0);
+
+        for (int i = 0; i < 10; ++i) {
+            advance_ms(55);
+            ctx.wait();
+        }
+        REQUIRE(ctx.get_count() >= 10);
+
+        REQUIRE(ct_ticker_stop(&ticker) == 0);
+    }
 }
 
-TEST_CASE("resetting a ticker changes its callback interval" * doctest::test_suite("timer")) {
-    start();
-
-    callback_ctx ctx;
-    ct_ticker_t  ticker;
-    ct_ticker_init(&ticker);
-
-    REQUIRE(ct_ticker_start(&ticker, 100, event_count_cb, &ctx) == 0);
-
-    advance_ms(110);
-    ctx.wait();
-    REQUIRE(ct_atomic_int_load(&ctx.count) == 1);
-
-    REQUIRE(ct_ticker_reset(&ticker, 200) == 0);
-
-    advance_ms(150);
-    REQUIRE_FALSE(ctx.wait_timeout(50));
-    REQUIRE(ct_atomic_int_load(&ctx.count) == 1);
-
-    advance_ms(100);
-    ctx.wait();
-    REQUIRE(ct_atomic_int_load(&ctx.count) == 2);
-
-    REQUIRE(ct_ticker_stop(&ticker) == 0);
-    stop();
-}
-
-TEST_CASE("stopped ticker can be restarted with a new interval" * doctest::test_suite("timer")) {
-    start();
-
-    callback_ctx ctx;
-    ct_ticker_t  ticker = CT_TICKER_INITIALIZER;
-    REQUIRE(ct_ticker_stop(&ticker) == -1);
-
-    REQUIRE(ct_ticker_start(&ticker, 100, event_count_cb, &ctx) == 0);
-
-    advance_ms(110);
-    ctx.wait();
-    REQUIRE(ct_atomic_int_load(&ctx.count) == 1);
-
-    REQUIRE(ct_ticker_stop(&ticker) == 0);
-
-    REQUIRE(ct_ticker_start(&ticker, 150, event_count_cb, &ctx) == 0);
-
-    advance_ms(160);
-    ctx.wait();
-    REQUIRE(ct_atomic_int_load(&ctx.count) == 2);
-
-    REQUIRE(ct_ticker_stop(&ticker) == 0);
-    stop();
-}
-
-TEST_CASE("timer functions reject null pointer arguments" * doctest::test_suite("timer")) {
-    ct_timer_init(nullptr);
-    REQUIRE(ct_timer_start(nullptr, 100, event_count_cb, nullptr) == -1);
-    REQUIRE(ct_timer_reset(nullptr, 100) == -1);
-    REQUIRE(ct_timer_stop(nullptr) == -1);
-}
-
-TEST_CASE("starting a timer with null callback returns error" * doctest::test_suite("timer")) {
-    ct_timer_t timer;
-    ct_timer_init(&timer);
-    REQUIRE(ct_timer_start(&timer, 100, nullptr, nullptr) == -1);
-}
-
-TEST_CASE("resetting a timer that was never started returns error" * doctest::test_suite("timer")) {
-    ct_timer_t timer;
-    ct_timer_init(&timer);
-    REQUIRE(ct_timer_reset(&timer, 100) == -1);
-}
-
-TEST_CASE("ticker functions reject null pointer arguments" * doctest::test_suite("timer")) {
-    ct_ticker_init(nullptr);
-    REQUIRE(ct_ticker_start(nullptr, 100, event_count_cb, nullptr) == -1);
-    REQUIRE(ct_ticker_reset(nullptr, 100) == -1);
-    REQUIRE(ct_ticker_stop(nullptr) == -1);
-}
-
-TEST_CASE("starting a ticker with null callback returns error" * doctest::test_suite("timer")) {
-    ct_ticker_t ticker;
-    ct_ticker_init(&ticker);
-    REQUIRE(ct_ticker_start(&ticker, 100, nullptr, nullptr) == -1);
-}
-
-TEST_CASE("resetting a ticker that was never started returns error" * doctest::test_suite("timer")) {
-    ct_ticker_t ticker;
-    ct_ticker_init(&ticker);
-    REQUIRE(ct_ticker_reset(&ticker, 100) == -1);
-}
-
-TEST_CASE("resetting a ticker to a shorter interval reschedules correctly" * doctest::test_suite("timer")) {
-    start();
-
-    callback_ctx ctx;
-    ct_ticker_t  ticker;
-    ct_ticker_init(&ticker);
-
-    REQUIRE(ct_ticker_start(&ticker, 200, event_count_cb, &ctx) == 0);
-
-    advance_ms(110);
-    REQUIRE(ct_atomic_int_load(&ctx.count) == 0);
-
-    REQUIRE(ct_ticker_reset(&ticker, 50) == 0);
-
-    advance_ms(60);
-    ctx.wait();
-    REQUIRE(ct_atomic_int_load(&ctx.count) == 1);
-
-    advance_ms(60);
-    ctx.wait();
-    REQUIRE(ct_atomic_int_load(&ctx.count) == 2);
-
-    REQUIRE(ct_ticker_stop(&ticker) == 0);
-    stop();
-}
-
-TEST_CASE("starting a timer twice resets its deadline" * doctest::test_suite("timer")) {
-    start();
-
-    callback_ctx ctx;
-    ct_timer_t   timer;
-    ct_timer_init(&timer);
-
-    REQUIRE(ct_timer_start(&timer, 200, event_count_cb, &ctx) == 0);
-
-    advance_ms(100);
-    REQUIRE(ct_atomic_int_load(&ctx.count) == 0);
-
-    REQUIRE(ct_timer_start(&timer, 200, event_count_cb, &ctx) == 0);
-
-    advance_ms(150);
-    REQUIRE_FALSE(ctx.wait_timeout(50));
-    REQUIRE(ct_atomic_int_load(&ctx.count) == 0);
-
-    advance_ms(100);
-    ctx.wait();
-    REQUIRE(ct_atomic_int_load(&ctx.count) == 1);
-
-    stop();
-}
-
-TEST_CASE("zero timeout fires immediately on next tick" * doctest::test_suite("timer")) {
-    start();
-
-    callback_ctx ctx;
-    ct_timer_t   timer;
-    ct_timer_init(&timer);
-
-    REQUIRE(ct_timer_start(&timer, 0, event_count_cb, &ctx) == 0);
-
-    advance_ms(0);
-    REQUIRE(ctx.wait_timeout(50));
-    REQUIRE(ct_atomic_int_load(&ctx.count) == 1);
-
-    stop();
-}
-
-TEST_CASE("starting a ticker twice restarts its interval" * doctest::test_suite("timer")) {
-    start();
-
-    callback_ctx ctx;
-    ct_ticker_t  ticker;
-    ct_ticker_init(&ticker);
-
-    REQUIRE(ct_ticker_start(&ticker, 200, event_count_cb, &ctx) == 0);
-
-    advance_ms(100);
-    REQUIRE(ct_atomic_int_load(&ctx.count) == 0);
-
-    REQUIRE(ct_ticker_start(&ticker, 200, event_count_cb, &ctx) == 0);
-
-    advance_ms(150);
-    REQUIRE_FALSE(ctx.wait_timeout(50));
-    REQUIRE(ct_atomic_int_load(&ctx.count) == 0);
-
-    advance_ms(100);
-    ctx.wait();
-    REQUIRE(ct_atomic_int_load(&ctx.count) == 1);
-
-    REQUIRE(ct_ticker_stop(&ticker) == 0);
-    stop();
-}
-
-TEST_CASE("ct_set_timeout returns error when manager is not initialized" * doctest::test_suite("timer")) {
-    callback_ctx ctx;
-    REQUIRE(ct_set_timeout(100, event_count_cb, &ctx) == -1);
-}
-
-TEST_CASE("timer callback receives the correct user argument" * doctest::test_suite("timer")) {
-    start();
-
-    arg_holder holder;
-    ct_event_init(&holder.event);
-    holder.captured = nullptr;
-
-    ct_timer_t timer;
-    ct_timer_init(&timer);
-    REQUIRE(ct_timer_start(&timer, 100, verify_arg_cb, &holder) == 0);
-
-    advance_ms(110);
-    REQUIRE(ct_event_wait(&holder.event) == 0);
-    REQUIRE(holder.captured == &holder);
-
-    ct_event_destroy(&holder.event);
-    stop();
-}
-
-TEST_CASE("manager cleans up pending timers on close" * doctest::test_suite("timer")) {
-    start();
-
-    callback_ctx ctx;
-    ct_timer_t   timer1;
-    ct_timer_t   timer2;
-    ct_timer_init(&timer1);
-    ct_timer_init(&timer2);
-
-    REQUIRE(ct_timer_start(&timer1, 100, event_count_cb, &ctx) == 0);
-    REQUIRE(ct_timer_start(&timer2, 10000, event_count_cb, &ctx) == 0);
-
-    advance_ms(110);
-    ctx.wait();
-    REQUIRE(ct_atomic_int_load(&ctx.count) == 1);
-
-    stop();
-}
-
-TEST_CASE("ticker remains stable over many consecutive ticks" * doctest::test_suite("timer")) {
-    start();
-
-    callback_ctx ctx;
-    ct_ticker_t  ticker;
-    ct_ticker_init(&ticker);
-
-    REQUIRE(ct_ticker_start(&ticker, 50, event_count_cb, &ctx) == 0);
-
-    advance_ms(55);
-    ctx.wait();
-
-    advance_ms(55);
-    ctx.wait();
-
-    advance_ms(55);
-    ctx.wait();
-
-    advance_ms(55);
-    ctx.wait();
-
-    advance_ms(55);
-    ctx.wait();
-
-    advance_ms(55);
-    ctx.wait();
-
-    advance_ms(55);
-    ctx.wait();
-
-    advance_ms(55);
-    ctx.wait();
-
-    advance_ms(55);
-    ctx.wait();
-
-    advance_ms(55);
-    ctx.wait();
-    REQUIRE(ct_atomic_int_load(&ctx.count) >= 10);
-
-    REQUIRE(ct_ticker_stop(&ticker) == 0);
-    stop();
-}
+TEST_SUITE_END();
