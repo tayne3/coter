@@ -6,6 +6,8 @@
  *  - 超过 record 容量的 fmt 消息被截断后仍能正常投递
  *  - ct_log_submit_payload 在恰好到达、超过、零长度三种边界下的行为
  */
+#include <atomic>
+#include <utility>
 #include <vector>
 
 #include "coter/log/handler/record.h"
