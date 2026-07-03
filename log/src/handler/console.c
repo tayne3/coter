@@ -9,7 +9,7 @@
 
 #include "coter/sync/mutex.h"
 #include "formatter.h"
-#include "log_internal.h"
+#include "internal.h"
 
 typedef struct ct_log_console_handler {
     ct_log_handler_t   base;

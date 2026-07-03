@@ -1,6 +1,6 @@
 /**
- * @file log_internal.h
- * @brief 日志内部定义 — 路径 C（无全局 dispatcher）
+ * @file internal.h
+ * @brief 日志内部定义
  */
 #ifndef COTER_LOG_INTERNAL_H
 #define COTER_LOG_INTERNAL_H

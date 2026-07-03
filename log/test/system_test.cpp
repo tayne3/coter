@@ -1,3 +1,12 @@
+/**
+ * @file system_test.cpp
+ * @brief 系统级集成与端到端测试
+ *
+ * 覆盖：
+ *  - 默认 logger 初始化后的系统就绪状态验证
+ *  - 高并发下海量 logger 实例的生命周期（创建、启动、日志提交、关闭）压力测试
+ *  - 默认 logger 封印机制的并发安全性验证
+ */
 #include <atomic>
 #include <chrono>
 #include <thread>
@@ -7,13 +16,12 @@
 #include "coter/log/log.h"
 #include "coter/testing/doctest.h"
 
+TEST_SUITE_BEGIN("log");
 
-TEST_CASE("log_system_ready_after_first_use" * doctest::test_suite("log") * doctest::test_suite("system")) {
-    // 触发懒初始化
+TEST_CASE("system is ready and end-to-end logging works after default logger initialization") {
     ct_logger_t* def = ct_logger_get_default();
     REQUIRE(def != nullptr);
 
-    // 系统就绪后，用户自定义 logger 可以正常启动，且日志路径端到端连通
     std::atomic<size_t> call_count{0};
 
     ct_log_record_handler_config_t config;
@@ -29,15 +37,12 @@ TEST_CASE("log_system_ready_after_first_use" * doctest::test_suite("log") * doct
     CT_LOGGER_INFO(&logger, "system ready test");
 
     REQUIRE(ct_logger_close(&logger) == 0);
-    // close() 内部调用 dispatcher_sync(FLUSH)，保证上面的消息已经被处理
     REQUIRE(call_count == 1);
 }
 
-TEST_CASE("log_concurrent_start_close_stress" * doctest::test_suite("log") * doctest::test_suite("system")) {
-    // 大量并发创建/启动/关闭 logger，验证 dispatcher 全局队列无竞态，
-    // 并验证每条提交的日志均被处理（端到端连通）
-    constexpr int kThreads = 8;
-    constexpr int kIter    = 50;
+TEST_CASE("concurrent logger creation, starting, and closing works reliably without dropping logs") {
+    constexpr int kThreads = 16;
+    constexpr int kIter    = 100;
 
     std::atomic<int>    errors{0};
     std::atomic<size_t> total_received{0};
@@ -85,10 +90,7 @@ TEST_CASE("log_concurrent_start_close_stress" * doctest::test_suite("log") * doc
     REQUIRE(total_received == total_sent);
 }
 
-TEST_CASE("log_seal_default_concurrent" * doctest::test_suite("log") * doctest::test_suite("system")) {
-    // default logger 在首次 get_default() 调用后即被封印（全局一次性副作用）。
-    // 本测试验证封印后并发调用 set_default() 全部失败的稳态行为。
-    // 注意：封印可能已由进程内其他测试（如 logger_test）更早触发，这是预期的。
+TEST_CASE("concurrent attempts to set the default logger fail safely after it is sealed") {
     ct_logger_t* sealed = ct_logger_get_default();
     REQUIRE(sealed != nullptr);
 
@@ -110,7 +112,8 @@ TEST_CASE("log_seal_default_concurrent" * doctest::test_suite("log") * doctest::
 
     for (auto& w : workers) { w.join(); }
 
-    // 封印后任何 set_default 均应失败
     REQUIRE(success_count == 0);
     REQUIRE(ct_logger_get_default() == sealed);
 }
+
+TEST_SUITE_END();

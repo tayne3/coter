@@ -24,7 +24,7 @@
 #include "coter/log/handler/console.h"
 #include "coter/thread/once.h"
 #include "coter/thread/thread.h"
-#include "log_internal.h"
+#include "internal.h"
 
 enum {
     CT_LOG_SYSTEM_UNINIT  = 0,

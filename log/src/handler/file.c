@@ -11,7 +11,7 @@
 #include "coter/core/strings.h"
 #include "coter/sync/mutex.h"
 #include "formatter.h"
-#include "log_internal.h"
+#include "internal.h"
 #include "rotator.h"
 
 typedef struct ct_log_file_handler {

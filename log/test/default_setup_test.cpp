@@ -2,28 +2,24 @@
 #include "coter/log/log.h"
 #include "coter/testing/doctest.h"
 
+TEST_SUITE_BEGIN("log");
 
-namespace {
-struct default_setup_state {
-    size_t calls{0};
-};
+TEST_CASE("default logger can be configured before first use") {
+    static struct default_setup_state {
+        size_t calls{0};
+    } state;
 
-void default_setup_callback(const ct_log_record_t* record, void* userdata) {
-    if (!record || !userdata) { return; }
-    auto* state = static_cast<default_setup_state*>(userdata);
-    ++state->calls;
-}
-}  // namespace
-
-TEST_CASE("log_default_logger_can_be_configured_before_first_use" * doctest::test_suite("log") *
-          doctest::test_suite("default")) {
-    static ct_logger_t             logger;
-    static default_setup_state     state;
-    ct_log_record_handler_config_t config;
-
+    static ct_logger_t logger;
     ct_logger_init(&logger);
+
+    ct_log_record_handler_config_t config;
     ct_log_record_handler_config_default(&config);
-    config.routine  = default_setup_callback;
+
+    config.routine = [](const ct_log_record_t* record, void* userdata) {
+        if (!record || !userdata) { return; }
+        auto* state = static_cast<default_setup_state*>(userdata);
+        ++state->calls;
+    };
     config.userdata = &state;
 
     REQUIRE(ct_logger_add_handler(&logger, ct_log_record_handler_create(&config)) == 0);
@@ -38,3 +34,5 @@ TEST_CASE("log_default_logger_can_be_configured_before_first_use" * doctest::tes
     REQUIRE(ct_logger_set_default(NULL) == -1);
     REQUIRE(ct_logger_close(&logger) == -1);
 }
+
+TEST_SUITE_END();

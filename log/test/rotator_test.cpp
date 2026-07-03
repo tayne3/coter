@@ -1,58 +1,63 @@
+/**
+ * @file rotator_test.cpp
+ * @brief ct_log_rotator_t 测试
+ *
+ * 覆盖：
+ *  - 日志文件大小超过限制时正确轮转
+ *  - 存在旧文件时正确追加或覆写
+ *  - 无效配置的拒绝
+ *  - 多次轮转时的循环覆盖逻辑
+ */
 #include "../src/handler/rotator.h"
 
 #include <cstdio>
 #include <cstring>
 #include <memory>
 #include <string>
-#include <vector>
 
 #include "coter/core/fs.h"
 #include "coter/core/strings.h"
 #include "coter/testing/doctest.h"
 
+TEST_SUITE_BEGIN("log");
 
-namespace {
-static const char* kDir = "test_log_rotator_out";
+TEST_CASE("rotator handles file size boundaries and appending to existing files") {
+    constexpr const char* kDir = "test_log_rotator_out";
 
-struct RotatorFixture {
-    RotatorFixture() { cleanup(); }
-    ~RotatorFixture() { cleanup(); }
+    struct Fixture {
+        Fixture() { cleanup(); }
+        ~Fixture() { cleanup(); }
 
-    void cleanup() {
-        ct_remove("test_log_rotator_out/rotate.log0");
-        ct_remove("test_log_rotator_out/rotate.log1");
-        ct_remove("test_log_rotator_out/append.log0");
-        ct_rmdir(kDir);
-    }
-
-    static std::string read_file(const char* path) {
-        FILE* file = std::fopen(path, "rb");
-        if (!file) return "";
-
-        std::string data;
-        char        buffer[64];
-        while (true) {
-            size_t n = std::fread(buffer, 1, sizeof(buffer), file);
-            if (n == 0) break;
-            data.append(buffer, n);
+        void cleanup() const {
+            ct_remove("test_log_rotator_out/rotate.log0");
+            ct_remove("test_log_rotator_out/rotate.log1");
+            ct_remove("test_log_rotator_out/append.log0");
+            ct_rmdir(kDir);
         }
-        std::fclose(file);
-        return data;
-    }
-};
 
-struct RotatorDeleter {
-    void operator()(ct_log_rotator_t* r) const {
-        if (r) ct_log_rotator_destroy(r);
-    }
-};
-using RotatorPtr = std::unique_ptr<ct_log_rotator_t, RotatorDeleter>;
-}  // namespace
+        std::string read_file(const char* path) const {
+            FILE* file = std::fopen(path, "rb");
+            if (!file) return "";
+            std::string data;
+            char        buffer[64];
+            while (true) {
+                size_t n = std::fread(buffer, 1, sizeof(buffer), file);
+                if (n == 0) break;
+                data.append(buffer, n);
+            }
+            std::fclose(file);
+            return data;
+        }
+    } fixture;
 
-TEST_CASE("log_rotator_logic" * doctest::test_suite("log") * doctest::test_suite("rotator")) {
-    RotatorFixture fixture;
+    struct RotatorDeleter {
+        void operator()(ct_log_rotator_t* r) const {
+            if (r) ct_log_rotator_destroy(r);
+        }
+    };
+    using RotatorPtr = std::unique_ptr<ct_log_rotator_t, RotatorDeleter>;
 
-    SUBCASE("rotates across bounded files") {
+    SUBCASE("rotates across bounded files when writing beyond maximum size") {
         ct_log_rotator_config_t config = {};
         std::strncpy(config.dir, kDir, sizeof(config.dir) - 1);
         std::strncpy(config.name, "rotate", sizeof(config.name) - 1);
@@ -67,11 +72,11 @@ TEST_CASE("log_rotator_logic" * doctest::test_suite("log") * doctest::test_suite
         ct_log_rotator_flush(rotator.get());
 
         // kl goes to index 0, fghij goes to index 1, abcde was dropped (pushed out)
-        REQUIRE(RotatorFixture::read_file("test_log_rotator_out/rotate.log0") == "kl");
-        REQUIRE(RotatorFixture::read_file("test_log_rotator_out/rotate.log1") == "fghij");
+        REQUIRE(fixture.read_file("test_log_rotator_out/rotate.log0") == "kl");
+        REQUIRE(fixture.read_file("test_log_rotator_out/rotate.log1") == "fghij");
     }
 
-    SUBCASE("appends newest file when it has space") {
+    SUBCASE("appends to the newest file when space is available") {
         REQUIRE(ct_mkdir(kDir) == 0);
         {
             FILE* file = std::fopen("test_log_rotator_out/append.log0", "wb");
@@ -91,26 +96,38 @@ TEST_CASE("log_rotator_logic" * doctest::test_suite("log") * doctest::test_suite
         REQUIRE(ct_log_rotator_write(rotator.get(), "de", 2) == 2);
         rotator.reset();  // trigger destroy
 
-        REQUIRE(RotatorFixture::read_file("test_log_rotator_out/append.log0") == "abcde");
+        REQUIRE(fixture.read_file("test_log_rotator_out/append.log0") == "abcde");
     }
 
-    SUBCASE("rejects invalid config") {
+    SUBCASE("rejects invalid configuration parameters") {
         ct_log_rotator_config_t config = {};
         REQUIRE(ct_log_rotator_create(&config) == nullptr);
     }
 }
 
-TEST_CASE("log_rotator_wraps_around_correctly" * doctest::test_suite("log") * doctest::test_suite("rotator")) {
-    // 配置极小的轮转（每个文件 256 字节，最多 2 个文件）
-    // 写入超过 512 字节，验证文件从 index 0 -> 1 -> 0 循环覆盖
-
+TEST_CASE("rotator wraps around and overwrites oldest files upon reaching maximum count") {
     struct WrapFixture {
         WrapFixture() { cleanup(); }
         ~WrapFixture() { cleanup(); }
-        void cleanup() {
+
+        void cleanup() const {
             ct_remove("test_rotator_wraparound/wrap.log0");
             ct_remove("test_rotator_wraparound/wrap.log1");
             ct_rmdir("test_rotator_wraparound");
+        }
+
+        std::string read_file(const char* path) const {
+            FILE* file = std::fopen(path, "rb");
+            if (!file) return "";
+            std::string data;
+            char        buffer[64];
+            while (true) {
+                size_t n = std::fread(buffer, 1, sizeof(buffer), file);
+                if (n == 0) break;
+                data.append(buffer, n);
+            }
+            std::fclose(file);
+            return data;
         }
     } fixture;
 
@@ -123,10 +140,6 @@ TEST_CASE("log_rotator_wraps_around_correctly" * doctest::test_suite("log") * do
     ct_log_rotator_t* r = ct_log_rotator_create(&config);
     REQUIRE(r != nullptr);
 
-    // 写入 3 批，每批 200 字节，触发至少 2 次轮转：
-    //   批次 1 (200B): 写入 log0，current_size=200
-    //   批次 2 (200B): log0 满 (200+200>256)，轮转到 log1，写入 200B
-    //   批次 3 (200B): log1 满 (200+200>256)，轮转回 log0（覆盖），写入 200B
     std::string chunk_a(200, 'A');
     std::string chunk_b(200, 'B');
     std::string chunk_c(200, 'C');
@@ -137,20 +150,13 @@ TEST_CASE("log_rotator_wraps_around_correctly" * doctest::test_suite("log") * do
 
     ct_log_rotator_flush(r);
 
-    // 精确断言：三轮写入后必然回到 index 0
+    // 三轮写入后必然回到 index 0
     REQUIRE(ct_log_rotator_index(r) == 0);
 
     ct_log_rotator_destroy(r);
 
-    // 追踪实际写入路径（size_max=256, count_max=2）：
-    //   批次1 (200'A'): log0 可用256，写200'A' → log0=[200'A'], size=200
-    //   批次2 (200'B'): log0 剩56，先写56'B'填满log0，轮转到log1，再写144'B' → log1=[144'B'], size=144
-    //   批次3 (200'C'): log1 剩112，先写112'C'填满log1，轮转回log0（删除旧log0），再写88'C' → log0=[88'C'], size=88
-    //
-    // 最终状态：file_index=0, log0=88'C', log1=144'B'+112'C'(=256字节)
-
-    std::string log0 = RotatorFixture::read_file("./test_rotator_wraparound/wrap.log0");
-    std::string log1 = RotatorFixture::read_file("./test_rotator_wraparound/wrap.log1");
+    std::string log0 = fixture.read_file("./test_rotator_wraparound/wrap.log0");
+    std::string log1 = fixture.read_file("./test_rotator_wraparound/wrap.log1");
 
     // log0 被覆盖重建，只含第三批的尾部 'C'
     REQUIRE(log0.size() == 88);
@@ -161,3 +167,5 @@ TEST_CASE("log_rotator_wraps_around_correctly" * doctest::test_suite("log") * do
     REQUIRE(log1.substr(0, 144) == std::string(144, 'B'));
     REQUIRE(log1.substr(144) == std::string(112, 'C'));
 }
+
+TEST_SUITE_END();

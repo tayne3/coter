@@ -13,7 +13,7 @@
 #include "coter/sync/cond.h"
 #include "coter/sync/mutex.h"
 #include "coter/thread/thread.h"
-#include "log_internal.h"
+#include "internal.h"
 
 #define CT_LOG_ASYNC_BLOCK_TIMEOUT_MS 5000
 

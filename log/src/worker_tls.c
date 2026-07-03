@@ -9,7 +9,7 @@
  */
 #include "coter/thread/once.h"
 #include "coter/thread/tls.h"
-#include "log_internal.h"
+#include "internal.h"
 
 static ct_tls_key_t   s_tls_key;
 static ct_once_flag_t s_tls_once = CT_ONCE_FLAG_INIT;

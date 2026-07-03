@@ -15,7 +15,7 @@
 
 #include "coter/core/time.h"
 #include "coter/log/logger.h"
-#include "log_internal.h"
+#include "internal.h"
 
 #if defined(CT_OS_WIN)
 #include <windows.h>
@@ -51,9 +51,7 @@ static void submit__dispatch(ct_logger_t* logger, const ct_log_record_t* record)
     ct_log_register_worker();
 
     ct_list_foreach_entry(handler, &logger->handlers, ct_log_handler_t, node) {
-        if (handler->vtable && handler->vtable->write) {
-            handler->vtable->write(handler, record);
-        }
+        if (handler->vtable && handler->vtable->write) { handler->vtable->write(handler, record); }
     }
 
     ct_log_unregister_worker();
@@ -134,7 +132,7 @@ void ct_log_submit_payload(ct_logger_t* logger, int level, const char* file, int
     if (level < ct_atomic_int_load(&logger->level)) { return; }
     if (ct_logger_acquire_writer(logger) != 0) { return; }
 
-    char buf[CT_LOG_RECORD_MAX];
+    char   buf[CT_LOG_RECORD_MAX];
     size_t len = submit__copy_payload(buf, sizeof(buf), payload, payload_len);
 
     if (len > 0) {
