@@ -7,7 +7,7 @@
 
 #include "coter/core/config.h"
 
-#if CT_ATOMIC_USE_GCC
+#if CT_ATOMIC_USE_GCC_ATOMIC || CT_ATOMIC_USE_GCC_SYNC
 #include "coter/sync/atomic/atomic_gcc.h"
 #elif CT_ATOMIC_USE_WIN
 #include "coter/sync/atomic/atomic_win.h"

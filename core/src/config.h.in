@@ -5,42 +5,42 @@
 #define __coter_version_major__  @PROJECT_VERSION_MAJOR@
 #define __coter_version_minor__  @PROJECT_VERSION_MINOR@
 #define __coter_version_patch__  @PROJECT_VERSION_PATCH@
-#define __coter_version_tweak__  @PROJECT_VERSION_TWEAK@
 
-#define CT_ATOMIC_USE_GCC   @COTER_ATOMIC_USE_GCC@
-#define CT_ATOMIC_USE_WIN   @COTER_ATOMIC_USE_WIN@
-#define CT_ATOMIC_USE_MUTEX @COTER_ATOMIC_USE_MUTEX@
+#cmakedefine01 CT_ATOMIC_USE_GCC_ATOMIC
+#cmakedefine01 CT_ATOMIC_USE_GCC_SYNC
+#cmakedefine01 CT_ATOMIC_USE_WIN
+#cmakedefine01 CT_ATOMIC_USE_MUTEX
 
 #ifndef HAVE_INTTYPES_H
-#define HAVE_INTTYPES_H @HAVE_INTTYPES_H@
+#cmakedefine01 HAVE_INTTYPES_H
 #endif
 
 #ifndef HAVE_STDBOOL_H
-#define HAVE_STDBOOL_H @HAVE_STDBOOL_H@
+#cmakedefine01 HAVE_STDBOOL_H
 #endif
 
 #ifndef HAVE_SYS_TYPES_H
-#define HAVE_SYS_TYPES_H @HAVE_SYS_TYPES_H@
+#cmakedefine01 HAVE_SYS_TYPES_H
 #endif
 
 #ifndef HAVE_SYS_STAT_H
-#define HAVE_SYS_STAT_H @HAVE_SYS_STAT_H@
+#cmakedefine01 HAVE_SYS_STAT_H
 #endif
 
 #ifndef HAVE_MEMRCHR
-#define HAVE_MEMRCHR @HAVE_MEMRCHR@
+#cmakedefine01 HAVE_MEMRCHR
 #endif
 
 #ifndef HAVE_CLOCK_GETTIME
-#define HAVE_CLOCK_GETTIME (@HAVE_CLOCK_GETTIME@ | @HAVE_CLOCK_GETTIME_IN_RT@)
+#cmakedefine01 HAVE_CLOCK_GETTIME
 #endif
 
 #ifndef HAVE_PTHREAD_RWLOCK
-#define HAVE_PTHREAD_RWLOCK @HAVE_PTHREAD_RWLOCK_INIT@
+#cmakedefine01 HAVE_PTHREAD_RWLOCK
 #endif
 
 #ifndef HAVE_SEM_TIMEDWAIT
-#define HAVE_SEM_TIMEDWAIT @HAVE_SEM_TIMEDWAIT@
+#cmakedefine01 HAVE_SEM_TIMEDWAIT
 #endif
 
 #endif // COTER_CORE_CONFIG_H

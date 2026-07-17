@@ -7,7 +7,7 @@
 
 #include "coter/core/macro.h"
 
-#if CT_ATOMIC_USE_GCC
+#if CT_ATOMIC_USE_GCC_ATOMIC || CT_ATOMIC_USE_GCC_SYNC
 #ifndef __cplusplus
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wint-conversion"
@@ -23,7 +23,7 @@ typedef struct ct_atomic_flag {
 #define CT_ATOMIC_FLAG_INIT {0}
 
 CT_INLINE bool ct_atomic_flag_test_and_set(ct_atomic_flag_t* p) {
-#ifdef CT_ATOMIC_USE_GCC_SYNC
+#if CT_ATOMIC_USE_GCC_SYNC
     return __sync_lock_test_and_set(&p->_v, 1);
 #else
     return __atomic_test_and_set(&p->_v, __ATOMIC_ACQ_REL);
@@ -31,7 +31,7 @@ CT_INLINE bool ct_atomic_flag_test_and_set(ct_atomic_flag_t* p) {
 }
 
 CT_INLINE void ct_atomic_flag_clear(ct_atomic_flag_t* p) {
-#ifdef CT_ATOMIC_USE_GCC_SYNC
+#if CT_ATOMIC_USE_GCC_SYNC
     __sync_lock_release(&p->_v);
 #else
     __atomic_clear(&p->_v, __ATOMIC_RELEASE);
@@ -54,7 +54,7 @@ typedef void* volatile ct_atomic_ptr_t;
 
 #define CT_ATOMIC_VAR_INIT(value) (value)
 
-#ifdef CT_ATOMIC_USE_GCC_SYNC
+#if CT_ATOMIC_USE_GCC_SYNC
 #define CT_ATOMIC_LOAD(p)        __sync_val_compare_and_swap(p, 0, 0)
 #define CT_ATOMIC_STORE(p, v)    (void)__sync_lock_test_and_set(p, v)
 #define CT_ATOMIC_EXCHANGE(p, v) __sync_lock_test_and_set(p, v)
@@ -152,6 +152,7 @@ CT_INLINE bool ct_atomic_ptr_compare_exchange(ct_atomic_ptr_t* p, void** expecte
 #undef CT_ATOMIC_ADD
 #undef CT_ATOMIC_SUB
 #undef CT_ATOMIC_CAS
+
 #undef CT_ATOMIC_GEN_BASE_OP
 #undef CT_ATOMIC_GEN_ARITH_OP
 
