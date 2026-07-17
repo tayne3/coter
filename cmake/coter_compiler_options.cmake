@@ -81,7 +81,12 @@ if(WIN32)
 else()
   # Enable GNU extensions on Linux/Unix systems (covers glibc, musl, etc.)
   if((UNIX AND NOT APPLE) OR CMAKE_SYSTEM_NAME MATCHES "Linux|GNU")
-    target_compile_definitions(coter_internal_options INTERFACE _GNU_SOURCE=1)
+    target_compile_definitions(coter_internal_options INTERFACE 
+      _GNU_SOURCE=1
+      _TIME_BITS=64
+      _FILE_OFFSET_BITS=64
+      _LARGEFILE_SOURCE
+    )
   endif()
 endif()
 
