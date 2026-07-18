@@ -1,115 +1,182 @@
 /**
  * @file atomic_stress_test.cpp
- * @brief Atomic pointer and CAS operations test with high concurrency
+ * @brief Concurrent atomic operation tests
  */
+#include <array>
+#include <cstddef>
 #include <thread>
+#include <vector>
 
 #include "coter/sync/atomic.h"
 #include "coter/testing/doctest.h"
 
+namespace {
 
-#define NUM_THREADS    16
-#define NUM_ITERATIONS 100000
+constexpr std::size_t kThreadCount    = 16;
+constexpr std::size_t kIterations     = 100000;
+constexpr std::size_t kItemsPerThread = 10000;
+constexpr std::size_t kNodeCount      = kThreadCount * kItemsPerThread;
 
-static ct_atomic_long_t g_shared_counter;
+template <typename Worker>
+void run_workers(Worker worker) {
+    std::array<std::thread, kThreadCount> threads;
 
-static int thread_increment_routine(void* arg) {
-    CT_UNUSED(arg);
-    for (int i = 0; i < NUM_ITERATIONS; ++i) { ct_atomic_long_add(&g_shared_counter, 1); }
-    return 0;
+    for (std::size_t index = 0; index < threads.size(); ++index) { threads[index] = std::thread(worker, index); }
+    for (auto& thread : threads) { thread.join(); }
 }
 
-static int thread_decrement_routine(void* arg) {
-    CT_UNUSED(arg);
-    for (int i = 0; i < NUM_ITERATIONS; ++i) { ct_atomic_long_sub(&g_shared_counter, 1); }
-    return 0;
-}
+struct Node {
+    Node*       next;
+    std::size_t id;
+};
 
-TEST_CASE("concurrent increments and decrements cancel out" * doctest::test_suite("atomic")) {
-    std::thread threads[NUM_THREADS];
+class TreiberStack {
+public:
+    TreiberStack() { ct_atomic_ptr_store(&head_, nullptr); }
 
-    ct_atomic_long_store(&g_shared_counter, 0);
+    void push(Node* node) {
+        void* expected = ct_atomic_ptr_load(&head_);
 
-    for (int i = 0; i < NUM_THREADS / 2; ++i) { threads[i] = std::thread(thread_increment_routine, nullptr); }
-    for (int i = NUM_THREADS / 2; i < NUM_THREADS; ++i) { threads[i] = std::thread(thread_decrement_routine, nullptr); }
-    for (int i = 0; i < NUM_THREADS; ++i) { threads[i].join(); }
-
-    REQUIRE(ct_atomic_long_load(&g_shared_counter) == 0);
-}
-
-#define ITEMS_PER_THREAD 10000
-
-typedef struct Node {
-    struct Node* next;
-    int          id;
-} Node;
-
-static ct_atomic_ptr_t g_stack_head = CT_ATOMIC_VAR_INIT(nullptr);
-static Node            g_nodes[NUM_THREADS * ITEMS_PER_THREAD];
-
-static void stack_push(Node* n) {
-    Node* old_head;
-    do {
-        old_head = (Node*)ct_atomic_ptr_load(&g_stack_head);
-        n->next  = old_head;
-    } while (!ct_atomic_ptr_compare_exchange(&g_stack_head, (void**)&old_head, n));
-}
-
-static Node* stack_pop(void) {
-    Node* old_head;
-    Node* next;
-    do {
-        old_head = (Node*)ct_atomic_ptr_load(&g_stack_head);
-        if (old_head == nullptr) { return nullptr; }
-        next = old_head->next;
-    } while (!ct_atomic_ptr_compare_exchange(&g_stack_head, (void**)&old_head, next));
-    return old_head;
-}
-
-static int thread_push_routine(void* arg) {
-    long thread_id = (long)(intptr_t)arg;
-    int  start_idx = thread_id * ITEMS_PER_THREAD;
-    for (int i = 0; i < ITEMS_PER_THREAD; ++i) {
-        g_nodes[start_idx + i].id = start_idx + i;
-        stack_push(&g_nodes[start_idx + i]);
+        do {
+            node->next = static_cast<Node*>(expected);
+        } while (!ct_atomic_ptr_compare_exchange(&head_, &expected, node));
     }
-    return 0;
+
+    Node* pop() {
+        void* expected = ct_atomic_ptr_load(&head_);
+
+        while (expected != nullptr) {
+            Node* node = static_cast<Node*>(expected);
+            if (ct_atomic_ptr_compare_exchange(&head_, &expected, node->next)) { return node; }
+        }
+        return nullptr;
+    }
+
+    bool empty() const { return ct_atomic_ptr_load(&head_) == nullptr; }
+
+private:
+    ct_atomic_ptr_t head_;
+};
+
+std::vector<Node*> drain_stack(TreiberStack& stack) {
+    std::vector<Node*> nodes;
+    Node*              node;
+
+    nodes.reserve(kNodeCount);
+    while ((node = stack.pop()) != nullptr) { nodes.push_back(node); }
+    return nodes;
 }
 
-static int thread_pop_routine(void* arg) {
-    CT_UNUSED(arg);
-    int popped_count = 0;
-    for (int i = 0; i < ITEMS_PER_THREAD; ++i) {
-        Node* n = stack_pop();
-        if (n) {
-            ++popped_count;
-        } else {
-            --i;
-            for (volatile int k = 0; k < 100; ++k) {}
+void check_all_nodes_once(const std::vector<Node>& nodes, const std::vector<Node*>& popped) {
+    std::vector<unsigned char> seen(nodes.size(), 0);
+    bool                       ids_in_range = true;
+    bool                       ids_unique   = true;
+    bool                       all_seen     = true;
+
+    for (Node* node : popped) {
+        if (node == nullptr || node->id >= nodes.size()) {
+            ids_in_range = false;
+            continue;
+        }
+        if (seen[node->id] != 0) {
+            ids_unique = false;
+            continue;
+        }
+        seen[node->id] = 1;
+    }
+
+    CHECK(popped.size() == nodes.size());
+    CHECK(ids_in_range);
+    CHECK(ids_unique);
+    for (unsigned char was_popped : seen) {
+        if (was_popped == 0) {
+            all_seen = false;
+            break;
         }
     }
-    return popped_count;
+    CHECK(all_seen);
 }
 
-TEST_CASE("concurrent Treiber stack push and pop preserves all items" * doctest::test_suite("atomic")) {
-    std::thread threads[NUM_THREADS];
+}  // namespace
 
-    ct_atomic_ptr_store(&g_stack_head, nullptr);
+TEST_SUITE_BEGIN("atomic");
 
-    for (long i = 0; i < NUM_THREADS; ++i) { threads[i] = std::thread(thread_push_routine, (void*)(intptr_t)i); }
-    for (int i = 0; i < NUM_THREADS; ++i) { threads[i].join(); }
+TEST_CASE("atomic long arithmetic under contention") {
+    ct_atomic_long_t counter = CT_ATOMIC_VAR_INIT(0);
 
-    int pop_results[NUM_THREADS] = {0};
-    for (long i = 0; i < NUM_THREADS; ++i) {
-        threads[i] = std::thread([i, &pop_results]() { pop_results[i] = thread_pop_routine((void*)(intptr_t)i); });
+    SUBCASE("increments accumulate") {
+        run_workers([&counter](std::size_t) {
+            for (std::size_t iteration = 0; iteration < kIterations; ++iteration) { ct_atomic_long_add(&counter, 1); }
+        });
+
+        CHECK(ct_atomic_long_load(&counter) == static_cast<long>(kThreadCount * kIterations));
     }
 
-    long total_popped = 0;
-    for (int i = 0; i < NUM_THREADS; ++i) {
-        threads[i].join();
-        total_popped += pop_results[i];
-    }
+    SUBCASE("increments and decrements balance") {
+        run_workers([&counter](std::size_t worker_index) {
+            for (std::size_t iteration = 0; iteration < kIterations; ++iteration) {
+                if (worker_index < kThreadCount / 2) {
+                    ct_atomic_long_add(&counter, 1);
+                } else {
+                    ct_atomic_long_sub(&counter, 1);
+                }
+            }
+        });
 
-    REQUIRE(total_popped == NUM_THREADS * ITEMS_PER_THREAD);
-    REQUIRE(ct_atomic_ptr_load(&g_stack_head) == nullptr);
+        CHECK(ct_atomic_long_load(&counter) == 0);
+    }
 }
+
+TEST_CASE("Treiber stack preserves every node under concurrent access") {
+    std::vector<Node> nodes(kNodeCount);
+    TreiberStack      stack;
+
+    for (std::size_t index = 0; index < nodes.size(); ++index) {
+        nodes[index].next = nullptr;
+        nodes[index].id   = index;
+    }
+
+    SUBCASE("concurrent pushes preserve every node") {
+        run_workers([&nodes, &stack](std::size_t worker_index) {
+            const std::size_t first = worker_index * kItemsPerThread;
+            for (std::size_t index = first; index < first + kItemsPerThread; ++index) { stack.push(&nodes[index]); }
+        });
+
+        const std::vector<Node*> popped = drain_stack(stack);
+        check_all_nodes_once(nodes, popped);
+        CHECK(stack.empty());
+    }
+
+    SUBCASE("concurrent pops remove every node") {
+        for (Node& node : nodes) { stack.push(&node); }
+
+        std::array<std::vector<Node*>, kThreadCount> popped_by_worker;
+        std::array<bool, kThreadCount>               pop_failed{};
+        for (auto& popped : popped_by_worker) { popped.reserve(kItemsPerThread); }
+
+        run_workers([&stack, &popped_by_worker, &pop_failed](std::size_t worker_index) {
+            std::vector<Node*>& popped = popped_by_worker[worker_index];
+
+            for (std::size_t count = 0; count < kItemsPerThread; ++count) {
+                Node* node = stack.pop();
+                if (node == nullptr) {
+                    pop_failed[worker_index] = true;
+                    return;
+                }
+                popped.push_back(node);
+            }
+        });
+
+        std::vector<Node*> popped;
+        popped.reserve(kNodeCount);
+        for (std::size_t index = 0; index < kThreadCount; ++index) {
+            CHECK_FALSE(pop_failed[index]);
+            popped.insert(popped.end(), popped_by_worker[index].begin(), popped_by_worker[index].end());
+        }
+
+        check_all_nodes_once(nodes, popped);
+        CHECK(stack.empty());
+    }
+}
+
+TEST_SUITE_END();
