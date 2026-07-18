@@ -1,11 +1,12 @@
 /**
  * @file waitgroup.h
- * @brief 等待组实现
+ * @brief Waitgroup implementation
  */
 #ifndef COTER_SYNC_WAITGROUP_H
 #define COTER_SYNC_WAITGROUP_H
 
 #include "coter/core/macro.h"
+#include "coter/core/time.h"
 #include "coter/sync/cond.h"
 #include "coter/sync/mutex.h"
 
@@ -14,50 +15,55 @@ extern "C" {
 #endif
 
 /**
- * @brief 等待组
- * @param counter 计数器
- * @param mutex 互斥锁
- * @param cond 条件变量
+ * @brief Waitgroup
  */
 typedef struct ct_waitgroup {
-    int        counter;  // 计数器
-    ct_mutex_t mutex;    // 互斥锁
-    ct_cond_t  cond;     // 条件变量
+    ct_mutex_t _mu;
+    ct_cond_t  _cond;
+    uint32_t   _counter;
 } ct_waitgroup_t;
 
-#define CT_WAITGROUP_INITIALIZER {0, CT_MUTEX_INITIALIZER, CT_COND_INITIALIZER}
+#define CT_WAITGROUP_INITIALIZER {CT_MUTEX_INITIALIZER, CT_COND_INITIALIZER, 0}
 
 /**
- * @brief 初始化等待组
- * @param wg 等待组指针
- * @return int 成功返回0，失败返回非0值
+ * @brief Initializes a waitgroup.
+ * @param wg Pointer to the waitgroup.
+ * @return 0 on success; a non-zero value on failure.
  */
 CT_API int ct_waitgroup_init(ct_waitgroup_t* wg);
 
 /**
- * @brief 销毁等待组
- * @param wg 等待组指针
+ * @brief Destroys a waitgroup.
+ * @param wg Pointer to the waitgroup.
  */
 CT_API void ct_waitgroup_destroy(ct_waitgroup_t* wg);
 
 /**
- * @brief 增加等待计数
- * @param wg 等待组指针
- * @param delta 增加的计数值
+ * @brief Adds a delta to the task counter.
+ * @param wg Pointer to the waitgroup.
+ * @param delta Change to apply to the task counter.
  */
 CT_API void ct_waitgroup_add(ct_waitgroup_t* wg, int delta);
 
 /**
- * @brief 完成一个任务（计数减1）
- * @param wg 等待组指针
+ * @brief Marks one task as complete.
+ * @param wg Pointer to the waitgroup.
  */
 CT_API void ct_waitgroup_done(ct_waitgroup_t* wg);
 
 /**
- * @brief 等待所有任务完成
- * @param wg 等待组指针
+ * @brief Waits until all tasks are complete.
+ * @param wg Pointer to the waitgroup.
  */
 CT_API void ct_waitgroup_wait(ct_waitgroup_t* wg);
+
+/**
+ * @brief Waits until all tasks are complete or the timeout expires.
+ * @param wg Pointer to the waitgroup.
+ * @param timeout_ms Timeout in milliseconds; a negative value waits indefinitely.
+ * @return true if all tasks completed; otherwise false.
+ */
+CT_API bool ct_waitgroup_wait_for(ct_waitgroup_t* wg, ct_time64_t timeout_ms);
 
 #ifdef __cplusplus
 }
