@@ -109,8 +109,8 @@ TEST_CASE("invalid transitions saturate the reference count") {
 }
 
 TEST_CASE("concurrent references balance while an owner remains") {
-    constexpr int thread_count = 8;
-    constexpr int iterations   = 10000;
+    static constexpr int thread_count = 8;
+    static constexpr int iterations   = 10000;
 
     ct_ref_t ref;
     ct_ref_init(&ref);
