@@ -1,102 +1,109 @@
 #include "coter/sync/rwlock.h"
 
+#include <atomic>
+#include <chrono>
 #include <thread>
 
-#include "coter/core/time.h"
-#include "coter/sync/atomic.h"
 #include "coter/testing/doctest.h"
 
-
 namespace {
+
 struct rwlock_env {
-    ct_rwlock_t     lock;
-    ct_atomic_int_t readers_inside  = CT_ATOMIC_VAR_INIT(0);
-    ct_atomic_int_t release_readers = CT_ATOMIC_VAR_INIT(0);
-    ct_atomic_int_t writer_acquired = CT_ATOMIC_VAR_INIT(0);
-    ct_atomic_int_t try_result      = CT_ATOMIC_VAR_INIT(0);
+    ct_rwlock_t       lock;
+    std::atomic<int>  readers_inside{0};
+    std::atomic<bool> release_readers{false};
+    std::atomic<bool> writer_started{false};
+    std::atomic<bool> writer_acquired{false};
+    std::atomic<int>  try_result{0};
 
     rwlock_env() { ct_rwlock_init(&lock); }
-
     ~rwlock_env() { ct_rwlock_destroy(&lock); }
 };
 
-static int reader_thread(void* arg) {
-    rwlock_env* env = (rwlock_env*)arg;
-    ct_rwlock_rdlock(&env->lock);
-    ct_atomic_int_add(&env->readers_inside, 1);
-    while (!ct_atomic_int_load(&env->release_readers)) { ct_msleep(1); }
-    ct_rwlock_rdunlock(&env->lock);
-    return 0;
+template <typename T>
+bool wait_until(T predicate) {
+    constexpr auto kWaitTimeout = std::chrono::milliseconds(500);
+    const auto     deadline     = std::chrono::steady_clock::now() + kWaitTimeout;
+    while (!predicate()) {
+        if (std::chrono::steady_clock::now() >= deadline) { return false; }
+        std::this_thread::yield();
+    }
+    return true;
 }
 
-static int writer_thread(void* arg) {
-    rwlock_env* env = (rwlock_env*)arg;
-    ct_rwlock_wrlock(&env->lock);
-    ct_atomic_int_store(&env->writer_acquired, 1);
-    ct_rwlock_wrunlock(&env->lock);
-    return 0;
-}
-
-static int try_reader_thread(void* arg) {
-    rwlock_env* env = (rwlock_env*)arg;
-    ct_atomic_int_store(&env->try_result, ct_rwlock_tryrdlock(&env->lock));
-    if (ct_atomic_int_load(&env->try_result) == 0) { ct_rwlock_rdunlock(&env->lock); }
-    return 0;
-}
-
-static int try_writer_thread(void* arg) {
-    rwlock_env* env = (rwlock_env*)arg;
-    ct_atomic_int_store(&env->try_result, ct_rwlock_trywrlock(&env->lock));
-    if (ct_atomic_int_load(&env->try_result) == 0) { ct_rwlock_wrunlock(&env->lock); }
-    return 0;
-}
 }  // namespace
 
-TEST_CASE("try write lock fails while reader holds" * doctest::test_suite("sync") * doctest::test_suite("rwlock")) {
-    rwlock_env env;
+TEST_SUITE_BEGIN("rwlock");
 
-    REQUIRE(ct_rwlock_rdlock(&env.lock) == 0);
-    std::thread thread(try_writer_thread, &env);
-    thread.join();
-    REQUIRE(ct_atomic_int_load(&env.try_result) != 0);
-    REQUIRE(ct_rwlock_rdunlock(&env.lock) == 0);
-}
+TEST_CASE("read-write lock") {
+    SUBCASE("static initializer supports read and write locking") {
+        ct_rwlock_t lock = CT_RWLOCK_INITIALIZER;
 
-TEST_CASE("try read lock fails while writer holds" * doctest::test_suite("sync") * doctest::test_suite("rwlock")) {
-    rwlock_env env;
-
-    REQUIRE(ct_rwlock_wrlock(&env.lock) == 0);
-    std::thread thread(try_reader_thread, &env);
-    thread.join();
-    REQUIRE(ct_atomic_int_load(&env.try_result) != 0);
-    REQUIRE(ct_rwlock_wrunlock(&env.lock) == 0);
-}
-
-TEST_CASE("parallel readers are allowed and writer is blocked" * doctest::test_suite("sync") *
-          doctest::test_suite("rwlock")) {
-    rwlock_env  env;
-    std::thread readers[2];
-    std::thread writer;
-
-    readers[0] = std::thread(reader_thread, &env);
-    readers[1] = std::thread(reader_thread, &env);
-
-    for (int i = 0; i < 40 && ct_atomic_int_load(&env.readers_inside) < 2; ++i) { ct_msleep(5); }
-
-    REQUIRE(ct_atomic_int_load(&env.readers_inside) == 2);
-    writer = std::thread(writer_thread, &env);
-
-    for (int i = 0; i < 10; ++i) {
-        REQUIRE(ct_atomic_int_load(&env.writer_acquired) == 0);
-        ct_msleep(5);
+        REQUIRE(ct_rwlock_rdlock(&lock) == 0);
+        REQUIRE(ct_rwlock_rdunlock(&lock) == 0);
+        REQUIRE(ct_rwlock_wrlock(&lock) == 0);
+        REQUIRE(ct_rwlock_wrunlock(&lock) == 0);
+        REQUIRE(ct_rwlock_destroy(&lock) == 0);
     }
 
-    ct_atomic_int_store(&env.release_readers, 1);
-    readers[0].join();
-    readers[1].join();
+    SUBCASE("try write lock fails while reader holds") {
+        rwlock_env env;
 
-    for (int i = 0; i < 20 && ct_atomic_int_load(&env.writer_acquired) == 0; ++i) { ct_msleep(5); }
+        REQUIRE(ct_rwlock_rdlock(&env.lock) == 0);
+        std::thread contender([&env]() {
+            const int result = ct_rwlock_trywrlock(&env.lock);
+            env.try_result.store(result);
+            if (result == 0) { ct_rwlock_wrunlock(&env.lock); }
+        });
+        contender.join();
+        CHECK(env.try_result.load() != 0);
+        REQUIRE(ct_rwlock_rdunlock(&env.lock) == 0);
+    }
 
-    REQUIRE(ct_atomic_int_load(&env.writer_acquired) == 1);
-    writer.join();
+    SUBCASE("try read lock fails while writer holds") {
+        rwlock_env env;
+
+        REQUIRE(ct_rwlock_wrlock(&env.lock) == 0);
+        std::thread contender([&env]() {
+            const int result = ct_rwlock_tryrdlock(&env.lock);
+            env.try_result.store(result);
+            if (result == 0) { ct_rwlock_rdunlock(&env.lock); }
+        });
+        contender.join();
+        CHECK(env.try_result.load() != 0);
+        REQUIRE(ct_rwlock_wrunlock(&env.lock) == 0);
+    }
+
+    SUBCASE("parallel readers are allowed and writer is blocked") {
+        rwlock_env env;
+
+        auto reader_worker = [&env]() {
+            if (ct_rwlock_rdlock(&env.lock) != 0) { return; }
+            env.readers_inside.fetch_add(1);
+            while (!env.release_readers.load()) { std::this_thread::yield(); }
+            ct_rwlock_rdunlock(&env.lock);
+        };
+        std::thread first_reader(reader_worker);
+        std::thread second_reader(reader_worker);
+
+        CHECK(wait_until([&] { return env.readers_inside.load() == 2; }));
+
+        std::thread writer([&env]() {
+            env.writer_started.store(true);
+            if (ct_rwlock_wrlock(&env.lock) != 0) { return; }
+            env.writer_acquired.store(true);
+            ct_rwlock_wrunlock(&env.lock);
+        });
+        CHECK(wait_until([&] { return env.writer_started.load(); }));
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
+        CHECK_FALSE(env.writer_acquired.load());
+
+        env.release_readers.store(true);
+        first_reader.join();
+        second_reader.join();
+        writer.join();
+        CHECK(env.writer_acquired.load());
+    }
 }
+
+TEST_SUITE_END();
