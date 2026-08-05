@@ -7,7 +7,7 @@
 
 #include <stddef.h>
 
-#include "coter/log/handler.h"
+#include "coter/log/handler/record.h"
 
 #ifdef __cplusplus
 extern "C" {

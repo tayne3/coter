@@ -11,14 +11,14 @@
 extern "C" {
 #endif
 
-#define CT_LOGGER_LOG(logger_, level_, ...) ct_log_submit_fmt((logger_), (level_), CT_FILE, CT_LINE, __VA_ARGS__)
+#define CT_LOGGER_LOG(__logger, level, ...) ct_log_submit_fmt((__logger), (level), CT_FILE, CT_LINE, __VA_ARGS__)
 
-#define CT_LOGGER_TRACE(logger_, ...)   CT_LOGGER_LOG((logger_), CT_LOG_LEVEL_TRACE, __VA_ARGS__)
-#define CT_LOGGER_DEBUG(logger_, ...)   CT_LOGGER_LOG((logger_), CT_LOG_LEVEL_DEBUG, __VA_ARGS__)
-#define CT_LOGGER_INFO(logger_, ...)    CT_LOGGER_LOG((logger_), CT_LOG_LEVEL_INFO, __VA_ARGS__)
-#define CT_LOGGER_WARNING(logger_, ...) CT_LOGGER_LOG((logger_), CT_LOG_LEVEL_WARNING, __VA_ARGS__)
-#define CT_LOGGER_ERROR(logger_, ...)   CT_LOGGER_LOG((logger_), CT_LOG_LEVEL_ERROR, __VA_ARGS__)
-#define CT_LOGGER_FATAL(logger_, ...)   CT_LOGGER_LOG((logger_), CT_LOG_LEVEL_FATAL, __VA_ARGS__)
+#define CT_LOGGER_TRACE(__logger, ...)   CT_LOGGER_LOG((__logger), CT_LOG_LEVEL_TRACE, __VA_ARGS__)
+#define CT_LOGGER_DEBUG(__logger, ...)   CT_LOGGER_LOG((__logger), CT_LOG_LEVEL_DEBUG, __VA_ARGS__)
+#define CT_LOGGER_INFO(__logger, ...)    CT_LOGGER_LOG((__logger), CT_LOG_LEVEL_INFO, __VA_ARGS__)
+#define CT_LOGGER_WARNING(__logger, ...) CT_LOGGER_LOG((__logger), CT_LOG_LEVEL_WARNING, __VA_ARGS__)
+#define CT_LOGGER_ERROR(__logger, ...)   CT_LOGGER_LOG((__logger), CT_LOG_LEVEL_ERROR, __VA_ARGS__)
+#define CT_LOGGER_FATAL(__logger, ...)   CT_LOGGER_LOG((__logger), CT_LOG_LEVEL_FATAL, __VA_ARGS__)
 
 #define CT_TRACE(...)   CT_LOGGER_TRACE(NULL, __VA_ARGS__)
 #define CT_DEBUG(...)   CT_LOGGER_DEBUG(NULL, __VA_ARGS__)
@@ -33,7 +33,7 @@ extern "C" {
 
 #if defined(__cplusplus) && CT_CPLUSPLUS >= CT_CXX_11
 
-#define COTER_LOGGER_LOG(logger_, level_, ...) (logger_).log((level_), CT_FILE, CT_LINE, __VA_ARGS__)
+#define COTER_LOGGER_LOG(logger_, level, ...) (logger_).log((level), CT_FILE, CT_LINE, __VA_ARGS__)
 
 #define COTER_LOGGER_TRACE(logger_, ...)   COTER_LOGGER_LOG((logger_), CT_LOG_LEVEL_TRACE, __VA_ARGS__)
 #define COTER_LOGGER_DEBUG(logger_, ...)   COTER_LOGGER_LOG((logger_), CT_LOG_LEVEL_DEBUG, __VA_ARGS__)

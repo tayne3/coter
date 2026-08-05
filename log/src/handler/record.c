@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "internal.h"
+#include "log_internal.h"
 
 typedef struct ct_log_record_handler {
     ct_log_handler_t         base;

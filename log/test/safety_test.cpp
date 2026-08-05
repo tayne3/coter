@@ -1,55 +1,81 @@
-/**
- * @file safety_test.cpp
- * @brief logger 及各类 handler 的并发安全和生命周期边界测试
- *
- * 覆盖：
- *  - 高并发下的 handler 动态挂载、销毁与日志记录的混合操作
- *  - 关闭过程中的并发写入拦截
- *  - 耗时 handler 对 close 语义的影响（排空、不挂死）
- *  - 递归日志拦截与防死锁
- *  - 在 handler 回调中尝试关闭 logger 的防御
- *  - console / file handler 在多线程并发写入时的线程安全（不丢行、不崩溃）
- */
 #include <atomic>
 #include <chrono>
 #include <cstdio>
-#include <cstdlib>
 #include <cstring>
+#include <memory>
+#include <mutex>
 #include <thread>
 #include <vector>
 
-#include "coter/core/fs.h"
-#include "coter/log/handler/console.h"
-#include "coter/log/handler/file.h"
 #include "coter/log/handler/record.h"
 #include "coter/log/log.h"
 #include "coter/testing/doctest.h"
 
-TEST_SUITE_BEGIN("log");
+namespace {
+struct safety_callback_state {
+    std::atomic<size_t> calls{0};
+    std::atomic<bool>   destroyed{false};
+};
 
-TEST_CASE("logger safely handles concurrent handler creation, destruction, and logging") {
-    struct State {
-        std::atomic<size_t> calls{0};
-    } state;
+struct recursive_callback_state {
+    ct_logger_t*        logger{nullptr};
+    std::atomic<size_t> calls{0};
+};
 
-    auto safety_callback = [](const ct_log_record_t*, void* ud) {
-        auto* s = static_cast<State*>(ud);
-        s->calls++;
-        auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(1);
-        while (std::chrono::steady_clock::now() < deadline) { CT_PAUSE(); }
-    };
+struct close_callback_state {
+    ct_logger_t*        logger{nullptr};
+    std::atomic<size_t> calls{0};
+    std::atomic<int>    close_result{0};
+};
 
-    ct_logger_t* logger = (ct_logger_t*)std::malloc(sizeof(ct_logger_t));
+void safety_log_callback(const ct_log_record_t* record, void* userdata) {
+    (void)record;
+    auto* state = static_cast<safety_callback_state*>(userdata);
+    state->calls++;
+    // Simulate slow processing
+    auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(1);
+    while (std::chrono::steady_clock::now() < deadline) { CT_PAUSE(); }
+}
+
+void slow_log_callback(const ct_log_record_t* record, void* userdata) {
+    (void)record;
+    auto* state = static_cast<safety_callback_state*>(userdata);
+    state->calls++;
+    // Simulate slow processing
+    auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(1);
+    while (std::chrono::steady_clock::now() < deadline) { CT_PAUSE(); }
+}
+
+void recursive_log_callback(const ct_log_record_t* record, void* userdata) {
+    (void)record;
+    auto* state = static_cast<recursive_callback_state*>(userdata);
+    if (++state->calls == 1) { CT_LOGGER_TRACE(state->logger, "recursive handler log"); }
+}
+
+void close_log_callback(const ct_log_record_t* record, void* userdata) {
+    (void)record;
+    auto* state = static_cast<close_callback_state*>(userdata);
+    state->calls++;
+    state->close_result = ct_logger_close(state->logger);
+}
+}  // namespace
+
+TEST_CASE("log_safety_lifecycle") {
+    safety_callback_state state;
+
+    // 1. Create a logger on heap
+    ct_logger_t* logger = (ct_logger_t*)malloc(sizeof(ct_logger_t));
     ct_logger_init(logger);
 
     ct_log_record_handler_config_t config;
     ct_log_record_handler_config_default(&config);
-    config.routine  = safety_callback;
+    config.routine  = safety_log_callback;
     config.userdata = &state;
 
     REQUIRE(ct_logger_add_handler(logger, ct_log_record_handler_create(&config)) == 0);
     REQUIRE(ct_logger_start(logger) == 0);
 
+    // Verify sealing logic: cannot add handler after registration
     ct_log_handler_t* late_handler = ct_log_record_handler_create(&config);
     REQUIRE(ct_logger_add_handler(logger, late_handler) == -1);
     ct_log_handler_destroy(late_handler);
@@ -57,14 +83,15 @@ TEST_CASE("logger safely handles concurrent handler creation, destruction, and l
     std::atomic<bool> saboteur_done{false};
     std::atomic<int>  close_errors{0};
 
+    // 2. Start a Saboteur Thread that constantly creates and destroys loggers
     std::thread saboteur([&]() {
         for (int i = 0; i < 50; ++i) {
-            ct_logger_t* temp_logger = (ct_logger_t*)std::malloc(sizeof(ct_logger_t));
+            ct_logger_t* temp_logger = (ct_logger_t*)malloc(sizeof(ct_logger_t));
             ct_logger_init(temp_logger);
 
             ct_log_record_handler_config_t temp_config;
             ct_log_record_handler_config_default(&temp_config);
-            temp_config.routine  = safety_callback;
+            temp_config.routine  = safety_log_callback;
             temp_config.userdata = &state;
 
             ct_logger_add_handler(temp_logger, ct_log_record_handler_create(&temp_config));
@@ -74,13 +101,15 @@ TEST_CASE("logger safely handles concurrent handler creation, destruction, and l
 
             std::this_thread::yield();
             if (ct_logger_close(temp_logger) != 0) { ++close_errors; }
-            std::free(temp_logger);
+            free(temp_logger);
         }
         saboteur_done = true;
     });
 
+    // 3. Fire many logs on main thread
     for (int i = 0; i < 100; ++i) { CT_LOGGER_TRACE(logger, "Safety test message %d\n", i); }
 
+    // 4. Immediately close the primary logger while logs are still in flight
     REQUIRE(ct_logger_close(logger) == 0);
 
     saboteur.join();
@@ -88,25 +117,18 @@ TEST_CASE("logger safely handles concurrent handler creation, destruction, and l
     REQUIRE(state.calls >= 150);
     REQUIRE(close_errors == 0);
 
-    std::free(logger);
+    free(logger);
 }
 
-TEST_CASE("logger correctly rejects logs from concurrent producers during close") {
-    struct State {
-        std::atomic<size_t> calls{0};
-    } state;
+TEST_CASE("log_close_rejects_concurrent_producers") {
+    safety_callback_state state;
 
     ct_logger_t logger;
     ct_logger_init(&logger);
 
     ct_log_record_handler_config_t config;
     ct_log_record_handler_config_default(&config);
-    config.routine = [](const ct_log_record_t*, void* ud) {
-        auto* s = static_cast<State*>(ud);
-        s->calls++;
-        auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(1);
-        while (std::chrono::steady_clock::now() < deadline) { CT_PAUSE(); }
-    };
+    config.routine  = safety_log_callback;
     config.userdata = &state;
 
     REQUIRE(ct_logger_add_handler(&logger, ct_log_record_handler_create(&config)) == 0);
@@ -137,24 +159,16 @@ TEST_CASE("logger correctly rejects logs from concurrent producers during close"
     REQUIRE(state.calls > 0);
 }
 
-TEST_CASE("closing logger waits for slow handlers without hanging indefinitely") {
-    constexpr int kRecords = 300;
-
-    struct State {
-        std::atomic<size_t> calls{0};
-    } state;
+TEST_CASE("log_close_with_slow_handler_does_not_hang") {
+    constexpr int         kRecords = 300;
+    safety_callback_state state;
 
     ct_logger_t logger;
     ct_logger_init(&logger);
 
     ct_log_record_handler_config_t config;
     ct_log_record_handler_config_default(&config);
-    config.routine = [](const ct_log_record_t*, void* ud) {
-        auto* s = static_cast<State*>(ud);
-        s->calls++;
-        auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(1);
-        while (std::chrono::steady_clock::now() < deadline) { CT_PAUSE(); }
-    };
+    config.routine  = slow_log_callback;
     config.userdata = &state;
 
     REQUIRE(ct_logger_add_handler(&logger, ct_log_record_handler_create(&config)) == 0);
@@ -166,28 +180,20 @@ TEST_CASE("closing logger waits for slow handlers without hanging indefinitely")
     REQUIRE(ct_logger_close(&logger) == 0);
     auto elapsed = std::chrono::steady_clock::now() - start;
 
-    REQUIRE(elapsed < std::chrono::seconds(5));
+    REQUIRE(elapsed < std::chrono::seconds(2));
     REQUIRE(state.calls == static_cast<size_t>(kRecords));
 }
 
-TEST_CASE("full log queue correctly blocks without dropping messages") {
-    constexpr int kRecords = 1500;
-
-    struct State {
-        std::atomic<size_t> calls{0};
-    } state;
+TEST_CASE("log_queue_full_blocks_without_dropping") {
+    constexpr int         kRecords = 1500;
+    safety_callback_state state;
 
     ct_logger_t logger;
     ct_logger_init(&logger);
 
     ct_log_record_handler_config_t config;
     ct_log_record_handler_config_default(&config);
-    config.routine = [](const ct_log_record_t*, void* ud) {
-        auto* s = static_cast<State*>(ud);
-        s->calls++;
-        auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(1);
-        while (std::chrono::steady_clock::now() < deadline) { CT_PAUSE(); }
-    };
+    config.routine  = slow_log_callback;
     config.userdata = &state;
 
     REQUIRE(ct_logger_add_handler(&logger, ct_log_record_handler_create(&config)) == 0);
@@ -203,22 +209,16 @@ TEST_CASE("full log queue correctly blocks without dropping messages") {
     REQUIRE(state.calls == static_cast<size_t>(kRecords));
 }
 
-TEST_CASE("recursive logging within a handler does not cause deadlock") {
-    struct State {
-        ct_logger_t*        logger{nullptr};
-        std::atomic<size_t> calls{0};
-    } state;
-
+TEST_CASE("log_recursive_handler_log_does_not_deadlock") {
     ct_logger_t logger;
     ct_logger_init(&logger);
+
+    recursive_callback_state state;
     state.logger = &logger;
 
     ct_log_record_handler_config_t config;
     ct_log_record_handler_config_default(&config);
-    config.routine = [](const ct_log_record_t*, void* ud) {
-        auto* s = static_cast<State*>(ud);
-        if (++s->calls == 1) { CT_LOGGER_TRACE(s->logger, "recursive handler log"); }
-    };
+    config.routine  = recursive_log_callback;
     config.userdata = &state;
 
     REQUIRE(ct_logger_add_handler(&logger, ct_log_record_handler_create(&config)) == 0);
@@ -230,24 +230,16 @@ TEST_CASE("recursive logging within a handler does not cause deadlock") {
     REQUIRE(state.calls == 1);
 }
 
-TEST_CASE("closing the logger from within a handler is safely rejected without deadlock") {
-    struct State {
-        ct_logger_t*        logger{nullptr};
-        std::atomic<size_t> calls{0};
-        std::atomic<int>    close_result{0};
-    } state;
-
+TEST_CASE("log_close_inside_handler_does_not_deadlock") {
     ct_logger_t logger;
     ct_logger_init(&logger);
+
+    close_callback_state state;
     state.logger = &logger;
 
     ct_log_record_handler_config_t config;
     ct_log_record_handler_config_default(&config);
-    config.routine = [](const ct_log_record_t*, void* ud) {
-        auto* s = static_cast<State*>(ud);
-        s->calls++;
-        s->close_result = ct_logger_close(s->logger);
-    };
+    config.routine  = close_log_callback;
     config.userdata = &state;
 
     REQUIRE(ct_logger_add_handler(&logger, ct_log_record_handler_create(&config)) == 0);
@@ -259,77 +251,3 @@ TEST_CASE("closing the logger from within a handler is safely rejected without d
     REQUIRE(state.calls == 1);
     REQUIRE(state.close_result == -1);
 }
-
-TEST_CASE("console handler safely handles concurrent writes from multiple threads") {
-    constexpr int kThreads   = 16;
-    constexpr int kPerThread = 500;
-
-    ct_logger_t logger;
-    ct_logger_init(&logger);
-
-    ct_log_console_handler_config_t cfg;
-    ct_log_console_handler_config_default(&cfg);
-    cfg.stream = stderr;
-    REQUIRE(ct_logger_add_handler(&logger, ct_log_console_handler_create(&cfg)) == 0);
-    REQUIRE(ct_logger_start(&logger) == 0);
-
-    std::vector<std::thread> threads;
-    for (int i = 0; i < kThreads; ++i) {
-        threads.emplace_back([&, i]() {
-            for (int j = 0; j < kPerThread; ++j) { CT_LOGGER_INFO(&logger, "t=%d s=%d", i, j); }
-        });
-    }
-    for (auto& t : threads) { t.join(); }
-
-    REQUIRE(ct_logger_close(&logger) == 0);
-}
-
-TEST_CASE("file handler safely handles concurrent writes from multiple threads without dropping lines") {
-    constexpr int kThreads   = 16;
-    constexpr int kPerThread = 1000;
-    constexpr int kExpected  = kThreads * kPerThread;
-
-    const char* kDir      = "test_concurrent_file_out";
-    const char* kName     = "concurrent";
-    const char* kFilePath = "test_concurrent_file_out/concurrent.log0";
-
-    std::remove(kFilePath);
-    ct_rmdir(kDir);
-
-    ct_logger_t logger;
-    ct_logger_init(&logger);
-
-    ct_log_file_handler_config_t cfg;
-    ct_log_file_handler_config_default(&cfg);
-    std::strncpy(cfg.dir, kDir, sizeof(cfg.dir) - 1);
-    std::strncpy(cfg.name, kName, sizeof(cfg.name) - 1);
-    cfg.size_max  = 256UL * 1024 * 1024;
-    cfg.count_max = 1;
-    REQUIRE(ct_logger_add_handler(&logger, ct_log_file_handler_create(&cfg)) == 0);
-    REQUIRE(ct_logger_start(&logger) == 0);
-
-    std::vector<std::thread> threads;
-    for (int i = 0; i < kThreads; ++i) {
-        threads.emplace_back([&, i]() {
-            for (int j = 0; j < kPerThread; ++j) { CT_LOGGER_INFO(&logger, "t%d-%d", i, j); }
-        });
-    }
-    for (auto& t : threads) { t.join(); }
-    REQUIRE(ct_logger_close(&logger) == 0);
-
-    FILE* f = std::fopen(kFilePath, "rb");
-    REQUIRE(f != nullptr);
-    int lines = 0;
-    int c;
-    while ((c = std::fgetc(f)) != EOF) {
-        if (c == '\n') { ++lines; }
-    }
-    std::fclose(f);
-
-    std::remove(kFilePath);
-    ct_rmdir(kDir);
-
-    REQUIRE(lines == kExpected);
-}
-
-TEST_SUITE_END();

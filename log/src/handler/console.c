@@ -7,15 +7,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "coter/sync/mutex.h"
 #include "formatter.h"
-#include "internal.h"
+#include "log_internal.h"
 
 typedef struct ct_log_console_handler {
     ct_log_handler_t   base;
     FILE*              stream;
     ct_log_formatter_t formatter;
-    ct_mutex_t         mtx;
 } ct_log_console_handler_t;
 
 static void console_write(ct_log_handler_t* self, const ct_log_record_t* record);
@@ -41,7 +39,6 @@ ct_log_handler_t* ct_log_console_handler_create(const ct_log_console_handler_con
     handler->base.vtable = &console_vtable;
     handler->stream      = (config && config->stream) ? config->stream : stdout;
     ct_log_formatter_init(&handler->formatter, true);
-    ct_mutex_init(&handler->mtx);
 
     return &handler->base;
 }
@@ -50,27 +47,17 @@ static void console_write(ct_log_handler_t* self, const ct_log_record_t* record)
     ct_log_console_handler_t* handler = (ct_log_console_handler_t*)self;
     char                      buf[2048];
 
-    /* formatter 已无状态，format 在锁外执行，持锁时间仅为一次 fwrite */
     size_t len = ct_log_formatter_format(&handler->formatter, record, buf, sizeof(buf));
-    if (len > 0) {
-        ct_mutex_lock(&handler->mtx);
-        fwrite(buf, 1, len, handler->stream);
-        ct_mutex_unlock(&handler->mtx);
-    }
+    if (len > 0) { fwrite(buf, 1, len, handler->stream); }
 }
 
 static void console_flush(ct_log_handler_t* self) {
     ct_log_console_handler_t* handler = (ct_log_console_handler_t*)self;
-    if (handler->stream) {
-        ct_mutex_lock(&handler->mtx);
-        fflush(handler->stream);
-        ct_mutex_unlock(&handler->mtx);
-    }
+    if (handler->stream) { fflush(handler->stream); }
 }
 
 static void console_destroy(ct_log_handler_t* self) {
     if (!self) { return; }
     ct_log_console_handler_t* handler = (ct_log_console_handler_t*)self;
-    ct_mutex_destroy(&handler->mtx);
     free(handler);
 }

@@ -1,21 +1,17 @@
 /**
  * @file submit.c
- * @brief Log submit path — 路径 C：直接调用 handler，无全局 dispatcher。
- *
- * 日志提交流程：
- *   1. 检查 logger 状态 + level 过滤
- *   2. 构造 ct_log_record_t（栈上，含 payload 拷贝）
- *   3. 遍历 logger->handlers 调用每个 handler->write()
- *   4. 每个 handler 自行保证并发安全（Phase 0 已完成 console/file 加锁）
+ * @brief Log submit path and job snapshot builder.
  */
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "coter/core/platform.h"
 #include "coter/core/time.h"
 #include "coter/log/logger.h"
-#include "internal.h"
+#include "coter/thread/thread.h"
+#include "log_internal.h"
 
 #if defined(CT_OS_WIN)
 #include <windows.h>
@@ -26,9 +22,9 @@
 #endif
 
 static uint32_t submit__gettid(void);
-static void     submit__dispatch(ct_logger_t* logger, const ct_log_record_t* record);
-static size_t   submit__format_payload(char* buf, size_t cap, const char* fmt, va_list args);
-static size_t   submit__copy_payload(char* buf, size_t cap, const char* payload, size_t payload_len);
+static void     submit__init_job(ct_log_job_t* job, ct_logger_t* logger, int level, const char* file, int line);
+static size_t   submit__format_payload(ct_log_record_job_t* record_job, const char* fmt, va_list args);
+static size_t   submit__copy_payload(ct_log_record_job_t* record_job, const char* payload, size_t payload_len);
 
 static uint32_t submit__gettid(void) {
 #ifdef CT_OS_WIN
@@ -44,21 +40,25 @@ static uint32_t submit__gettid(void) {
 #endif
 }
 
-/* 直接遍历 handlers 调用 write()，无队列、无跨线程传递 */
-static void submit__dispatch(ct_logger_t* logger, const ct_log_record_t* record) {
-    /* 防止同步 handler 内部再次调用日志系统（如 CT_LOGGER_TRACE 或 ct_logger_close）
-     * 导致无限递归或死锁。在此期间将当前线程标记为内部 worker。 */
-    ct_log_register_worker();
+static void submit__init_job(ct_log_job_t* job, ct_logger_t* logger, int level, const char* file, int line) {
+    ct_log_record_job_t* record_job = &job->record;
 
-    ct_list_foreach_entry(handler, &logger->handlers, ct_log_handler_t, node) {
-        if (handler->vtable && handler->vtable->write) { handler->vtable->write(handler, record); }
-    }
-
-    ct_log_unregister_worker();
+    job->type              = CT_LOG_JOB_RECORD;
+    job->logger            = logger;
+    record_job->time       = ct_gettimeofday_us() / 1000;
+    record_job->tid        = submit__gettid();
+    record_job->file       = file;
+    record_job->line       = line;
+    record_job->level      = level;
+    record_job->size       = 0;
+    record_job->payload[0] = '\0';
 }
 
-static size_t submit__format_payload(char* buf, size_t cap, const char* fmt, va_list args) {
-    if (!buf || !fmt || cap == 0) { return 0; }
+static size_t submit__format_payload(ct_log_record_job_t* record_job, const char* fmt, va_list args) {
+    if (!record_job || !fmt) { return 0; }
+
+    char*        buf = record_job->payload;
+    const size_t cap = sizeof(record_job->payload);
 
     int len = vsnprintf(buf, cap, fmt, args);
     if (len <= 0) { return 0; }
@@ -68,12 +68,16 @@ static size_t submit__format_payload(char* buf, size_t cap, const char* fmt, va_
         written = cap - 1;
         if (written >= 3) { memcpy(buf + written - 3, "...", 3); }
     }
-    buf[written] = '\0';
+    buf[written]     = '\0';
+    record_job->size = written;
     return written;
 }
 
-static size_t submit__copy_payload(char* buf, size_t cap, const char* payload, size_t payload_len) {
-    if (!buf || !payload || payload_len == 0 || cap == 0) { return 0; }
+static size_t submit__copy_payload(ct_log_record_job_t* record_job, const char* payload, size_t payload_len) {
+    if (!record_job || !payload || payload_len == 0) { return 0; }
+
+    char*        buf = record_job->payload;
+    const size_t cap = sizeof(record_job->payload);
 
     size_t written = payload_len;
     if (written >= cap) {
@@ -87,7 +91,8 @@ static size_t submit__copy_payload(char* buf, size_t cap, const char* payload, s
     } else {
         memcpy(buf, payload, written);
     }
-    buf[written] = '\0';
+    buf[written]     = '\0';
+    record_job->size = written;
     return written;
 }
 
@@ -99,26 +104,16 @@ void ct_log_submit_fmt(ct_logger_t* logger, int level, const char* file, int lin
     if (level < ct_atomic_int_load(&logger->level)) { return; }
     if (ct_logger_acquire_writer(logger) != 0) { return; }
 
-    /* payload 和 record 均在栈上构造，无堆分配 */
-    char payload[CT_LOG_RECORD_MAX];
+    ct_log_job_t job;
+    memset(&job, 0, sizeof(job));
+    submit__init_job(&job, logger, level, file, line);
 
     va_list args;
     va_start(args, fmt);
-    size_t len = submit__format_payload(payload, sizeof(payload), fmt, args);
+    size_t len = submit__format_payload(&job.record, fmt, args);
     va_end(args);
 
-    if (len > 0) {
-        ct_log_record_t record;
-        record.time  = ct_gettimeofday_us() / 1000;
-        record.tid   = submit__gettid();
-        record.file  = file;
-        record.line  = line;
-        record.level = level;
-        record.size  = len;
-        record.data  = payload;
-
-        submit__dispatch(logger, &record);
-    }
+    if (len > 0) { (void)ct_log_dispatcher_submit(&job); }
 
     ct_logger_release_writer(logger);
 }
@@ -132,21 +127,12 @@ void ct_log_submit_payload(ct_logger_t* logger, int level, const char* file, int
     if (level < ct_atomic_int_load(&logger->level)) { return; }
     if (ct_logger_acquire_writer(logger) != 0) { return; }
 
-    char   buf[CT_LOG_RECORD_MAX];
-    size_t len = submit__copy_payload(buf, sizeof(buf), payload, payload_len);
+    ct_log_job_t job;
+    memset(&job, 0, sizeof(job));
+    submit__init_job(&job, logger, level, file, line);
 
-    if (len > 0) {
-        ct_log_record_t record;
-        record.time  = ct_gettimeofday_us() / 1000;
-        record.tid   = submit__gettid();
-        record.file  = file;
-        record.line  = line;
-        record.level = level;
-        record.size  = len;
-        record.data  = buf;
-
-        submit__dispatch(logger, &record);
-    }
+    size_t len = submit__copy_payload(&job.record, payload, payload_len);
+    if (len > 0) { (void)ct_log_dispatcher_submit(&job); }
 
     ct_logger_release_writer(logger);
 }

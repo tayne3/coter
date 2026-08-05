@@ -8,7 +8,7 @@
 #include <string.h>
 
 #include "formatter.h"
-#include "internal.h"
+#include "log_internal.h"
 
 typedef struct ct_log_text_handler {
     ct_log_handler_t       base;
