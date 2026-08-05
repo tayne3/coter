@@ -1,6 +1,6 @@
 [tools]
 cmake = "4.3.3"
-ninja = "v1.13.2"
+ninja = "1.13.2"
 
 [env]
 CMAKE_BUILD_TYPE = "Release"
