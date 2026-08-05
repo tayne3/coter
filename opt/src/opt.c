@@ -297,7 +297,7 @@ void ct_opt_help(FILE* out, const ct_opt_def_t* defs, int count, const ct_opt_he
     for (int i = 0; (count < 0 || i < count) && !ct_opt__is_end(&defs[i]); ++i) {
         const ct_opt_def_t* opt = &defs[i];
         if (!opt->desc || !opt->desc[0]) { continue; }
-        if (ct_opt__help_width(opt) >= desc_col) {
+        if (ct_opt__help_width(opt) + 2 > desc_col) {
             ct_opt__help_option(opt, 0, out);
             fputc('\n', out);
             fprintf(out, "%*s", desc_col, "");
