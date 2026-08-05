@@ -8,7 +8,9 @@
 
 using namespace coter::opt;
 
-TEST_CASE("wrapper: inheritance and constructors" * doctest::test_suite("wrapper")) {
+TEST_SUITE_BEGIN("opt");
+
+TEST_CASE("C++: inheritance and constructors") {
     // Memory layout safety: size must be identical for array traversal
     static_assert(sizeof(Option) == sizeof(ct_opt_def_t), "Option size mismatch");
 
@@ -43,14 +45,14 @@ TEST_CASE("wrapper: inheritance and constructors" * doctest::test_suite("wrapper
     REQUIRE(parser.shift() == nullptr);
 }
 
-TEST_CASE("wrapper: Parser copy control" * doctest::test_suite("wrapper")) {
+TEST_CASE("C++: Parser copy control") {
     STATIC_REQUIRE_FALSE(std::is_copy_constructible<Parser>::value);
     STATIC_REQUIRE_FALSE(std::is_copy_assignable<Parser>::value);
     STATIC_REQUIRE_FALSE(std::is_move_constructible<Parser>::value);
     STATIC_REQUIRE_FALSE(std::is_move_assignable<Parser>::value);
 }
 
-TEST_CASE("wrapper: error handling" * doctest::test_suite("wrapper")) {
+TEST_CASE("C++: error handling") {
     const char* argv_raw[] = {"prog", "-z", "--delay", nullptr};
     char**      argv       = const_cast<char**>(argv_raw);
 
@@ -70,7 +72,7 @@ TEST_CASE("wrapper: error handling" * doctest::test_suite("wrapper")) {
     REQUIRE(parser.next(defs) == Status::Done);
 }
 
-TEST_CASE("wrapper: boundary and edge cases" * doctest::test_suite("wrapper")) {
+TEST_CASE("C++: boundary and edge cases") {
     SUBCASE("empty argv list (NULL pointer)") {
         char*  argv[] = {nullptr};
         Parser parser(argv);
@@ -129,7 +131,7 @@ TEST_CASE("wrapper: boundary and edge cases" * doctest::test_suite("wrapper")) {
     }
 }
 
-TEST_CASE("wrapper: usage and help formatting" * doctest::test_suite("wrapper")) {
+TEST_CASE("C++: usage and help formatting") {
     Option defs[] = {Option("verbose", 'v', ArgType::None, "Enable verbose logging"),
                      Option("output", 'o', ArgType::Required, "Output file path", "FILE"), Option()};
 
@@ -145,3 +147,5 @@ TEST_CASE("wrapper: usage and help formatting" * doctest::test_suite("wrapper"))
         fclose(devnull);
     }
 }
+
+TEST_SUITE_END();

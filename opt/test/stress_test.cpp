@@ -5,7 +5,9 @@
 #include "coter/opt/opt.h"
 #include "coter/testing/doctest.h"
 
-TEST_CASE("stress: recursion depth with permutation" * doctest::test_suite("stress")) {
+TEST_SUITE_BEGIN("opt");
+
+TEST_CASE("stress: recursion depth with permutation") {
     const int num_non_options = 50000;
 
     std::vector<std::string> args;
@@ -36,7 +38,7 @@ TEST_CASE("stress: recursion depth with permutation" * doctest::test_suite("stre
     }
 }
 
-TEST_CASE("stress: recursion depth with next" * doctest::test_suite("stress")) {
+TEST_CASE("stress: recursion depth with next") {
     const int num_non_options = 10000;
 
     std::vector<std::string> args;
@@ -65,3 +67,5 @@ TEST_CASE("stress: recursion depth with next" * doctest::test_suite("stress")) {
         REQUIRE(options.optind == 2);
     }
 }
+
+TEST_SUITE_END();

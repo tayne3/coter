@@ -92,7 +92,9 @@ ct_opt_help_config_t fixed_cfg(int width = 80, int min_desc = 26, int max_left =
 
 }  // namespace
 
-TEST_CASE("help / basic rendering" * doctest::test_suite("help") * doctest::test_suite("basic")) {
+TEST_SUITE_BEGIN("opt");
+
+TEST_CASE("help / basic rendering") {
     CaptureFile          cap;
     ct_opt_help_config_t cfg = fixed_cfg();
     ct_opt_help(cap.fp(), kTypical, -1, &cfg);
@@ -137,7 +139,7 @@ TEST_CASE("help / basic rendering" * doctest::test_suite("help") * doctest::test
     }
 }
 
-TEST_CASE("help / visibility" * doctest::test_suite("help") * doctest::test_suite("visibility")) {
+TEST_CASE("help / visibility") {
     SUBCASE("NULL description hides option") {
         static const ct_opt_def_t opts[] = {
             {"visible", 'v', CT_OPT_NONE, "I am visible", NULL},
@@ -184,7 +186,7 @@ TEST_CASE("help / visibility" * doctest::test_suite("help") * doctest::test_suit
     }
 }
 
-TEST_CASE("help / column alignment" * doctest::test_suite("help") * doctest::test_suite("layout")) {
+TEST_CASE("help / column alignment") {
     CaptureFile          cap;
     ct_opt_help_config_t cfg = fixed_cfg();
     ct_opt_help(cap.fp(), kTypical, -1, &cfg);
@@ -223,7 +225,7 @@ TEST_CASE("help / column alignment" * doctest::test_suite("help") * doctest::tes
     }
 }
 
-TEST_CASE("help / line width constraint" * doctest::test_suite("help") * doctest::test_suite("width")) {
+TEST_CASE("help / line width constraint") {
     static const ct_opt_def_t opts[] = {
         {"output", 'o', CT_OPT_REQUIRED,
          "Write output to this file; if the path contains spaces it must be "
@@ -247,7 +249,7 @@ TEST_CASE("help / line width constraint" * doctest::test_suite("help") * doctest
     }
 }
 
-TEST_CASE("help / custom metavar" * doctest::test_suite("help") * doctest::test_suite("argname")) {
+TEST_CASE("help / custom metavar") {
     static const ct_opt_def_t opts[] = {
         {"output", 'o', CT_OPT_REQUIRED, "Write to FILE", "FILE"},
         {"config", 'c', CT_OPT_OPTIONAL, "Use CONFIG", "CONFIG"},
@@ -264,7 +266,7 @@ TEST_CASE("help / custom metavar" * doctest::test_suite("help") * doctest::test_
     REQUIRE(out.find("=ARG") == std::string::npos);
 }
 
-TEST_CASE("usage / basic usage" * doctest::test_suite("usage")) {
+TEST_CASE("usage / basic usage") {
     CaptureFile cap;
     ct_opt_usage(cap.fp(), "testapp", NULL, -1, NULL);
     std::string out = cap.read();
@@ -272,7 +274,7 @@ TEST_CASE("usage / basic usage" * doctest::test_suite("usage")) {
     REQUIRE(out == "Usage: testapp\n");
 }
 
-TEST_CASE("usage / with options" * doctest::test_suite("usage")) {
+TEST_CASE("usage / with options") {
     static const ct_opt_def_t opts[] = {
         {"help", 'h', CT_OPT_NONE, "Help", NULL},
         CT_OPT_DEF_NULL,
@@ -284,8 +286,7 @@ TEST_CASE("usage / with options" * doctest::test_suite("usage")) {
     REQUIRE(out == "Usage: testapp [options]\n");
 }
 
-TEST_CASE("long / short option parsing without optstring" * doctest::test_suite("long") *
-          doctest::test_suite("parsing")) {
+TEST_CASE("long / short option parsing without optstring") {
     static const ct_opt_def_t opts[] = {
         {"verbose", 'v', CT_OPT_NONE, "Verbose", NULL},
         {"output", 'o', CT_OPT_REQUIRED, "Output", NULL},
@@ -324,3 +325,25 @@ TEST_CASE("long / short option parsing without optstring" * doctest::test_suite(
         REQUIRE(options.optopt == 'x');
     }
 }
+
+TEST_CASE("help / line wrap threshold") {
+    static const ct_opt_def_t opts[] = {
+        {"abc", 'a', CT_OPT_NONE, "Desc A", NULL},    // help_width=11, lw=13
+        {"abcd", 'b', CT_OPT_NONE, "Desc B", NULL},   // help_width=12, lw=14
+        {"abcde", 'c', CT_OPT_NONE, "Desc C", NULL},  // help_width=13, lw=15
+        CT_OPT_DEF_NULL,
+    };
+
+    CaptureFile cap;
+    // width=80, min_desc=26, max_left=14
+    ct_opt_help_config_t cfg = fixed_cfg(80, 26, 14);
+    ct_opt_help(cap.fp(), opts, -1, &cfg);
+    std::string out = cap.read();
+    INFO(out);
+
+    REQUIRE(out.find("  -a, --abc   Desc A") != std::string::npos);                 // gap is 3
+    REQUIRE(out.find("  -b, --abcd  Desc B") != std::string::npos);                 // gap is 2
+    REQUIRE(out.find("  -c, --abcde\n              Desc C") != std::string::npos);  // wrapped with 14 spaces
+}
+
+TEST_SUITE_END();
