@@ -6,16 +6,16 @@
 
 #if CT_ATOMIC_USE_MUTEX
 
-#include <pthread.h>
+#include "coter/sync/mutex.h"
 
-static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+static ct_mutex_t mutex = CT_MUTEX_INITIALIZER;
 
 void __ct_atomic_lock(void) {
-    pthread_mutex_lock(&mutex);
+    (void)ct_mutex_lock(&mutex);
 }
 
 void __ct_atomic_unlock(void) {
-    pthread_mutex_unlock(&mutex);
+    (void)ct_mutex_unlock(&mutex);
 }
 
 #endif
