@@ -4,7 +4,7 @@
 
 #include "coter/testing/doctest.h"
 
-
+namespace {
 void check_array_content(const ct_array_t* arr, const std::vector<int>& expected) {
     REQUIRE(ct_array_size(arr) == expected.size());
     for (size_t i = 0; i < expected.size(); ++i) {
@@ -13,8 +13,11 @@ void check_array_content(const ct_array_t* arr, const std::vector<int>& expected
         REQUIRE(*val == expected[i]);
     }
 }
+}  // namespace
 
-TEST_CASE("Array Lifecycle and properties" * doctest::test_suite("array") * doctest::test_suite("lifecycle")) {
+TEST_SUITE_BEGIN("array");
+
+TEST_CASE("Array Lifecycle and properties") {
     ct_array_t arr;
 
     SUBCASE("Init with zero capacity") {
@@ -41,7 +44,7 @@ TEST_CASE("Array Lifecycle and properties" * doctest::test_suite("array") * doct
     }
 }
 
-TEST_CASE("Array Capacity Management" * doctest::test_suite("array") * doctest::test_suite("capacity")) {
+TEST_CASE("Array Capacity Management") {
     ct_array_t arr;
     ct_array_init(&arr, sizeof(int), 0);
 
@@ -90,7 +93,7 @@ TEST_CASE("Array Capacity Management" * doctest::test_suite("array") * doctest::
     ct_array_destroy(&arr);
 }
 
-TEST_CASE("Array Data Manipulation" * doctest::test_suite("array") * doctest::test_suite("data")) {
+TEST_CASE("Array Data Manipulation") {
     ct_array_t arr;
     ct_array_init(&arr, sizeof(int), 0);
 
@@ -164,7 +167,7 @@ TEST_CASE("Array Data Manipulation" * doctest::test_suite("array") * doctest::te
     ct_array_destroy(&arr);
 }
 
-TEST_CASE("Array Accessors and Safety" * doctest::test_suite("array") * doctest::test_suite("safety")) {
+TEST_CASE("Array Accessors and Safety") {
     ct_array_t arr;
     ct_array_init(&arr, sizeof(int), 10);
     int val = 99;
@@ -216,7 +219,7 @@ TEST_CASE("Array Accessors and Safety" * doctest::test_suite("array") * doctest:
     ct_array_destroy(&arr);
 }
 
-TEST_CASE("Array Foreach Macro" * doctest::test_suite("array") * doctest::test_suite("foreach")) {
+TEST_CASE("Array Foreach Macro") {
     ct_array_t arr;
     ct_array_init(&arr, sizeof(int), 0);
 
@@ -263,3 +266,5 @@ TEST_CASE("Array Foreach Macro" * doctest::test_suite("array") * doctest::test_s
 
     ct_array_destroy(&arr);
 }
+
+TEST_SUITE_END();
