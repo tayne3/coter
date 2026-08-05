@@ -1,14 +1,28 @@
 #include "coter/thread/thread.h"
 
 #include <errno.h>
+#include <stdlib.h>
 #include <string.h>
 
 #ifdef CT_OS_WIN
 #include <process.h>
-typedef unsigned(__stdcall* ct_thread__win_entry_t)(void*);
 #else
 #include <sched.h>
-typedef void* (*ct_thread__posix_entry_t)(void*);
+#endif
+
+#ifdef CT_OS_WIN32
+typedef struct ct_thread__win32_ctx {
+    ct_thread_routine_t user_routine;
+    void*               user_arg;
+} ct_thread__win32_ctx_t;
+
+static unsigned __stdcall ct_thread__win32_entry(void* data) {
+    ct_thread__win32_ctx_t* ctx     = (ct_thread__win32_ctx_t*)data;
+    ct_thread_routine_t     routine = ctx->user_routine;
+    void*                   arg     = ctx->user_arg;
+    free(ctx);
+    return (unsigned)routine(arg);
+}
 #endif
 
 void ct_thread_attr_init(ct_thread_attr_t* attr) {
@@ -17,7 +31,7 @@ void ct_thread_attr_init(ct_thread_attr_t* attr) {
 }
 
 void ct_thread_attr_destroy(ct_thread_attr_t* attr) {
-    (void)attr;
+    CT_UNUSED(attr);
 }
 
 int ct_thread_attr_set_stack_size(ct_thread_attr_t* attr, size_t stack_size) {
@@ -31,33 +45,51 @@ int ct_thread_create(ct_thread_t* thread, const ct_thread_attr_t* attr, ct_threa
     memset(thread, 0, sizeof(ct_thread_t));
 
 #ifdef CT_OS_WIN
-    thread->handle =
-        (HANDLE)_beginthreadex(NULL, (unsigned)(attr ? attr->stack_size : 0),
-                               (ct_thread__win_entry_t)(void (*)(void))routine, arg, 0, (unsigned*)&thread->id);
+    unsigned thrd_addr  = 0;
+    unsigned stack_size = (unsigned)(attr ? attr->stack_size : 0);
+
+    errno = 0;
+#ifdef CT_OS_WIN32
+    ct_thread__win32_ctx_t* ctx = (ct_thread__win32_ctx_t*)malloc(sizeof(ct_thread__win32_ctx_t));
+    if (!ctx) { return ENOMEM; }
+    ctx->user_routine = routine;
+    ctx->user_arg     = arg;
+    thread->handle    = (HANDLE)_beginthreadex(NULL, stack_size, ct_thread__win32_entry, ctx, 0, &thrd_addr);
     if (!thread->handle) {
-        thread->id = 0;
-        return (int)GetLastError();
+        const int err = errno;
+        free(ctx);
+        return err ? err : EAGAIN;
     }
+#else
+    _beginthreadex_proc_type start_address = (_beginthreadex_proc_type)(void (*)(void))routine;
+    thread->handle = (HANDLE)_beginthreadex(NULL, stack_size, start_address, arg, 0, &thrd_addr);
+    if (!thread->handle) {
+        const int err = errno;
+        return err ? err : EAGAIN;
+    }
+#endif
+
+    thread->id = (DWORD)thrd_addr;
     return 0;
 #else
-    pthread_attr_t  native_attr;
-    pthread_attr_t* native_attr_ptr = NULL;
-    int             ret             = 0;
+    pthread_attr_t  thread_attr;
+    pthread_attr_t* attr_ptr = NULL;
+    int             ret      = 0;
 
     if (attr) {
-        pthread_attr_init(&native_attr);
-        native_attr_ptr = &native_attr;
+        pthread_attr_init(&thread_attr);
+        attr_ptr = &thread_attr;
         if (attr->stack_size > 0) {
-            ret = pthread_attr_setstacksize(&native_attr, attr->stack_size);
+            ret = pthread_attr_setstacksize(&thread_attr, attr->stack_size);
             if (ret != 0) {
-                pthread_attr_destroy(&native_attr);
+                pthread_attr_destroy(&thread_attr);
                 return ret;
             }
         }
     }
 
-    ret = pthread_create(thread, native_attr_ptr, (ct_thread__posix_entry_t)(void (*)(void))routine, arg);
-    if (native_attr_ptr) { pthread_attr_destroy(&native_attr); }
+    ret = pthread_create(thread, attr_ptr, (void* (*)(void*))(void (*)(void))routine, arg);
+    if (attr_ptr) { pthread_attr_destroy(&thread_attr); }
     return ret;
 #endif
 }
@@ -66,20 +98,27 @@ int ct_thread_join(ct_thread_t* thread, int* result) {
     if (!thread) { return EINVAL; }
 #ifdef CT_OS_WIN
     if (!thread->handle) { return EINVAL; }
-    if (WaitForSingleObject(thread->handle, INFINITE) != WAIT_OBJECT_0) { return (int)GetLastError(); }
+    DWORD exit_code = 0;
+    if (WaitForSingleObject(thread->handle, INFINITE) != WAIT_OBJECT_0) {
+        const DWORD err = GetLastError();
+        return err ? (int)err : EIO;
+    }
     if (result) {
-        DWORD exit_code = 0;
         if (!GetExitCodeThread(thread->handle, &exit_code)) {
+            const DWORD err = GetLastError();
             CloseHandle(thread->handle);
             thread->handle = NULL;
             thread->id     = 0;
-            return (int)GetLastError();
+            return err ? (int)err : EIO;
         }
-        *result = (int)exit_code;
     }
-    CloseHandle(thread->handle);
+    if (!CloseHandle(thread->handle)) {
+        const DWORD err = GetLastError();
+        return err ? (int)err : EIO;
+    }
     thread->handle = NULL;
     thread->id     = 0;
+    if (result) { *result = (int)exit_code; }
     return 0;
 #else
     void* retval = NULL;

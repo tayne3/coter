@@ -74,10 +74,13 @@ CT_API int ct_thread_create(ct_thread_t* thread, const ct_thread_attr_t* attr, c
 /**
  * @brief Waits for a thread to terminate and cleans up its resources.
  *
- * To enforce defensive lifecycle management and prevent dangling pointers,
- * the thread handle pointed to by `thread` is zeroed out upon return.
+ * On success, the native thread resource has been consumed and the thread
+ * handle is zeroed. On failure, the thread handle is left unchanged so that
+ * a later join may be attempted, except when the wait succeeded but the exit
+ * code could not be read; the thread has then already terminated and the
+ * handle is released instead.
  *
- * @param thread Pointer to the thread handle. Will be zeroed out.
+ * @param thread Pointer to the thread handle.
  * @param result Optional pointer to store the thread's exit code.
  * @return 0 on success, non-zero error code on failure.
  */
