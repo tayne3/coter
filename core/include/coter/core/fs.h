@@ -23,12 +23,8 @@ extern "C" {
 
 #ifdef CT_OS_WIN
 typedef struct __stat64 ct_stat_t;
-#define ct_stat_fn  _stat64
-#define ct_fstat_fn _fstat64
 #else
 typedef struct stat ct_stat_t;
-#define ct_stat_fn  stat
-#define ct_fstat_fn fstat
 #endif
 
 #ifndef F_OK
