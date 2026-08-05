@@ -1,14 +1,6 @@
 /**
  * @file shutdown_signal_test.cpp
  * @brief Tests for C API of shutdown_signal.
- *
- * Coverage:
- *  - ct_timeout_signal_t basic lifecycle and cancellation
- *  - ct_shutdown_token_t basic lifecycle and cancellation
- *  - Null pointer safety
- *  - Wait timeout, internal deadline, external cancel
- *  - Multi-threaded wakeups
- *  - Concurrent cancellations
  */
 #include "coter/sync/shutdown_signal.h"
 
@@ -18,26 +10,25 @@
 
 #include "coter/testing/doctest.h"
 
-
+namespace {
 using ms = std::chrono::milliseconds;
 
 static int64_t now_ms() {
     using namespace std::chrono;
     return duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count();
 }
+}  // namespace
 
-// ===========================================================================
-// ct_timeout_signal_t
-// ===========================================================================
+TEST_SUITE_BEGIN("shutdown_signal");
 
-TEST_CASE("ct_timeout_signal: default (no-expiry) is not done" * doctest::test_suite("ct_timeout_signal")) {
+TEST_CASE("timeout_signal: default (no-expiry) is not done") {
     ct_timeout_signal_t sig;
     ct_timeout_signal_init(&sig, -1);
     REQUIRE_FALSE(ct_timeout_signal_is_done(&sig));
     REQUIRE(ct_timeout_signal_remaining(&sig) == -1);
 }
 
-TEST_CASE("ct_timeout_signal: zero-ms timeout is immediately done" * doctest::test_suite("ct_timeout_signal")) {
+TEST_CASE("timeout_signal: zero-ms timeout is immediately done") {
     ct_timeout_signal_t sig;
     ct_timeout_signal_init(&sig, 0);
     std::this_thread::sleep_for(ms(1));
@@ -45,7 +36,7 @@ TEST_CASE("ct_timeout_signal: zero-ms timeout is immediately done" * doctest::te
     REQUIRE(ct_timeout_signal_remaining(&sig) == 0);
 }
 
-TEST_CASE("ct_timeout_signal: positive timeout not yet done" * doctest::test_suite("ct_timeout_signal")) {
+TEST_CASE("timeout_signal: positive timeout not yet done") {
     ct_timeout_signal_t sig;
     ct_timeout_signal_init(&sig, 5000);
     REQUIRE_FALSE(ct_timeout_signal_is_done(&sig));
@@ -54,7 +45,7 @@ TEST_CASE("ct_timeout_signal: positive timeout not yet done" * doctest::test_sui
     REQUIRE(rem <= 5000);
 }
 
-TEST_CASE("ct_timeout_signal: positive timeout expires" * doctest::test_suite("ct_timeout_signal")) {
+TEST_CASE("timeout_signal: positive timeout expires") {
     ct_timeout_signal_t sig;
     ct_timeout_signal_init(&sig, 50);
     REQUIRE_FALSE(ct_timeout_signal_is_done(&sig));
@@ -63,7 +54,7 @@ TEST_CASE("ct_timeout_signal: positive timeout expires" * doctest::test_suite("c
     REQUIRE(ct_timeout_signal_remaining(&sig) == 0);
 }
 
-TEST_CASE("ct_timeout_signal: cancel before deadline" * doctest::test_suite("ct_timeout_signal")) {
+TEST_CASE("timeout_signal: cancel before deadline") {
     ct_timeout_signal_t sig;
     ct_timeout_signal_init(&sig, 5000);
     REQUIRE_FALSE(ct_timeout_signal_is_done(&sig));
@@ -78,18 +69,14 @@ TEST_CASE("ct_timeout_signal: cancel before deadline" * doctest::test_suite("ct_
     REQUIRE_FALSE(second);
 }
 
-TEST_CASE("ct_timeout_signal: null pointers" * doctest::test_suite("ct_timeout_signal")) {
+TEST_CASE("timeout_signal: null pointers") {
     ct_timeout_signal_init(nullptr, -1);  // Should not crash
     REQUIRE_FALSE(ct_timeout_signal_cancel(nullptr));
     REQUIRE_FALSE(ct_timeout_signal_is_done(nullptr));
     REQUIRE(ct_timeout_signal_remaining(nullptr) == -1);
 }
 
-// ===========================================================================
-// ct_shutdown_token_t - basic lifecycle
-// ===========================================================================
-
-TEST_CASE("ct_shutdown_token: basic lifecycle" * doctest::test_suite("ct_shutdown_token")) {
+TEST_CASE("shutdown_token: basic lifecycle") {
     ct_shutdown_token_t ctx;
     REQUIRE(ct_shutdown_token_init(&ctx, -1) == 0);
 
@@ -107,7 +94,7 @@ TEST_CASE("ct_shutdown_token: basic lifecycle" * doctest::test_suite("ct_shutdow
     ct_shutdown_token_destroy(&ctx);
 }
 
-TEST_CASE("ct_shutdown_token: null pointers" * doctest::test_suite("ct_shutdown_token")) {
+TEST_CASE("shutdown_token: null pointers") {
     REQUIRE(ct_shutdown_token_init(nullptr, -1) == -1);
     ct_shutdown_token_destroy(nullptr);  // Should not crash
     REQUIRE_FALSE(ct_shutdown_token_cancel(nullptr));
@@ -117,12 +104,7 @@ TEST_CASE("ct_shutdown_token: null pointers" * doctest::test_suite("ct_shutdown_
     REQUIRE(ct_shutdown_token_token(nullptr) == nullptr);
 }
 
-// ===========================================================================
-// Blocking wait – timeout returns false
-// ===========================================================================
-
-TEST_CASE("ct_shutdown_token: wait() returns false on caller timeout" * doctest::test_suite("ct_shutdown_token") *
-          doctest::test_suite("blocking")) {
+TEST_CASE("shutdown_token: wait() returns false on caller timeout") {
     ct_shutdown_token_t ctx;
     REQUIRE(ct_shutdown_token_init(&ctx, -1) == 0);
 
@@ -137,12 +119,7 @@ TEST_CASE("ct_shutdown_token: wait() returns false on caller timeout" * doctest:
     ct_shutdown_token_destroy(&ctx);
 }
 
-// ===========================================================================
-// Blocking wait – woken by close (multi-thread)
-// ===========================================================================
-
-TEST_CASE("ct_shutdown_token: wait() returns true when token is cancelled externally" *
-          doctest::test_suite("ct_shutdown_token") * doctest::test_suite("blocking")) {
+TEST_CASE("shutdown_token: wait() returns true when token is cancelled externally") {
     ct_shutdown_token_t ctx;
     REQUIRE(ct_shutdown_token_init(&ctx, -1) == 0);
 
@@ -165,9 +142,7 @@ TEST_CASE("ct_shutdown_token: wait() returns true when token is cancelled extern
     ct_shutdown_token_destroy(&ctx);
 }
 
-TEST_CASE("ct_shutdown_token: multiple concurrent waiters all wake on cancel" *
-          doctest::test_suite("ct_shutdown_token") * doctest::test_suite("blocking") *
-          doctest::test_suite("threading")) {
+TEST_CASE("shutdown_token: multiple concurrent waiters all wake on cancel") {
     ct_shutdown_token_t ctx;
     REQUIRE(ct_shutdown_token_init(&ctx, -1) == 0);
 
@@ -189,12 +164,7 @@ TEST_CASE("ct_shutdown_token: multiple concurrent waiters all wake on cancel" *
     ct_shutdown_token_destroy(&ctx);
 }
 
-// ===========================================================================
-// Blocking wait – internal deadline wakes wait
-// ===========================================================================
-
-TEST_CASE("ct_shutdown_token: wait() returns true when internal deadline expires" *
-          doctest::test_suite("ct_shutdown_token") * doctest::test_suite("blocking")) {
+TEST_CASE("shutdown_token: wait() returns true when internal deadline expires") {
     ct_shutdown_token_t ctx;
     REQUIRE(ct_shutdown_token_init(&ctx, 80) == 0);  // 80 ms internal deadline
 
@@ -209,12 +179,7 @@ TEST_CASE("ct_shutdown_token: wait() returns true when internal deadline expires
     ct_shutdown_token_destroy(&ctx);
 }
 
-// ===========================================================================
-// Multi-thread: concurrent cancels
-// ===========================================================================
-
-TEST_CASE("ct_shutdown_token: multiple concurrent cancel calls" * doctest::test_suite("ct_shutdown_token") *
-          doctest::test_suite("threading")) {
+TEST_CASE("shutdown_token: multiple concurrent cancel calls") {
     ct_shutdown_token_t ctx;
     REQUIRE(ct_shutdown_token_init(&ctx, -1) == 0);
 
@@ -241,8 +206,7 @@ TEST_CASE("ct_shutdown_token: multiple concurrent cancel calls" * doctest::test_
     ct_shutdown_token_destroy(&ctx);
 }
 
-TEST_CASE("ct_shutdown_token: multi-thread – cancel wakes waiter within 500ms" *
-          doctest::test_suite("ct_shutdown_token") * doctest::test_suite("threading")) {
+TEST_CASE("shutdown_token: multi-thread – cancel wakes waiter within 500ms") {
     ct_shutdown_token_t ctx;
     REQUIRE(ct_shutdown_token_init(&ctx, -1) == 0);
 
@@ -267,3 +231,5 @@ TEST_CASE("ct_shutdown_token: multi-thread – cancel wakes waiter within 500ms"
 
     ct_shutdown_token_destroy(&ctx);
 }
+
+TEST_SUITE_END();
