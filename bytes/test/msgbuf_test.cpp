@@ -5,7 +5,7 @@
 #include "coter/core/strings.h"
 #include "coter/testing/doctest.h"
 
-
+namespace {
 struct MsgbufFixture {
     ct_msgbuf_t* small_bytes;
     ct_msgbuf_t* large_bytes;
@@ -24,8 +24,11 @@ struct MsgbufFixture {
         large_bytes = nullptr;
     }
 };
+}  // namespace
 
-TEST_CASE("Msgbuf Lifecycle" * doctest::test_suite("msgbuf") * doctest::test_suite("lifecycle")) {
+TEST_SUITE_BEGIN("msgbuf");
+
+TEST_CASE("Msgbuf Lifecycle") {
     SUBCASE("Initialization") {
         ct_msgbuf_t* s = nullptr;
         ct_msgbuf_t* l = nullptr;
@@ -71,7 +74,7 @@ TEST_CASE("Msgbuf Lifecycle" * doctest::test_suite("msgbuf") * doctest::test_sui
     }
 }
 
-TEST_CASE_FIXTURE(MsgbufFixture, "Msgbuf Operations" * doctest::description("[msgbuf][ops]")) {
+TEST_CASE_FIXTURE(MsgbufFixture, "Msgbuf Operations") {
     SUBCASE("Basic Read/Write") {
         REQUIRE(small_bytes != nullptr);
         ct_msgbuf_clear(small_bytes);
@@ -204,3 +207,5 @@ TEST_CASE_FIXTURE(MsgbufFixture, "Msgbuf Operations" * doctest::description("[ms
         REQUIRE(ct_msgbuf_size(small_bytes) == prev_size);
     }
 }
+
+TEST_SUITE_END();
