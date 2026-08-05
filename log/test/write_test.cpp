@@ -91,7 +91,8 @@ TEST_CASE("log_write_performance") {
             time_with_log = static_cast<int>(ct_getuptime_ms() - start);
         }
 
-        CAPTURE(time_with_log, time_without_log);
+        CAPTURE(time_with_log);
+        CAPTURE(time_without_log);
 
         {
             char buf[256];
