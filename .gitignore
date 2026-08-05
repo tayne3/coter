@@ -4,9 +4,9 @@
 /.zed/
 /.cursor/
 /.claude/
-/.codex/
 /.agents/
 /.discard/
+/.cache/
 
 # macOS
 .DS_Store
@@ -15,6 +15,7 @@
 /mise.local.toml
 
 # cmake
+/__cmake_systeminformation/
 /CMakeUserPresets.json
 /cmake-build-*/
 /build-*/
