@@ -1,3 +1,5 @@
+#include <stddef.h>
+
 #include "coter/core/macro.h"
 
 struct test_struct {

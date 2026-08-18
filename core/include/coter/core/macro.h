@@ -6,8 +6,6 @@
 #ifndef COTER_CORE_MACRO_H
 #define COTER_CORE_MACRO_H
 
-#include <stddef.h>
-
 #include "coter/core/config.h"
 
 // clang-format off
@@ -143,22 +141,23 @@
 #   define CT_UNIQUE_ID(prefix_) CT_CONCAT(prefix_, __LINE__)
 #endif
 
+#if defined(__cplusplus)
+#if CT_HAS_FEATURE(cxx_static_assert) || \
+    (defined(CT_CPLUSPLUS) && CT_CPLUSPLUS >= CT_CXX_11) || \
+    (defined(_MSC_VER) && _MSC_VER >= 1600)
+#define CT_STATIC_ASSERT(expr_) static_assert((expr_), #expr_)
+#endif
+#else
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 202311L
+#define CT_STATIC_ASSERT(expr_) static_assert((expr_), #expr_)
+#elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
+#define CT_STATIC_ASSERT(expr_) _Static_assert((expr_), #expr_)
+#elif CT_CLANG_HAS_EXTENSION(c_static_assert) || CT_GNUC_PREREQ(4, 6)
+#define CT_STATIC_ASSERT(expr_) __extension__ _Static_assert((expr_), #expr_)
+#endif
+#endif
 #ifndef CT_STATIC_ASSERT
-#   if defined(__cplusplus) && \
-       ((defined(CT_CPLUSPLUS) && CT_CPLUSPLUS >= CT_CXX_11) || (defined(_MSC_VER) && _MSC_VER >= 1600))
-#     define CT_STATIC_ASSERT(expr_) static_assert((expr_), #expr_)
-#   elif !defined(__cplusplus) && defined(__STDC_VERSION__) && __STDC_VERSION__ >= 202311L
-#     define CT_STATIC_ASSERT(expr_) static_assert((expr_), #expr_)
-#   elif !defined(__cplusplus) && defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
-#     define CT_STATIC_ASSERT(expr_) _Static_assert((expr_), #expr_)
-#   elif !defined(__cplusplus) && CT_CLANG_HAS_EXTENSION(c_static_assert)
-#     define CT_STATIC_ASSERT(expr_) __extension__ _Static_assert((expr_), #expr_)
-#   elif !defined(__cplusplus) && CT_GNUC_PREREQ(4, 6)
-#     define CT_STATIC_ASSERT(expr_) __extension__ _Static_assert((expr_), #expr_)
-#   else
-#     define CT_STATIC_ASSERT(expr_) \
-          typedef char CT_UNIQUE_ID(ct_static_assert_)[(expr_) ? 1 : -1]
-#   endif
+#define CT_STATIC_ASSERT(expr_) typedef char CT_UNIQUE_ID(ct_static_assert_)[(expr_) ? 1 : -1]
 #endif
 
 #ifndef __cplusplus
