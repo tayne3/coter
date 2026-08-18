@@ -7,7 +7,6 @@
 #include "coter/core/time.h"
 #include "coter/testing/doctest.h"
 
-
 TEST_CASE("pid_positive") {
     const int pid = ct_getpid();
     REQUIRE(pid > 0);

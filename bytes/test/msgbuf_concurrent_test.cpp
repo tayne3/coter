@@ -5,7 +5,6 @@
 #include "coter/sync/mutex.h"
 #include "coter/testing/doctest.h"
 
-
 static constexpr int NUM_PRODUCER_THREADS  = 4;
 static constexpr int BUFFER_SIZE           = 100;
 static constexpr int CHUNK_SIZE            = 9;

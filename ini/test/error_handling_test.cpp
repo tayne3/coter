@@ -1,7 +1,6 @@
 #include "common.hpp"
 #include "coter/testing/doctest.h"
 
-
 TEST_CASE("Error Codes - Last error after success" * doctest::test_suite("error_handling")) {
     ct_ini_t* ini = ct_ini_empty();
     REQUIRE(ini != nullptr);

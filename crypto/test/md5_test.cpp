@@ -5,7 +5,6 @@
 
 #include "coter/testing/doctest.h"
 
-
 TEST_CASE("md5 test" * doctest::test_suite("md5")) {
     struct md5_test {
         const char*   data;

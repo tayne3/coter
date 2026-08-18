@@ -6,7 +6,6 @@
 #include "coter/sync/atomic.h"
 #include "coter/testing/doctest.h"
 
-
 namespace {
 struct event_env {
     ct_event_t      event;

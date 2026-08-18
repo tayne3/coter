@@ -3,7 +3,6 @@
 #include "common.hpp"
 #include "coter/testing/doctest.h"
 
-
 TEST_CASE("Long Strings - Very long key" * doctest::test_suite("edge_cases")) {
     const size_t SIZE = 10 * 1024;
 

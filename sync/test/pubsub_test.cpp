@@ -5,7 +5,6 @@
 
 #include "coter/testing/doctest.h"
 
-
 enum test_event_type {
     EVENT_TYPE_A = 1,
     EVENT_TYPE_B = 2,

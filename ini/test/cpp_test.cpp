@@ -5,7 +5,6 @@
 #include "common.hpp"
 #include "coter/testing/doctest.h"
 
-
 TEST_CASE("C++ API - Basic" * doctest::test_suite("cpp")) {
     coter::ini::Ini ini;
     REQUIRE(ini.lastError() == 0);

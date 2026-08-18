@@ -3310,10 +3310,10 @@ FMT_CONSTEXPR20 auto write(OutputIt out, T value) -> OutputIt {
         prefix       = "e-";
     }
     auto   has_decimal_point = significand_size != 1;
-    size_t size              = std::is_pointer<OutputIt>::value ?
-                                   0u :
-                                   to_unsigned((s != sign::none ? 1 : 0) + significand_size + (has_decimal_point ? 1 : 0) +
-                                               (abs_exponent >= 100 ? 5 : 4));
+    size_t size = std::is_pointer<OutputIt>::value ?
+                      0u :
+                      to_unsigned((s != sign::none ? 1 : 0) + significand_size + (has_decimal_point ? 1 : 0) +
+                                  (abs_exponent >= 100 ? 5 : 4));
     if (auto ptr = to_pointer<Char>(out, size)) {
         if (s != sign::none) *ptr++ = Char('-');
         if (has_decimal_point) {

@@ -35,14 +35,12 @@ typedef struct ct_msgbuf {
 #define ct_msgbuf_isempty(self)   ((self)->write_pos == (self)->buffer)
 #define ct_msgbuf_isfull(self)    ((self)->write_pos == ((self)->buffer + (self)->cap))
 
-#define ct_msgbuf_fmt(self, ...)                                                          \
+#define ct_msgbuf_fmt(self, ...)                                                         \
     do {                                                                                 \
-        const size_t _available = ct_msgbuf_available(self);                              \
+        const size_t _available = ct_msgbuf_available(self);                             \
         if (_available > 0) {                                                            \
             const int _size = ct_snprintf_s((self)->write_pos, _available, __VA_ARGS__); \
-            if (_size > 0) {                                                             \
-                (self)->write_pos += _size;                                              \
-            }                                                                            \
+            if (_size > 0) { (self)->write_pos += _size; }                               \
         }                                                                                \
     } while (0)
 

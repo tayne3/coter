@@ -4,6 +4,8 @@
  */
 #include "coter/container/heap.h"
 
+#include <stddef.h>
+
 /* 合并两个堆 */
 static ct_heap_node_t* heap__meld(ct_heap_node_t* a, ct_heap_node_t* b, ct_heap_compare_cb cmp) {
     if (!a) { return b; }

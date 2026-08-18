@@ -1,7 +1,6 @@
 #include "common.hpp"
 #include "coter/testing/doctest.h"
 
-
 TEST_CASE("Add/Get/Find Key - Add key" * doctest::test_suite("key_api")) {
     ct_ini_t*         ini = ct_ini_empty();
     ct_ini_section_t* sec = ct_ini_get_section(ini, "test");

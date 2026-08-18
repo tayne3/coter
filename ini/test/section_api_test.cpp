@@ -1,7 +1,6 @@
 #include "common.hpp"
 #include "coter/testing/doctest.h"
 
-
 TEST_CASE("Get/Find Section - Get section creates" * doctest::test_suite("section_api")) {
     ct_ini_t*         ini = ct_ini_empty();
     ct_ini_section_t* sec = ct_ini_get_section(ini, "new_section");

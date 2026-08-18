@@ -5,7 +5,6 @@
 
 #include "coter/testing/doctest.h"
 
-
 TEST_CASE("seg Initialization" * doctest::test_suite("seg") * doctest::test_suite("init")) {
     uint8_t buffer[64];
     memset(buffer, 0xAA, sizeof(buffer));

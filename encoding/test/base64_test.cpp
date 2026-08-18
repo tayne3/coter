@@ -4,7 +4,6 @@
 
 #include "coter/testing/doctest.h"
 
-
 struct ct_base64_test {
     const char* source;
     const char* target;

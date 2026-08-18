@@ -1,7 +1,6 @@
 #include "coter/crypto/hash/hash.h"
 #include "coter/testing/doctest.h"
 
-
 #define TEST_HASH_NUMBER 100
 
 TEST_CASE("siphash test" * doctest::test_suite("hashalgo")) {

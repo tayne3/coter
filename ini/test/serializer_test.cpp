@@ -1,7 +1,6 @@
 #include "common.hpp"
 #include "coter/testing/doctest.h"
 
-
 TEST_CASE("Basic Save - Save basic" * doctest::test_suite("serializer")) {
     const char* path = test_tmp_path("save_basic.ini");
 

@@ -4,7 +4,6 @@
 
 #include "coter/testing/doctest.h"
 
-
 TEST_CASE("hex_encode" * doctest::test_suite("hex")) {
     char    output[32];
     uint8_t data[] = {0x48, 0x65, 0x6c, 0x6c, 0x6f};

@@ -5,7 +5,6 @@
 #include "coter/sync/mutex.h"
 #include "coter/testing/doctest.h"
 
-
 namespace {
 struct cond_env {
     ct_mutex_t      mutex;

@@ -5,7 +5,6 @@
 #include "coter/bytes/bytes.hpp"
 #include "coter/testing/doctest.h"
 
-
 TEST_CASE("Constructor" * doctest::test_suite("seg") * doctest::test_suite("ctor")) {
     std::array<uint8_t, 64> buffer{};
 

@@ -5,7 +5,6 @@
 
 #include "coter/testing/doctest.h"
 
-
 namespace {
 
 std::string digest_to_hex(const uint8_t digest[20]) {

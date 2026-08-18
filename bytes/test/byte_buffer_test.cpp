@@ -1,7 +1,6 @@
 #include "coter/bytes/bytes.hpp"
 #include "coter/testing/doctest.h"
 
-
 using namespace coter;
 
 TEST_CASE("byte_buffer construction" * doctest::test_suite("byte_buffer")) {

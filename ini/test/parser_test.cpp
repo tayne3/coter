@@ -3,7 +3,6 @@
 #include "common.hpp"
 #include "coter/testing/doctest.h"
 
-
 TEST_CASE("Inline Comments - Semicolon comments" * doctest::test_suite("parser")) {
     const char* content = "[comments]\n"
                           "basic = value1 ; this is a comment\n"

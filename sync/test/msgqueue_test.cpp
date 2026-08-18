@@ -8,7 +8,6 @@
 #include "coter/sync/atomic.h"
 #include "coter/testing/doctest.h"
 
-
 namespace {
 struct int_queue_env {
     explicit int_queue_env(size_t capacity) : storage(capacity, 0) {

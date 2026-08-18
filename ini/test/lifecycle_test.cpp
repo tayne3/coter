@@ -1,7 +1,6 @@
 #include "common.hpp"
 #include "coter/testing/doctest.h"
 
-
 TEST_CASE("Create/Destroy - Create from file" * doctest::test_suite("lifecycle")) {
     ct_ini_t* ini = ct_ini_create(test_res_path("basic.ini"));
     REQUIRE(ini != nullptr);

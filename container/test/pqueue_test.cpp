@@ -6,7 +6,6 @@
 
 #include "coter/testing/doctest.h"
 
-
 static int int_cmp(const void* a, const void* b) {
     int va = *(const int*)a;
     int vb = *(const int*)b;

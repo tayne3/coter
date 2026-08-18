@@ -1,7 +1,6 @@
 #include "common.hpp"
 #include "coter/testing/doctest.h"
 
-
 TEST_CASE("Section Iteration - Empty config" * doctest::test_suite("iterator")) {
     ct_ini_t* ini = ct_ini_empty();
 

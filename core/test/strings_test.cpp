@@ -6,7 +6,6 @@
 #include "coter/core/macro.h"
 #include "coter/testing/doctest.h"
 
-
 TEST_CASE("strings_snprintf" * doctest::test_suite("strings")) {
     char       buf[100];
     const char truncate[100] = "Truncate";

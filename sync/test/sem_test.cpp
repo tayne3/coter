@@ -6,7 +6,6 @@
 #include "coter/sync/atomic.h"
 #include "coter/testing/doctest.h"
 
-
 namespace {
 struct sem_env {
     ct_sem_t        sem;
