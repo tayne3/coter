@@ -1,11 +1,11 @@
 name: Test
-run-name: ${{ github.actor }} is testing the project 🔬
 
 on:
   push:
     branches: [master, develop]
     paths-ignore:
       - ".clang-format"
+      - ".editorconfig"
       - ".gitignore"
       - ".gitattributes"
       - "README.md"
@@ -14,6 +14,7 @@ on:
     branches: [master]
     paths-ignore:
       - ".clang-format"
+      - ".editorconfig"
       - ".gitignore"
       - ".gitattributes"
       - "README.md"
@@ -159,20 +160,20 @@ jobs:
               build_type: Debug,
             }
           - {
-              os: windows-2025-vs2026,
+              os: windows-2025,
               compiler: msvc,
               generator: "Visual Studio 18 2026",
               build_type: Release,
             }
           - {
-              os: windows-2025-vs2026,
+              os: windows-2025,
               compiler: msvc,
               generator: "Visual Studio 18 2026",
               build_type: Debug,
             }
           # Clang-CL (uses MSVC runtime)
           - {
-              os: windows-2025-vs2026,
+              os: windows-2025,
               compiler: clang-cl,
               generator: "Visual Studio 18 2026",
               build_type: Release,
@@ -211,8 +212,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { os: windows-2025-vs2026, build_type: Release }
-          - { os: windows-2025-vs2026, build_type: Debug }
+          - { os: windows-2025, build_type: Release }
+          - { os: windows-2025, build_type: Debug }
           - { os: windows-2022, build_type: Release }
           - { os: windows-2022, build_type: Debug }
 
