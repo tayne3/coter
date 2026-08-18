@@ -6,6 +6,8 @@
 #ifndef COTER_CORE_MACRO_H
 #define COTER_CORE_MACRO_H
 
+#include <stddef.h>
+
 #include "coter/core/config.h"
 
 // clang-format off
