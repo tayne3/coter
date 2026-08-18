@@ -14,7 +14,7 @@ target_link_libraries(coter_log
     coter_internal_options
   PUBLIC
     coter::core
-    coter::msgbuf
+    coter::bytes
     coter::time
     coter::thread
     coter::sync
