@@ -1,4 +1,5 @@
-#include <math.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,30 +11,31 @@ static int cmd_echo(char** argv) {
     static const ct_opt_def_t defs[] = {
         {NULL, 'h', CT_OPT_NONE, NULL, NULL},
         {NULL, 'n', CT_OPT_NONE, NULL, NULL},
-        {0},
+        CT_OPT_DEF_NULL,
     };
 
-    int             i, id;
-    bool            newline = true;
-    ct_opt_t        options;
-    ct_opt_status_t status;
+    bool newline = true;
 
-    ct_opt_init(&options, argv);
-    options.permute = 0;
-    while ((status = ct_opt_next(&options, defs, &id)) == CT_OPT_OK) {
+    ct_opt_t opt;
+    ct_opt_init(&opt, argv);
+    opt.permute = 0;
+
+    ct_opt_error_t err;
+    int            id;
+    while ((err = ct_opt_next(&opt, defs, &id)) == CT_OPT_ERROR_NONE) {
         switch (id) {
             case 'h': puts("usage: echo [-hn] [ARG]..."); return 0;
             case 'n': newline = false; break;
         }
     }
-
-    if (status != CT_OPT_DONE) {
-        fprintf(stderr, "%s: %s\n", argv[0], ct_opt_strerror(status));
+    if (err != CT_OPT_ERROR_DONE) {
+        fprintf(stderr, "%s: %s\n", argv[0], ct_opt_strerror(err));
         return 1;
     }
 
-    argv += options.optind;
+    argv += opt.optind;
 
+    int i;
     for (i = 0; argv[i]; ++i) { printf("%s%s", i ? " " : "", argv[i]); }
     if (newline) { putchar('\n'); }
 
@@ -44,22 +46,22 @@ static int cmd_echo(char** argv) {
 static int cmd_sleep(char** argv) {
     static const ct_opt_def_t defs[] = {
         {NULL, 'h', CT_OPT_NONE, NULL, NULL},
-        {0},
+        CT_OPT_DEF_NULL,
     };
 
-    int             i, id;
-    ct_opt_t        options;
-    ct_opt_status_t status;
+    int            i, id;
+    ct_opt_t       opt;
+    ct_opt_error_t err;
 
-    ct_opt_init(&options, argv);
-    while ((status = ct_opt_next(&options, defs, &id)) == CT_OPT_OK) {
+    ct_opt_init(&opt, argv);
+    while ((err = ct_opt_next(&opt, defs, &id)) == CT_OPT_ERROR_NONE) {
         switch (id) {
             case 'h': puts("usage: sleep [-h] [NUMBER]..."); return 0;
         }
     }
 
-    if (status != CT_OPT_DONE) {
-        fprintf(stderr, "%s: %s\n", argv[0], ct_opt_strerror(status));
+    if (err != CT_OPT_ERROR_DONE) {
+        fprintf(stderr, "%s: %s\n", argv[0], ct_opt_strerror(err));
         return 1;
     }
 
@@ -79,13 +81,10 @@ int main(int argc, char** argv) {
 
     static const ct_opt_def_t global_defs[] = {
         {NULL, 'h', CT_OPT_NONE, NULL, NULL},
-        {0},
+        CT_OPT_DEF_NULL,
     };
 
-    int             i, id;
-    char**          subargv;
-    ct_opt_t        options;
-    ct_opt_status_t status;
+    char** subargv;
 
     static const struct {
         char name[8];
@@ -96,28 +95,32 @@ int main(int argc, char** argv) {
     };
     int ncmds = sizeof(cmds) / sizeof(*cmds);
 
-    ct_opt_init(&options, argv);
-    options.permute = 0;
+    ct_opt_t opt;
+    ct_opt_init(&opt, argv);
+    opt.permute = 0;
 
-    while ((status = ct_opt_next(&options, global_defs, &id)) == CT_OPT_OK) {
+    ct_opt_error_t err;
+    int            id;
+    while ((err = ct_opt_next(&opt, global_defs, &id)) == CT_OPT_ERROR_NONE) {
         switch (id) {
             case 'h': usage(stdout); return 0;
         }
     }
 
-    if (status != CT_OPT_DONE) {
+    if (err != CT_OPT_ERROR_DONE) {
         usage(stderr);
-        fprintf(stderr, "%s: %s\n", argv[0], ct_opt_strerror(status));
+        fprintf(stderr, "%s: %s\n", argv[0], ct_opt_strerror(err));
         return 1;
     }
 
-    subargv = argv + options.optind;
+    subargv = argv + opt.optind;
     if (!subargv[0]) {
         fprintf(stderr, "%s: missing subcommand\n", argv[0]);
         usage(stderr);
         return 1;
     }
 
+    int i;
     for (i = 0; i < ncmds; ++i) {
         if (!strcmp(cmds[i].name, subargv[0])) { return cmds[i].cmd(subargv); }
     }

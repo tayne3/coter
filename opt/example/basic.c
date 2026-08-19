@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -16,11 +17,15 @@ static const ct_opt_def_t defs[] = {
     {"verbose", OPT_VERBOSE, CT_OPT_NONE, "enable verbose output", NULL},
     {"version", 'v', CT_OPT_NONE, "display version information and exit", NULL},
     {"help", 'h', CT_OPT_NONE, "display this help message and exit", NULL},
-    {0},
+    CT_OPT_DEF_NULL,
 };
 
 int main(int argc, char** argv) {
-    CT_UNUSED(argc);
+    if (argc < 2) {
+        fprintf(stderr, "missing parameter\n");
+        ct_opt_usage(stderr, argv[0], defs, -1, NULL);
+        return 1;
+    }
 
     bool        amend   = false;
     bool        brief   = false;
@@ -28,35 +33,32 @@ int main(int argc, char** argv) {
     const char* color   = "white";
     int         delay   = 0;
 
-    char*           arg;
-    int             id;
-    ct_opt_t        options;
-    ct_opt_status_t status;
+    ct_opt_t opt;
+    ct_opt_init(&opt, argv);
 
-    ct_opt_init(&options, argv);
-
-    while ((status = ct_opt_next(&options, defs, &id)) == CT_OPT_OK) {
+    ct_opt_error_t err;
+    int            id;
+    while ((err = ct_opt_next(&opt, defs, &id)) == CT_OPT_ERROR_NONE) {
         switch (id) {
             case 'a': amend = true; break;
             case 'b': brief = true; break;
-            case 'c': color = options.optarg; break;
-            case OPT_DELAY: delay = options.optarg ? atoi(options.optarg) : 1; break;
+            case 'c': color = opt.optarg; break;
+            case OPT_DELAY: delay = opt.optarg ? atoi(opt.optarg) : 1; break;
             case OPT_VERBOSE: verbose = true; break;
             case 'v': printf("opt_basic version 1.0\n"); exit(EXIT_SUCCESS);
             case 'h':
-                ct_opt_usage(stderr, "opt_basic", defs, -1, "[args...]");
+                ct_opt_usage(stderr, "opt_basic", defs, -1, NULL);
                 fprintf(stderr, "\nOptions:\n");
                 ct_opt_help(stderr, defs, -1, NULL);
                 fprintf(stderr, "\n");
                 exit(EXIT_SUCCESS);
         }
     }
-
-    if (status != CT_OPT_DONE) {
-        if (options.optopt > 0 && options.optopt < 128) {
-            fprintf(stderr, "opt_basic: %s: -%c\n", ct_opt_strerror(status), options.optopt);
+    if (err != CT_OPT_ERROR_DONE) {
+        if (opt.optopt > 0 && opt.optopt < 128) {
+            fprintf(stderr, "opt_basic: %s: -%c\n", ct_opt_strerror(err), opt.optopt);
         } else {
-            fprintf(stderr, "opt_basic: %s: %s\n", ct_opt_strerror(status), options.argv[options.optind - 1]);
+            fprintf(stderr, "opt_basic: %s: %s\n", ct_opt_strerror(err), opt.argv[opt.optind - 1]);
         }
         exit(EXIT_FAILURE);
     }
@@ -69,7 +71,8 @@ int main(int argc, char** argv) {
     printf("  delay: %d\n", delay);
 
     printf("\nRemaining arguments:\n");
-    while ((arg = ct_opt_shift(&options))) { printf("  %s\n", arg); }
+    char* arg;
+    while ((arg = ct_opt_arg(&opt))) { printf("  %s\n", arg); }
 
     return 0;
 }
