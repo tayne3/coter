@@ -13,42 +13,36 @@
 extern "C" {
 #endif
 
-/** F(code, name, label, description) */
-#define CT_OPT_STATUS_FOREACH(F)                                    \
-    F(0, OK, "ok", "success")                                       \
-    F(1, DONE, "done", "no more options")                           \
-    F(2, ERR_INVALID, "err_invalid", "invalid option")              \
-    F(3, ERR_MISSING, "err_missing", "option requires an argument") \
-    F(4, ERR_TOOMANY, "err_toomany", "option takes no arguments")
+/** F(code, name, desc) */
+#define CT_OPT_ERROR_FOREACH(F)                  \
+    F(0, NONE, "none")                           \
+    F(1, DONE, "no more options")                \
+    F(2, INVALID, "invalid option")              \
+    F(3, MISSING, "option requires an argument") \
+    F(4, TOOMANY, "option takes no arguments")
 
-typedef enum ct_opt_status {
-#define F(code, name, label, desc) CT_OPT_##name = code,
-    CT_OPT_STATUS_FOREACH(F)
+typedef enum ct_opt_error {
+#define F(code, name, desc) CT_OPT_ERROR_##name = code,
+    CT_OPT_ERROR_FOREACH(F)
 #undef F
-} ct_opt_status_t;
+} ct_opt_error_t;
 
 /** @brief Return a human-readable description for @p s. */
-CT_API const char* ct_opt_strerror(ct_opt_status_t s);
+CT_API const char* ct_opt_strerror(ct_opt_error_t s);
 
 /**
- * @brief Parser state.
+ * @brief Parser state; initialize with ct_opt_init().
  *
- * Readable after each ct_opt_next() call:
- *   optind – index of next argv element to examine
- *   optopt – shortname of the option just matched (0 for unknown long opt)
- *   optarg – argument string for the current option (NULL if none)
- *
- * May be set before parsing begins:
- *   permute – non-zero (default) permutes non-options to end;
- *             zero stops at first non-option (POSIX mode)
+ * Only permute should be set by the caller, before parsing begins.
+ * All other fields are read-only; inspect them after ct_opt_next().
  */
-typedef struct ct_opt {
-    char*  optarg;
-    char** argv;
-    int    permute;
-    int    optind;
-    int    optopt;
-    int    subind; /* byte offset within a short-option cluster */
+typedef struct ct_opt_s {
+    char*  optarg;  /* argument string for the current option, or NULL */
+    char** argv;    /* argv passed to ct_opt_init(); for error reporting */
+    int    permute; /* non-zero (default) permutes non-options to end; zero = POSIX mode */
+    int    optind;  /* index of next argv element to process */
+    int    optopt;  /* shortname of option just matched (0 for unknown long options) */
+    int    subind;  /* internal: byte offset within current short-option cluster */
 } ct_opt_t;
 
 typedef enum ct_opt_argtype {
@@ -75,20 +69,28 @@ typedef struct ct_opt_def {
 
 /**
  * @brief Initialize parser state; must be called before ct_opt_next().
- * @param opts  Parser state to initialize.
+ * @param self  Parser state to initialize.
  * @param argv  Argument vector from main(); argv[0] is skipped.
  */
-CT_API void ct_opt_init(ct_opt_t* opts, char** argv);
+CT_API void ct_opt_init(ct_opt_t* self, char** argv);
 
 /**
- * @brief Consume and return the next argv element.
+ * @brief Consume and return the next positional argument.
  *
  * Useful for stepping past sub-commands before resuming option parsing.
  *
- * @param opts  Parser state.
+ * @param self  Parser state.
  * @return Next argument string, or NULL if none remain.
  */
-CT_API char* ct_opt_shift(ct_opt_t* opts);
+CT_API char* ct_opt_arg(ct_opt_t* self);
+
+/**
+ * @brief Count the remaining argv elements.
+ *
+ * @param self  Parser state.
+ * @return Number of remaining argv elements.
+ */
+CT_API int ct_opt_narg(const ct_opt_t* self);
 
 /**
  * @brief Parse the next option.
@@ -97,13 +99,13 @@ CT_API char* ct_opt_shift(ct_opt_t* opts);
  * long options (--foo, --foo=bar). When permute is set, non-option
  * arguments are shifted to the end so all options are processed first.
  *
- * @param opts    Parser state (modified in place).
+ * @param self    Parser state (modified in place).
  * @param defs    Option descriptors, terminated by {0,0,CT_OPT_NONE,NULL}.
  * @param out_id  Receives the matched option's shortname; may be NULL.
- * @return CT_OPT_OK on success, CT_OPT_DONE when finished, or an error code.
- *         On error, opts->optopt holds the offending option character.
+ * @return CT_OPT_ERROR_NONE on success, CT_OPT_ERROR_DONE when finished, or an error code.
+ *         On error, self->optopt holds the offending option character.
  */
-CT_API ct_opt_status_t ct_opt_next(ct_opt_t* opts, const ct_opt_def_t* defs, int* out_id);
+CT_API ct_opt_error_t ct_opt_next(ct_opt_t* self, const ct_opt_def_t* defs, int* out_id);
 
 /**
  * @brief Column layout for ct_opt_help().
@@ -122,11 +124,11 @@ typedef struct ct_opt_help_config {
 #define CT_OPT_HELP_CONFIG_INIT {80, 26, 36}
 
 /**
- * @brief Print a usage line: "Usage: <progname> [opts] <pos_args>\n"
+ * @brief Print a usage line: "Usage: <progname> [options] <pos_args>\n"
  *
  * @param out       Output stream (typically stdout or stderr).
  * @param progname  Program name, typically argv[0].
- * @param defs      Descriptor array; if non-NULL and non-empty, "[opts]" is appended. May be NULL.
+ * @param defs      Descriptor array; if non-NULL and non-empty, "[options]" is appended. May be NULL.
  * @param count     Number of entries in defs, or -1 to stop at sentinel.
  * @param pos_args  Positional argument synopsis, e.g. "SOURCE DEST". May be NULL.
  */
@@ -151,12 +153,12 @@ CT_API void ct_opt_help(FILE* out, const ct_opt_def_t* defs, int count, const ct
 namespace coter {
 namespace opt {
 
-    enum class Status {
-        Ok      = CT_OPT_OK,
-        Done    = CT_OPT_DONE,
-        Invalid = CT_OPT_ERR_INVALID,
-        Missing = CT_OPT_ERR_MISSING,
-        TooMany = CT_OPT_ERR_TOOMANY,
+    enum class Error {
+        None    = CT_OPT_ERROR_NONE,
+        Done    = CT_OPT_ERROR_DONE,
+        Invalid = CT_OPT_ERROR_INVALID,
+        Missing = CT_OPT_ERROR_MISSING,
+        TooMany = CT_OPT_ERROR_TOOMANY,
     };
 
     enum class ArgType {
@@ -186,34 +188,50 @@ namespace opt {
 
     class Parser {
     public:
-        explicit Parser(char** argv) { ct_opt_init(&d, argv); }
+        explicit Parser(char** argv) noexcept { ct_opt_init(&d, argv); }
 
         Parser(const Parser&)            = delete;
         Parser& operator=(const Parser&) = delete;
 
         /** @brief Parse the next option. */
-        Status next(const Option* defs, int* out_id = nullptr) {
-            return static_cast<Status>(ct_opt_next(&d, static_cast<const ct_opt_def_t*>(defs), out_id));
+        Error next(const Option* defs, int* out_id = nullptr) {
+            return static_cast<Error>(ct_opt_next(&d, static_cast<const ct_opt_def_t*>(defs), out_id));
         }
 
-        /** @brief Step past sub-commands or positional args. */
-        char* shift() { return ct_opt_shift(&d); }
+        /** @brief Consume and return the next positional argument. */
+        char* arg() noexcept { return ct_opt_arg(&d); }
 
-        // --- Accessors ---
-        char* arg() const { return d.optarg; }
-        int   optopt() const { return d.optopt; }
-        int   optind() const { return d.optind; }
-        int   subind() const { return d.subind; }
+        /** @brief Count the remaining positional arguments.  */
+        int narg() const noexcept { return ct_opt_narg(&d); }
 
-        // --- Configuration ---
-        void set_permute(bool enable) { d.permute = enable ? 1 : 0; }
+        /** @brief Argument of the option most recently matched by next(); read-only, does not advance. */
+        char* optarg() const noexcept { return d.optarg; }
 
-        // --- Static Helpers ---
-        static const char* strerror(Status s) { return ct_opt_strerror(static_cast<ct_opt_status_t>(s)); }
-        static void        usage(FILE* out, const char* progname, const Option* defs, int count = -1,
-                                 const char* pos_args = nullptr) {
+        /** @brief Shortname of the option most recently matched by next() (0 for unknown long options). */
+        int optopt() const noexcept { return d.optopt; }
+
+        /** @brief Index of the next argv element to be processed. */
+        int optind() const noexcept { return d.optind; }
+
+        /** @brief Byte offset within the current short-option cluster. */
+        int subind() const noexcept { return d.subind; }
+
+        /** @brief Whether argv permutation is enabled. */
+        bool permute() const noexcept { return d.permute != 0; }
+
+        /** @brief Enable or disable argv permutation; set before parsing. */
+        void set_permute(bool v) noexcept { d.permute = v ? 1 : 0; }
+
+        /** @brief Human-readable message for an error code. */
+        static const char* strerror(Error s) noexcept { return ct_opt_strerror(static_cast<ct_opt_error_t>(s)); }
+
+        /** @brief Print a "Usage: ..." line to out. */
+        static void usage(FILE* out, const char* progname, const Option* defs, int count = -1,
+                          const char* pos_args = nullptr) {
             ct_opt_usage(out, progname, static_cast<const ct_opt_def_t*>(defs), count, pos_args);
         }
+
+        /** @brief Print a formatted option list to out. */
         static void help(FILE* out, const Option* defs, int count = -1, const HelpConfig* cfg = nullptr) {
             ct_opt_help(out, static_cast<const ct_opt_def_t*>(defs), count, cfg);
         }
