@@ -28,7 +28,7 @@ private:
 
 std::vector<std::string> unconsumed_args(ct_opt_t* o) {
     std::vector<std::string> v;
-    for (char* a = ct_opt_shift(o); a != nullptr; a = ct_opt_shift(o)) { v.push_back(a); }
+    for (char* a = ct_opt_arg(o); a != nullptr; a = ct_opt_arg(o)) { v.push_back(a); }
     return v;
 }
 
@@ -41,10 +41,13 @@ const ct_opt_def_t kShortDefs[] = {
 
 /** Standard definition table used by most long-option tests. */
 const ct_opt_def_t kDefs[] = {
-    {"amend", 'a', CT_OPT_NONE, NULL, NULL},     {"brief", 'b', CT_OPT_NONE, NULL, NULL},
-    {"color", 'c', CT_OPT_OPTIONAL, NULL, NULL}, {"delay", 'd', CT_OPT_REQUIRED, NULL, NULL},
-    {"erase", 'e', CT_OPT_NONE, NULL, NULL},     {"file", 'f', CT_OPT_REQUIRED, NULL, NULL},
-    {nullptr, 0, CT_OPT_NONE, NULL, NULL},
+    {"amend", 'a', CT_OPT_NONE, NULL, NULL},
+    {"brief", 'b', CT_OPT_NONE, NULL, NULL},
+    {"color", 'c', CT_OPT_OPTIONAL, NULL, NULL},
+    {"delay", 'd', CT_OPT_REQUIRED, NULL, NULL},
+    {"erase", 'e', CT_OPT_NONE, NULL, NULL},
+    {"file", 'f', CT_OPT_REQUIRED, NULL, NULL},
+    CT_OPT_DEF_NULL,
 };
 
 }  // namespace
@@ -57,45 +60,45 @@ TEST_CASE("short options") {
     SUBCASE("no arguments") {
         Argv av{};
         auto o = av.to_opts();
-        REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_DONE);
+        REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_ERROR_DONE);
     }
 
     SUBCASE("single flag") {
         Argv av{"-a"};
         auto o = av.to_opts();
-        REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_OK);
+        REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_ERROR_NONE);
         REQUIRE(id == 'a');
-        REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_DONE);
+        REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_ERROR_DONE);
     }
 
     SUBCASE("multiple flags") {
         Argv av{"-a", "-b", "-e"};
         auto o = av.to_opts();
-        REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_OK);
+        REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_ERROR_NONE);
         REQUIRE(id == 'a');
-        REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_OK);
+        REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_ERROR_NONE);
         REQUIRE(id == 'b');
-        REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_OK);
+        REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_ERROR_NONE);
         REQUIRE(id == 'e');
-        REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_DONE);
+        REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_ERROR_DONE);
     }
 
     SUBCASE("combined cluster -abe") {
         Argv av{"-abe"};
         auto o = av.to_opts();
-        REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_OK);
+        REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_ERROR_NONE);
         REQUIRE(id == 'a');
-        REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_OK);
+        REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_ERROR_NONE);
         REQUIRE(id == 'b');
-        REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_OK);
+        REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_ERROR_NONE);
         REQUIRE(id == 'e');
-        REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_DONE);
+        REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_ERROR_DONE);
     }
 
     SUBCASE("required argument — separate token") {
         Argv av{"-c", "red"};
         auto o = av.to_opts();
-        REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_OK);
+        REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_ERROR_NONE);
         REQUIRE(id == 'c');
         REQUIRE(o.optarg != nullptr);
         REQUIRE(std::string(o.optarg) == "red");
@@ -104,7 +107,7 @@ TEST_CASE("short options") {
     SUBCASE("required argument — inline (no space)") {
         Argv av{"-cred"};
         auto o = av.to_opts();
-        REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_OK);
+        REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_ERROR_NONE);
         REQUIRE(id == 'c');
         REQUIRE(std::string(o.optarg) == "red");
     }
@@ -118,11 +121,11 @@ TEST_CASE("short options") {
             {nullptr, 'e', CT_OPT_REQUIRED, NULL, NULL},
             CT_OPT_DEF_NULL,
         };
-        REQUIRE(ct_opt_next(&o, defs, &id) == CT_OPT_OK);
+        REQUIRE(ct_opt_next(&o, defs, &id) == CT_OPT_ERROR_NONE);
         REQUIRE(id == 'a');
-        REQUIRE(ct_opt_next(&o, defs, &id) == CT_OPT_OK);
+        REQUIRE(ct_opt_next(&o, defs, &id) == CT_OPT_ERROR_NONE);
         REQUIRE(id == 'b');
-        REQUIRE(ct_opt_next(&o, defs, &id) == CT_OPT_OK);
+        REQUIRE(ct_opt_next(&o, defs, &id) == CT_OPT_ERROR_NONE);
         REQUIRE(id == 'e');
         REQUIRE(std::string(o.optarg) == "blue");
     }
@@ -130,7 +133,7 @@ TEST_CASE("short options") {
     SUBCASE("optional argument — present inline") {
         Argv av{"-d10"};
         auto o = av.to_opts();
-        REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_OK);
+        REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_ERROR_NONE);
         REQUIRE(id == 'd');
         REQUIRE(o.optarg != nullptr);
         REQUIRE(std::string(o.optarg) == "10");
@@ -139,7 +142,7 @@ TEST_CASE("short options") {
     SUBCASE("optional argument — absent") {
         Argv av{"-d", "10"};
         auto o = av.to_opts();
-        REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_OK);
+        REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_ERROR_NONE);
         REQUIRE(id == 'd');
         REQUIRE(o.optarg == nullptr);
         /* "10" becomes a positional argument */
@@ -151,24 +154,24 @@ TEST_CASE("short options") {
     SUBCASE("unknown option returns ERR_UNKNOWN") {
         Argv av{"-z"};
         auto o = av.to_opts();
-        REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_ERR_INVALID);
+        REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_ERROR_INVALID);
         REQUIRE(o.optopt == 'z');
     }
 
     SUBCASE("invalid option in cluster discards the rest") {
         Argv av{"-azb"};
         auto o = av.to_opts();
-        REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_OK);
+        REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_ERROR_NONE);
         REQUIRE(id == 'a');
-        REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_ERR_INVALID);
+        REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_ERROR_INVALID);
         REQUIRE(o.optopt == 'z');
-        REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_DONE);
+        REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_ERROR_DONE);
     }
 
     SUBCASE("missing required argument returns ERR_MISSING") {
         Argv av{"-c"};
         auto o = av.to_opts();
-        REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_ERR_MISSING);
+        REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_ERROR_MISSING);
         REQUIRE(o.optopt == 'c');
     }
 
@@ -176,7 +179,7 @@ TEST_CASE("short options") {
         Argv av{"-eeeeee"};
         auto o     = av.to_opts();
         int  count = 0;
-        while (ct_opt_next(&o, kShortDefs, &id) == CT_OPT_OK) {
+        while (ct_opt_next(&o, kShortDefs, &id) == CT_OPT_ERROR_NONE) {
             REQUIRE(id == 'e');
             ++count;
         }
@@ -190,24 +193,24 @@ TEST_CASE("long options") {
     SUBCASE("single flag --amend") {
         Argv av{"--amend"};
         auto o = av.to_opts();
-        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_OK);
+        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_ERROR_NONE);
         REQUIRE(id == 'a');
     }
 
     SUBCASE("multiple flags") {
         Argv av{"--amend", "--brief"};
         auto o = av.to_opts();
-        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_OK);
+        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_ERROR_NONE);
         REQUIRE(id == 'a');
-        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_OK);
+        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_ERROR_NONE);
         REQUIRE(id == 'b');
-        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_DONE);
+        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_ERROR_DONE);
     }
 
     SUBCASE("required argument — separate token") {
         Argv av{"--delay", "500"};
         auto o = av.to_opts();
-        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_OK);
+        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_ERROR_NONE);
         REQUIRE(id == 'd');
         REQUIRE(std::string(o.optarg) == "500");
     }
@@ -215,7 +218,7 @@ TEST_CASE("long options") {
     SUBCASE("required argument — inline with '='") {
         Argv av{"--color=red"};
         auto o = av.to_opts();
-        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_OK);
+        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_ERROR_NONE);
         REQUIRE(id == 'c');
         REQUIRE(std::string(o.optarg) == "red");
     }
@@ -223,7 +226,7 @@ TEST_CASE("long options") {
     SUBCASE("optional argument — present inline") {
         Argv av{"--color=blue"};
         auto o = av.to_opts();
-        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_OK);
+        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_ERROR_NONE);
         REQUIRE(id == 'c');
         REQUIRE(std::string(o.optarg) == "blue");
     }
@@ -231,7 +234,7 @@ TEST_CASE("long options") {
     SUBCASE("optional argument — absent") {
         Argv av{"--color"};
         auto o = av.to_opts();
-        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_OK);
+        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_ERROR_NONE);
         REQUIRE(id == 'c');
         REQUIRE(o.optarg == nullptr);
     }
@@ -239,21 +242,21 @@ TEST_CASE("long options") {
     SUBCASE("required argument missing returns ERR_MISSING") {
         Argv av{"--delay"};
         auto o = av.to_opts();
-        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_ERR_MISSING);
+        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_ERROR_MISSING);
         REQUIRE(o.optopt == 'd');
     }
 
     SUBCASE("unknown option returns ERR_UNKNOWN") {
         Argv av{"--foo"};
         auto o = av.to_opts();
-        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_ERR_INVALID);
+        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_ERROR_INVALID);
         REQUIRE(o.optopt == 0);  // Unknown long opts set optopt to 0
     }
 
     SUBCASE("TOOMANY when flag given an argument") {
         Argv av{"--amend=yes"};
         auto o = av.to_opts();
-        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_ERR_TOOMANY);
+        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_ERROR_TOOMANY);
         REQUIRE(o.optopt == 'a');
     }
 
@@ -265,10 +268,10 @@ TEST_CASE("long options") {
         };
         Argv av{"--verbose", "--output", "file.txt"};
         auto o = av.to_opts();
-        REQUIRE(ct_opt_next(&o, lo, &id) == CT_OPT_OK);
+        REQUIRE(ct_opt_next(&o, lo, &id) == CT_OPT_ERROR_NONE);
         REQUIRE(id == 256);
 
-        REQUIRE(ct_opt_next(&o, lo, &id) == CT_OPT_OK);
+        REQUIRE(ct_opt_next(&o, lo, &id) == CT_OPT_ERROR_NONE);
         REQUIRE(id == 257);
         REQUIRE(std::string(o.optarg) == "file.txt");
     }
@@ -279,7 +282,7 @@ TEST_CASE("long options") {
         bool        amend = false, brief = false;
         std::string color;
         int         delay = 0;
-        while (ct_opt_next(&o, kDefs, &id) == CT_OPT_OK) {
+        while (ct_opt_next(&o, kDefs, &id) == CT_OPT_ERROR_NONE) {
             switch (id) {
                 case 'a': amend = true; break;
                 case 'b': brief = true; break;
@@ -301,9 +304,9 @@ TEST_CASE("permute options") {
     SUBCASE("non-option before option") {
         Argv av{"foo", "--amend", "bar"};
         auto o = av.to_opts();
-        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_OK);
+        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_ERROR_NONE);
         REQUIRE(id == 'a');
-        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_DONE);
+        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_ERROR_DONE);
         auto args     = unconsumed_args(&o);
         auto expected = std::vector<std::string>{"foo", "bar"};
         REQUIRE(args == expected);
@@ -314,7 +317,7 @@ TEST_CASE("permute options") {
         auto        o = av.to_opts();
         std::string color;
         int         delay = 0;
-        while (ct_opt_next(&o, kDefs, &id) == CT_OPT_OK) {
+        while (ct_opt_next(&o, kDefs, &id) == CT_OPT_ERROR_NONE) {
             switch (id) {
                 case 'c': color = o.optarg ? o.optarg : ""; break;
                 case 'd': delay = std::atoi(o.optarg); break;
@@ -330,7 +333,7 @@ TEST_CASE("permute options") {
     SUBCASE("all positionals, no options") {
         Argv av{"foo", "bar", "baz"};
         auto o = av.to_opts();
-        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_DONE);
+        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_ERROR_DONE);
         auto args     = unconsumed_args(&o);
         auto expected = std::vector<std::string>{"foo", "bar", "baz"};
         REQUIRE(args == expected);
@@ -342,9 +345,9 @@ TEST_CASE("posix: stop at first non-option") {
     auto o    = av.to_opts();
     o.permute = 0;
     int id;
-    REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_OK);
+    REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_ERROR_NONE);
     REQUIRE(id == 'a');
-    REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_DONE);
+    REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_ERROR_DONE);
     auto args = unconsumed_args(&o);
     REQUIRE(args.size() >= 1);
     REQUIRE(args[0] == "stop");
@@ -367,23 +370,50 @@ TEST_CASE("arg options") {
         Argv av{"-a", "subcmd", "-b"};
         auto o    = av.to_opts();
         o.permute = 0;
-        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_OK);
+        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_ERROR_NONE);
         REQUIRE(id == 'a');
-        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_DONE);
+        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_ERROR_DONE);
 
-        char* subcmd = ct_opt_shift(&o);
+        char* subcmd = ct_opt_arg(&o);
         REQUIRE(subcmd != nullptr);
         REQUIRE(std::string(subcmd) == "subcmd");
 
-        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_OK);
+        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_ERROR_NONE);
         REQUIRE(id == 'b');
-        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_DONE);
+        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_ERROR_DONE);
     }
 
     SUBCASE("returns NULL when exhausted") {
         Argv av{};
         auto o = av.to_opts();
-        REQUIRE(ct_opt_shift(&o) == nullptr);
+        REQUIRE(ct_opt_narg(&o) == 0);
+        REQUIRE(ct_opt_arg(&o) == nullptr);
+    }
+
+    SUBCASE("narg counts remaining positionals after parsing") {
+        Argv av{"-a", "foo", "bar", "baz"};
+        auto o = av.to_opts();
+        ct_opt_next(&o, kDefs, &id); /* consume -a */
+        ct_opt_next(&o, kDefs, &id); /* returns DONE */
+        REQUIRE(ct_opt_narg(&o) == 3);
+
+        ct_opt_arg(&o);
+        REQUIRE(ct_opt_narg(&o) == 2);
+        ct_opt_arg(&o);
+        ct_opt_arg(&o);
+        REQUIRE(ct_opt_narg(&o) == 0);
+        REQUIRE(ct_opt_arg(&o) == nullptr);
+    }
+
+    SUBCASE("narg before DONE may count unpermuted options") {
+        Argv av{"foo", "-a", "bar"};
+        auto o = av.to_opts();
+        REQUIRE(ct_opt_narg(&o) == 3); /* includes the unpermuted -a */
+
+        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_ERROR_NONE);
+        REQUIRE(id == 'a');
+        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_ERROR_DONE);
+        REQUIRE(ct_opt_narg(&o) == 2); /* foo, bar */
     }
 }
 
@@ -393,7 +423,7 @@ TEST_CASE("edge options") {
     SUBCASE("double-dash '--' terminates option parsing") {
         Argv av{"--", "foobar"};
         auto o = av.to_opts();
-        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_DONE);
+        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_ERROR_DONE);
         auto args     = unconsumed_args(&o);
         auto expected = std::vector<std::string>{"foobar"};
         REQUIRE(args == expected);
@@ -402,7 +432,7 @@ TEST_CASE("edge options") {
     SUBCASE("single dash '-' is treated as positional") {
         Argv av{"-"};
         auto o = av.to_opts();
-        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_DONE);
+        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_ERROR_DONE);
         auto args     = unconsumed_args(&o);
         auto expected = std::vector<std::string>{"-"};
         REQUIRE(args == expected);
@@ -411,32 +441,32 @@ TEST_CASE("edge options") {
     SUBCASE("re-initialise resets state") {
         Argv av{"-a", "-b"};
         auto o = av.to_opts();
-        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_OK);
+        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_ERROR_NONE);
         REQUIRE(id == 'a');
         ct_opt_init(&o, av.data());
-        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_OK);
+        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_ERROR_NONE);
         REQUIRE(id == 'a');
-        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_OK);
+        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_ERROR_NONE);
         REQUIRE(id == 'b');
-        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_DONE);
+        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_ERROR_DONE);
     }
 
     SUBCASE("id pointer nullptr does not crash") {
         Argv av{"--amend"};
         auto o = av.to_opts();
-        REQUIRE(ct_opt_next(&o, kDefs, nullptr) == CT_OPT_OK);
+        REQUIRE(ct_opt_next(&o, kDefs, nullptr) == CT_OPT_ERROR_NONE);
         REQUIRE(o.optopt == 'a');  // State still records it
     }
 }
 
 struct Config {
-    bool            amend = false;
-    bool            brief = false;
-    std::string     color;
-    bool            set_color = false;
-    int             delay     = 0;
-    int             erase     = 0;
-    ct_opt_status_t err       = CT_OPT_OK;
+    bool           amend = false;
+    bool           brief = false;
+    std::string    color;
+    bool           set_color = false;
+    int            delay     = 0;
+    int            erase     = 0;
+    ct_opt_error_t err       = CT_OPT_ERROR_NONE;
 };
 
 static Config run_long(char** argv_raw, const ct_opt_def_t* lo = kDefs) {
@@ -444,9 +474,9 @@ static Config run_long(char** argv_raw, const ct_opt_def_t* lo = kDefs) {
     ct_opt_t o;
     ct_opt_init(&o, argv_raw);
 
-    int             id;
-    ct_opt_status_t st;
-    while ((st = ct_opt_next(&o, lo, &id)) == CT_OPT_OK) {
+    int            id;
+    ct_opt_error_t st;
+    while ((st = ct_opt_next(&o, lo, &id)) == CT_OPT_ERROR_NONE) {
         switch (id) {
             case 'a': cfg.amend = true; break;
             case 'b': cfg.brief = true; break;
@@ -458,7 +488,7 @@ static Config run_long(char** argv_raw, const ct_opt_def_t* lo = kDefs) {
             case 'e': cfg.erase++; break;
         }
     }
-    if (st != CT_OPT_DONE) cfg.err = st;
+    if (st != CT_OPT_ERROR_DONE) cfg.err = st;
     return cfg;
 }
 
@@ -469,7 +499,7 @@ TEST_CASE("regression options") {
         Argv av{"--", "foobar"};
         auto cfg = run_long(av.data());
         auto o   = av.to_opts();
-        while (ct_opt_next(&o, kDefs, &id) == CT_OPT_OK) {}
+        while (ct_opt_next(&o, kDefs, &id) == CT_OPT_ERROR_NONE) {}
         auto args = unconsumed_args(&o);
         REQUIRE_FALSE(cfg.amend);
         REQUIRE_FALSE(cfg.brief);
@@ -486,7 +516,7 @@ TEST_CASE("regression options") {
         REQUIRE(cfg.color.empty());
         REQUIRE(cfg.delay == 10);
         REQUIRE(cfg.erase == 1);
-        REQUIRE(cfg.err == CT_OPT_OK);
+        REQUIRE(cfg.err == CT_OPT_ERROR_NONE);
     }
 
     SUBCASE("--amend --brief --color --delay 10 --erase") {
@@ -519,26 +549,26 @@ TEST_CASE("regression options") {
     SUBCASE("--delay (missing arg) gives MISSING error") {
         Argv av{"--delay"};
         auto cfg = run_long(av.data());
-        REQUIRE(cfg.err == CT_OPT_ERR_MISSING);
+        REQUIRE(cfg.err == CT_OPT_ERROR_MISSING);
     }
 
     SUBCASE("--foo bar leaves foo and bar as positionals") {
         Argv av{"--foo", "bar"};
         auto cfg = run_long(av.data());
-        REQUIRE(cfg.err == CT_OPT_ERR_INVALID);
+        REQUIRE(cfg.err == CT_OPT_ERROR_INVALID);
     }
 
     SUBCASE("-x leaves -x as positional") {
         Argv av{"-x"};
         auto cfg = run_long(av.data());
-        REQUIRE(cfg.err == CT_OPT_ERR_INVALID);
+        REQUIRE(cfg.err == CT_OPT_ERROR_INVALID);
     }
 
     SUBCASE("- is positional") {
         Argv     av{"-"};
         ct_opt_t o;
         ct_opt_init(&o, av.data());
-        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_DONE);
+        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_ERROR_DONE);
         auto args     = unconsumed_args(&o);
         auto expected = std::vector<std::string>{"-"};
         REQUIRE(args == expected);
@@ -549,7 +579,7 @@ TEST_CASE("regression options") {
         ct_opt_t o;
         ct_opt_init(&o, av.data());
         Config cfg;
-        while (ct_opt_next(&o, kDefs, &id) == CT_OPT_OK) {
+        while (ct_opt_next(&o, kDefs, &id) == CT_OPT_ERROR_NONE) {
             switch (id) {
                 case 'a': cfg.amend = true; break;
                 case 'e': cfg.erase++; break;
