@@ -24,7 +24,7 @@
 #include <io.h>  // _isatty
 #endif
 
-#include "coter/fmt/format.hpp"
+#include "coter/fmt/format.h"
 
 #if FMT_USE_LOCALE && !defined(FMT_MODULE)
 #include <locale>

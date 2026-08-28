@@ -148,7 +148,7 @@ CT_API void ct_log_submit_payload(ct_logger_t* logger, int level, const char* fi
 
 #if defined(__cplusplus) && CT_CPLUSPLUS >= CT_CXX_11
 
-#include "coter/fmt/format.hpp"
+#include "coter/fmt/format.h"
 
 namespace coter {
 namespace log {
