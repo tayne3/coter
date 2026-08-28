@@ -13,7 +13,7 @@ extern "C" {
  * Manages a fixed-size byte buffer with read/write position tracking.
  * Supports endianness conversion and high-low word swap for multi-byte values.
  */
-typedef struct ct_seg {
+typedef struct ct_bytes {
     uint8_t* data;          ///< Base address of buffer
     uint32_t cap;           ///< Total capacity in data
     uint32_t len;           ///< Valid data length [0, cap]
