@@ -16,13 +16,11 @@ A lightweight, modular C foundation library. Each module is self-contained, has 
 | **thread**    | Thread create/join, thread pool, job pool, TLS, `once`                                  |
 | **container** | Array, vector, list, stack, queue, priority queue, heap                                 |
 | **bytes**     | Byte buffer, ring buffer, segmented buffer, buffer builder                              |
-| **log**       | Async logger — console / rotating-file / custom handler, producer-consumer architecture |
 | **time**      | Timer, ticker, cron scheduler, datetime formatting                                      |
 | **ini**       | INI config file parser and serializer                                                   |
 | **opt**       | Command-line argument parser                                                            |
-| **encoding**  | Base64, hex, BCD, binary, JSON (bundled nlohmann/json)                                  |
+| **encoding**  | Base64, hex, BCD, binary                                                                |
 | **crypto**    | MD5, SHA-1, generic hash interface                                                      |
-| **fmt**       | C++ format support (bundled fmtlib)                                                     |
 
 ## Integration
 
@@ -51,7 +49,7 @@ cmake --build build
 To run tests:
 
 ```sh
-cmake -B build -DCOTER_BUILD_TEST=ON
+cmake -B build -DCOTER_BUILD_TESTS=ON
 cmake --build build
 ctest --test-dir build --output-on-failure
 ```

@@ -16,13 +16,11 @@
 | **thread**    | 线程创建与等待、线程池、任务池、TLS、`once`                                  |
 | **container** | array、vector、list、stack、queue、优先队列、heap                            |
 | **bytes**     | 字节缓冲、环形缓冲、分段缓冲、缓冲构建器                                     |
-| **log**       | 异步日志器——控制台 / 滚动文件 / 自定义 handler，生产者-消费者架构            |
 | **time**      | 定时器、ticker、cron 调度器、日期时间格式化                                  |
 | **ini**       | INI 配置文件解析与序列化                                                     |
 | **opt**       | 命令行参数解析                                                               |
-| **encoding**  | Base64、Hex、BCD、二进制、JSON（内嵌 nlohmann/json）                         |
+| **encoding**  | Base64、Hex、BCD、二进制                                                     |
 | **crypto**    | MD5、SHA-1、通用哈希接口                                                     |
-| **fmt**       | C++ 格式化支持（内嵌 fmtlib）                                                |
 
 ## 集成
 
@@ -51,7 +49,7 @@ cmake --build build
 运行测试：
 
 ```sh
-cmake -B build -DCOTER_BUILD_TEST=ON
+cmake -B build -DCOTER_BUILD_TESTS=ON
 cmake --build build
 ctest --test-dir build --output-on-failure
 ```
