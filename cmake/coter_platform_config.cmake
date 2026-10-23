@@ -10,6 +10,23 @@ include(CheckIncludeFiles)
 include(CheckSymbolExists)
 include(CheckLibraryExists)
 
+find_package(Threads REQUIRED)
+
+get_target_property(_COTER_INTERFACE_DEFS coter_internal_options INTERFACE_COMPILE_DEFINITIONS)
+set(_COTER_SAVED_REQUIRED_DEFINITIONS "${CMAKE_REQUIRED_DEFINITIONS}")
+if(_COTER_INTERFACE_DEFS)
+  foreach(_def IN LISTS _COTER_INTERFACE_DEFS)
+    if(_def MATCHES "^-D")
+      list(APPEND CMAKE_REQUIRED_DEFINITIONS "${_def}")
+    else()
+      list(APPEND CMAKE_REQUIRED_DEFINITIONS "-D${_def}")
+    endif()
+  endforeach()
+endif()
+
+set(_COTER_SAVED_REQUIRED_LIBRARIES "${CMAKE_REQUIRED_LIBRARIES}")
+set(CMAKE_REQUIRED_LIBRARIES Threads::Threads)
+
 check_include_files("inttypes.h" HAVE_INTTYPES_H)
 check_include_files("stdbool.h" HAVE_STDBOOL_H)
 check_include_files("sys/types.h" HAVE_SYS_TYPES_H)
@@ -29,3 +46,8 @@ if(UNIX AND NOT APPLE)
     endif()
   endif()
 endif()
+
+set(CMAKE_REQUIRED_LIBRARIES "${_COTER_SAVED_REQUIRED_LIBRARIES}")
+set(CMAKE_REQUIRED_DEFINITIONS "${_COTER_SAVED_REQUIRED_DEFINITIONS}")
+
+target_link_libraries(coter_internal_options INTERFACE Threads::Threads)

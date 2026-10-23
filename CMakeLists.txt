@@ -20,6 +20,7 @@ message(STATUS "coter v${PROJECT_VERSION} ${COTER_LIB_TYPE} library")
 add_library(coter ${COTER_LIB_TYPE})
 add_library(coter::coter ALIAS coter)
 target_link_libraries(coter PRIVATE coter_internal_options)
+target_link_libraries(coter PUBLIC Threads::Threads)
 
 if(COTER_BUILD_TESTS)
   enable_testing()
