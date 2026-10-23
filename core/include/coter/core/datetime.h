@@ -2,8 +2,8 @@
  * @file datetime.h
  * @brief 日期时间
  */
-#ifndef COTER_TIME_DATETIME_H
-#define COTER_TIME_DATETIME_H
+#ifndef COTER_CORE_DATETIME_H
+#define COTER_CORE_DATETIME_H
 
 #include "coter/core/time.h"
 
@@ -61,7 +61,7 @@ CT_API ct_datetime_t ct_datetime_localtime(ct_time_t seconds);
  * @return ct_time_t 转换后的 UNIX 时间戳
  *
  * @code
- * const ct_datetime_t dt = {2023, 12, 31, 23, 59, 59, 0};
+ * const ct_datetime_t dt = {2023, 12, 31, 0, 23, 59, 59, 0};
  * const ct_time_t timestamp = ct_datetime_mktime(&dt);
  * printf("timestamp: %ld\n", timestamp);
  * @endcode
@@ -99,15 +99,16 @@ CT_API ct_datetime_t* ct_datetime_past(ct_datetime_t* dt, int days);
 CT_API ct_datetime_t* ct_datetime_future(ct_datetime_t* dt, int days);
 
 #define CT_TIME_FMT        "%02d:%02d:%02d"
-#define CT_TIME_FMT_BUFLEN 12
+// INT_MAX seconds formats as "596523:14:07" (12 chars) plus the terminating NUL.
+#define CT_TIME_FMT_BUFLEN 13
 /**
  * @brief 格式化持续时间
  *
  * 将给定的秒数格式化为小时:分钟:秒的字符串形式。
  *
- * @param sec 持续时间(秒)
+ * @param sec 持续时间(秒), 必须为非负数
  * @param buf 用于存储格式化结果的字符缓冲区
- * @return char* 指向格式化后字符串的指针(与 buf 相同)
+ * @return char* 指向格式化后字符串的指针(与 buf 相同); sec < 0 或 buf 为 NULL 时返回 NULL
  *
  * @code
  * char buf[CT_TIME_FMT_BUFLEN];
@@ -128,7 +129,7 @@ CT_API char* ct_datetime_duration_fmt(int sec, char* buf);
  *
  * @param dt 指向日期时间结构体的指针
  * @param buf 用于存储格式化结果的字符缓冲区
- * @return char* 指向格式化后字符串的指针(与 buf 相同)
+ * @return char* 指向格式化后字符串的指针(与 buf 相同); dt 或 buf 为 NULL 时返回 NULL
  *
  * @code
  * const ct_datetime_t dt = ct_datetime_now();
@@ -146,7 +147,7 @@ CT_API char* ct_datetime_fmt(const ct_datetime_t* dt, char* buf);
  *
  * @param dt 指向日期时间结构体的指针
  * @param buf 用于存储格式化结果的字符缓冲区
- * @return char* 指向格式化后字符串的指针(与 buf 相同)
+ * @return char* 指向格式化后字符串的指针(与 buf 相同); dt 或 buf 为 NULL 时返回 NULL
  *
  * @code
  * ct_datetime_t dt = ct_datetime_now();
@@ -166,7 +167,7 @@ CT_API char* ct_datetime_fmt_iso(const ct_datetime_t* dt, char* buf);
  *
  * @param t UNIX 时间戳
  * @param buf 用于存储格式化结果的字符缓冲区
- * @return char* 指向格式化后字符串的指针(与 buf 相同)
+ * @return char* 指向格式化后字符串的指针(与 buf 相同); buf 为 NULL 时返回 NULL
  *
  * @code
  * const ct_time_t now = ct_time(NULL);
@@ -196,7 +197,8 @@ CT_API int ct_datetime_days_of_month(int month, int year);
 /**
  * @brief 将月份名称转换为数字
  *
- * 将月份的英文名称(全名或缩写)转换为对应的数字(1-12)。
+ * 将月份的英文名称转换为对应的数字(1-12)。
+ * 仅接受完整名称或三字母缩写（大小写不敏感），空字符串和歧义前缀（如 "Ma"）视为失败。
  *
  * @param month 月份的英文名称
  * @return int 月份对应的数字(1-12), 如果转换失败返回 0
@@ -226,7 +228,8 @@ CT_API const char* ct_datetime_month_itoa(int month);
 /**
  * @brief 将星期名称转换为数字
  *
- * 将星期的英文名称(全名或缩写)转换为对应的数字(0-6, 0 表示星期日)。
+ * 将星期的英文名称转换为对应的数字(0-6, 0 表示星期日)。
+ * 仅接受完整名称或三字母缩写（大小写不敏感），空字符串和歧义前缀视为失败。
  *
  * @param weekday 星期的英文名称
  * @return int 星期对应的数字(0-6), 如果转换失败返回 -1
@@ -256,9 +259,12 @@ CT_API const char* ct_datetime_weekday_itoa(int weekday);
 /**
  * @brief 获取库的编译时间
  *
- * 返回一个表示库编译时间的日期时间结构体。
+ * 解析编译器的 __DATE__ / __TIME__ 字符串并返回日期时间。
+ * 解析失败或参数为 NULL 时返回全零结构体；成功时 ms 为 0，wday 根据日期计算。
  *
- * @return ct_datetime_t 库的编译时间
+ * @param date_str 日期字符串，格式为 "Mmm DD YYYY"
+ * @param time_str 时间字符串，格式为 "HH:MM:SS"
+ * @return ct_datetime_t 解析后的日期时间；失败时所有字段为 0
  *
  * @code
  * ct_datetime_t time_compile = ct_datetime_compile();
@@ -267,27 +273,27 @@ CT_API const char* ct_datetime_weekday_itoa(int weekday);
  * printf("compile time: %s\n", buf);
  * @endcode
  */
-CT_API ct_datetime_t __ct_datetime_compile(const char* _date, const char* _time);
-#define ct_datetime_compile() __ct_datetime_compile(__DATE__, __TIME__)
+CT_API ct_datetime_t ct_datetime_compile_impl(const char* date_str, const char* time_str);
+#define ct_datetime_compile() ct_datetime_compile_impl(__DATE__, __TIME__)
 
 /**
  * @brief 格式化持续时间
  *
  * 将给定的秒数格式化为字符串形式(HH:MM:SS)
  *
- * @param sec 持续时间（秒）
+ * @param sec 持续时间（秒），必须为非负数
  * @param buf 用于存储格式化结果的字符缓冲区
- * @return char* 指向格式化后字符串的指针（与 buf 相同）
+ * @return char* 指向格式化后字符串的指针（与 buf 相同）；sec < 0 或 buf 为 NULL 时返回 NULL
  *
  * @code
- * char buf[CT_TM_FMT_BUFLEN];
+ * char buf[CT_TM_DURATION_MAX];
  * int duration_seconds = 3661; // 1小时1分钟1秒
  * ct_tm_duration_fmt(duration_seconds, buf);
  * printf("duration: %s\n", buf); // 输出：duration: 01:01:01
  * @endcode
  */
 CT_API char* ct_tm_duration_fmt(int sec, char* buf);
-#define CT_TM_DURATION_MAX 12
+#define CT_TM_DURATION_MAX CT_TIME_FMT_BUFLEN
 
 /**
  * @brief 格式化日期时间
@@ -299,16 +305,17 @@ CT_API char* ct_tm_duration_fmt(int sec, char* buf);
  * @return char* 指向格式化后字符串的指针（与 buf 相同）
  *
  * @code
- * const struct tm tm = ct_tm_now();
- * char buf[CT_DATETIME_FMT_BUFLEN];
+ * struct tm tm;
+ * ct_localtime_now(&tm);
+ * char buf[CT_TM_FMT_MAX];
  * ct_tm_fmt(&tm, buf);
  * printf("当前日期时间：%s\n", buf);
  * @endcode
  */
 CT_API char* ct_tm_fmt(const struct tm* tm, char* buf);
-#define CT_TM_FMT_MAX 20
+#define CT_TM_FMT_MAX CT_DATETIME_FMT_BUFLEN
 
 #ifdef __cplusplus
 }
 #endif
-#endif  // COTER_TIME_DATETIME_H
+#endif  // COTER_CORE_DATETIME_H

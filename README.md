@@ -11,12 +11,11 @@ A lightweight, modular C foundation library. Each module is self-contained, has 
 
 | Module        | Description                                                                             |
 | ------------- | --------------------------------------------------------------------------------------- |
-| **core**      | Platform macros, strings, filesystem, time primitives, `expected`/`optional`            |
+| **core**      | Platform macros, strings, filesystem, time primitives, datetime conversion/formatting   |
 | **sync**      | Mutex, cond, rwlock, semaphore, atomic, event, waitgroup, message queue, pub/sub        |
 | **thread**    | Thread create/join, thread pool, job pool, TLS, `once`                                  |
 | **container** | Array, vector, list, stack, queue, priority queue, heap                                 |
 | **bytes**     | Byte buffer, ring buffer, segmented buffer, buffer builder                              |
-| **time**      | Timer, ticker, cron scheduler, datetime formatting                                      |
 | **ini**       | INI config file parser and serializer                                                   |
 | **opt**       | Command-line argument parser                                                            |
 | **encoding**  | Base64, hex, BCD, binary                                                                |
