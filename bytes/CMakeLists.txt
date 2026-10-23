@@ -16,7 +16,6 @@ target_link_libraries(coter_bytes
     coter::core
     coter::container
     coter::encoding
-    coter::sync
 )
 if(BUILD_SHARED_LIBS)
   target_compile_definitions(coter_bytes

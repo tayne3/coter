@@ -14,7 +14,6 @@ target_link_libraries(coter_container
     coter_internal_options
   PUBLIC
     coter::core
-    coter::crypto
 )
 if(BUILD_SHARED_LIBS)
   target_compile_definitions(coter_container
