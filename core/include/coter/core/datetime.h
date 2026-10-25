@@ -1,9 +1,8 @@
-/**
- * @file datetime.h
- * @brief 日期时间
- */
 #ifndef COTER_CORE_DATETIME_H
 #define COTER_CORE_DATETIME_H
+
+#include <stdbool.h>
+#include <stddef.h>
 
 #include "coter/core/time.h"
 
@@ -12,308 +11,113 @@ extern "C" {
 #endif
 
 /**
- * @brief 日期时间结构体
+ * @brief Date and time structure
  */
 typedef struct ct_datetime {
-    int year;   ///< 年份
-    int month;  ///< 月份 (1-12)
-    int day;    ///< 日期 (1-31)
-    int wday;   ///< 星期几 (0-6, 0 表示星期日)
-    int hour;   ///< 小时 (0-23)
-    int min;    ///< 分钟 (0-59)
-    int sec;    ///< 秒 (0-59)
-    int ms;     ///< 毫秒 (0-999)
+    int year;   // Year (1-9999)
+    int month;  // Month (1-12)
+    int day;    // Day (1-31)
+    int hour;   // Hour (0-23)
+    int min;    // Minute (0-59)
+    int sec;    // Second (0-59)
+    int ms;     // Millisecond (0-999)
 } ct_datetime_t;
 
 /**
- * @brief 获取当前日期时间
- *
- * @return ct_datetime_t 当前日期时间
+ * @brief Get current local date and time
  *
  * @code
  * const ct_datetime_t now = ct_datetime_now();
- * printf("current datetime: %04d-%02d-%02d %02d:%02d:%02d.%03d\n",
+ * printf("now: %04d-%02d-%02d %02d:%02d:%02d.%03d\n",
  *        now.year, now.month, now.day, now.hour, now.min, now.sec, now.ms);
  * @endcode
  */
 CT_API ct_datetime_t ct_datetime_now(void);
 
 /**
- * @brief 将时间戳转换为本地日期时间
+ * @brief Convert UNIX epoch seconds to local date and time
  *
- * @param seconds UNIX 时间戳 (从1970年1月1日UTC开始的秒数)
- * @return ct_datetime_t 转换后的本地日期时间
+ * @param seconds UNIX timestamp in seconds
+ * @return ct_datetime_t Converted local datetime, or all zeros on failure
  *
  * @code
- * const ct_time_t timestamp = ct_time(NULL);
- * const ct_datetime_t local_time = ct_datetime_localtime(timestamp);
- * printf("local datetime: %04d-%02d-%02d %02d:%02d:%02d\n",
- *        local_time.year, local_time.month, local_time.day,
- *        local_time.hour, local_time.min, local_time.sec);
+ * const ct_datetime_t dt = ct_datetime_localtime(ct_unixtime_sec());
  * @endcode
  */
 CT_API ct_datetime_t ct_datetime_localtime(ct_time_t seconds);
 
 /**
- * @brief 将日期时间结构体转换为时间戳
+ * @brief Convert date and time structure to UNIX timestamp
  *
- * @param dt 指向日期时间结构体的指针
- * @return ct_time_t 转换后的 UNIX 时间戳
+ * @param dt Pointer to datetime structure
+ * @return ct_time_t UNIX timestamp in seconds, or (ct_time_t)-1 on failure
  *
  * @code
- * const ct_datetime_t dt = {2023, 12, 31, 0, 23, 59, 59, 0};
- * const ct_time_t timestamp = ct_datetime_mktime(&dt);
- * printf("timestamp: %ld\n", timestamp);
+ * const ct_datetime_t dt = {2026, 1, 1, 12, 0, 0, 0};
+ * ct_time_t timestamp = ct_datetime_mktime(&dt);
  * @endcode
  */
 CT_API ct_time_t ct_datetime_mktime(const ct_datetime_t* dt);
 
 /**
- * @brief 计算过去的日期
+ * @brief Adjust date by a given number of days (forward or backward)
  *
- * @param dt 指向日期时间结构体的指针
- * @param days 要向前推算的天数
- * @return ct_datetime_t* 指向修改后的日期时间结构体的指针
- *
- * @code
- * ct_datetime_t dt = ct_datetime_now();
- * ct_datetime_past(&dt, 7);
- * printf("一周前：%04d-%02d-%02d\n", dt.year, dt.month, dt.day);
- * @endcode
- */
-CT_API ct_datetime_t* ct_datetime_past(ct_datetime_t* dt, int days);
-
-/**
- * @brief 计算未来的日期
- *
- * @param dt 指向日期时间结构体的指针
- * @param days 要向后推算的天数
- * @return ct_datetime_t* 指向修改后的日期时间结构体的指针
+ * @param dt Pointer to datetime structure
+ * @param days Days to adjust (positive for future, negative for past)
+ * @return bool true on success, false if invalid or year out of range [1, 9999]
  *
  * @code
  * ct_datetime_t dt = ct_datetime_now();
- * ct_datetime_future(&dt, 30);
- * printf("30天后：%04d-%02d-%02d\n", dt.year, dt.month, dt.day);
+ * ct_datetime_add_days(&dt, 7);   // 7 days later
+ * ct_datetime_add_days(&dt, -30); // 30 days ago
  * @endcode
  */
-CT_API ct_datetime_t* ct_datetime_future(ct_datetime_t* dt, int days);
+CT_API bool ct_datetime_add_days(ct_datetime_t* dt, int days);
 
-#define CT_TIME_FMT        "%02d:%02d:%02d"
-// INT_MAX seconds formats as "596523:14:07" (12 chars) plus the terminating NUL.
-#define CT_TIME_FMT_BUFLEN 13
 /**
- * @brief 格式化持续时间
- *
- * 将给定的秒数格式化为小时:分钟:秒的字符串形式。
- *
- * @param sec 持续时间(秒), 必须为非负数
- * @param buf 用于存储格式化结果的字符缓冲区
- * @return char* 指向格式化后字符串的指针(与 buf 相同); sec < 0 或 buf 为 NULL 时返回 NULL
+ * @brief Get number of days in a given month and year (leap-year aware)
  *
  * @code
- * char buf[CT_TIME_FMT_BUFLEN];
- * int duration_seconds = 3661; // 1小时1分钟1秒
- * ct_datetime_duration_fmt(duration_seconds, buf);
- * printf("duration: %s\n", buf); // 输出：duration: 01:01:01
+ * int days = ct_datetime_days_in_month(2024, 2); // 29
  * @endcode
  */
-CT_API char* ct_datetime_duration_fmt(int sec, char* buf);
+CT_API int ct_datetime_days_in_month(int year, int month);
 
-#define CT_DATETIME_FMT        "%04d-%02d-%02d %02d:%02d:%02d"
-#define CT_DATETIME_FMT_ISO    "%04d-%02d-%02dT%02d:%02d:%02d.%03dZ"
-#define CT_DATETIME_FMT_BUFLEN 30
+#define CT_DATETIME_FMT_BUFLEN     20  // Recommended buffer length: "YYYY-MM-DD HH:MM:SS" (includes '\0')
+#define CT_DATETIME_FMT_ISO_BUFLEN 24  // Recommended buffer length: "YYYY-MM-DDTHH:MM:SS.sss" (includes '\0')
+#define CT_DURATION_FMT_BUFLEN     13  // Recommended buffer length: "HH:MM:SS" (includes '\0')
+
 /**
- * @brief 格式化日期时间
- *
- * 将日期时间结构体格式化为字符串形式(YYYY-MM-DD HH:MM:SS)。
- *
- * @param dt 指向日期时间结构体的指针
- * @param buf 用于存储格式化结果的字符缓冲区
- * @return char* 指向格式化后字符串的指针(与 buf 相同); dt 或 buf 为 NULL 时返回 NULL
+ * @brief Format datetime as "YYYY-MM-DD HH:MM:SS"
  *
  * @code
- * const ct_datetime_t dt = ct_datetime_now();
  * char buf[CT_DATETIME_FMT_BUFLEN];
- * ct_datetime_fmt(&dt, buf);
- * printf("当前日期时间：%s\n", buf);
+ * const ct_datetime_t now = ct_datetime_now();
+ * ct_datetime_fmt(&now, buf, sizeof(buf));
  * @endcode
  */
-CT_API char* ct_datetime_fmt(const ct_datetime_t* dt, char* buf);
+CT_API char* ct_datetime_fmt(const ct_datetime_t* dt, char* buf, size_t size);
 
 /**
- * @brief 格式化ISO日期时间
- *
- * 将日期时间结构体格式化为ISO 8601格式(YYYY-MM-DDTHH:MM:SS.SSSZ)。
- *
- * @param dt 指向日期时间结构体的指针
- * @param buf 用于存储格式化结果的字符缓冲区
- * @return char* 指向格式化后字符串的指针(与 buf 相同); dt 或 buf 为 NULL 时返回 NULL
+ * @brief Format datetime as ISO 8601 string "YYYY-MM-DDTHH:MM:SS.sss"
  *
  * @code
- * ct_datetime_t dt = ct_datetime_now();
- * char buf[CT_DATETIME_FMT_BUFLEN];
- * ct_datetime_fmt_iso(&dt, buf);
- * printf("ISO 格式日期时间：%s\n", buf);
+ * char buf[CT_DATETIME_FMT_ISO_BUFLEN];
+ * const ct_datetime_t now = ct_datetime_now();
+ * ct_datetime_fmt_iso(&now, buf, sizeof(buf));
  * @endcode
  */
-CT_API char* ct_datetime_fmt_iso(const ct_datetime_t* dt, char* buf);
-
-#define CT_GMTIME_FMT        "%.3s, %02d %.3s %04d %02d:%02d:%02d GMT"
-#define CT_GMTIME_FMT_BUFLEN 30
-/**
- * @brief 格式化 GMT 时间
- *
- * 将给定的时间戳格式化为 GMT 时间字符串。
- *
- * @param t UNIX 时间戳
- * @param buf 用于存储格式化结果的字符缓冲区
- * @return char* 指向格式化后字符串的指针(与 buf 相同); buf 为 NULL 时返回 NULL
- *
- * @code
- * const ct_time_t now = ct_time(NULL);
- * char buf[CT_GMTIME_FMT_BUFLEN];
- * ct_datetime_gmtime_fmt(now, buf);
- * printf("GMT time: %s\n", buf);
- * @endcode
- */
-CT_API char* ct_datetime_gmtime_fmt(ct_time_t t, char* buf);
+CT_API char* ct_datetime_fmt_iso(const ct_datetime_t* dt, char* buf, size_t size);
 
 /**
- * @brief 计算指定月份的天数
- *
- * 根据给定的年份和月份计算该月的天数, 考虑闰年。
- *
- * @param month 月份(1-12)
- * @param year 年份
- * @return int 该月的天数
+ * @brief Format duration in seconds as "HH:MM:SS"
  *
  * @code
- * int days = ct_datetime_days_of_month(2, 2024);
- * printf("2024年2月有 %d 天\n", days); // 输出：2024年2月有 29 天
+ * char buf[CT_DURATION_FMT_BUFLEN];
+ * ct_duration_fmt(3661, buf, sizeof(buf)); // "01:01:01"
  * @endcode
  */
-CT_API int ct_datetime_days_of_month(int month, int year);
-
-/**
- * @brief 将月份名称转换为数字
- *
- * 将月份的英文名称转换为对应的数字(1-12)。
- * 仅接受完整名称或三字母缩写（大小写不敏感），空字符串和歧义前缀（如 "Ma"）视为失败。
- *
- * @param month 月份的英文名称
- * @return int 月份对应的数字(1-12), 如果转换失败返回 0
- *
- * @code
- * int month_num = ct_datetime_month_atoi("Feb");
- * printf("Feb 对应的月份数字：%d\n", month_num); // 输出：Feb 对应的月份数字：2
- * @endcode
- */
-CT_API int ct_datetime_month_atoi(const char* month);
-
-/**
- * @brief 将月份数字转换为名称
- *
- * 将月份的数字(1-12)转换为对应的英文名称。
- *
- * @param month 月份数字(1-12)
- * @return const char* 月份的英文名称
- *
- * @code
- * const char* month_name = ct_datetime_month_itoa(2);
- * printf("2 对应的月份名称：%s\n", month_name); // 输出：2 对应的月份名称：February
- * @endcode
- */
-CT_API const char* ct_datetime_month_itoa(int month);
-
-/**
- * @brief 将星期名称转换为数字
- *
- * 将星期的英文名称转换为对应的数字(0-6, 0 表示星期日)。
- * 仅接受完整名称或三字母缩写（大小写不敏感），空字符串和歧义前缀视为失败。
- *
- * @param weekday 星期的英文名称
- * @return int 星期对应的数字(0-6), 如果转换失败返回 -1
- *
- * @code
- * int weekday_num = ct_datetime_weekday_atoi("Mon");
- * printf("Mon 对应的星期数字：%d\n", weekday_num); // 输出：Mon 对应的星期数字：1
- * @endcode
- */
-CT_API int ct_datetime_weekday_atoi(const char* weekday);
-
-/**
- * @brief 将星期数字转换为名称
- *
- * 将星期的数字(0-6, 0 表示星期日)转换为对应的英文名称。
- *
- * @param weekday 星期数字(0-6 或 7, 7 也表示星期日)
- * @return const char* 星期的英文名称
- *
- * @code
- * const char* weekday_name = ct_datetime_weekday_itoa(3);
- * printf("3 对应的星期名称：%s\n", weekday_name); // 输出：3 对应的星期名称：Wednesday
- * @endcode
- */
-CT_API const char* ct_datetime_weekday_itoa(int weekday);
-
-/**
- * @brief 获取库的编译时间
- *
- * 解析编译器的 __DATE__ / __TIME__ 字符串并返回日期时间。
- * 解析失败或参数为 NULL 时返回全零结构体；成功时 ms 为 0，wday 根据日期计算。
- *
- * @param date_str 日期字符串，格式为 "Mmm DD YYYY"
- * @param time_str 时间字符串，格式为 "HH:MM:SS"
- * @return ct_datetime_t 解析后的日期时间；失败时所有字段为 0
- *
- * @code
- * ct_datetime_t time_compile = ct_datetime_compile();
- * char buf[CT_DATETIME_FMT_BUFLEN];
- * ct_datetime_fmt(&time_compile, buf);
- * printf("compile time: %s\n", buf);
- * @endcode
- */
-CT_API ct_datetime_t ct_datetime_compile_impl(const char* date_str, const char* time_str);
-#define ct_datetime_compile() ct_datetime_compile_impl(__DATE__, __TIME__)
-
-/**
- * @brief 格式化持续时间
- *
- * 将给定的秒数格式化为字符串形式(HH:MM:SS)
- *
- * @param sec 持续时间（秒），必须为非负数
- * @param buf 用于存储格式化结果的字符缓冲区
- * @return char* 指向格式化后字符串的指针（与 buf 相同）；sec < 0 或 buf 为 NULL 时返回 NULL
- *
- * @code
- * char buf[CT_TM_DURATION_MAX];
- * int duration_seconds = 3661; // 1小时1分钟1秒
- * ct_tm_duration_fmt(duration_seconds, buf);
- * printf("duration: %s\n", buf); // 输出：duration: 01:01:01
- * @endcode
- */
-CT_API char* ct_tm_duration_fmt(int sec, char* buf);
-#define CT_TM_DURATION_MAX CT_TIME_FMT_BUFLEN
-
-/**
- * @brief 格式化日期时间
- *
- * 将日期时间结构体格式化为字符串形式(YYYY-MM-DD HH:MM:SS)。
- *
- * @param tm 指向日期时间结构体的指针
- * @param buf 用于存储格式化结果的字符缓冲区
- * @return char* 指向格式化后字符串的指针（与 buf 相同）
- *
- * @code
- * struct tm tm;
- * ct_localtime_now(&tm);
- * char buf[CT_TM_FMT_MAX];
- * ct_tm_fmt(&tm, buf);
- * printf("当前日期时间：%s\n", buf);
- * @endcode
- */
-CT_API char* ct_tm_fmt(const struct tm* tm, char* buf);
-#define CT_TM_FMT_MAX CT_DATETIME_FMT_BUFLEN
+CT_API char* ct_duration_fmt(int sec, char* buf, size_t size);
 
 #ifdef __cplusplus
 }
