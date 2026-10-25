@@ -10,7 +10,7 @@
             "name": "base-config",
             "hidden": true,
             "generator": "Ninja",
-            "binaryDir": "${sourceDir}/cmake-build-${presetName}",
+            "binaryDir": "${sourceDir}/build-${presetName}",
             "cacheVariables": {
                 "CMAKE_EXPORT_COMPILE_COMMANDS": true,
                 "COTER_BUILD_TESTS": true,
