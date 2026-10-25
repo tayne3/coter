@@ -55,10 +55,10 @@ bool ct_waitgroup_wait_for(ct_waitgroup_t* wg, ct_time64_t timeout_ms) {
         return true;
     }
 
-    const ct_time64_t deadline = ct_getuptime_ms() + timeout_ms;
+    const ct_time64_t deadline = ct_gettick_ms() + timeout_ms;
     ct_mutex_lock(&wg->_mu);
     while (wg->_counter > 0) {
-        const ct_time64_t now = ct_getuptime_ms();
+        const ct_time64_t now = ct_gettick_ms();
         if (now >= deadline) {
             ct_mutex_unlock(&wg->_mu);
             return false;

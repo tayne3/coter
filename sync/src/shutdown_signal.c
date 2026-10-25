@@ -11,7 +11,7 @@ void ct_timeout_signal_init(ct_timeout_signal_t* token, ct_time64_t timeout_ms) 
         /* deadline_ms < 0 is the "no deadline" sentinel. */
         ct_atomic_llong_store(&token->deadline_ms, -1);
     } else {
-        ct_atomic_llong_store(&token->deadline_ms, (long long)(ct_getuptime_ms() + timeout_ms));
+        ct_atomic_llong_store(&token->deadline_ms, (long long)(ct_gettick_ms() + timeout_ms));
     }
 }
 
@@ -26,7 +26,7 @@ bool ct_timeout_signal_is_done(const ct_timeout_signal_t* token) {
     if (ct_atomic_int_load(&token->cancelled)) { return true; }
     ct_time64_t dl = (ct_time64_t)ct_atomic_llong_load(&token->deadline_ms);
     /* dl < 0: no deadline.  dl >= 0: done when (now - dl) >= 0. */
-    if (dl >= 0) { return (ct_time64_t)(ct_getuptime_ms() - dl) >= 0; }
+    if (dl >= 0) { return (ct_time64_t)(ct_gettick_ms() - dl) >= 0; }
     return false;
 }
 
@@ -36,7 +36,7 @@ ct_time64_t ct_timeout_signal_remaining(const ct_timeout_signal_t* token) {
     ct_time64_t dl = (ct_time64_t)ct_atomic_llong_load(&token->deadline_ms);
     if (dl < 0) { return -1; } /* No deadline. */
 
-    ct_time64_t diff = (ct_time64_t)(dl - ct_getuptime_ms());
+    ct_time64_t diff = (ct_time64_t)(dl - ct_gettick_ms());
     if (diff <= 0) { return 0; }
     return diff;
 }
@@ -76,7 +76,7 @@ bool ct_shutdown_token_wait(ct_shutdown_token_t* ctx, ct_time64_t timeout_ms) {
     if (!ctx) { return false; }
 
     ct_time64_t user_deadline = 0;
-    if (timeout_ms >= 0) { user_deadline = ct_getuptime_ms() + timeout_ms; }
+    if (timeout_ms >= 0) { user_deadline = ct_gettick_ms() + timeout_ms; }
 
     ct_mutex_lock(&ctx->mutex);
 
@@ -88,7 +88,7 @@ bool ct_shutdown_token_wait(ct_shutdown_token_t* ctx, ct_time64_t timeout_ms) {
 
         ct_time64_t user_remain = -1;
         if (timeout_ms >= 0) {
-            user_remain = (ct_time64_t)(user_deadline - ct_getuptime_ms());
+            user_remain = (ct_time64_t)(user_deadline - ct_gettick_ms());
             if (user_remain <= 0) { break; }
         }
 

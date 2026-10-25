@@ -261,7 +261,7 @@ static bool ctl_revert_worker(ct_thpool_t* self, worker_t* worker) {
         return false;
     }
 
-    worker->last_use = ct_getuptime_ms();
+    worker->last_use = ct_gettick_ms();
 
     ct_mutex_lock(self->worker_mutex);
     if (ctl_is_closed(self)) {
@@ -279,7 +279,7 @@ static worker_t* ctl_worker_create(ct_thpool_t* self) {
     if (!worker) { return NULL; }
     ct_list_init(worker->list);
     worker->thpool   = self;
-    worker->last_use = ct_getuptime_ms();
+    worker->last_use = ct_gettick_ms();
     ct_msgqueue_init(worker->tasks, worker->task_buff, sizeof(task_t), 1);
 
     const int ret =
@@ -331,10 +331,10 @@ static void ctl_worker_finish(worker_t* worker) {
 
 static int ctl_monitor_thread(void* arg) {
     ct_thpool_t* pool = (ct_thpool_t*)arg;
-    ct_time64_t  now, last = ct_getuptime_ms();
+    ct_time64_t  now, last = ct_gettick_ms();
 
     while (!ctl_is_closed(pool)) {
-        now = ct_getuptime_ms();
+        now = ct_gettick_ms();
 
         if (now >= last + (ct_time64_t)pool->idle_timeout) {
             last = now;

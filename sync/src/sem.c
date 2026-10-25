@@ -187,12 +187,12 @@ int ct_sem_wait_for(ct_sem_t* sem, uint32_t timeout_ms) {
     }
     return 0;
 #else
-    ct_time64_t deadline = ct_getuptime_ms() + (ct_time64_t)timeout_ms;
+    ct_time64_t deadline = ct_gettick_ms() + (ct_time64_t)timeout_ms;
     for (;;) {
         int result = ct_sem_trywait(sem);
         if (result == 0) { return 0; }
         if (result != EAGAIN) { return result; }
-        if (ct_getuptime_ms() >= deadline) { return ETIMEDOUT; }
+        if (ct_gettick_ms() >= deadline) { return ETIMEDOUT; }
         ct_msleep(1);
     }
 #endif

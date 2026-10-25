@@ -2,34 +2,31 @@
 
 #include <errno.h>
 
-#ifdef CT_OS_WIN
-#include <sys/timeb.h>
-#else
+#ifndef CT_OS_WIN
 #include <sys/time.h>
 #endif
 
 #include "coter/core/platform.h"
 
-void ct_localtime_now(struct tm* tm) {
-    const ct_time_t now = ct_time(NULL);
-    ct_localtime_s(tm, &now);
+ct_time_t ct_unixtime_sec(void) {
+    return time(NULL);
 }
 
-ct_time64_t ct_getuptime_ms(void) {
+ct_time64_t ct_gettick_ms(void) {
 #ifdef CT_OS_WIN
     return GetTickCount64();
-#elif defined(HAVE_CLOCK_GETTIME)
-    struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);
+#elif HAVE_CLOCK_GETTIME
+    struct timespec ts = {0};
+    if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0) { return 0; }
     return (ct_time64_t)ts.tv_sec * INT64_C(1000) + (ct_time64_t)ts.tv_nsec / INT64_C(1000000);
 #else
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
+    struct timeval tv = {0};
+    if (gettimeofday(&tv, NULL) != 0) { return 0; }
     return (ct_time64_t)tv.tv_sec * INT64_C(1000) + (ct_time64_t)tv.tv_usec / INT64_C(1000);
 #endif
 }
 
-ct_time64_t ct_gettimeofday_ms(void) {
+ct_time64_t ct_unixtime_ms(void) {
 #ifdef CT_OS_WIN
     FILETIME ft;
     uint64_t t;
@@ -38,18 +35,18 @@ ct_time64_t ct_gettimeofday_ms(void) {
     t -= UINT64_C(116444736000000000);
     t /= UINT64_C(10000);
     return (ct_time64_t)t;
-#elif defined(HAVE_CLOCK_GETTIME)
-    struct timespec ts;
-    clock_gettime(CLOCK_REALTIME, &ts);
+#elif HAVE_CLOCK_GETTIME
+    struct timespec ts = {0};
+    if (clock_gettime(CLOCK_REALTIME, &ts) != 0) { return 0; }
     return (ct_time64_t)ts.tv_sec * INT64_C(1000) + ts.tv_nsec / INT64_C(1000000);
 #else
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
+    struct timeval tv = {0};
+    if (gettimeofday(&tv, NULL) != 0) { return 0; }
     return (ct_time64_t)tv.tv_sec * INT64_C(1000) + (ct_time64_t)tv.tv_usec / INT64_C(1000);
 #endif
 }
 
-ct_time64_t ct_gettimeofday_us(void) {
+ct_time64_t ct_unixtime_us(void) {
 #ifdef CT_OS_WIN
     FILETIME ft;
     uint64_t t;
@@ -58,13 +55,13 @@ ct_time64_t ct_gettimeofday_us(void) {
     t -= UINT64_C(116444736000000000);
     t /= UINT64_C(10);
     return (ct_time64_t)t;
-#elif defined(HAVE_CLOCK_GETTIME)
-    struct timespec ts;
-    clock_gettime(CLOCK_REALTIME, &ts);
+#elif HAVE_CLOCK_GETTIME
+    struct timespec ts = {0};
+    if (clock_gettime(CLOCK_REALTIME, &ts) != 0) { return 0; }
     return (ct_time64_t)ts.tv_sec * INT64_C(1000000) + ts.tv_nsec / INT64_C(1000);
 #else
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
+    struct timeval tv = {0};
+    if (gettimeofday(&tv, NULL) != 0) { return 0; }
     return (ct_time64_t)tv.tv_sec * INT64_C(1000000) + (ct_time64_t)tv.tv_usec;
 #endif
 }
@@ -80,12 +77,18 @@ ct_time64_t ct_gethrtime_us(void) {
     if (s_freq != 0) {
         LARGE_INTEGER count;
         QueryPerformanceCounter(&count);
-        return (ct_time64_t)(count.QuadPart / (double)s_freq * INT64_C(1000000));
+        const int64_t whole = (count.QuadPart / s_freq) * INT64_C(1000000);
+        const int64_t part  = (count.QuadPart % s_freq) * INT64_C(1000000) / s_freq;
+        return whole + part;
     }
     return 0LL;
+#elif HAVE_CLOCK_GETTIME
+    struct timespec ts = {0};
+    if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0) { return 0; }
+    return (ct_time64_t)ts.tv_sec * INT64_C(1000000) + (ct_time64_t)ts.tv_nsec / INT64_C(1000);
 #else
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
+    struct timeval tv = {0};
+    if (gettimeofday(&tv, NULL) != 0) { return 0; }
     return (ct_time64_t)tv.tv_sec * INT64_C(1000000) + (ct_time64_t)tv.tv_usec;
 #endif
 }
@@ -115,8 +118,9 @@ void ct_msleep(uint32_t ms) {
 void ct_usleep(uint32_t us) {
 #ifdef CT_OS_WIN
     if (us > 0U) {
-        DWORD ms = (DWORD)(us / 1000U);
-        Sleep(ms > 0U ? ms : 1U);
+        // DWORD ms = (DWORD)(us / 1000U);
+        us /= 1000U;
+        Sleep(us > 0U ? (DWORD)us : 1U);
     } else {
         Sleep(0);
     }
@@ -125,5 +129,23 @@ void ct_usleep(uint32_t us) {
     req.tv_sec  = (time_t)(us / 1000000U);
     req.tv_nsec = (long)((us % 1000000U) * 1000UL);
     while (nanosleep(&req, &req) != 0 && errno == EINTR) {}
+#endif
+}
+
+struct tm* ct_localtime_r(const time_t* ts, struct tm* tm) {
+#ifdef CT_OS_WIN
+    if (localtime_s(tm, ts) == 0) { return tm; }
+    return NULL;
+#else
+    return localtime_r(ts, tm);
+#endif
+}
+
+struct tm* ct_gmtime_r(const time_t* ts, struct tm* tm) {
+#ifdef CT_OS_WIN
+    if (gmtime_s(tm, ts) == 0) { return tm; }
+    return NULL;
+#else
+    return gmtime_r(ts, tm);
 #endif
 }

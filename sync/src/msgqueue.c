@@ -177,7 +177,7 @@ int ct_msgqueue_pop_for(ct_msgqueue_t* self, void* item, ct_time64_t timeout_ms)
 }
 
 static int mq__wait_not_full(ct_msgqueue_t* self, ct_time64_t timeout_ms) {
-    const ct_time64_t deadline = timeout_ms > 0 ? ct_getuptime_ms() + timeout_ms : 0;
+    const ct_time64_t deadline = timeout_ms > 0 ? ct_gettick_ms() + timeout_ms : 0;
 
     while (ct_queue_is_full(self->queue)) {
         if (self->is_shut) { return EPIPE; }
@@ -185,7 +185,7 @@ static int mq__wait_not_full(ct_msgqueue_t* self, ct_time64_t timeout_ms) {
 
         ct_time64_t wait_ms = timeout_ms;
         if (wait_ms > 0) {
-            const ct_time64_t now = ct_getuptime_ms();
+            const ct_time64_t now = ct_gettick_ms();
             if (now >= deadline) { return ETIMEDOUT; }
             wait_ms = deadline - now;
         }
@@ -197,7 +197,7 @@ static int mq__wait_not_full(ct_msgqueue_t* self, ct_time64_t timeout_ms) {
 }
 
 static int mq__wait_not_empty(ct_msgqueue_t* self, ct_time64_t timeout_ms) {
-    const ct_time64_t deadline = timeout_ms > 0 ? ct_getuptime_ms() + timeout_ms : 0;
+    const ct_time64_t deadline = timeout_ms > 0 ? ct_gettick_ms() + timeout_ms : 0;
 
     while (ct_queue_is_empty(self->queue)) {
         if (self->is_shut) { return EPIPE; }
@@ -205,7 +205,7 @@ static int mq__wait_not_empty(ct_msgqueue_t* self, ct_time64_t timeout_ms) {
 
         ct_time64_t wait_ms = timeout_ms;
         if (wait_ms > 0) {
-            const ct_time64_t now = ct_getuptime_ms();
+            const ct_time64_t now = ct_gettick_ms();
             if (now >= deadline) { return ETIMEDOUT; }
             wait_ms = deadline - now;
         }

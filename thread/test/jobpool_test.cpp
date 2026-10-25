@@ -161,9 +161,9 @@ TEST_CASE("jobpool_submit_for_timeout" * doctest::test_suite("jobpool")) {
     ct_jobpool_submit(pool, [](void*) { ct_msleep(300); }, NULL);
 
     // 队列满，50ms 超时应失败
-    const ct_time64_t start   = ct_getuptime_ms();
+    const ct_time64_t start   = ct_gettick_ms();
     int               ret     = ct_jobpool_submit_for(pool, [](void*) {}, NULL, 50);
-    const ct_time64_t elapsed = ct_getuptime_ms() - start;
+    const ct_time64_t elapsed = ct_gettick_ms() - start;
 
     REQUIRE(ret == -1);
     // 等待时间应接近 50ms

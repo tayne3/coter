@@ -68,11 +68,11 @@ int ct_event_timedwait(ct_event_t* event, uint32_t timeout_ms) {
     return result == WAIT_FAILED ? (int)GetLastError() : (int)result;
 #else
     int         result   = 0;
-    ct_time64_t now      = ct_getuptime_ms();
+    ct_time64_t now      = ct_gettick_ms();
     ct_time64_t deadline = now + (ct_time64_t)timeout_ms;
     ct_mutex_lock(&event->mutex);
     while (event->count == 0) {
-        now = ct_getuptime_ms();
+        now = ct_gettick_ms();
         if (now >= deadline) {
             result = ETIMEDOUT;
             break;

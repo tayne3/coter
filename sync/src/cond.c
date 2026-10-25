@@ -63,9 +63,9 @@ int ct_cond_wait_for(ct_cond_t* cond, ct_mutex_t* mutex, ct_time64_t timeout_ms)
     if (timeout_ms < 0) { return ct_cond_wait(cond, mutex); }
     if (timeout_ms == 0) { return ETIMEDOUT; }
 
-    const ct_time64_t deadline = ct_getuptime_ms() + timeout_ms;
+    const ct_time64_t deadline = ct_gettick_ms() + timeout_ms;
     for (;;) {
-        const ct_time64_t now = ct_getuptime_ms();
+        const ct_time64_t now = ct_gettick_ms();
         if (now >= deadline) { return ETIMEDOUT; }
 
         int result = cond__timedwait(cond, mutex, deadline - now);

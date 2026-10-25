@@ -1,19 +1,19 @@
 #include "coter/core/time.h"
 
-#include <cmath>
 #include <cstdlib>
+#include <ctime>
 #include <thread>
 #include <vector>
 
 #include "coter/testing/doctest.h"
 
 TEST_CASE("uptime_monotonic") {
-    const ct_time64_t t1 = ct_getuptime_ms();
-    const ct_time64_t t2 = ct_getuptime_ms();
+    const ct_time64_t t1 = ct_gettick_ms();
+    const ct_time64_t t2 = ct_gettick_ms();
     REQUIRE(t2 >= t1);
-    ct_time64_t prev = ct_getuptime_ms();
+    ct_time64_t prev = ct_gettick_ms();
     for (int i = 0; i < 10; ++i) {
-        const ct_time64_t curr = ct_getuptime_ms();
+        const ct_time64_t curr = ct_gettick_ms();
         REQUIRE(curr >= prev);
         prev = curr;
     }
@@ -46,19 +46,26 @@ TEST_CASE("hrtime_monotonic") {
 }
 
 TEST_CASE("timeofday_consistency" * doctest::test_suite("timing")) {
-    const ct_time64_t us1 = ct_gettimeofday_us();
+    const ct_time64_t us1 = ct_unixtime_us();
     const ct_time64_t ms1 = us1 / 1000;
-    const ct_time64_t ms2 = ct_gettimeofday_ms();
+    const ct_time64_t ms2 = ct_unixtime_ms();
     REQUIRE(ms2 >= ms1);
     REQUIRE(ms2 <= ms1 + 10);
 }
 
-TEST_CASE("localtime_now_consistency" * doctest::test_suite("concurrency")) {
-    struct tm tmv{};
-    ct_localtime_now(&tmv);
-    const ct_time_t t_now = ct_current_second();
-    const ct_time_t t_mk  = ct_mktime(&tmv);
-    REQUIRE(std::abs((long long)t_mk - (long long)t_now) <= 1);
+TEST_CASE("time_now_consistency" * doctest::test_suite("timing")) {
+    const ct_time_t   now = ct_unixtime_sec();
+    const ct_time64_t ms  = ct_unixtime_ms();
+    REQUIRE(std::llabs((long long)now - (long long)(ms / 1000)) <= 2);
+}
+
+TEST_CASE("localtime_r_consistency" * doctest::test_suite("concurrency")) {
+    struct tm       tmv{};
+    const ct_time_t now = ct_unixtime_sec();
+    REQUIRE(ct_localtime_r(&now, &tmv) != nullptr);
+    const ct_time_t t_mk = std::mktime(&tmv);
+    REQUIRE(t_mk != (ct_time_t)-1);
+    REQUIRE(std::llabs((long long)t_mk - (long long)now) <= 1);
     REQUIRE(tmv.tm_mon >= 0);
     REQUIRE(tmv.tm_mon <= 11);
     REQUIRE(tmv.tm_mday >= 1);
@@ -71,7 +78,7 @@ TEST_CASE("localtime_now_consistency" * doctest::test_suite("concurrency")) {
     REQUIRE(tmv.tm_sec <= 60);
 }
 
-TEST_CASE("localtime_now_concurrent" * doctest::test_suite("concurrency")) {
+TEST_CASE("localtime_r_concurrent" * doctest::test_suite("concurrency")) {
     const int                threads = 4;
     const int                loops   = 20;
     std::vector<std::thread> ts;
@@ -79,26 +86,16 @@ TEST_CASE("localtime_now_concurrent" * doctest::test_suite("concurrency")) {
     for (int t = 0; t < threads; ++t) {
         ts.emplace_back([&]() {
             for (int i = 0; i < loops; ++i) {
-                struct tm tmv{};
-                ct_localtime_now(&tmv);
-                const ct_time_t now = ct_current_second();
-                const ct_time_t mk  = ct_mktime(&tmv);
-                REQUIRE(std::abs((long long)mk - (long long)now) <= 1);
+                struct tm       tmv{};
+                const ct_time_t now = ct_unixtime_sec();
+                REQUIRE(ct_localtime_r(&now, &tmv) != nullptr);
+                const ct_time_t mk = std::mktime(&tmv);
+                REQUIRE(mk != (ct_time_t)-1);
+                REQUIRE(std::llabs((long long)mk - (long long)now) <= 1);
             }
         });
     }
-    for (auto& th : ts) th.join();
-}
-
-TEST_CASE("current_time_macros" * doctest::test_suite("timing")) {
-    const ct_time64_t us1 = ct_gettimeofday_us();
-    const ct_time64_t ms1 = us1 / 1000;
-    const ct_time64_t ms2 = ct_current_millisecond();
-    REQUIRE(ms2 >= ms1);
-    REQUIRE(ms2 <= ms1 + 10);
-    const ct_time64_t us2 = ct_current_microsecond();
-    REQUIRE(us2 >= us1);
-    REQUIRE(us2 <= us1 + 5000);
+    for (auto& th : ts) { th.join(); }
 }
 
 TEST_CASE("sleep_seconds_quick" * doctest::test_suite("timing")) {

@@ -111,10 +111,10 @@ static uint64_t ct_random_splitmix64(uint64_t* state) {
 }
 
 static uint64_t ct_random_seed_material(void) {
-    uint64_t seed = (uint64_t)ct_time(NULL);
-    seed ^= ((uint64_t)ct_current_microsecond() << 7);
-    seed ^= ((uint64_t)ct_gettimeofday_ms() << 17);
-    seed ^= ((uint64_t)ct_getuptime_ms() << 29);
+    uint64_t seed = (uint64_t)ct_unixtime_sec();
+    seed ^= ((uint64_t)ct_unixtime_us() << 7);
+    seed ^= ((uint64_t)ct_unixtime_ms() << 17);
+    seed ^= ((uint64_t)ct_gettick_ms() << 29);
     seed ^= ((uint64_t)ct_gethrtime_us() << 41);
     seed ^= ((uint64_t)ct_getpid() << 53);
     seed ^= (uint64_t)(uintptr_t)&seed;

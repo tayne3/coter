@@ -7,7 +7,6 @@
 #include "coter/core/time.h"
 #include "coter/testing/doctest.h"
 
-
 TEST_CASE("pid_positive") {
     const int pid = ct_getpid();
     REQUIRE(pid > 0);
@@ -29,7 +28,7 @@ TEST_CASE("pid_consistent_concurrent" * doctest::test_suite("concurrency")) {
 
 TEST_CASE("mkdir_existing_returns_error" * doctest::test_suite("fs")) {
     const int         pid  = ct_getpid();
-    const ct_time64_t salt = ct_getuptime_ms();
+    const ct_time64_t salt = ct_gettick_ms();
     std::string       dir  = std::string("ct_tmp_exist_") + std::to_string(pid) + "_" + std::to_string((long long)salt);
     int               mkret1 = ct_mkdir(dir.c_str());
     const bool        mkok1  = (mkret1 == 0) || (mkret1 == -1);
@@ -41,7 +40,7 @@ TEST_CASE("mkdir_existing_returns_error" * doctest::test_suite("fs")) {
 
 TEST_CASE("fs_stat_and_mkdir" * doctest::test_suite("fs")) {
     const int         pid   = ct_getpid();
-    const ct_time64_t salt  = ct_getuptime_ms();
+    const ct_time64_t salt  = ct_gettick_ms();
     std::string       dir   = std::string("ct_tmp_") + std::to_string(pid) + "_" + std::to_string((long long)salt);
     int               mkret = ct_mkdir(dir.c_str());
     const bool        mkok  = (mkret == 0) || (mkret == -1);
@@ -71,7 +70,7 @@ TEST_CASE("fs_stat_and_mkdir" * doctest::test_suite("fs")) {
 
 TEST_CASE("access_permissions" * doctest::test_suite("fs")) {
     const int         pid  = ct_getpid();
-    const ct_time64_t salt = ct_getuptime_ms();
+    const ct_time64_t salt = ct_gettick_ms();
     std::string       dir = std::string("ct_tmp_access_") + std::to_string(pid) + "_" + std::to_string((long long)salt);
     int               mkret = ct_mkdir(dir.c_str());
     const bool        mkok  = (mkret == 0) || (mkret == -1);

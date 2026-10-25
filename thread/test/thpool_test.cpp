@@ -216,7 +216,7 @@ TEST_SUITE("thpool") {
             REQUIRE(jobpool != nullptr);
 
             counter_t counter_jobpool;
-            start = ct_getuptime_ms();
+            start = ct_gettick_ms();
 
             for (int i = 0; i < NUM_TASKS; ++i) { ct_jobpool_submit(jobpool, sample_task, &counter_jobpool); }
 
@@ -228,7 +228,7 @@ TEST_SUITE("thpool") {
                 std::this_thread::sleep_for(std::chrono::milliseconds(10));
             }
 
-            end                   = ct_getuptime_ms();
+            end                   = ct_gettick_ms();
             duration_with_jobpool = end - start;
 
             printf("With JobPool: %" PRIu64 "ms\n", (uint64_t)duration_with_jobpool);
@@ -242,7 +242,7 @@ TEST_SUITE("thpool") {
             std::array<std::thread, NUM_TASKS> threads;
 
             counter_t counter_no_pool;
-            start = ct_getuptime_ms();
+            start = ct_gettick_ms();
 
             for (int i = 0; i < NUM_TASKS; ++i) {
                 threads[i] = std::thread([&counter_no_pool]() { sample_task(&counter_no_pool); });
@@ -256,7 +256,7 @@ TEST_SUITE("thpool") {
                 std::this_thread::sleep_for(std::chrono::milliseconds(10));
             }
 
-            end                   = ct_getuptime_ms();
+            end                   = ct_gettick_ms();
             duration_without_pool = end - start;
 
             for (int i = 0; i < NUM_TASKS; ++i) { threads[i].join(); }
@@ -273,7 +273,7 @@ TEST_SUITE("thpool") {
             REQUIRE(pool != nullptr);
 
             counter_t counter_pool;
-            start = ct_getuptime_ms();
+            start = ct_gettick_ms();
 
             for (int i = 0; i < NUM_TASKS; ++i) {
                 const int ret = ct_thpool_submit(pool, sample_task, &counter_pool);
@@ -288,7 +288,7 @@ TEST_SUITE("thpool") {
                 std::this_thread::sleep_for(std::chrono::milliseconds(10));
             }
 
-            end                = ct_getuptime_ms();
+            end                = ct_gettick_ms();
             duration_with_pool = end - start;
 
             ct_thpool_destroy(pool);

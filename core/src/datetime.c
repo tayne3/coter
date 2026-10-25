@@ -48,7 +48,7 @@ static int datetime__wday(int year, int month, int day) {
 }
 
 ct_datetime_t ct_datetime_now(void) {
-    ct_time64_t   now_ms = ct_gettimeofday_ms();
+    ct_time64_t   now_ms = ct_unixtime_ms();
     ct_datetime_t dt     = ct_datetime_localtime((ct_time_t)(now_ms / 1000));
     dt.ms                = (int)(now_ms % 1000);
     return dt;
