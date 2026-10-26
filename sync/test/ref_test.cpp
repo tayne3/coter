@@ -78,14 +78,14 @@ TEST_CASE("invalid transitions saturate the reference count") {
 
     SUBCASE("get not zero preserves an existing poison reason") {
         const uint32_t poisoned = CT_REFCOUNT_SATURATED + CT_REFCOUNT_SUB_USE_AFTER_FREE;
-        ref.count.value         = static_cast<ct_refcount_value_t>(poisoned);
+        ref.count.value         = static_cast<uint32_t>(poisoned);
 
         CHECK(ct_ref_get_not_zero(&ref));
         CHECK(static_cast<uint32_t>(ref.count.value) == poisoned);
     }
 
     SUBCASE("get not zero repairs a transient overflow state") {
-        ref.count.value = static_cast<ct_refcount_value_t>(CT_REFCOUNT_MAX + UINT32_C(1));
+        ref.count.value = static_cast<uint32_t>(CT_REFCOUNT_MAX + UINT32_C(1));
 
         CHECK(ct_ref_get_not_zero(&ref));
         CHECK(static_cast<uint32_t>(ref.count.value) == CT_REFCOUNT_SATURATED + CT_REFCOUNT_ADD_NOT_ZERO_OVERFLOW);
@@ -95,7 +95,7 @@ TEST_CASE("invalid transitions saturate the reference count") {
         ct_mutex_t lock;
         REQUIRE(ct_mutex_init(&lock) == 0);
 
-        ref.count.value = static_cast<ct_refcount_value_t>(CT_REFCOUNT_MAX + UINT32_C(1));
+        ref.count.value = static_cast<uint32_t>(CT_REFCOUNT_MAX + UINT32_C(1));
 
         CHECK_FALSE(ct_refcount_dec_and_mutex_lock(&ref.count, &lock));
         const uint32_t poisoned = CT_REFCOUNT_SATURATED + CT_REFCOUNT_SUB_USE_AFTER_FREE;
@@ -115,17 +115,19 @@ TEST_CASE("concurrent references balance while an owner remains") {
     ct_ref_t ref;
     ct_ref_init(&ref);
 
-    std::thread threads[thread_count];
+    std::atomic_bool unexpected_release{false};
+    std::thread      threads[thread_count];
     for (auto& thread : threads) {
-        thread = std::thread([&ref]() {
+        thread = std::thread([&ref, &unexpected_release]() {
             for (int n = 0; n < iterations; ++n) {
                 ct_ref_get(&ref);
-                (void)ct_ref_put(&ref);
+                if (ct_ref_put(&ref)) { unexpected_release.store(true, std::memory_order_relaxed); }
             }
         });
     }
     for (auto& thread : threads) { thread.join(); }
 
+    CHECK_FALSE(unexpected_release.load(std::memory_order_relaxed));
     CHECK(ref.count.value == 1);
     CHECK(ct_ref_put(&ref));
 }
