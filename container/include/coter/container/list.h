@@ -27,71 +27,71 @@ struct ct_list;
  * 尾节点是最后一个节点, 头节点的前驱节点为尾节点，尾节点的后继节点为头节点;
  */
 typedef struct ct_list {
-    struct ct_list* prev;  // 前驱节点
-    struct ct_list* next;  // 后继节点
+    struct ct_list* prev_;  // 前驱节点
+    struct ct_list* next_;  // 后继节点
 } ct_list_t, ct_list_buf_t[1];
 
 // 计算包含链表节点的对象指针
-//	- __node 指向链表节点的指针
-// 	- __type 包含链表节点的条目的类型
-// 	- __member 在结构体@type中表示链表头的成员变量的名称
-#define ct_list_entry(__node, __type, __member) CT_CONTAINER_OF(__node, __type, __member)
+//	- node_ 指向链表节点的指针
+// 	- type_ 包含链表节点的条目的类型
+// 	- member_ 在结构体@type中表示链表头的成员变量的名称
+#define ct_list_entry(node_, type_, member_) CT_CONTAINER_OF(node_, type_, member_)
 
-#define ct_list_isempty(__head)          ((__head)->next == (void*)(__head))  // 判断链表是否为空
-#define ct_list_first(__head)            ((__head)->next)                     // 获取首节点
-#define ct_list_last(__head)             ((__head)->prev)                     // 获取尾节点
-#define ct_list_is_first(__head, __node) ((__node)->next == (void*)(__head))  // 判断节点是否为首节点
-#define ct_list_is_last(__head, __node)  ((__node)->prev == (void*)(__head))  // 判断节点是否为尾节点
-#define ct_list_next(__pos)              ((__pos)->next)                      // 获取下一个节点
-#define ct_list_prev(__pos)              ((__pos)->prev)                      // 获取上一个节点
+#define ct_list_isempty(head_)          ((head_)->next_ == (void*)(head_))  // 判断链表是否为空
+#define ct_list_first(head_)            ((head_)->next_)                     // 获取首节点
+#define ct_list_last(head_)             ((head_)->prev_)                     // 获取尾节点
+#define ct_list_is_first(head_, node_) ((node_)->next_ == (void*)(head_))  // 判断节点是否为首节点
+#define ct_list_is_last(head_, node_)  ((node_)->prev_ == (void*)(head_))  // 判断节点是否为尾节点
+#define ct_list_next(pos_)              ((pos_)->next_)                      // 获取下一个节点
+#define ct_list_prev(pos_)              ((pos_)->prev_)                      // 获取上一个节点
 
-#define ct_list_first_entry(__head, __type, __member) ct_list_entry((__head)->next, __type, __member)
-#define ct_list_last_entry(__head, __type, __member)  ct_list_entry((__head)->prev, __type, __member)
+#define ct_list_first_entry(head_, type_, member_) ct_list_entry((head_)->next_, type_, member_)
+#define ct_list_last_entry(head_, type_, member_)  ct_list_entry((head_)->prev_, type_, member_)
 
-#define ct_list_next_entry(__pos, __type, __member) \
-    !(__pos) ? NULL : ct_list_entry(((ct_list_t*)(&(__pos)->__member))->next, __type, __member)
-#define ct_list_prev_entry(__pos, __type, __member) \
-    !(__pos) ? NULL : ct_list_entry(((ct_list_t*)(&(__pos)->__member))->prev, __type, __member)
-
-// 遍历链表节点
-// 	- __pos 用于遍历的节点
-// 	- __head 指向链表头的链表节点指针
-// 在遍历链表时，节点和链表头必须保持不变。对链表进行任何修改将导致未定义行为。
-#define ct_list_foreach(__pos, __head) \
-    for (ct_list_t* __pos = (__head)->next; __pos != (void*)(__head); __pos = __pos->next)
+#define ct_list_next_entry(pos_, type_, member_) \
+    !(pos_) ? NULL : ct_list_entry(((ct_list_t*)(&(pos_)->member_))->next_, type_, member_)
+#define ct_list_prev_entry(pos_, type_, member_) \
+    !(pos_) ? NULL : ct_list_entry(((ct_list_t*)(&(pos_)->member_))->prev_, type_, member_)
 
 // 遍历链表节点
-// 	- __pos 用于遍历的节点
-// 	- __head 指向链表头的指针
-// 	- __type 包含链表节点的条目的类型
-// 	- __member 在结构体@type中表示链表头的成员变量的名称
+// 	- pos_ 用于遍历的节点
+// 	- head_ 指向链表头的链表节点指针
 // 在遍历链表时，节点和链表头必须保持不变。对链表进行任何修改将导致未定义行为。
-#define ct_list_foreach_entry(__pos, __head, __type, __member)            \
-    for (__type* __pos = ct_list_first_entry((__head), __type, __member); \
-         __pos && (void*)(&(__pos)->__member) != (void*)(__head); __pos = ct_list_next_entry(__pos, __type, __member))
+#define ct_list_foreach(pos_, head_) \
+    for (ct_list_t* pos_ = (head_)->next_; pos_ != (void*)(head_); pos_ = pos_->next_)
+
+// 遍历链表节点
+// 	- pos_ 用于遍历的节点
+// 	- head_ 指向链表头的指针
+// 	- type_ 包含链表节点的条目的类型
+// 	- member_ 在结构体@type中表示链表头的成员变量的名称
+// 在遍历链表时，节点和链表头必须保持不变。对链表进行任何修改将导致未定义行为。
+#define ct_list_foreach_entry(pos_, head_, type_, member_)            \
+    for (type_* pos_ = ct_list_first_entry((head_), type_, member_); \
+         pos_ && (void*)(&(pos_)->member_) != (void*)(head_); pos_ = ct_list_next_entry(pos_, type_, member_))
 
 // 遍历链表节点 (从指定位置开始遍历)
-// 	- __pos 用于遍历的起始节点
-// 	- __head 指向链表头的指针
-// 	- __type 包含链表节点的条目的类型
-// 	- __member 在结构体@type中表示链表头的成员变量的名称
+// 	- pos_ 用于遍历的起始节点
+// 	- head_ 指向链表头的指针
+// 	- type_ 包含链表节点的条目的类型
+// 	- member_ 在结构体@type中表示链表头的成员变量的名称
 // 在遍历链表时，节点和链表头必须保持不变。对链表进行任何修改将导致未定义行为。
-#define ct_list_foreach_entry_from(__pos, __head, __type, __member) \
-    for (; __pos && (void*)(&(__pos)->__member) != (void*)(__head); \
-         (__pos) = ct_list_next_entry((__pos), __type, __member))
+#define ct_list_foreach_entry_from(pos_, head_, type_, member_) \
+    for (; pos_ && (void*)(&(pos_)->member_) != (void*)(head_); \
+         (pos_) = ct_list_next_entry((pos_), type_, member_))
 
 // 遍历链表节点
-// 	- __pos 用于遍历的节点
-// 	- __head 指向链表头的指针
-// 	- __type 包含链表节点的条目的类型
-// 	- __member 在结构体@type中表示链表头的成员变量的名称
+// 	- pos_ 用于遍历的节点
+// 	- head_ 指向链表头的指针
+// 	- type_ 包含链表节点的条目的类型
+// 	- member_ 在结构体@type中表示链表头的成员变量的名称
 // 在遍历链表时，节点和链表头必须保持不变。对链表进行任何修改将导致未定义行为。
 // 此宏允许在遍历链表时安全地删除当前节点。
-#define ct_list_foreach_entry_safe(__pos, __head, __type, __member)     \
-    for (__type* __pos = ct_list_first_entry(__head, __type, __member), \
-                 *___n = ct_list_next_entry(__pos, __type, __member);   \
-         __pos && (void*)(&(__pos)->__member) != (void*)(__head);       \
-         __pos = ___n, ___n = ct_list_next_entry(___n, __type, __member))
+#define ct_list_foreach_entry_safe(pos_, head_, type_, member_)     \
+    for (type_* pos_ = ct_list_first_entry(head_, type_, member_), \
+                 *next_node_ = ct_list_next_entry(pos_, type_, member_);   \
+         pos_ && (void*)(&(pos_)->member_) != (void*)(head_);       \
+         pos_ = next_node_, next_node_ = ct_list_next_entry(next_node_, type_, member_))
 
 // 初始化/重置链表
 CT_API void ct_list_init(ct_list_t* self);

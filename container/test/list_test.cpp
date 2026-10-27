@@ -1,3 +1,7 @@
+/**
+ * @file list_test.cpp
+ * @brief Intrusive linked list tests.
+ */
 #include "coter/container/list.h"
 
 #include <cstring>
@@ -6,8 +10,8 @@
 
 
 typedef struct my_struct {
-    ct_list_t list[1];
-    int       data;
+    ct_list_t list_[1];
+    int       data_;
 } my_struct_t;
 
 TEST_CASE("list_basic" * doctest::test_suite("list")) {
@@ -16,63 +20,63 @@ TEST_CASE("list_basic" * doctest::test_suite("list")) {
     REQUIRE(ct_list_isempty(head));
     REQUIRE(ct_list_size(head) == 0);
     my_struct_t node1, node2, node3;
-    REQUIRE(ct_list_entry(node1.list, my_struct_t, list) == &node1);
-    REQUIRE(ct_list_entry(node2.list, my_struct_t, list) == &node2);
-    REQUIRE(ct_list_entry(node3.list, my_struct_t, list) == &node3);
-    ct_list_append(head, node1.list);
+    REQUIRE(ct_list_entry(node1.list_, my_struct_t, list_) == &node1);
+    REQUIRE(ct_list_entry(node2.list_, my_struct_t, list_) == &node2);
+    REQUIRE(ct_list_entry(node3.list_, my_struct_t, list_) == &node3);
+    ct_list_append(head, node1.list_);
     REQUIRE_FALSE(ct_list_isempty(head));
     REQUIRE(ct_list_size(head) == 1);
-    REQUIRE(ct_list_first(head) == node1.list);
-    REQUIRE(ct_list_last(head) == node1.list);
-    ct_list_append(head, node2.list);
+    REQUIRE(ct_list_first(head) == node1.list_);
+    REQUIRE(ct_list_last(head) == node1.list_);
+    ct_list_append(head, node2.list_);
     REQUIRE_FALSE(ct_list_isempty(head));
     REQUIRE(ct_list_size(head) == 2);
-    REQUIRE(ct_list_first(head) == node1.list);
-    REQUIRE(ct_list_last(head) == node2.list);
-    ct_list_append(head, node3.list);
+    REQUIRE(ct_list_first(head) == node1.list_);
+    REQUIRE(ct_list_last(head) == node2.list_);
+    ct_list_append(head, node3.list_);
     REQUIRE_FALSE(ct_list_isempty(head));
     REQUIRE(ct_list_size(head) == 3);
-    REQUIRE(ct_list_first(head) == node1.list);
-    REQUIRE(ct_list_last(head) == node3.list);
-    ct_list_remove(node1.list);
+    REQUIRE(ct_list_first(head) == node1.list_);
+    REQUIRE(ct_list_last(head) == node3.list_);
+    ct_list_remove(node1.list_);
     REQUIRE_FALSE(ct_list_isempty(head));
     REQUIRE(ct_list_size(head) == 2);
-    REQUIRE(ct_list_first(head) == node2.list);
-    REQUIRE(ct_list_last(head) == node3.list);
-    ct_list_remove(node2.list);
+    REQUIRE(ct_list_first(head) == node2.list_);
+    REQUIRE(ct_list_last(head) == node3.list_);
+    ct_list_remove(node2.list_);
     REQUIRE_FALSE(ct_list_isempty(head));
     REQUIRE(ct_list_size(head) == 1);
-    REQUIRE(ct_list_first(head) == node3.list);
-    REQUIRE(ct_list_last(head) == node3.list);
-    ct_list_remove(node3.list);
+    REQUIRE(ct_list_first(head) == node3.list_);
+    REQUIRE(ct_list_last(head) == node3.list_);
+    ct_list_remove(node3.list_);
     REQUIRE(ct_list_isempty(head));
     REQUIRE(ct_list_size(head) == 0);
-    ct_list_prepend(head, node3.list);
+    ct_list_prepend(head, node3.list_);
     REQUIRE_FALSE(ct_list_isempty(head));
     REQUIRE(ct_list_size(head) == 1);
-    REQUIRE(ct_list_first(head) == node3.list);
-    REQUIRE(ct_list_last(head) == node3.list);
-    ct_list_prepend(head, node2.list);
+    REQUIRE(ct_list_first(head) == node3.list_);
+    REQUIRE(ct_list_last(head) == node3.list_);
+    ct_list_prepend(head, node2.list_);
     REQUIRE_FALSE(ct_list_isempty(head));
     REQUIRE(ct_list_size(head) == 2);
-    REQUIRE(ct_list_first(head) == node2.list);
-    REQUIRE(ct_list_last(head) == node3.list);
-    ct_list_prepend(head, node1.list);
+    REQUIRE(ct_list_first(head) == node2.list_);
+    REQUIRE(ct_list_last(head) == node3.list_);
+    ct_list_prepend(head, node1.list_);
     REQUIRE_FALSE(ct_list_isempty(head));
     REQUIRE(ct_list_size(head) == 3);
-    REQUIRE(ct_list_first(head) == node1.list);
-    REQUIRE(ct_list_last(head) == node3.list);
-    ct_list_remove(node1.list);
+    REQUIRE(ct_list_first(head) == node1.list_);
+    REQUIRE(ct_list_last(head) == node3.list_);
+    ct_list_remove(node1.list_);
     REQUIRE_FALSE(ct_list_isempty(head));
     REQUIRE(ct_list_size(head) == 2);
-    REQUIRE(ct_list_first(head) == node2.list);
-    REQUIRE(ct_list_last(head) == node3.list);
-    ct_list_remove(node2.list);
+    REQUIRE(ct_list_first(head) == node2.list_);
+    REQUIRE(ct_list_last(head) == node3.list_);
+    ct_list_remove(node2.list_);
     REQUIRE_FALSE(ct_list_isempty(head));
     REQUIRE(ct_list_size(head) == 1);
-    REQUIRE(ct_list_first(head) == node3.list);
-    REQUIRE(ct_list_last(head) == node3.list);
-    ct_list_remove(node3.list);
+    REQUIRE(ct_list_first(head) == node3.list_);
+    REQUIRE(ct_list_last(head) == node3.list_);
+    ct_list_remove(node3.list_);
     REQUIRE(ct_list_isempty(head));
     REQUIRE(ct_list_size(head) == 0);
 }
@@ -235,18 +239,18 @@ TEST_CASE("list_foreach_entry" * doctest::test_suite("list")) {
     ct_list_t head[1];
     ct_list_init(head);
     my_struct_t node1;
-    node1.data = 1;
-    ct_list_append(head, node1.list);
-    REQUIRE(ct_list_first(head) == node1.list);
-    REQUIRE(ct_list_last(head) == node1.list);
+    node1.data_ = 1;
+    ct_list_append(head, node1.list_);
+    REQUIRE(ct_list_first(head) == node1.list_);
+    REQUIRE(ct_list_last(head) == node1.list_);
     my_struct_t node2;
-    node2.data = 2;
-    ct_list_append(head, node2.list);
-    REQUIRE(ct_list_first(head) == node1.list);
-    REQUIRE(ct_list_last(head) == node2.list);
+    node2.data_ = 2;
+    ct_list_append(head, node2.list_);
+    REQUIRE(ct_list_first(head) == node1.list_);
+    REQUIRE(ct_list_last(head) == node2.list_);
     int sum = 0;
-    ct_list_foreach_entry(pos, head, my_struct_t, list) {
-        sum += pos->data;
+    ct_list_foreach_entry(pos, head, my_struct_t, list_) {
+        sum += pos->data_;
     }
     REQUIRE(sum == 3);
 }
@@ -255,29 +259,29 @@ TEST_CASE("list_foreach_entry_from" * doctest::test_suite("list")) {
     ct_list_t head[1];
     ct_list_init(head);
     my_struct_t node1;
-    node1.data = 1;
-    ct_list_append(head, node1.list);
+    node1.data_ = 1;
+    ct_list_append(head, node1.list_);
     my_struct_t node2;
-    node2.data = 2;
-    ct_list_append(head, node2.list);
+    node2.data_ = 2;
+    ct_list_append(head, node2.list_);
     int          sum = 0;
     my_struct_t* pos = nullptr;
     sum              = 0;
     pos              = &node1;
-    ct_list_foreach_entry_from(pos, head, my_struct_t, list) {
-        sum += pos->data;
+    ct_list_foreach_entry_from(pos, head, my_struct_t, list_) {
+        sum += pos->data_;
     }
     REQUIRE(sum == 3);
     sum = 0;
     pos = &node2;
-    ct_list_foreach_entry_from(pos, head, my_struct_t, list) {
-        sum += pos->data;
+    ct_list_foreach_entry_from(pos, head, my_struct_t, list_) {
+        sum += pos->data_;
     }
     REQUIRE(sum == 2);
     sum = 0;
-    pos = ct_list_entry(head, my_struct_t, list);
-    ct_list_foreach_entry_from(pos, head, my_struct_t, list) {
-        sum += pos->data;
+    pos = ct_list_entry(head, my_struct_t, list_);
+    ct_list_foreach_entry_from(pos, head, my_struct_t, list_) {
+        sum += pos->data_;
     }
     REQUIRE(sum == 0);
 }
@@ -286,15 +290,15 @@ TEST_CASE("list_foreach_entry_safe" * doctest::test_suite("list")) {
     ct_list_t head[1];
     ct_list_init(head);
     my_struct_t node1;
-    node1.data = 1;
-    ct_list_append(head, node1.list);
+    node1.data_ = 1;
+    ct_list_append(head, node1.list_);
     my_struct_t node2;
-    node2.data = 2;
-    ct_list_append(head, node2.list);
+    node2.data_ = 2;
+    ct_list_append(head, node2.list_);
     int sum = 0;
-    ct_list_foreach_entry_safe(pos, head, my_struct_t, list) {
-        sum += pos->data;
-        ct_list_remove(pos->list);
+    ct_list_foreach_entry_safe(pos, head, my_struct_t, list_) {
+        sum += pos->data_;
+        ct_list_remove(pos->list_);
     }
     REQUIRE(sum == 3);
     REQUIRE(ct_list_isempty(head));
