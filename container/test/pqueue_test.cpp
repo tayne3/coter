@@ -1,3 +1,7 @@
+/**
+ * @file pqueue_test.cpp
+ * @brief Four-ary priority queue tests.
+ */
 #include "coter/container/pqueue.h"
 
 #include <algorithm>
@@ -7,15 +11,15 @@
 #include "coter/testing/doctest.h"
 
 
-static int int_cmp(const void* a, const void* b) {
+static int pqueue_int_cmp(const void* a, const void* b) {
     int va = *(const int*)a;
     int vb = *(const int*)b;
     return va - vb;
 }
 
-TEST_CASE("PQueue Basic Operations" * doctest::test_suite("pqueue")) {
+TEST_CASE("pqueue basic operations" * doctest::test_suite("pqueue")) {
     ct_pqueue_t pq;
-    ct_pqueue_init(&pq, int, int_cmp);
+    ct_pqueue_init(&pq, int, pqueue_int_cmp);
 
     SUBCASE("Push and Pop order") {
         int vals[] = {50, 10, 30, 20, 40};
@@ -53,7 +57,7 @@ TEST_CASE("PQueue Basic Operations" * doctest::test_suite("pqueue")) {
 TEST_CASE("PQueue Static Mode" * doctest::test_suite("pqueue")) {
     ct_pqueue_t pq;
     int         buffer[10];
-    ct_pqueue_init_s(&pq, int, buffer, 10, int_cmp);
+    ct_pqueue_init_s(&pq, int, buffer, 10, pqueue_int_cmp);
 
     SUBCASE("Static push limit") {
         for (int i = 0; i < 10; ++i) {

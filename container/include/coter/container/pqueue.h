@@ -15,55 +15,55 @@ typedef int (*ct_compare_cb)(const void* a, const void* b);
 
 // Priority Queue
 typedef struct ct_pqueue {
-    char*         _all;             // 连续缓冲区
-    ct_compare_cb _cmp;             // 比较回调
-    uint32_t      _size;            // 当前元素数量
-    uint32_t      _cap;             // 容量
-    uint32_t      _item_size : 10;  // 元素大小
-    uint32_t      _is_dynamic : 1;  // 是否支持动态扩容
-    uint32_t      _reserved : 21;   // reserved
-    uint32_t      _reserved2;       // reserved
+    char*         all_;             // 连续缓冲区
+    ct_compare_cb cmp_;             // 比较回调
+    uint32_t      size_;            // 当前元素数量
+    uint32_t      cap_;             // 容量
+    uint32_t      item_size_ : 10;  // 元素大小
+    uint32_t      is_dynamic_ : 1;  // 是否支持动态扩容
+    uint32_t      reserved_ : 21;   // reserved
+    uint32_t      reserved2_;       // reserved
 } ct_pqueue_t;
 
-#define ct_pqueue_size(self)       ((self)->_size)
-#define ct_pqueue_is_empty(self)   ((self)->_size == 0)
-#define ct_pqueue_item_size(self)  ((uint16_t)((self)->_item_size))
-#define ct_pqueue_is_dynamic(self) ((self)->_is_dynamic)
+#define ct_pqueue_size(self_)       ((self_)->size_)
+#define ct_pqueue_is_empty(self_)   ((self_)->size_ == 0)
+#define ct_pqueue_item_size(self_)  ((uint16_t)((self_)->item_size_))
+#define ct_pqueue_is_dynamic(self_) ((self_)->is_dynamic_)
 
 /**
  * @brief 动态初始化
  * @note 支持自动扩容
  */
-#define ct_pqueue_init(self, __type, __cmp)                    \
-    do {                                                       \
-        CT_STATIC_ASSERT(sizeof(__type) <= 512);               \
-        _ct_pqueue__init_dynamic(self, sizeof(__type), __cmp); \
+#define ct_pqueue_init(self_, type_, cmp_)                      \
+    do {                                                        \
+        CT_STATIC_ASSERT(sizeof(type_) <= 512);                 \
+        pqueue_init_dynamic(self_, sizeof(type_), cmp_);        \
     } while (0)
-CT_INLINE void _ct_pqueue__init_dynamic(ct_pqueue_t* self, size_t item_size, ct_compare_cb cmp) {
-    self->_all        = NULL;
-    self->_cap        = 0;
-    self->_size       = 0;
-    self->_cmp        = cmp;
-    self->_item_size  = (uint32_t)((item_size + 3) & ~3);
-    self->_is_dynamic = 1;
+CT_INLINE void pqueue_init_dynamic(ct_pqueue_t* self, size_t item_size, ct_compare_cb cmp) {
+    self->all_        = NULL;
+    self->cap_        = 0;
+    self->size_       = 0;
+    self->cmp_        = cmp;
+    self->item_size_  = (uint32_t)((item_size + 3) & ~3);
+    self->is_dynamic_ = 1;
 }
 
 /**
  * @brief 静态初始化
  * @note 使用用户提供的缓冲区, 不支持自动扩容
  */
-#define ct_pqueue_init_s(self, __type, __buf, __cap, __cmp)                 \
-    do {                                                                    \
-        CT_STATIC_ASSERT(sizeof(__type) <= 512);                            \
-        _ct_pqueue__init_static(self, sizeof(__type), __buf, __cap, __cmp); \
+#define ct_pqueue_init_s(self_, type_, buf_, cap_, cmp_)                  \
+    do {                                                                   \
+        CT_STATIC_ASSERT(sizeof(type_) <= 512);                            \
+        pqueue_init_static(self_, sizeof(type_), buf_, cap_, cmp_);        \
     } while (0)
-CT_INLINE void _ct_pqueue__init_static(ct_pqueue_t* self, size_t item_size, void* buf, size_t cap, ct_compare_cb cmp) {
-    self->_all        = (char*)buf;
-    self->_cap        = (uint32_t)cap;
-    self->_size       = 0;
-    self->_cmp        = cmp;
-    self->_item_size  = (uint32_t)((item_size + 3) & ~3);
-    self->_is_dynamic = 0;
+CT_INLINE void pqueue_init_static(ct_pqueue_t* self, size_t item_size, void* buf, size_t cap, ct_compare_cb cmp) {
+    self->all_        = (char*)buf;
+    self->cap_        = (uint32_t)cap;
+    self->size_       = 0;
+    self->cmp_        = cmp;
+    self->item_size_  = (uint32_t)((item_size + 3) & ~3);
+    self->is_dynamic_ = 0;
 }
 
 CT_API void  ct_pqueue_destroy(ct_pqueue_t* self);
