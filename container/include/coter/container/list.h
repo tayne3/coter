@@ -33,13 +33,13 @@ typedef struct ct_list {
  */
 #define ct_list_entry(node_, type_, member_) CT_CONTAINER_OF(node_, type_, member_)
 
-#define ct_list_isempty(head_)          ((head_)->next_ == (void*)(head_))
-#define ct_list_first(head_)            ((head_)->next_)
-#define ct_list_last(head_)             ((head_)->prev_)
-#define ct_list_is_first(head_, node_)  ((node_)->next_ == (void*)(head_))
-#define ct_list_is_last(head_, node_)   ((node_)->prev_ == (void*)(head_))
-#define ct_list_next(pos_)              ((pos_)->next_)
-#define ct_list_prev(pos_)              ((pos_)->prev_)
+#define ct_list_isempty(head_)         ((head_)->next_ == (void*)(head_))
+#define ct_list_first(head_)           ((head_)->next_)
+#define ct_list_last(head_)            ((head_)->prev_)
+#define ct_list_is_first(head_, node_) ((node_)->next_ == (void*)(head_))
+#define ct_list_is_last(head_, node_)  ((node_)->prev_ == (void*)(head_))
+#define ct_list_next(pos_)             ((pos_)->next_)
+#define ct_list_prev(pos_)             ((pos_)->prev_)
 
 #define ct_list_first_entry(head_, type_, member_) ct_list_entry((head_)->next_, type_, member_)
 #define ct_list_last_entry(head_, type_, member_)  ct_list_entry((head_)->prev_, type_, member_)
@@ -54,16 +54,15 @@ typedef struct ct_list {
  *
  * Nodes and the head sentinel must not be modified during iteration.
  */
-#define ct_list_foreach(pos_, head_) \
-    for (ct_list_t* pos_ = (head_)->next_; pos_ != (void*)(head_); pos_ = pos_->next_)
+#define ct_list_foreach(pos_, head_) for (ct_list_t* pos_ = (head_)->next_; pos_ != (void*)(head_); pos_ = pos_->next_)
 
 /**
  * @brief Iterate over list entries.
  *
  * Nodes and the head sentinel must not be modified during iteration.
  */
-#define ct_list_foreach_entry(pos_, head_, type_, member_)            \
-    for (type_* pos_ = ct_list_first_entry((head_), type_, member_); \
+#define ct_list_foreach_entry(pos_, head_, type_, member_)                                                         \
+    for (type_* pos_                                               = ct_list_first_entry((head_), type_, member_); \
          pos_ && (void*)(&(pos_)->member_) != (void*)(head_); pos_ = ct_list_next_entry(pos_, type_, member_))
 
 /**
@@ -72,16 +71,15 @@ typedef struct ct_list {
  * Nodes and the head sentinel must not be modified during iteration.
  */
 #define ct_list_foreach_entry_from(pos_, head_, type_, member_) \
-    for (; pos_ && (void*)(&(pos_)->member_) != (void*)(head_); \
-         (pos_) = ct_list_next_entry((pos_), type_, member_))
+    for (; pos_ && (void*)(&(pos_)->member_) != (void*)(head_); (pos_) = ct_list_next_entry((pos_), type_, member_))
 
 /**
  * @brief Iterate over list entries while allowing the current node to be removed.
  */
-#define ct_list_foreach_entry_safe(pos_, head_, type_, member_)                  \
-    for (type_* pos_ = ct_list_first_entry(head_, type_, member_),               \
-                 *next_node_ = ct_list_next_entry(pos_, type_, member_);         \
-         pos_ && (void*)(&(pos_)->member_) != (void*)(head_);                     \
+#define ct_list_foreach_entry_safe(pos_, head_, type_, member_)           \
+    for (type_* pos_        = ct_list_first_entry(head_, type_, member_), \
+                *next_node_ = ct_list_next_entry(pos_, type_, member_);   \
+         pos_ && (void*)(&(pos_)->member_) != (void*)(head_);             \
          pos_ = next_node_, next_node_ = ct_list_next_entry(next_node_, type_, member_))
 
 /**

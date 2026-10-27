@@ -37,16 +37,16 @@ static ct_heap_node_t* heap_merge_pairs_iter(ct_heap_node_t* first, ct_heap_comp
         if (b) {
             ct_heap_node_t* next = b->right_;
             a->left_ = a->right_ = b->left_ = b->right_ = NULL;
-            ct_heap_node_t* paired                  = heap_meld(a, b, cmp);
+            ct_heap_node_t* paired                      = heap_meld(a, b, cmp);
             /* Use right_ links to chain the paired trees temporarily. */
             paired->right_ = tree_list;
-            tree_list     = paired;
-            curr          = next;
+            tree_list      = paired;
+            curr           = next;
         } else {
             a->left_ = a->right_ = NULL;
-            a->right_           = tree_list;
-            tree_list          = a;
-            curr               = NULL;
+            a->right_            = tree_list;
+            tree_list            = a;
+            curr                 = NULL;
         }
     }
 
@@ -54,7 +54,7 @@ static ct_heap_node_t* heap_merge_pairs_iter(ct_heap_node_t* first, ct_heap_comp
     ct_heap_node_t* root = NULL;
     while (tree_list) {
         ct_heap_node_t* next = tree_list->right_;
-        tree_list->right_     = NULL;
+        tree_list->right_    = NULL;
         root                 = heap_meld(root, tree_list, cmp);
         tree_list            = next;
     }
@@ -78,7 +78,7 @@ void ct_heap_clear(ct_heap_t* heap) {
 void ct_heap_insert(ct_heap_t* heap, ct_heap_node_t* node) {
     if (!heap || !node) { return; }
     node->child_ = node->left_ = node->right_ = NULL;
-    heap->root_                            = heap_meld(heap->root_, node, heap->cmp_);
+    heap->root_                               = heap_meld(heap->root_, node, heap->cmp_);
     ++heap->size_;
 }
 

@@ -8,7 +8,6 @@
 
 #include "coter/testing/doctest.h"
 
-
 typedef struct {
     ct_heap_node_t node_;
     int            val_;

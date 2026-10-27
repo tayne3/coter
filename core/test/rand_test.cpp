@@ -4,7 +4,6 @@
 
 #include "coter/testing/doctest.h"
 
-
 TEST_CASE("rand_null_safety" * doctest::test_suite("rand")) {
     REQUIRE(ct_random_u64(nullptr) == 0);
     REQUIRE(ct_random_i64(nullptr) == 0);

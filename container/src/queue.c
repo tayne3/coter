@@ -8,7 +8,7 @@
 
 #define CT_QUEUE_INDEX_INC(self_, idx_) ((idx_) + 1 >= (self_)->max_ ? 0 : (idx_) + 1)
 #define CT_QUEUE_INDEX_DEC(self_, idx_) ((idx_) == 0 ? (self_)->max_ - 1 : (idx_) - 1)
-#define CT_QUEUE_ITEM(self_, idx_)    (&(self_)->all_[(idx_) * (self_)->byte_]) 
+#define CT_QUEUE_ITEM(self_, idx_)      (&(self_)->all_[(idx_) * (self_)->byte_])
 
 void ct_queue_init(ct_queue_t* self, void* buffer, size_t byte, size_t max) {
     if (!self || !buffer || !byte) { return; }

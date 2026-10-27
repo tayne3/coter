@@ -25,28 +25,28 @@ extern "C" {
  */
 #define CT_VEC_DECL(TYPE, NAME)                                                      \
     typedef struct NAME {                                                            \
-        TYPE*  ptr_;                                                                  \
-        size_t size_;                                                                 \
-        size_t cap_;                                                                  \
+        TYPE*  ptr_;                                                                 \
+        size_t size_;                                                                \
+        size_t cap_;                                                                 \
     } NAME##_t;                                                                      \
                                                                                      \
-    CT_MAYBE_UNUSED CT_INLINE size_t NAME##_size(const NAME##_t* self) {         \
-        return self ? self->size_ : 0;                                                \
+    CT_MAYBE_UNUSED CT_INLINE size_t NAME##_size(const NAME##_t* self) {             \
+        return self ? self->size_ : 0;                                               \
     }                                                                                \
-    CT_MAYBE_UNUSED CT_INLINE size_t NAME##_capacity(const NAME##_t* self) {     \
-        return self ? self->cap_ : 0;                                                 \
+    CT_MAYBE_UNUSED CT_INLINE size_t NAME##_capacity(const NAME##_t* self) {         \
+        return self ? self->cap_ : 0;                                                \
     }                                                                                \
-    CT_MAYBE_UNUSED CT_INLINE bool NAME##_empty(const NAME##_t* self) {          \
-        return !self || self->size_ == 0;                                             \
+    CT_MAYBE_UNUSED CT_INLINE bool NAME##_empty(const NAME##_t* self) {              \
+        return !self || self->size_ == 0;                                            \
     }                                                                                \
-    CT_MAYBE_UNUSED CT_INLINE TYPE* NAME##_at(NAME##_t* self, size_t idx) {      \
-        return (self && idx < self->size_) ? &self->ptr_[idx] : NULL;                  \
+    CT_MAYBE_UNUSED CT_INLINE TYPE* NAME##_at(NAME##_t* self, size_t idx) {          \
+        return (self && idx < self->size_) ? &self->ptr_[idx] : NULL;                \
     }                                                                                \
-    CT_MAYBE_UNUSED CT_INLINE TYPE* NAME##_front(NAME##_t* self) {               \
-        return (self && self->size_ > 0) ? &self->ptr_[0] : NULL;                      \
+    CT_MAYBE_UNUSED CT_INLINE TYPE* NAME##_front(NAME##_t* self) {                   \
+        return (self && self->size_ > 0) ? &self->ptr_[0] : NULL;                    \
     }                                                                                \
-    CT_MAYBE_UNUSED CT_INLINE TYPE* NAME##_back(NAME##_t* self) {                \
-        return (self && self->size_ > 0) ? &self->ptr_[self->size_ - 1] : NULL;         \
+    CT_MAYBE_UNUSED CT_INLINE TYPE* NAME##_back(NAME##_t* self) {                    \
+        return (self && self->size_ > 0) ? &self->ptr_[self->size_ - 1] : NULL;      \
     }                                                                                \
                                                                                      \
     CT_MAYBE_UNUSED int  NAME##_init(NAME##_t* self, size_t cap);                    \
@@ -60,54 +60,54 @@ extern "C" {
     CT_MAYBE_UNUSED bool NAME##_insert(NAME##_t* self, size_t idx, const TYPE* val); \
     CT_MAYBE_UNUSED bool NAME##_erase(NAME##_t* self, size_t idx);
 
-#define CT_VEC_IMPL(TYPE, NAME)                                                                                \
-    int NAME##_init(NAME##_t* self, size_t cap) {                                                              \
-        if (!self) { return -1; }                                                                              \
-        self->ptr_  = NULL;                                                                                     \
-        self->size_ = 0;                                                                                        \
-        self->cap_  = 0;                                                                                        \
-        if (cap > 0 && !NAME##_reserve(self, cap)) { return -1; }                                              \
-        return 0;                                                                                              \
-    }                                                                                                          \
-    void NAME##_destroy(NAME##_t* self) {                                                                      \
-        if (!self) { return; }                                                                                 \
-        if (self->ptr_) {                                                                                       \
-            free(self->ptr_);                                                                                   \
-            self->ptr_ = NULL;                                                                                  \
-        }                                                                                                      \
-        self->size_ = self->cap_ = 0;                                                                            \
-    }                                                                                                          \
-    void NAME##_clear(NAME##_t* self) {                                                                        \
-        if (self) { self->size_ = 0; }                                                                          \
-    }                                                                                                          \
-    bool NAME##_reserve(NAME##_t* self, size_t cap) {                                                          \
-        if (!self) { return false; }                                                                           \
-        return vector_reserve((void**)&self->ptr_, &self->cap_, sizeof(TYPE), cap);                         \
-    }                                                                                                          \
-    bool NAME##_resize(NAME##_t* self, size_t new_size) {                                                      \
-        if (!self) { return false; }                                                                           \
-        return vector_resize((void**)&self->ptr_, &self->size_, &self->cap_, sizeof(TYPE), new_size);        \
-    }                                                                                                          \
-    bool NAME##_shrink(NAME##_t* self) {                                                                       \
-        if (!self) { return false; }                                                                           \
-        return vector_shrink((void**)&self->ptr_, self->size_, &self->cap_, sizeof(TYPE));                   \
-    }                                                                                                          \
-    bool NAME##_push(NAME##_t* self, const TYPE* val) {                                                        \
-        if (!self) { return false; }                                                                           \
+#define CT_VEC_IMPL(TYPE, NAME)                                                                               \
+    int NAME##_init(NAME##_t* self, size_t cap) {                                                             \
+        if (!self) { return -1; }                                                                             \
+        self->ptr_  = NULL;                                                                                   \
+        self->size_ = 0;                                                                                      \
+        self->cap_  = 0;                                                                                      \
+        if (cap > 0 && !NAME##_reserve(self, cap)) { return -1; }                                             \
+        return 0;                                                                                             \
+    }                                                                                                         \
+    void NAME##_destroy(NAME##_t* self) {                                                                     \
+        if (!self) { return; }                                                                                \
+        if (self->ptr_) {                                                                                     \
+            free(self->ptr_);                                                                                 \
+            self->ptr_ = NULL;                                                                                \
+        }                                                                                                     \
+        self->size_ = self->cap_ = 0;                                                                         \
+    }                                                                                                         \
+    void NAME##_clear(NAME##_t* self) {                                                                       \
+        if (self) { self->size_ = 0; }                                                                        \
+    }                                                                                                         \
+    bool NAME##_reserve(NAME##_t* self, size_t cap) {                                                         \
+        if (!self) { return false; }                                                                          \
+        return vector_reserve((void**)&self->ptr_, &self->cap_, sizeof(TYPE), cap);                           \
+    }                                                                                                         \
+    bool NAME##_resize(NAME##_t* self, size_t new_size) {                                                     \
+        if (!self) { return false; }                                                                          \
+        return vector_resize((void**)&self->ptr_, &self->size_, &self->cap_, sizeof(TYPE), new_size);         \
+    }                                                                                                         \
+    bool NAME##_shrink(NAME##_t* self) {                                                                      \
+        if (!self) { return false; }                                                                          \
+        return vector_shrink((void**)&self->ptr_, self->size_, &self->cap_, sizeof(TYPE));                    \
+    }                                                                                                         \
+    bool NAME##_push(NAME##_t* self, const TYPE* val) {                                                       \
+        if (!self) { return false; }                                                                          \
         return vector_insert((void**)&self->ptr_, &self->size_, &self->cap_, sizeof(TYPE), self->size_, val); \
-    }                                                                                                          \
-    bool NAME##_pop(NAME##_t* self) {                                                                          \
-        if (!self || self->size_ == 0) { return false; }                                                        \
-        self->size_--;                                                                                          \
-        return true;                                                                                           \
-    }                                                                                                          \
-    bool NAME##_insert(NAME##_t* self, size_t idx, const TYPE* val) {                                          \
-        if (!self) { return false; }                                                                           \
-        return vector_insert((void**)&self->ptr_, &self->size_, &self->cap_, sizeof(TYPE), idx, val);        \
-    }                                                                                                          \
-    bool NAME##_erase(NAME##_t* self, size_t idx) {                                                            \
-        if (!self) { return false; }                                                                           \
-        return vector_erase(self->ptr_, &self->size_, sizeof(TYPE), idx);                                   \
+    }                                                                                                         \
+    bool NAME##_pop(NAME##_t* self) {                                                                         \
+        if (!self || self->size_ == 0) { return false; }                                                      \
+        self->size_--;                                                                                        \
+        return true;                                                                                          \
+    }                                                                                                         \
+    bool NAME##_insert(NAME##_t* self, size_t idx, const TYPE* val) {                                         \
+        if (!self) { return false; }                                                                          \
+        return vector_insert((void**)&self->ptr_, &self->size_, &self->cap_, sizeof(TYPE), idx, val);         \
+    }                                                                                                         \
+    bool NAME##_erase(NAME##_t* self, size_t idx) {                                                           \
+        if (!self) { return false; }                                                                          \
+        return vector_erase(self->ptr_, &self->size_, sizeof(TYPE), idx);                                     \
     }
 
 /**
@@ -144,8 +144,7 @@ CT_API bool vector_resize(void** p_ptr, size_t* p_size, size_t* p_cap, size_t el
  * @param data Data to copy, or NULL to only reserve space.
  * @return true on success; false on failure.
  */
-CT_API bool vector_insert(void** p_ptr, size_t* p_size, size_t* p_cap, size_t elem_size, size_t idx,
-                               const void* data);
+CT_API bool vector_insert(void** p_ptr, size_t* p_size, size_t* p_cap, size_t elem_size, size_t idx, const void* data);
 
 /**
  * @brief Core erase helper.

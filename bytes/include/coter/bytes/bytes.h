@@ -43,10 +43,10 @@ typedef struct ct_bytes {
 #define ct_bytes_data(self_)       ((self_)->data_)
 #define ct_bytes_has_error(self_)  ((self_)->overflow_)
 
-#define ct_bytes_rewind(self_)        ((self_)->pos_ = 0U)
-#define ct_bytes_clear(self_)         ((self_)->len_ = (self_)->pos_ = 0U, (self_)->overflow_ = 0U)
-#define ct_bytes_clear_error(self_)   ((self_)->overflow_ = 0U)
-#define ct_bytes_get_endian(self_)    ((self_)->endian_)
+#define ct_bytes_rewind(self_)                  ((self_)->pos_ = 0U)
+#define ct_bytes_clear(self_)                   ((self_)->len_ = (self_)->pos_ = 0U, (self_)->overflow_ = 0U)
+#define ct_bytes_clear_error(self_)             ((self_)->overflow_ = 0U)
+#define ct_bytes_get_endian(self_)              ((self_)->endian_)
 #define ct_bytes_set_endian(self_, byte_order_) ((self_)->endian_ = (byte_order_))
 #define ct_bytes_get_hlswap(self_)              ((self_)->hlswap_)
 #define ct_bytes_set_hlswap(self_, word_swap_)  ((self_)->hlswap_ = (word_swap_))
@@ -77,13 +77,13 @@ CT_INLINE void ct_bytes_init(ct_bytes_t* self, uint8_t* data, size_t cap) {
 CT_INLINE void ct_bytes_from(ct_bytes_t* self, uint8_t* data, size_t cap, size_t len) {
     uint32_t final_cap = (uint32_t)(cap);
     uint32_t final_len = (uint32_t)(len);
-    self->data_         = data;
-    self->cap_          = final_cap;
-    self->len_          = final_len <= final_cap ? final_len : final_cap;
-    self->pos_          = 0U;
-    self->endian_       = CT_ENDIAN_BIG;
-    self->hlswap_       = 0U;
-    self->overflow_     = 0U;
+    self->data_        = data;
+    self->cap_         = final_cap;
+    self->len_         = final_len <= final_cap ? final_len : final_cap;
+    self->pos_         = 0U;
+    self->endian_      = CT_ENDIAN_BIG;
+    self->hlswap_      = 0U;
+    self->overflow_    = 0U;
 }
 
 // Set position to absolute offset from start. Returns -1 if out of bounds.
@@ -111,7 +111,7 @@ CT_INLINE int ct_bytes_skip(ct_bytes_t* self, size_t length) {
     const size_t readable = ct_bytes_readable(self);
     if (length > readable) {
         self->overflow_ = 1;
-        length         = readable;
+        length          = readable;
     }
     self->pos_ += (uint32_t)length;
     return (int)length;
@@ -122,7 +122,7 @@ CT_INLINE int ct_bytes_commit(ct_bytes_t* self, size_t length) {
     const size_t writable = ct_bytes_writable(self);
     if (length > writable) {
         self->overflow_ = 1;
-        length         = writable;
+        length          = writable;
     }
     self->pos_ += (uint32_t)length;
     if (self->pos_ > self->len_) { self->len_ = self->pos_; }

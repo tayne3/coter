@@ -29,7 +29,7 @@ int ct_bytes_fill(ct_bytes_t* self, uint8_t bt, size_t length) {
     const size_t writable = ct_bytes_writable(self);
     if (length > writable) {
         self->overflow_ = 1;
-        length         = writable;
+        length          = writable;
     }
     if (!length) { return 0; }
 
@@ -42,7 +42,7 @@ int ct_bytes_fill(ct_bytes_t* self, uint8_t bt, size_t length) {
 int ct_bytes_overfill(ct_bytes_t* self, uint8_t bt, size_t length) {
     if (length > self->cap_) {
         self->overflow_ = 1;
-        length         = self->cap_;
+        length          = self->cap_;
     }
     if (!length) { return 0; }
 
@@ -97,7 +97,7 @@ int ct_bytes_poke_bytes(ct_bytes_t* self, int offset, const uint8_t* p, size_t l
 int ct_bytes_take_bytes(ct_bytes_t* self, uint8_t* p, size_t length) {
     if (length > self->len_ - self->pos_) {
         self->overflow_ = 1;
-        length         = self->len_ - self->pos_;
+        length          = self->len_ - self->pos_;
     }
     if (!p || !length) { return 0; }
 
@@ -109,7 +109,7 @@ int ct_bytes_take_bytes(ct_bytes_t* self, uint8_t* p, size_t length) {
 int ct_bytes_put_bytes(ct_bytes_t* self, const uint8_t* p, size_t length) {
     if (length > self->cap_ - self->pos_) {
         self->overflow_ = 1;
-        length         = self->cap_ - self->pos_;
+        length          = self->cap_ - self->pos_;
     }
     if (!p || !length) { return 0; }
 

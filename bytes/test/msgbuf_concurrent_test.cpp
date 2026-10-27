@@ -9,7 +9,6 @@
 #include "coter/sync/mutex.h"
 #include "coter/testing/doctest.h"
 
-
 static constexpr int num_producer_threads  = 4;
 static constexpr int buffer_size           = 100;
 static constexpr int chunk_size            = 9;
@@ -146,7 +145,9 @@ TEST_CASE("msgbuf concurrent" * doctest::test_suite("msgbuf") * doctest::test_su
     ctx.test_complete_ = false;
     for (int i = 0; i < chunk_size; ++i) { ctx.sample_data_[i] = (char)(0x31 + (i % 26)); }
     std::thread producer_threads[num_producer_threads];
-    for (int i = 0; i < num_producer_threads; ++i) { producer_threads[i] = std::thread(msgbuf_producer_thread_func, &ctx); }
+    for (int i = 0; i < num_producer_threads; ++i) {
+        producer_threads[i] = std::thread(msgbuf_producer_thread_func, &ctx);
+    }
     std::thread consumer_thread(msgbuf_consumer_thread_func, &ctx);
     for (int i = 0; i < num_producer_threads; ++i) { producer_threads[i].join(); }
     {

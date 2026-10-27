@@ -52,9 +52,9 @@ typedef struct ct_pqueue {
  * @param cap_ Capacity in elements.
  * @param cmp_ Comparison callback.
  */
-#define ct_pqueue_init_s(self_, type_, buf_, cap_, cmp_)          \
-    do {                                                          \
-        CT_STATIC_ASSERT(sizeof(type_) <= 512);                   \
+#define ct_pqueue_init_s(self_, type_, buf_, cap_, cmp_)            \
+    do {                                                            \
+        CT_STATIC_ASSERT(sizeof(type_) <= 512);                     \
         pqueue_init_static(self_, sizeof(type_), buf_, cap_, cmp_); \
     } while (0)
 

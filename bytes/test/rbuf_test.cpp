@@ -8,7 +8,6 @@
 
 #include "coter/testing/doctest.h"
 
-
 #define TEST_BUF_CAPACITY 16
 
 static uint8_t   s_test_buf[TEST_BUF_CAPACITY + 1];

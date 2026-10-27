@@ -8,7 +8,6 @@
 
 #include "coter/testing/doctest.h"
 
-
 typedef struct my_struct {
     ct_list_t list_[1];
     int       data_;

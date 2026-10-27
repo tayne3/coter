@@ -21,10 +21,10 @@ extern "C" {
  * into any ct_list_t without requiring additional memory allocation for a wrapper node.
  */
 typedef struct ct_msgbuf {
-    ct_list_t list_[1];   ///< Intrusive list node for zero-allocation queueing
-    char*     write_pos_; ///< Current write position pointer
-    size_t    cap_;       ///< Total capacity of the buffer
-    char      buffer_[1]; ///< Flexible array member for payload
+    ct_list_t list_[1];    ///< Intrusive list node for zero-allocation queueing
+    char*     write_pos_;  ///< Current write position pointer
+    size_t    cap_;        ///< Total capacity of the buffer
+    char      buffer_[1];  ///< Flexible array member for payload
 } ct_msgbuf_t;
 
 #define ct_msgbuf_buffer(self_)    ((self_)->buffer_)
@@ -36,14 +36,12 @@ typedef struct ct_msgbuf {
 #define ct_msgbuf_isfull(self_)    ((self_)->write_pos_ == ((self_)->buffer_ + (self_)->cap_))
 
 #define ct_msgbuf_fmt(self_, ...)                                                          \
-    do {                                                                                    \
-        const size_t available_ = ct_msgbuf_available(self_);                               \
-        if (available_ > 0) {                                                               \
-            const int size_ = ct_snprintf_s((self_)->write_pos_, available_, __VA_ARGS__);  \
-            if (size_ > 0) {                                                                \
-                (self_)->write_pos_ += size_;                                               \
-            }                                                                               \
-        }                                                                                   \
+    do {                                                                                   \
+        const size_t available_ = ct_msgbuf_available(self_);                              \
+        if (available_ > 0) {                                                              \
+            const int size_ = ct_snprintf_s((self_)->write_pos_, available_, __VA_ARGS__); \
+            if (size_ > 0) { (self_)->write_pos_ += size_; }                               \
+        }                                                                                  \
     } while (0)
 
 CT_INLINE int ct_msgbuf_seg(ct_msgbuf_t* self, ct_bytes_t* seg, size_t start, size_t end) {
