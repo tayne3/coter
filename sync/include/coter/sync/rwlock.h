@@ -40,11 +40,11 @@ typedef pthread_rwlock_t ct_rwlock_t;
 #define ct_rwlock_wrunlock(l)  pthread_rwlock_unlock(l)
 #else
 typedef struct ct_rwlock {
-    ct_mutex_t mutex;
-    ct_cond_t  read_signal;
-    ct_cond_t  write_signal;
-    int        state;
-    unsigned   waiting_writers;
+    ct_mutex_t mutex_;
+    ct_cond_t  read_signal_;
+    ct_cond_t  write_signal_;
+    int        state_;
+    unsigned   waiting_writers_;
 } ct_rwlock_t;
 #define CT_RWLOCK_INITIALIZER {CT_MUTEX_INITIALIZER, CT_COND_INITIALIZER, CT_COND_INITIALIZER, 0, 0}
 
