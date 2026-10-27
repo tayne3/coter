@@ -17,9 +17,9 @@ extern "C" {
 typedef HANDLE ct_event_t;
 #else
 typedef struct ct_event {
-    ct_cond_t  cond;
-    ct_mutex_t mutex;
-    int        count;
+    ct_cond_t  cond_;
+    ct_mutex_t mutex_;
+    int        count_;
 } ct_event_t;
 #endif
 

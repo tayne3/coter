@@ -1,3 +1,7 @@
+/**
+ * @file event_test.cpp
+ * @brief Event tests.
+ */
 #include "coter/sync/event.h"
 
 #include <thread>
@@ -9,38 +13,38 @@
 
 namespace {
 struct event_env {
-    ct_event_t      event;
-    ct_atomic_int_t waiter_done = CT_ATOMIC_VAR_INIT(0);
+    ct_event_t      event_;
+    ct_atomic_int_t waiter_done_ = CT_ATOMIC_VAR_INIT(0);
 
-    event_env() { ct_event_init(&event); }
+    event_env() { ct_event_init(&event_); }
 
-    ~event_env() { ct_event_destroy(&event); }
+    ~event_env() { ct_event_destroy(&event_); }
 };
 
 struct timed_wait_env {
-    ct_event_t      event;
-    ct_atomic_int_t ready_count   = CT_ATOMIC_VAR_INIT(0);
-    ct_atomic_int_t success_count = CT_ATOMIC_VAR_INIT(0);
-    ct_atomic_int_t timeout_count = CT_ATOMIC_VAR_INIT(0);
-    ct_atomic_int_t error_count   = CT_ATOMIC_VAR_INIT(0);
-    uint32_t        timeout_ms    = 0;
+    ct_event_t      event_;
+    ct_atomic_int_t ready_count_   = CT_ATOMIC_VAR_INIT(0);
+    ct_atomic_int_t success_count_ = CT_ATOMIC_VAR_INIT(0);
+    ct_atomic_int_t timeout_count_ = CT_ATOMIC_VAR_INIT(0);
+    ct_atomic_int_t error_count_   = CT_ATOMIC_VAR_INIT(0);
+    uint32_t        timeout_ms_    = 0;
 
-    timed_wait_env() { ct_event_init(&event); }
+    timed_wait_env() { ct_event_init(&event_); }
 
-    ~timed_wait_env() { ct_event_destroy(&event); }
+    ~timed_wait_env() { ct_event_destroy(&event_); }
 };
 
 static int timed_wait_worker(void* arg) {
     timed_wait_env* env = (timed_wait_env*)arg;
-    ct_atomic_int_add(&env->ready_count, 1);
+    ct_atomic_int_add(&env->ready_count_, 1);
 
-    int result = ct_event_timedwait(&env->event, env->timeout_ms);
+    int result = ct_event_timedwait(&env->event_, env->timeout_ms_);
     if (result == 0) {
-        ct_atomic_int_add(&env->success_count, 1);
+        ct_atomic_int_add(&env->success_count_, 1);
     } else if (result == ETIMEDOUT) {
-        ct_atomic_int_add(&env->timeout_count, 1);
+        ct_atomic_int_add(&env->timeout_count_, 1);
     } else {
-        ct_atomic_int_add(&env->error_count, 1);
+        ct_atomic_int_add(&env->error_count_, 1);
     }
     return result;
 }
@@ -49,18 +53,18 @@ static int timed_wait_worker(void* arg) {
 TEST_CASE("signal then wait consumes the signal" * doctest::test_suite("sync") * doctest::test_suite("event")) {
     event_env env;
 
-    REQUIRE(ct_event_signal(&env.event) == 0);
-    REQUIRE(ct_event_wait(&env.event) == 0);
-    REQUIRE(ct_event_timedwait(&env.event, 20) == ETIMEDOUT);
+    REQUIRE(ct_event_signal(&env.event_) == 0);
+    REQUIRE(ct_event_wait(&env.event_) == 0);
+    REQUIRE(ct_event_timedwait(&env.event_, 20) == ETIMEDOUT);
 }
 
 TEST_CASE("multiple signals do not accumulate" * doctest::test_suite("sync") * doctest::test_suite("event")) {
     event_env env;
 
-    REQUIRE(ct_event_signal(&env.event) == 0);
-    REQUIRE(ct_event_signal(&env.event) == 0);
-    REQUIRE(ct_event_wait(&env.event) == 0);
-    REQUIRE(ct_event_timedwait(&env.event, 20) == ETIMEDOUT);
+    REQUIRE(ct_event_signal(&env.event_) == 0);
+    REQUIRE(ct_event_signal(&env.event_) == 0);
+    REQUIRE(ct_event_wait(&env.event_) == 0);
+    REQUIRE(ct_event_timedwait(&env.event_, 20) == ETIMEDOUT);
 }
 
 TEST_CASE("wait blocks until signal arrives" * doctest::test_suite("sync") * doctest::test_suite("event")) {
@@ -69,45 +73,45 @@ TEST_CASE("wait blocks until signal arrives" * doctest::test_suite("sync") * doc
 
     auto wait_worker = [](void* arg) -> int {
         event_env* env = (event_env*)arg;
-        if (ct_event_wait(&env->event) == 0) { ct_atomic_int_store(&env->waiter_done, 1); }
+        if (ct_event_wait(&env->event_) == 0) { ct_atomic_int_store(&env->waiter_done_, 1); }
         return 0;
     };
     thread = std::thread(wait_worker, &env);
 
     for (int i = 0; i < 10; ++i) {
-        REQUIRE(ct_atomic_int_load(&env.waiter_done) == 0);
+        REQUIRE(ct_atomic_int_load(&env.waiter_done_) == 0);
         ct_msleep(5);
     }
 
-    REQUIRE(ct_event_signal(&env.event) == 0);
+    REQUIRE(ct_event_signal(&env.event_) == 0);
     thread.join();
-    REQUIRE(ct_atomic_int_load(&env.waiter_done) == 1);
+    REQUIRE(ct_atomic_int_load(&env.waiter_done_) == 1);
 }
 
 TEST_CASE("timedwait times out without signal" * doctest::test_suite("sync") * doctest::test_suite("event")) {
     event_env env;
 
-    REQUIRE(ct_event_timedwait(&env.event, 20) == ETIMEDOUT);
+    REQUIRE(ct_event_timedwait(&env.event_, 20) == ETIMEDOUT);
 }
 
 TEST_CASE("signal wakes only one waiter" * doctest::test_suite("sync") * doctest::test_suite("event")) {
     timed_wait_env env;
     std::thread    threads[2];
 
-    env.timeout_ms = 200;
+    env.timeout_ms_ = 200;
 
     for (int i = 0; i < 2; ++i) { threads[i] = std::thread(timed_wait_worker, &env); }
 
-    for (int i = 0; i < 40 && ct_atomic_int_load(&env.ready_count) != 2; ++i) { ct_msleep(5); }
+    for (int i = 0; i < 40 && ct_atomic_int_load(&env.ready_count_) != 2; ++i) { ct_msleep(5); }
 
-    REQUIRE(ct_atomic_int_load(&env.ready_count) == 2);
-    REQUIRE(ct_event_signal(&env.event) == 0);
+    REQUIRE(ct_atomic_int_load(&env.ready_count_) == 2);
+    REQUIRE(ct_event_signal(&env.event_) == 0);
 
     for (int i = 0; i < 2; ++i) { threads[i].join(); }
 
-    REQUIRE(ct_atomic_int_load(&env.success_count) == 1);
-    REQUIRE(ct_atomic_int_load(&env.timeout_count) == 1);
-    REQUIRE(ct_atomic_int_load(&env.error_count) == 0);
+    REQUIRE(ct_atomic_int_load(&env.success_count_) == 1);
+    REQUIRE(ct_atomic_int_load(&env.timeout_count_) == 1);
+    REQUIRE(ct_atomic_int_load(&env.error_count_) == 0);
 }
 
 TEST_CASE("two signals wake two waiters when signaled separately" * doctest::test_suite("sync") *
@@ -115,29 +119,29 @@ TEST_CASE("two signals wake two waiters when signaled separately" * doctest::tes
     timed_wait_env env;
     std::thread    threads[2];
 
-    env.timeout_ms = 500;
+    env.timeout_ms_ = 500;
 
     for (int i = 0; i < 2; ++i) { threads[i] = std::thread(timed_wait_worker, &env); }
 
-    for (int i = 0; i < 40 && ct_atomic_int_load(&env.ready_count) != 2; ++i) { ct_msleep(5); }
+    for (int i = 0; i < 40 && ct_atomic_int_load(&env.ready_count_) != 2; ++i) { ct_msleep(5); }
 
-    REQUIRE(ct_atomic_int_load(&env.ready_count) == 2);
-    REQUIRE(ct_event_signal(&env.event) == 0);
-    for (int i = 0; i < 40 && ct_atomic_int_load(&env.success_count) != 1; ++i) { ct_msleep(5); }
-    REQUIRE(ct_atomic_int_load(&env.success_count) == 1);
-    REQUIRE(ct_event_signal(&env.event) == 0);
+    REQUIRE(ct_atomic_int_load(&env.ready_count_) == 2);
+    REQUIRE(ct_event_signal(&env.event_) == 0);
+    for (int i = 0; i < 40 && ct_atomic_int_load(&env.success_count_) != 1; ++i) { ct_msleep(5); }
+    REQUIRE(ct_atomic_int_load(&env.success_count_) == 1);
+    REQUIRE(ct_event_signal(&env.event_) == 0);
 
     for (int i = 0; i < 2; ++i) { threads[i].join(); }
 
-    REQUIRE(ct_atomic_int_load(&env.success_count) == 2);
-    REQUIRE(ct_atomic_int_load(&env.timeout_count) == 0);
-    REQUIRE(ct_atomic_int_load(&env.error_count) == 0);
+    REQUIRE(ct_atomic_int_load(&env.success_count_) == 2);
+    REQUIRE(ct_atomic_int_load(&env.timeout_count_) == 0);
+    REQUIRE(ct_atomic_int_load(&env.error_count_) == 0);
 }
 
 TEST_CASE("reset clears pending signal" * doctest::test_suite("sync") * doctest::test_suite("event")) {
     event_env env;
 
-    REQUIRE(ct_event_signal(&env.event) == 0);
-    REQUIRE(ct_event_reset(&env.event) == 0);
-    REQUIRE(ct_event_timedwait(&env.event, 20) == ETIMEDOUT);
+    REQUIRE(ct_event_signal(&env.event_) == 0);
+    REQUIRE(ct_event_reset(&env.event_) == 0);
+    REQUIRE(ct_event_timedwait(&env.event_, 20) == ETIMEDOUT);
 }

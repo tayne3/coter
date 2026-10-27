@@ -1,3 +1,7 @@
+/**
+ * @file event.c
+ * @brief Cross-platform event implementation.
+ */
 #include "coter/sync/event.h"
 
 #include <errno.h>
@@ -11,14 +15,14 @@ int ct_event_init(ct_event_t* event) {
     *event = (void*)handle;
     return 0;
 #else
-    int result = ct_mutex_init(&event->mutex);
+    int result = ct_mutex_init(&event->mutex_);
     if (result != 0) { return result; }
-    result = ct_cond_init(&event->cond);
+    result = ct_cond_init(&event->cond_);
     if (result != 0) {
-        ct_mutex_destroy(&event->mutex);
+        ct_mutex_destroy(&event->mutex_);
         return result;
     }
-    event->count = 0;
+    event->count_ = 0;
     return 0;
 #endif
 }
@@ -29,9 +33,9 @@ int ct_event_destroy(ct_event_t* event) {
     return CloseHandle((HANDLE)*event) ? 0 : (int)GetLastError();
 #else
     while (1) {
-        int result = ct_cond_destroy(&event->cond);
+        int result = ct_cond_destroy(&event->cond_);
         if (result != EBUSY) {
-            ct_mutex_destroy(&event->mutex);
+            ct_mutex_destroy(&event->mutex_);
             return result;
         }
         ct_msleep(1);
@@ -48,13 +52,13 @@ int ct_event_wait(ct_event_t* event) {
     return result == WAIT_FAILED ? (int)GetLastError() : (int)result;
 #else
     int result = 0;
-    ct_mutex_lock(&event->mutex);
-    while (event->count == 0) {
-        result = ct_cond_wait(&event->cond, &event->mutex);
+    ct_mutex_lock(&event->mutex_);
+    while (event->count_ == 0) {
+        result = ct_cond_wait(&event->cond_, &event->mutex_);
         if (result != 0) { break; }
     }
-    if (result == 0) { event->count = 0; }
-    ct_mutex_unlock(&event->mutex);
+    if (result == 0) { event->count_ = 0; }
+    ct_mutex_unlock(&event->mutex_);
     return result;
 #endif
 }
@@ -70,19 +74,19 @@ int ct_event_timedwait(ct_event_t* event, uint32_t timeout_ms) {
     int         result   = 0;
     ct_time64_t now      = ct_gettick_ms();
     ct_time64_t deadline = now + (ct_time64_t)timeout_ms;
-    ct_mutex_lock(&event->mutex);
-    while (event->count == 0) {
+    ct_mutex_lock(&event->mutex_);
+    while (event->count_ == 0) {
         now = ct_gettick_ms();
         if (now >= deadline) {
             result = ETIMEDOUT;
             break;
         }
-        result = ct_cond_wait_for(&event->cond, &event->mutex, deadline - now);
+        result = ct_cond_wait_for(&event->cond_, &event->mutex_, deadline - now);
         if (result == ETIMEDOUT) { break; }
         if (result != 0) { break; }
     }
-    if (result == 0) { event->count = 0; }
-    ct_mutex_unlock(&event->mutex);
+    if (result == 0) { event->count_ = 0; }
+    ct_mutex_unlock(&event->mutex_);
     return result;
 #endif
 }
@@ -93,10 +97,10 @@ int ct_event_signal(ct_event_t* event) {
     return SetEvent((HANDLE)*event) ? 0 : (int)GetLastError();
 #else
     int result;
-    ct_mutex_lock(&event->mutex);
-    event->count = 1;
-    result       = ct_cond_signal(&event->cond);
-    ct_mutex_unlock(&event->mutex);
+    ct_mutex_lock(&event->mutex_);
+    event->count_ = 1;
+    result       = ct_cond_signal(&event->cond_);
+    ct_mutex_unlock(&event->mutex_);
     return result;
 #endif
 }
@@ -106,9 +110,9 @@ int ct_event_reset(ct_event_t* event) {
 #ifdef CT_OS_WIN
     return ResetEvent((HANDLE)*event) ? 0 : (int)GetLastError();
 #else
-    ct_mutex_lock(&event->mutex);
-    event->count = 0;
-    ct_mutex_unlock(&event->mutex);
+    ct_mutex_lock(&event->mutex_);
+    event->count_ = 0;
+    ct_mutex_unlock(&event->mutex_);
     return 0;
 #endif
 }
