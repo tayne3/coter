@@ -15,14 +15,14 @@ extern "C" {
  * @brief 通用动态数组结构体。
  */
 typedef struct ct_array {
-    char*  _ptr;   ///< 指向存储元素的原始内存缓冲区的指针。
-    size_t _byte;  ///< 每个元素的字节大小。
-    size_t _cap;   ///< 当前已分配的容量 (以元素数量计)。
-    size_t _size;  ///< 当前存储的元素数量。
+    char*  ptr_;   ///< 指向存储元素的原始内存缓冲区的指针。
+    size_t byte_;  ///< 每个元素的字节大小。
+    size_t cap_;   ///< 当前已分配的容量 (以元素数量计)。
+    size_t size_;  ///< 当前存储的元素数量。
 } ct_array_t;
 
-#define ct_array_foreach(self, TYPE, it) \
-    for (TYPE* it = (TYPE*)(self)->_ptr; it < (TYPE*)(self)->_ptr + (self)->_size; ++it)
+#define ct_array_foreach(self_, TYPE, it_) \
+    for (TYPE* it_ = (TYPE*)(self_)->ptr_; it_ < (TYPE*)(self_)->ptr_ + (self_)->size_; ++it_)
 
 /**
  * @brief 初始化一个动态数组。

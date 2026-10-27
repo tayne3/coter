@@ -1,3 +1,7 @@
+/**
+ * @file vector_test.cpp
+ * @brief Type-safe dynamic array tests.
+ */
 #include "coter/container/vector.h"
 
 #include "coter/testing/doctest.h"
@@ -17,7 +21,7 @@ TEST_CASE("Vec Init and Destroy" * doctest::test_suite("vec")) {
     REQUIRE(IntVec_empty(&v));
 
     IntVec_destroy(&v);
-    REQUIRE(v.ptr == nullptr);
+    REQUIRE(v.ptr_ == nullptr);
 
     REQUIRE(IntVec_init(nullptr, 10) == -1);
 }

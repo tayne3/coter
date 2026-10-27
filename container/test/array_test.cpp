@@ -1,3 +1,7 @@
+/**
+ * @file array_test.cpp
+ * @brief Generic dynamic array tests.
+ */
 #include "coter/container/array.h"
 
 #include <vector>
@@ -25,7 +29,7 @@ TEST_CASE("Array Lifecycle and properties") {
         REQUIRE(ct_array_size(&arr) == 0);
         REQUIRE(ct_array_capacity(&arr) == 0);
         REQUIRE(ct_array_empty(&arr) == true);
-        REQUIRE(arr._ptr == nullptr);
+        REQUIRE(arr.ptr_ == nullptr);
         ct_array_destroy(&arr);
     }
 
@@ -34,7 +38,7 @@ TEST_CASE("Array Lifecycle and properties") {
         REQUIRE(ct_array_size(&arr) == 0);
         REQUIRE(ct_array_capacity(&arr) >= 10);
         REQUIRE(ct_array_empty(&arr) == true);
-        REQUIRE(arr._ptr != nullptr);
+        REQUIRE(arr.ptr_ != nullptr);
         ct_array_destroy(&arr);
     }
 
@@ -87,7 +91,7 @@ TEST_CASE("Array Capacity Management") {
         REQUIRE(ct_array_reserve(&arr, 100) == true);
         REQUIRE(ct_array_shrink(&arr) == true);
         REQUIRE(ct_array_capacity(&arr) == 0);
-        REQUIRE(arr._ptr == nullptr);
+        REQUIRE(arr.ptr_ == nullptr);
     }
 
     ct_array_destroy(&arr);
