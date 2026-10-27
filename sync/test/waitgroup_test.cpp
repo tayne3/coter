@@ -26,7 +26,7 @@ struct thread_arg_t {
     std::atomic<int>* completed_;
 };
 
-int thread_task(void* arg) {
+int waitgroup_thread_task(void* arg) {
     thread_arg_t* task = static_cast<thread_arg_t*>(arg);
     ct_msleep(task->sleep_time_);
     if (task->completed_) { ++(*task->completed_); }
@@ -75,7 +75,7 @@ uint32_t waitgroup_counter(ct_waitgroup_t* wg) {
     return counter;
 }
 
-bool wait_until_equal(const std::atomic<int>& value, int expected) {
+bool waitgroup_wait_until_equal(const std::atomic<int>& value, int expected) {
     const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(1);
     while (value != expected) {
         if (std::chrono::steady_clock::now() >= deadline) { return false; }
@@ -105,7 +105,7 @@ TEST_CASE("static initializer creates an empty reusable group") {
     ct_waitgroup_add(&wg, 1);
     REQUIRE(waitgroup_counter(&wg) == 1);
 
-    workers.start(thread_task, &arg);
+    workers.start(waitgroup_thread_task, &arg);
     ct_waitgroup_wait(&wg);
     workers.join_all();
 
@@ -131,7 +131,7 @@ TEST_CASE_FIXTURE(WaitgroupFixture, "single task completes with wait") {
     ct_waitgroup_add(&wg_, 1);
     REQUIRE(waitgroup_counter(&wg_) == 1);
 
-    workers.start(thread_task, &arg);
+    workers.start(waitgroup_thread_task, &arg);
     ct_waitgroup_wait(&wg_);
     workers.join_all();
 
@@ -148,7 +148,7 @@ TEST_CASE_FIXTURE(WaitgroupFixture, "multiple concurrent tasks complete") {
 
     for (int index = 0; index < thread_count; ++index) {
         args[index] = {&wg_, 50 + (index * 10), &completed};
-        workers.start(thread_task, &args[index]);
+        workers.start(waitgroup_thread_task, &args[index]);
     }
 
     ct_waitgroup_wait(&wg_);
@@ -184,7 +184,7 @@ TEST_CASE_FIXTURE(WaitgroupFixture, "waitgroup can be reused across multiple rou
         ct_waitgroup_add(&wg_, 2);
         REQUIRE(waitgroup_counter(&wg_) == 2);
 
-        for (thread_arg_t& arg : args) { workers.start(thread_task, &arg); }
+        for (thread_arg_t& arg : args) { workers.start(waitgroup_thread_task, &arg); }
         ct_waitgroup_wait(&wg_);
         workers.join_all();
 
@@ -197,7 +197,7 @@ TEST_CASE_FIXTURE(WaitgroupFixture, "waitgroup can be reused across multiple rou
         ct_waitgroup_add(&wg_, 3);
         REQUIRE(waitgroup_counter(&wg_) == 3);
 
-        for (thread_arg_t& arg : args) { workers.start(thread_task, &arg); }
+        for (thread_arg_t& arg : args) { workers.start(waitgroup_thread_task, &arg); }
         ct_waitgroup_wait(&wg_);
         workers.join_all();
 
@@ -258,14 +258,14 @@ TEST_CASE_FIXTURE(WaitgroupFixture, "tasks added while the group is active are i
             ct_waitgroup_done(&wg_);
         });
     }
-    const bool initial_workers_ready = wait_until_equal(initial_ready, initial_thread_count);
+    const bool initial_workers_ready = waitgroup_wait_until_equal(initial_ready, initial_thread_count);
 
     std::vector<thread_arg_t> additional_args(additional_thread_count);
     ct_waitgroup_add(&wg_, additional_thread_count);
     const bool added_to_active_group = waitgroup_counter(&wg_) == initial_thread_count + additional_thread_count;
     for (thread_arg_t& arg : additional_args) {
         arg = {&wg_, 50, &completed};
-        workers.start(thread_task, &arg);
+        workers.start(waitgroup_thread_task, &arg);
     }
 
     release_initial = true;
@@ -292,7 +292,7 @@ TEST_CASE_FIXTURE(WaitgroupFixture, "multiple waiters are released when the coun
         });
     }
 
-    const bool all_waiters_ready        = wait_until_equal(ready, waiter_count);
+    const bool all_waiters_ready        = waitgroup_wait_until_equal(ready, waiter_count);
     const bool no_waiter_returned_early = returned == 0;
     ct_waitgroup_done(&wg_);
     waiters.join_all();

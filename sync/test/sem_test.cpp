@@ -25,7 +25,7 @@ struct sem_env {
     }
 };
 
-static int wait_worker(void* arg) {
+static int sem_wait_worker(void* arg) {
     sem_env* env = (sem_env*)arg;
     if (ct_sem_wait(&env->sem_) == 0) {
         ct_atomic_int_store(&env->waiter_done_, 1);
@@ -61,7 +61,7 @@ TEST_CASE("post then wait consumes the token" * doctest::test_suite("sync") * do
 
 TEST_CASE("wait blocks until post" * doctest::test_suite("sync") * doctest::test_suite("sem")) {
     sem_env     env(0);
-    std::thread thread(wait_worker, &env);
+    std::thread thread(sem_wait_worker, &env);
 
     for (int i = 0; i < 10; ++i) {
         REQUIRE(ct_atomic_int_load(&env.waiter_done_) == 0);
@@ -77,8 +77,8 @@ TEST_CASE("multiple posts release multiple waiters" * doctest::test_suite("sync"
     sem_env     env(0);
     std::thread threads[2];
 
-    threads[0] = std::thread(wait_worker, &env);
-    threads[1] = std::thread(wait_worker, &env);
+    threads[0] = std::thread(sem_wait_worker, &env);
+    threads[1] = std::thread(sem_wait_worker, &env);
 
     for (int i = 0; i < 10; ++i) {
         REQUIRE(ct_atomic_int_load(&env.waiter_count_) == 0);

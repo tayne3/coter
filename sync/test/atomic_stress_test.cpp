@@ -18,7 +18,7 @@ constexpr std::size_t items_per_thread = 10000;
 constexpr std::size_t node_count       = thread_count * items_per_thread;
 
 template <typename Worker>
-void run_workers(Worker worker) {
+void atomic_run_workers(Worker worker) {
     std::array<std::thread, thread_count> threads;
 
     for (std::size_t index = 0; index < threads.size(); ++index) { threads[index] = std::thread(worker, index); }
@@ -58,7 +58,7 @@ private:
     ct_atomic_ptr_t head_;
 };
 
-std::vector<Node*> drain_stack(TreiberStack& stack) {
+std::vector<Node*> atomic_drain_stack(TreiberStack& stack) {
     std::vector<Node*> nodes;
     Node*              node;
 
@@ -67,7 +67,7 @@ std::vector<Node*> drain_stack(TreiberStack& stack) {
     return nodes;
 }
 
-void check_all_nodes_once(const std::vector<Node>& nodes, const std::vector<Node*>& popped) {
+void atomic_check_all_nodes_once(const std::vector<Node>& nodes, const std::vector<Node*>& popped) {
     std::vector<unsigned char> seen(nodes.size(), 0);
     bool                       ids_in_range = true;
     bool                       ids_unique   = true;
@@ -105,7 +105,7 @@ TEST_CASE("atomic long arithmetic under contention") {
     ct_atomic_long_t counter = CT_ATOMIC_VAR_INIT(0);
 
     SUBCASE("increments accumulate") {
-        run_workers([&counter](std::size_t) {
+        atomic_run_workers([&counter](std::size_t) {
             for (std::size_t iteration = 0; iteration < iteration_count; ++iteration) { ct_atomic_long_add(&counter, 1); }
         });
 
@@ -113,7 +113,7 @@ TEST_CASE("atomic long arithmetic under contention") {
     }
 
     SUBCASE("increments and decrements balance") {
-        run_workers([&counter](std::size_t worker_index) {
+        atomic_run_workers([&counter](std::size_t worker_index) {
             for (std::size_t iteration = 0; iteration < iteration_count; ++iteration) {
                 if (worker_index < thread_count / 2) {
                     ct_atomic_long_add(&counter, 1);
@@ -137,13 +137,13 @@ TEST_CASE("Treiber stack preserves every node under concurrent access") {
     }
 
     SUBCASE("concurrent pushes preserve every node") {
-        run_workers([&nodes, &stack](std::size_t worker_index) {
+        atomic_run_workers([&nodes, &stack](std::size_t worker_index) {
             const std::size_t first = worker_index * items_per_thread;
             for (std::size_t index = first; index < first + items_per_thread; ++index) { stack.push(&nodes[index]); }
         });
 
-        const std::vector<Node*> popped = drain_stack(stack);
-        check_all_nodes_once(nodes, popped);
+        const std::vector<Node*> popped = atomic_drain_stack(stack);
+        atomic_check_all_nodes_once(nodes, popped);
         CHECK(stack.empty());
     }
 
@@ -154,7 +154,7 @@ TEST_CASE("Treiber stack preserves every node under concurrent access") {
         std::array<bool, thread_count>               pop_failed{};
         for (auto& popped : popped_by_worker) { popped.reserve(items_per_thread); }
 
-        run_workers([&stack, &popped_by_worker, &pop_failed](std::size_t worker_index) {
+        atomic_run_workers([&stack, &popped_by_worker, &pop_failed](std::size_t worker_index) {
             std::vector<Node*>& popped = popped_by_worker[worker_index];
 
             for (std::size_t count = 0; count < items_per_thread; ++count) {
@@ -174,7 +174,7 @@ TEST_CASE("Treiber stack preserves every node under concurrent access") {
             popped.insert(popped.end(), popped_by_worker[index].begin(), popped_by_worker[index].end());
         }
 
-        check_all_nodes_once(nodes, popped);
+        atomic_check_all_nodes_once(nodes, popped);
         CHECK(stack.empty());
     }
 }

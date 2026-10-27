@@ -25,7 +25,7 @@ struct rwlock_env {
 };
 
 template <typename T>
-bool wait_until(T predicate) {
+bool rwlock_wait_until(T predicate) {
     constexpr auto wait_timeout = std::chrono::milliseconds(500);
     const auto     deadline     = std::chrono::steady_clock::now() + wait_timeout;
     while (!predicate()) {
@@ -90,7 +90,7 @@ TEST_CASE("read-write lock") {
         std::thread first_reader(reader_worker);
         std::thread second_reader(reader_worker);
 
-        CHECK(wait_until([&] { return env.readers_inside_.load() == 2; }));
+        CHECK(rwlock_wait_until([&] { return env.readers_inside_.load() == 2; }));
 
         std::thread writer([&env]() {
             env.writer_started_.store(true);
@@ -98,7 +98,7 @@ TEST_CASE("read-write lock") {
             env.writer_acquired_.store(true);
             ct_rwlock_wrunlock(&env.lock_);
         });
-        CHECK(wait_until([&] { return env.writer_started_.load(); }));
+        CHECK(rwlock_wait_until([&] { return env.writer_started_.load(); }));
         std::this_thread::sleep_for(std::chrono::milliseconds(20));
         CHECK_FALSE(env.writer_acquired_.load());
 

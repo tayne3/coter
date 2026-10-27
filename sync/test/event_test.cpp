@@ -34,7 +34,7 @@ struct timed_wait_env {
     ~timed_wait_env() { ct_event_destroy(&event_); }
 };
 
-static int timed_wait_worker(void* arg) {
+static int event_timed_wait_worker(void* arg) {
     timed_wait_env* env = (timed_wait_env*)arg;
     ct_atomic_int_add(&env->ready_count_, 1);
 
@@ -100,7 +100,7 @@ TEST_CASE("signal wakes only one waiter" * doctest::test_suite("sync") * doctest
 
     env.timeout_ms_ = 200;
 
-    for (int i = 0; i < 2; ++i) { threads[i] = std::thread(timed_wait_worker, &env); }
+    for (int i = 0; i < 2; ++i) { threads[i] = std::thread(event_timed_wait_worker, &env); }
 
     for (int i = 0; i < 40 && ct_atomic_int_load(&env.ready_count_) != 2; ++i) { ct_msleep(5); }
 
@@ -121,7 +121,7 @@ TEST_CASE("two signals wake two waiters when signaled separately" * doctest::tes
 
     env.timeout_ms_ = 500;
 
-    for (int i = 0; i < 2; ++i) { threads[i] = std::thread(timed_wait_worker, &env); }
+    for (int i = 0; i < 2; ++i) { threads[i] = std::thread(event_timed_wait_worker, &env); }
 
     for (int i = 0; i < 40 && ct_atomic_int_load(&env.ready_count_) != 2; ++i) { ct_msleep(5); }
 

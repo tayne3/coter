@@ -13,7 +13,7 @@
 namespace {
 using ms = std::chrono::milliseconds;
 
-static int64_t now_ms() {
+static int64_t shutdown_signal_now_ms() {
     using namespace std::chrono;
     return duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count();
 }
@@ -108,9 +108,9 @@ TEST_CASE("shutdown_token: wait() returns false on caller timeout") {
     ct_shutdown_token_t ctx;
     REQUIRE(ct_shutdown_token_init(&ctx, -1) == 0);
 
-    int64_t t0   = now_ms();
+    int64_t t0   = shutdown_signal_now_ms();
     bool    done = ct_shutdown_token_wait(&ctx, 50);  // wait at most 50 ms
-    int64_t dt   = now_ms() - t0;
+    int64_t dt   = shutdown_signal_now_ms() - t0;
 
     REQUIRE_FALSE(done);
     REQUIRE(dt >= 30);
@@ -123,7 +123,7 @@ TEST_CASE("shutdown_token: wait() returns true when token is cancelled externall
     ct_shutdown_token_t ctx;
     REQUIRE(ct_shutdown_token_init(&ctx, -1) == 0);
 
-    int64_t t0 = now_ms();
+    int64_t t0 = shutdown_signal_now_ms();
 
     std::thread closer([&ctx] {
         std::this_thread::sleep_for(ms(50));
@@ -131,7 +131,7 @@ TEST_CASE("shutdown_token: wait() returns true when token is cancelled externall
     });
 
     bool    done = ct_shutdown_token_wait(&ctx, -1);
-    int64_t dt   = now_ms() - t0;
+    int64_t dt   = shutdown_signal_now_ms() - t0;
 
     closer.join();
 
@@ -168,9 +168,9 @@ TEST_CASE("shutdown_token: wait() returns true when internal deadline expires") 
     ct_shutdown_token_t ctx;
     REQUIRE(ct_shutdown_token_init(&ctx, 80) == 0);  // 80 ms internal deadline
 
-    int64_t t0   = now_ms();
+    int64_t t0   = shutdown_signal_now_ms();
     bool    done = ct_shutdown_token_wait(&ctx, -1);
-    int64_t dt   = now_ms() - t0;
+    int64_t dt   = shutdown_signal_now_ms() - t0;
 
     REQUIRE(done);
     REQUIRE(dt >= 50);
@@ -215,11 +215,11 @@ TEST_CASE("shutdown_token: multi-thread – cancel wakes waiter within 500ms") {
 
     std::thread waiter([&ctx, &t_woken]() {
         ct_shutdown_token_wait(&ctx, -1);
-        t_woken = now_ms();
+        t_woken = shutdown_signal_now_ms();
     });
 
     std::this_thread::sleep_for(ms(40));
-    t_cancel = now_ms();
+    t_cancel = shutdown_signal_now_ms();
     ct_shutdown_token_cancel(&ctx);
 
     waiter.join();
