@@ -4,9 +4,11 @@
  */
 #include "coter/encoding/hex.h"
 
-static const char encode_table[] = "0123456789abcdef";
+/* Lower-case hexadecimal digits. */
+static const char s_hex_encode_table[] = "0123456789abcdef";
 
-static const int8_t decode_table[256] = {
+/* Maps a byte to its hexadecimal value, or -1 when the byte is not a digit. */
+static const int8_t s_hex_decode_table[256] = {
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,  // 00-0F
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,  // 10-1F
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,  // 20-2F
@@ -31,8 +33,8 @@ int ct_hex_encode(const void* data, size_t data_len, char* out, size_t max) {
     const uint8_t* src = (const uint8_t*)data;
     size_t         i;
     for (i = 0; i < data_len && (i * 2 + 1) < max; ++i) {
-        out[i * 2]     = encode_table[(src[i] >> 4) & 0x0F];
-        out[i * 2 + 1] = encode_table[src[i] & 0x0F];
+        out[i * 2]     = s_hex_encode_table[(src[i] >> 4) & 0x0F];
+        out[i * 2 + 1] = s_hex_encode_table[src[i] & 0x0F];
     }
     if (i * 2 < max) { out[i * 2] = '\0'; }
     return (int)(i * 2);
@@ -52,8 +54,8 @@ int ct_hex_decode(const char* hex, size_t hex_len, void* out, size_t max) {
     uint8_t* dst = (uint8_t*)out;
     size_t   i;
     for (i = 0; i < hex_len && (i / 2) < max; i += 2) {
-        const int8_t high = decode_table[(uint8_t)hex[i]];
-        const int8_t low  = decode_table[(uint8_t)hex[i + 1]];
+        const int8_t high = s_hex_decode_table[(uint8_t)hex[i]];
+        const int8_t low  = s_hex_decode_table[(uint8_t)hex[i + 1]];
         if (high == -1 || low == -1) {
             return -1;  // Invalid character
         }

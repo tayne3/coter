@@ -1,3 +1,7 @@
+/**
+ * @file hex_test.cpp
+ * @brief Hexadecimal encoding tests.
+ */
 #include "coter/encoding/hex.h"
 
 #include <cstring>

@@ -1,6 +1,6 @@
 /**
  * @file binary.c
- * @brief Implementation of byte order conversion functions
+ * @brief Batch byte-order conversion helpers.
  */
 #include "coter/encoding/binary.h"
 

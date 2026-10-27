@@ -1,3 +1,7 @@
+/**
+ * @file binary_test.cpp
+ * @brief Endian-aware binary helper tests.
+ */
 #include "coter/encoding/binary.h"
 
 #include "coter/testing/doctest.h"

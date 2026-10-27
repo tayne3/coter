@@ -1,16 +1,9 @@
 /**
  * @file binary.h
- * @brief Endian-aware integer load/store and byte-transform helpers.
+ * @brief Endian-aware integer load/store helpers.
  *
- * Provides small C99 helpers for reading and writing fixed-width integers
- * from byte buffers in little-endian, big-endian, or native-endian order.
- * The load/store APIs are safe for possibly unaligned buffers and use memcpy
- * internally to avoid strict-aliasing and alignment issues.
- *
- * The header also provides inline scalar byte-transform helpers such as
- * byte-swap and 16-bit lane operations. Batch transform APIs are declared here
- * and implemented out-of-line, so their implementation can be optimized without
- * changing the public interface.
+ * Load and store helpers accept potentially unaligned buffers. Batch transform
+ * helpers are implemented out of line.
  */
 #ifndef COTER_ENCODING_BINARY_H
 #define COTER_ENCODING_BINARY_H
@@ -92,23 +85,34 @@ CT_INLINE uint64_t ct_binary_reverse16_lanes64(uint64_t val) {
     return ct_binary_bswap16_lanes64(ct_binary_bswap64(val));
 }
 
+/** @brief Byte-swap each 16-bit element in place. */
 CT_API void ct_binary_bswap16_batch(uint16_t* data, size_t count);
+
+/** @brief Byte-swap each 32-bit element in place. */
 CT_API void ct_binary_bswap32_batch(uint32_t* data, size_t count);
+
+/** @brief Byte-swap each 64-bit element in place. */
 CT_API void ct_binary_bswap64_batch(uint64_t* data, size_t count);
 
+/** @brief Swap bytes within each 16-bit lane of each 32-bit element. */
 CT_API void ct_binary_bswap16_lanes32_batch(uint32_t* data, size_t count);
+
+/** @brief Swap bytes within each 16-bit lane of each 64-bit element. */
 CT_API void ct_binary_bswap16_lanes64_batch(uint64_t* data, size_t count);
 
+/** @brief Reverse 16-bit word order within each 32-bit element. */
 CT_API void ct_binary_reverse16_lanes32_batch(uint32_t* data, size_t count);
+
+/** @brief Reverse 16-bit word order within each 64-bit element. */
 CT_API void ct_binary_reverse16_lanes64_batch(uint64_t* data, size_t count);
 
-#define CT__BINARY_LOAD(_buf, _val) \
-    do { memcpy(&(_val), (_buf), sizeof(_val)); } while (0)
+#define CT_BINARY_LOAD(buf_, val_) \
+    do { memcpy(&(val_), (buf_), sizeof(val_)); } while (0)
 
-#define CT__BINARY_STORE(_type, _buf, _val)                      \
-    do {                                                         \
-        _type ct__binary_tmp = (_val);                           \
-        memcpy((_buf), &ct__binary_tmp, sizeof(ct__binary_tmp)); \
+#define CT_BINARY_STORE(type_, buf_, val_)                 \
+    do {                                                   \
+        type_ binary_tmp = (val_);                         \
+        memcpy((buf_), &binary_tmp, sizeof(binary_tmp));   \
     } while (0)
 
 /* ------------------------------------------------------------------------- */
@@ -117,7 +121,7 @@ CT_API void ct_binary_reverse16_lanes64_batch(uint64_t* data, size_t count);
 
 CT_INLINE uint16_t ct_le_get_u16(const void* buf) {
     uint16_t val;
-    CT__BINARY_LOAD(buf, val);
+    CT_BINARY_LOAD(buf, val);
 #if CT_ENDIAN_IS_BIG
     val = ct_binary_bswap16(val);
 #endif
@@ -126,7 +130,7 @@ CT_INLINE uint16_t ct_le_get_u16(const void* buf) {
 
 CT_INLINE uint32_t ct_le_get_u32(const void* buf) {
     uint32_t val;
-    CT__BINARY_LOAD(buf, val);
+    CT_BINARY_LOAD(buf, val);
 #if CT_ENDIAN_IS_BIG
     val = ct_binary_bswap32(val);
 #endif
@@ -135,7 +139,7 @@ CT_INLINE uint32_t ct_le_get_u32(const void* buf) {
 
 CT_INLINE uint64_t ct_le_get_u64(const void* buf) {
     uint64_t val;
-    CT__BINARY_LOAD(buf, val);
+    CT_BINARY_LOAD(buf, val);
 #if CT_ENDIAN_IS_BIG
     val = ct_binary_bswap64(val);
 #endif
@@ -158,21 +162,21 @@ CT_INLINE void ct_le_set_u16(void* buf, uint16_t val) {
 #if CT_ENDIAN_IS_BIG
     val = ct_binary_bswap16(val);
 #endif
-    CT__BINARY_STORE(uint16_t, buf, val);
+    CT_BINARY_STORE(uint16_t, buf, val);
 }
 
 CT_INLINE void ct_le_set_u32(void* buf, uint32_t val) {
 #if CT_ENDIAN_IS_BIG
     val = ct_binary_bswap32(val);
 #endif
-    CT__BINARY_STORE(uint32_t, buf, val);
+    CT_BINARY_STORE(uint32_t, buf, val);
 }
 
 CT_INLINE void ct_le_set_u64(void* buf, uint64_t val) {
 #if CT_ENDIAN_IS_BIG
     val = ct_binary_bswap64(val);
 #endif
-    CT__BINARY_STORE(uint64_t, buf, val);
+    CT_BINARY_STORE(uint64_t, buf, val);
 }
 
 CT_INLINE void ct_le_set_u16_at(void* buf, size_t offset, uint16_t val) {
@@ -193,7 +197,7 @@ CT_INLINE void ct_le_set_u64_at(void* buf, size_t offset, uint64_t val) {
 
 CT_INLINE uint16_t ct_be_get_u16(const void* buf) {
     uint16_t val;
-    CT__BINARY_LOAD(buf, val);
+    CT_BINARY_LOAD(buf, val);
 #if CT_ENDIAN_IS_LITTLE
     val = ct_binary_bswap16(val);
 #endif
@@ -202,7 +206,7 @@ CT_INLINE uint16_t ct_be_get_u16(const void* buf) {
 
 CT_INLINE uint32_t ct_be_get_u32(const void* buf) {
     uint32_t val;
-    CT__BINARY_LOAD(buf, val);
+    CT_BINARY_LOAD(buf, val);
 #if CT_ENDIAN_IS_LITTLE
     val = ct_binary_bswap32(val);
 #endif
@@ -211,7 +215,7 @@ CT_INLINE uint32_t ct_be_get_u32(const void* buf) {
 
 CT_INLINE uint64_t ct_be_get_u64(const void* buf) {
     uint64_t val;
-    CT__BINARY_LOAD(buf, val);
+    CT_BINARY_LOAD(buf, val);
 #if CT_ENDIAN_IS_LITTLE
     val = ct_binary_bswap64(val);
 #endif
@@ -234,21 +238,21 @@ CT_INLINE void ct_be_set_u16(void* buf, uint16_t val) {
 #if CT_ENDIAN_IS_LITTLE
     val = ct_binary_bswap16(val);
 #endif
-    CT__BINARY_STORE(uint16_t, buf, val);
+    CT_BINARY_STORE(uint16_t, buf, val);
 }
 
 CT_INLINE void ct_be_set_u32(void* buf, uint32_t val) {
 #if CT_ENDIAN_IS_LITTLE
     val = ct_binary_bswap32(val);
 #endif
-    CT__BINARY_STORE(uint32_t, buf, val);
+    CT_BINARY_STORE(uint32_t, buf, val);
 }
 
 CT_INLINE void ct_be_set_u64(void* buf, uint64_t val) {
 #if CT_ENDIAN_IS_LITTLE
     val = ct_binary_bswap64(val);
 #endif
-    CT__BINARY_STORE(uint64_t, buf, val);
+    CT_BINARY_STORE(uint64_t, buf, val);
 }
 
 CT_INLINE void ct_be_set_u16_at(void* buf, size_t offset, uint16_t val) {
@@ -269,19 +273,19 @@ CT_INLINE void ct_be_set_u64_at(void* buf, size_t offset, uint64_t val) {
 
 CT_INLINE uint16_t ct_ne_get_u16(const void* buf) {
     uint16_t val;
-    CT__BINARY_LOAD(buf, val);
+    CT_BINARY_LOAD(buf, val);
     return val;
 }
 
 CT_INLINE uint32_t ct_ne_get_u32(const void* buf) {
     uint32_t val;
-    CT__BINARY_LOAD(buf, val);
+    CT_BINARY_LOAD(buf, val);
     return val;
 }
 
 CT_INLINE uint64_t ct_ne_get_u64(const void* buf) {
     uint64_t val;
-    CT__BINARY_LOAD(buf, val);
+    CT_BINARY_LOAD(buf, val);
     return val;
 }
 
@@ -298,15 +302,15 @@ CT_INLINE uint64_t ct_ne_get_u64_at(const void* buf, size_t offset) {
 }
 
 CT_INLINE void ct_ne_set_u16(void* buf, uint16_t val) {
-    CT__BINARY_STORE(uint16_t, buf, val);
+    CT_BINARY_STORE(uint16_t, buf, val);
 }
 
 CT_INLINE void ct_ne_set_u32(void* buf, uint32_t val) {
-    CT__BINARY_STORE(uint32_t, buf, val);
+    CT_BINARY_STORE(uint32_t, buf, val);
 }
 
 CT_INLINE void ct_ne_set_u64(void* buf, uint64_t val) {
-    CT__BINARY_STORE(uint64_t, buf, val);
+    CT_BINARY_STORE(uint64_t, buf, val);
 }
 
 CT_INLINE void ct_ne_set_u16_at(void* buf, size_t offset, uint16_t val) {
@@ -321,8 +325,8 @@ CT_INLINE void ct_ne_set_u64_at(void* buf, size_t offset, uint64_t val) {
     ct_ne_set_u64((uint8_t*)buf + offset, val);
 }
 
-#undef CT__BINARY_STORE
-#undef CT__BINARY_LOAD
+#undef CT_BINARY_STORE
+#undef CT_BINARY_LOAD
 
 #ifdef __cplusplus
 }
