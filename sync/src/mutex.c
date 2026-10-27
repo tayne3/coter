@@ -1,3 +1,7 @@
+/**
+ * @file mutex.c
+ * @brief Cross-platform mutex implementation.
+ */
 #include "coter/sync/mutex.h"
 
 #include <errno.h>

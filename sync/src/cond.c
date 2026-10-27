@@ -1,3 +1,7 @@
+/**
+ * @file cond.c
+ * @brief Cross-platform condition variable implementation.
+ */
 #include "coter/sync/cond.h"
 
 #include <errno.h>
@@ -30,7 +34,7 @@ int ct_cond_wait(ct_cond_t* cond, ct_mutex_t* mutex) {
 
 #endif
 
-static int cond__timedwait(ct_cond_t* cond, ct_mutex_t* mutex, ct_time64_t timeout_ms) {
+static int cond_timedwait(ct_cond_t* cond, ct_mutex_t* mutex, ct_time64_t timeout_ms) {
 #ifdef CT_OS_WIN
     timeout_ms = CT_MIN(timeout_ms, (ct_time64_t)UINT32_MAX);
     if (SleepConditionVariableSRW((PCONDITION_VARIABLE)cond, (PSRWLOCK)mutex, (DWORD)timeout_ms, 0)) { return 0; }
@@ -68,7 +72,7 @@ int ct_cond_wait_for(ct_cond_t* cond, ct_mutex_t* mutex, ct_time64_t timeout_ms)
         const ct_time64_t now = ct_gettick_ms();
         if (now >= deadline) { return ETIMEDOUT; }
 
-        int result = cond__timedwait(cond, mutex, deadline - now);
+        int result = cond_timedwait(cond, mutex, deadline - now);
         if (result != ETIMEDOUT) { return result; }
     }
 }
