@@ -1,3 +1,7 @@
+/**
+ * @file rbuf.h
+ * @brief Ring buffer mapped over caller-provided memory.
+ */
 #ifndef COTER_BYTES_RBUF_H
 #define COTER_BYTES_RBUF_H
 
@@ -18,21 +22,21 @@ extern "C" {
  * @note This component is not thread-safe.
  */
 typedef struct ct_rbuf {
-    uint8_t* data;  ///< Pointer to the externally allocated backing memory.
-    size_t   cap;   ///< Total buffer capacity in bytes.
-    size_t   head;  ///< Read cursor. Points to the oldest readable byte.
-    size_t   tail;  ///< Write cursor. Points to the next writable byte.
-    size_t   len;   ///< Current number of readable bytes in the buffer.
+    uint8_t* data_;  ///< Pointer to the externally allocated backing memory.
+    size_t   cap_;   ///< Total buffer capacity in bytes.
+    size_t   head_;  ///< Read cursor. Points to the oldest readable byte.
+    size_t   tail_;  ///< Write cursor. Points to the next writable byte.
+    size_t   len_;   ///< Current number of readable bytes in the buffer.
 } ct_rbuf_t;
 
-#define CT_RBUF_INIT(__buf, __cap) {(uint8_t*)(__buf), (__cap), 0, 0, 0}
+#define CT_RBUF_INIT(buf_, cap_) {(uint8_t*)(buf_), (cap_), 0, 0, 0}
 
-#define ct_rbuf_capacity(self) ((self)->cap)
-#define ct_rbuf_count(self)    ((self)->len)
-#define ct_rbuf_remain(self)   ((self)->cap - (self)->len)
-#define ct_rbuf_is_empty(self) ((self)->len == 0)
-#define ct_rbuf_is_full(self)  ((self)->len == (self)->cap)
-#define ct_rbuf_clear(self)    ((self)->len = (self)->head = (self)->tail = 0)
+#define ct_rbuf_capacity(self_) ((self_)->cap_)
+#define ct_rbuf_count(self_)    ((self_)->len_)
+#define ct_rbuf_remain(self_)   ((self_)->cap_ - (self_)->len_)
+#define ct_rbuf_is_empty(self_) ((self_)->len_ == 0)
+#define ct_rbuf_is_full(self_)  ((self_)->len_ == (self_)->cap_)
+#define ct_rbuf_clear(self_)    ((self_)->len_ = (self_)->head_ = (self_)->tail_ = 0)
 
 /**
  * @brief Binds a ring buffer struct to an existing chunk of memory.
@@ -43,11 +47,11 @@ typedef struct ct_rbuf {
  */
 CT_INLINE void ct_rbuf_init(ct_rbuf_t* self, uint8_t* buffer, size_t cap) {
     if (!self) { return; }
-    self->data = buffer;
-    self->cap  = cap;
-    self->head = 0;
-    self->tail = 0;
-    self->len  = 0;
+    self->data_ = buffer;
+    self->cap_  = cap;
+    self->head_ = 0;
+    self->tail_ = 0;
+    self->len_  = 0;
 }
 
 /**
@@ -92,20 +96,20 @@ CT_API size_t ct_rbuf_peek(const ct_rbuf_t* self, uint8_t* dst, size_t len);
  * @return          A read-only pointer to the contiguous readable data, or NULL if empty.
  */
 CT_INLINE const uint8_t* ct_rbuf_read_ptr(const ct_rbuf_t* self, size_t* chunk_len) {
-    if (!self || self->len == 0) {
+    if (!self || self->len_ == 0) {
         if (chunk_len) { *chunk_len = 0; }
         return NULL;
     }
 
     if (chunk_len) {
-        const size_t until_end = self->cap - self->head;
-        if (self->len <= until_end) {
-            *chunk_len = self->len;
+        const size_t until_end = self->cap_ - self->head_;
+        if (self->len_ <= until_end) {
+            *chunk_len = self->len_;
         } else {
             *chunk_len = until_end;
         }
     }
-    return &self->data[self->head];
+    return &self->data_[self->head_];
 }
 
 /**
@@ -125,21 +129,21 @@ CT_INLINE uint8_t* ct_rbuf_write_ptr(ct_rbuf_t* self, size_t* chunk_len) {
         return NULL;
     }
 
-    const size_t writable = self->cap - self->len;
+    const size_t writable = self->cap_ - self->len_;
     if (writable == 0) {
         if (chunk_len) { *chunk_len = 0; }
         return NULL;
     }
 
     if (chunk_len) {
-        const size_t until_end = self->cap - self->tail;
+        const size_t until_end = self->cap_ - self->tail_;
         if (writable <= until_end) {
             *chunk_len = writable;
         } else {
             *chunk_len = until_end;
         }
     }
-    return &self->data[self->tail];
+    return &self->data_[self->tail_];
 }
 
 /**
@@ -156,11 +160,11 @@ CT_INLINE uint8_t* ct_rbuf_write_ptr(ct_rbuf_t* self, size_t* chunk_len) {
  */
 CT_INLINE size_t ct_rbuf_remove(ct_rbuf_t* self, size_t len) {
     if (!self) { return 0; }
-    if (len > self->len) { len = self->len; }
+    if (len > self->len_) { len = self->len_; }
     if (len > 0) {
-        self->head += len;
-        if (self->head >= self->cap) { self->head -= self->cap; }
-        self->len -= len;
+        self->head_ += len;
+        if (self->head_ >= self->cap_) { self->head_ -= self->cap_; }
+        self->len_ -= len;
     }
     return len;
 }
@@ -179,11 +183,11 @@ CT_INLINE size_t ct_rbuf_remove(ct_rbuf_t* self, size_t len) {
  */
 CT_INLINE size_t ct_rbuf_commit(ct_rbuf_t* self, size_t len) {
     if (!self) { return 0; }
-    if (len + self->len > self->cap) { len = self->cap - self->len; }
+    if (len + self->len_ > self->cap_) { len = self->cap_ - self->len_; }
     if (len > 0) {
-        self->tail += len;
-        if (self->tail >= self->cap) { self->tail -= self->cap; }
-        self->len += len;
+        self->tail_ += len;
+        if (self->tail_ >= self->cap_) { self->tail_ -= self->cap_; }
+        self->len_ += len;
     }
     return len;
 }
