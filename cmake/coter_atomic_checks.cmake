@@ -13,11 +13,11 @@ Priority fallback:
 #]=======================================================================]
 
 include(CheckCSourceCompiles)
-
-set(_SAVED_CMAKE_REQUIRED_LIBRARIES "${CMAKE_REQUIRED_LIBRARIES}")
+include(CMakePushCheckState)
 
 set(CT_ATOMIC_IMPL_FLAG FALSE)
 set(CT_ATOMIC_IMPL_STR "")
+set(CT_ATOMIC_LIBRARIES "")
 
 set(CT_ATOMIC_USE_GCC_ATOMIC FALSE)
 set(CT_ATOMIC_USE_GCC_SYNC FALSE)
@@ -41,23 +41,25 @@ if(NOT CT_ATOMIC_IMPL_FLAG)
     }
   ")
 
-  set(CMAKE_REQUIRED_LIBRARIES "${_SAVED_CMAKE_REQUIRED_LIBRARIES}")
+  cmake_push_check_state()
   check_c_source_compiles("${CT_ATOMIC_SRC_C11}" COTER_HAVE_GCC_ATOMIC)
 
   if(NOT COTER_HAVE_GCC_ATOMIC)
-    set(CMAKE_REQUIRED_LIBRARIES "${_SAVED_CMAKE_REQUIRED_LIBRARIES};atomic")
+    list(APPEND CMAKE_REQUIRED_LIBRARIES atomic)
     check_c_source_compiles("${CT_ATOMIC_SRC_C11}" COTER_HAVE_GCC_ATOMIC_WITH_LIBATOMIC)
     if(COTER_HAVE_GCC_ATOMIC_WITH_LIBATOMIC)
-      set(COTER_HAVE_GCC_ATOMIC TRUE)
-      target_link_libraries(coter_internal_options INTERFACE atomic)
+      set(CT_ATOMIC_LIBRARIES atomic)
     endif()
   endif()
+  cmake_pop_check_state()
 
-  if(COTER_HAVE_GCC_ATOMIC)
+  if(COTER_HAVE_GCC_ATOMIC OR COTER_HAVE_GCC_ATOMIC_WITH_LIBATOMIC)
     set(CT_ATOMIC_USE_GCC_ATOMIC TRUE)
     set(CT_ATOMIC_IMPL_FLAG TRUE)
     set(CT_ATOMIC_IMPL_STR "GCC __atomic builtins")
   endif()
+
+  unset(CT_ATOMIC_SRC_C11)
 endif()
 
 # GCC __sync_* builtins (Legacy)
@@ -77,23 +79,25 @@ if(NOT CT_ATOMIC_IMPL_FLAG)
     }
   ")
 
-  set(CMAKE_REQUIRED_LIBRARIES "${_SAVED_CMAKE_REQUIRED_LIBRARIES}")
+  cmake_push_check_state()
   check_c_source_compiles("${CT_ATOMIC_SRC_SYNC}" COTER_HAVE_GCC_SYNC)
 
   if(NOT COTER_HAVE_GCC_SYNC)
-    set(CMAKE_REQUIRED_LIBRARIES "${_SAVED_CMAKE_REQUIRED_LIBRARIES};atomic")
+    list(APPEND CMAKE_REQUIRED_LIBRARIES atomic)
     check_c_source_compiles("${CT_ATOMIC_SRC_SYNC}" COTER_HAVE_GCC_SYNC_WITH_LIBATOMIC)
     if(COTER_HAVE_GCC_SYNC_WITH_LIBATOMIC)
-      set(COTER_HAVE_GCC_SYNC TRUE)
-      target_link_libraries(coter_internal_options INTERFACE atomic)
+      set(CT_ATOMIC_LIBRARIES atomic)
     endif()
   endif()
+  cmake_pop_check_state()
 
-  if(COTER_HAVE_GCC_SYNC)
+  if(COTER_HAVE_GCC_SYNC OR COTER_HAVE_GCC_SYNC_WITH_LIBATOMIC)
     set(CT_ATOMIC_USE_GCC_SYNC TRUE)
     set(CT_ATOMIC_IMPL_FLAG TRUE)
     set(CT_ATOMIC_IMPL_STR "GCC __sync builtins")
   endif()
+
+  unset(CT_ATOMIC_SRC_SYNC)
 endif()
 
 # Windows Interlocked API
@@ -113,14 +117,17 @@ if(NOT CT_ATOMIC_IMPL_FLAG AND WIN32)
     }
   ")
 
-  set(CMAKE_REQUIRED_LIBRARIES "${_SAVED_CMAKE_REQUIRED_LIBRARIES}")
+  cmake_push_check_state()
   check_c_source_compiles("${CT_ATOMIC_SRC_WIN}" COTER_HAVE_WIN_INTERLOCKED)
+  cmake_pop_check_state()
 
   if(COTER_HAVE_WIN_INTERLOCKED)
     set(CT_ATOMIC_USE_WIN TRUE)
     set(CT_ATOMIC_IMPL_FLAG TRUE)
     set(CT_ATOMIC_IMPL_STR "Windows Interlocked")
   endif()
+
+  unset(CT_ATOMIC_SRC_WIN)
 endif()
 
 # Mutex Fallback
@@ -129,6 +136,8 @@ if(NOT CT_ATOMIC_IMPL_FLAG)
   set(CT_ATOMIC_IMPL_STR "Mutex fallback")
 endif()
 
-message(STATUS "Atomic implementation selected: ${CT_ATOMIC_IMPL_STR}")
+if(CT_ATOMIC_LIBRARIES)
+  target_link_libraries(coter_internal_options INTERFACE ${CT_ATOMIC_LIBRARIES})
+endif()
 
-set(CMAKE_REQUIRED_LIBRARIES "${_SAVED_CMAKE_REQUIRED_LIBRARIES}")
+message(STATUS "Atomic implementation selected: ${CT_ATOMIC_IMPL_STR}")
