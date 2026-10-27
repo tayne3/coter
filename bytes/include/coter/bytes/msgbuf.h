@@ -48,12 +48,12 @@ typedef struct ct_msgbuf {
 
 CT_INLINE int ct_msgbuf_seg(ct_msgbuf_t* self, ct_bytes_t* seg, size_t start, size_t end) {
     if (end < start || end > (size_t)self->cap) { return -1; }
-    seg->data   = (uint8_t*)self->buffer + start;
-    seg->cap    = self->cap - (uint32_t)start;
-    seg->len    = (uint32_t)(end - start);
-    seg->pos    = 0U;
-    seg->endian = CT_ENDIAN_BIG;
-    seg->hlswap = 0U;
+    seg->data_   = (uint8_t*)self->buffer + start;
+    seg->cap_    = self->cap - (uint32_t)start;
+    seg->len_    = (uint32_t)(end - start);
+    seg->pos_    = 0U;
+    seg->endian_ = CT_ENDIAN_BIG;
+    seg->hlswap_ = 0U;
     return 0;
 }
 

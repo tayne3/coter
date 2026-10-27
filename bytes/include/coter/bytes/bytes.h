@@ -1,5 +1,9 @@
-#ifndef coter_bytes_bytes_H
-#define coter_bytes_bytes_H
+/**
+ * @file bytes.h
+ * @brief Fixed-size byte buffer with position tracking.
+ */
+#ifndef COTER_BYTES_BYTES_H
+#define COTER_BYTES_BYTES_H
 
 #include "coter/core/macro.h"
 
@@ -14,38 +18,38 @@ extern "C" {
  * Supports endianness conversion and high-low word swap for multi-byte values.
  */
 typedef struct ct_bytes {
-    uint8_t* data;          ///< Base address of buffer
-    uint32_t cap;           ///< Total capacity in data
-    uint32_t len;           ///< Valid data length [0, cap]
-    uint32_t pos;           ///< Current read/write position [0, len]
-    uint32_t endian : 1;    ///< Byte order
-    uint32_t hlswap : 1;    ///< High-low 16-bit word swap for 32/64-bit values
-    uint32_t overflow : 1;  ///< Out-of-bounds error flag
+    uint8_t* data_;          ///< Base address of buffer
+    uint32_t cap_;           ///< Total capacity in data
+    uint32_t len_;           ///< Valid data length [0, cap]
+    uint32_t pos_;           ///< Current read/write position [0, len]
+    uint32_t endian_ : 1;    ///< Byte order
+    uint32_t hlswap_ : 1;    ///< High-low 16-bit word swap for 32/64-bit values
+    uint32_t overflow_ : 1;  ///< Out-of-bounds error flag
 } ct_bytes_t;
 
-#define ct_bytes_INIT(__b, __cap) {(uint8_t*)(__b), (uint32_t)(__cap), 0U, 0U, CT_ENDIAN_BIG, 0U, 0U}
+#define CT_BYTES_INIT(buf_, cap_) {(uint8_t*)(buf_), (uint32_t)(cap_), 0U, 0U, CT_ENDIAN_BIG, 0U, 0U}
 
-#define ct_bytes_FROM(__b, __cap, __len) \
-    {(uint8_t*)(__b), (uint32_t)(__cap), CT_MIN((uint32_t)(__len), (uint32_t)(__cap)), 0U, CT_ENDIAN_BIG, 0U, 0U}
+#define CT_BYTES_FROM(buf_, cap_, len_) \
+    {(uint8_t*)(buf_), (uint32_t)(cap_), CT_MIN((uint32_t)(len_), (uint32_t)(cap_)), 0U, CT_ENDIAN_BIG, 0U, 0U}
 
-#define ct_bytes_capacity(self)   ((size_t)(self)->cap)
-#define ct_bytes_count(self)      ((size_t)(self)->len)
-#define ct_bytes_pos(self)        ((size_t)(self)->pos)
-#define ct_bytes_readable(self)   ((size_t)((self)->len - (self)->pos))
-#define ct_bytes_writable(self)   ((size_t)((self)->cap - (self)->pos))
-#define ct_bytes_appendable(self) ((size_t)((self)->cap - (self)->len))
-#define ct_bytes_is_empty(self)   ((self)->len == 0U)
-#define ct_bytes_is_full(self)    ((self)->len == (self)->cap)
-#define ct_bytes_data(self)       ((self)->data)
-#define ct_bytes_has_error(self)  ((self)->overflow)
+#define ct_bytes_capacity(self_)   ((size_t)(self_)->cap_)
+#define ct_bytes_count(self_)      ((size_t)(self_)->len_)
+#define ct_bytes_pos(self_)        ((size_t)(self_)->pos_)
+#define ct_bytes_readable(self_)   ((size_t)((self_)->len_ - (self_)->pos_))
+#define ct_bytes_writable(self_)   ((size_t)((self_)->cap_ - (self_)->pos_))
+#define ct_bytes_appendable(self_) ((size_t)((self_)->cap_ - (self_)->len_))
+#define ct_bytes_is_empty(self_)   ((self_)->len_ == 0U)
+#define ct_bytes_is_full(self_)    ((self_)->len_ == (self_)->cap_)
+#define ct_bytes_data(self_)       ((self_)->data_)
+#define ct_bytes_has_error(self_)  ((self_)->overflow_)
 
-#define ct_bytes_rewind(self)        ((self)->pos = 0U)
-#define ct_bytes_clear(self)         ((self)->len = (self)->pos = 0U, (self)->overflow = 0U)
-#define ct_bytes_clear_error(self)   ((self)->overflow = 0U)
-#define ct_bytes_get_endian(self)    ((self)->endian)
-#define ct_bytes_set_endian(self, e) ((self)->endian = (e))
-#define ct_bytes_get_hlswap(self)    ((self)->hlswap)
-#define ct_bytes_set_hlswap(self, h) ((self)->hlswap = (h))
+#define ct_bytes_rewind(self_)        ((self_)->pos_ = 0U)
+#define ct_bytes_clear(self_)         ((self_)->len_ = (self_)->pos_ = 0U, (self_)->overflow_ = 0U)
+#define ct_bytes_clear_error(self_)   ((self_)->overflow_ = 0U)
+#define ct_bytes_get_endian(self_)    ((self_)->endian_)
+#define ct_bytes_set_endian(self_, byte_order_) ((self_)->endian_ = (byte_order_))
+#define ct_bytes_get_hlswap(self_)              ((self_)->hlswap_)
+#define ct_bytes_set_hlswap(self_, word_swap_)  ((self_)->hlswap_ = (word_swap_))
 
 /**
  * @brief Initialize buffer with external memory.
@@ -54,13 +58,13 @@ typedef struct ct_bytes {
  * @param cap Capacity in data
  */
 CT_INLINE void ct_bytes_init(ct_bytes_t* self, uint8_t* data, size_t cap) {
-    self->data     = data;
-    self->cap      = (uint32_t)(cap);
-    self->len      = 0U;
-    self->pos      = 0U;
-    self->endian   = CT_ENDIAN_BIG;
-    self->hlswap   = 0U;
-    self->overflow = 0U;
+    self->data_     = data;
+    self->cap_      = (uint32_t)(cap);
+    self->len_      = 0U;
+    self->pos_      = 0U;
+    self->endian_   = CT_ENDIAN_BIG;
+    self->hlswap_   = 0U;
+    self->overflow_ = 0U;
 }
 
 /**
@@ -73,32 +77,32 @@ CT_INLINE void ct_bytes_init(ct_bytes_t* self, uint8_t* data, size_t cap) {
 CT_INLINE void ct_bytes_from(ct_bytes_t* self, uint8_t* data, size_t cap, size_t len) {
     uint32_t final_cap = (uint32_t)(cap);
     uint32_t final_len = (uint32_t)(len);
-    self->data         = data;
-    self->cap          = final_cap;
-    self->len          = final_len <= final_cap ? final_len : final_cap;
-    self->pos          = 0U;
-    self->endian       = CT_ENDIAN_BIG;
-    self->hlswap       = 0U;
-    self->overflow     = 0U;
+    self->data_         = data;
+    self->cap_          = final_cap;
+    self->len_          = final_len <= final_cap ? final_len : final_cap;
+    self->pos_          = 0U;
+    self->endian_       = CT_ENDIAN_BIG;
+    self->hlswap_       = 0U;
+    self->overflow_     = 0U;
 }
 
 // Set position to absolute offset from start. Returns -1 if out of bounds.
 CT_INLINE int ct_bytes_seek(ct_bytes_t* self, size_t offset) {
-    if (offset > (size_t)self->len) {
-        self->overflow = 1;
+    if (offset > (size_t)self->len_) {
+        self->overflow_ = 1;
         return -1;
     }
-    self->pos = (uint32_t)offset;
+    self->pos_ = (uint32_t)offset;
     return 0;
 }
 
 // Set position to offset from end (pos = len - offset). Returns -1 if out of bounds.
 CT_INLINE int ct_bytes_reseek(ct_bytes_t* self, size_t offset) {
-    if (offset > (size_t)self->len) {
-        self->overflow = 1;
+    if (offset > (size_t)self->len_) {
+        self->overflow_ = 1;
         return -1;
     }
-    self->pos = self->len - (uint32_t)offset;
+    self->pos_ = self->len_ - (uint32_t)offset;
     return 0;
 }
 
@@ -106,10 +110,10 @@ CT_INLINE int ct_bytes_reseek(ct_bytes_t* self, size_t offset) {
 CT_INLINE int ct_bytes_skip(ct_bytes_t* self, size_t length) {
     const size_t readable = ct_bytes_readable(self);
     if (length > readable) {
-        self->overflow = 1;
+        self->overflow_ = 1;
         length         = readable;
     }
-    self->pos += (uint32_t)length;
+    self->pos_ += (uint32_t)length;
     return (int)length;
 }
 
@@ -117,38 +121,38 @@ CT_INLINE int ct_bytes_skip(ct_bytes_t* self, size_t length) {
 CT_INLINE int ct_bytes_commit(ct_bytes_t* self, size_t length) {
     const size_t writable = ct_bytes_writable(self);
     if (length > writable) {
-        self->overflow = 1;
+        self->overflow_ = 1;
         length         = writable;
     }
-    self->pos += (uint32_t)length;
-    if (self->pos > self->len) { self->len = self->pos; }
+    self->pos_ += (uint32_t)length;
+    if (self->pos_ > self->len_) { self->len_ = self->pos_; }
     return (int)length;
 }
 
 // Truncates the buffer to a smaller length, discarding data after new_len.
 CT_INLINE void ct_bytes_truncate(ct_bytes_t* self, size_t new_len) {
-    if (new_len >= self->len) { return; }
-    self->len = (uint32_t)new_len;
-    if (self->pos > self->len) { self->pos = self->len; }
+    if (new_len >= self->len_) { return; }
+    self->len_ = (uint32_t)new_len;
+    if (self->pos_ > self->len_) { self->pos_ = self->len_; }
 }
 
 // Create a view buffer pointing to a range [start, end] of the original buffer.
 CT_INLINE int ct_bytes_since(const ct_bytes_t* self, ct_bytes_t* since, size_t start, size_t end) {
-    if (end == 0) { end = self->len; }
-    if (end < start || end > (size_t)self->cap) { return -1; }
-    since->data     = self->data + start;
-    since->cap      = self->cap - (uint32_t)start;
-    since->len      = (uint32_t)(end - start);
-    since->pos      = 0U;
-    since->endian   = self->endian;
-    since->hlswap   = self->hlswap;
-    since->overflow = 0U;
+    if (end == 0) { end = self->len_; }
+    if (end < start || end > (size_t)self->cap_) { return -1; }
+    since->data_     = self->data_ + start;
+    since->cap_      = self->cap_ - (uint32_t)start;
+    since->len_      = (uint32_t)(end - start);
+    since->pos_      = 0U;
+    since->endian_   = self->endian_;
+    since->hlswap_   = self->hlswap_;
+    since->overflow_ = 0U;
     return 0;
 }
 // Create view of readable portion [pos, len]
-#define ct_bytes_readable_since(self, since) ct_bytes_since((self), (since), (self)->pos, (self)->len);
+#define ct_bytes_readable_since(self_, since_) ct_bytes_since((self_), (since_), (self_)->pos_, (self_)->len_);
 // Create view of writable portion [pos, cap]
-#define ct_bytes_writable_since(self, since) ct_bytes_since((self), (since), (self)->pos, (self)->cap);
+#define ct_bytes_writable_since(self_, since_) ct_bytes_since((self_), (since_), (self_)->pos_, (self_)->cap_);
 
 // Remove read data by moving unread portion to start.
 CT_API void ct_bytes_compact(ct_bytes_t* self);

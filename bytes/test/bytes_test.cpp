@@ -1,3 +1,7 @@
+/**
+ * @file bytes_test.cpp
+ * @brief Fixed-size byte buffer tests.
+ */
 #include "coter/bytes/bytes.h"
 
 #include <climits>
@@ -13,69 +17,69 @@ TEST_CASE("seg Initialization" * doctest::test_suite("seg") * doctest::test_suit
     SUBCASE("ct_bytes_init function") {
         ct_bytes_t seg;
         ct_bytes_init(&seg, buffer, sizeof(buffer));
-        REQUIRE(seg.data == buffer);
-        REQUIRE(seg.cap == sizeof(buffer));
-        REQUIRE(seg.len == 0);
-        REQUIRE(seg.pos == 0);
-        REQUIRE(+seg.endian == CT_ENDIAN_BIG);
-        REQUIRE(+seg.hlswap == 0);
+        REQUIRE(seg.data_ == buffer);
+        REQUIRE(seg.cap_ == sizeof(buffer));
+        REQUIRE(seg.len_ == 0);
+        REQUIRE(seg.pos_ == 0);
+        REQUIRE(+seg.endian_ == CT_ENDIAN_BIG);
+        REQUIRE(+seg.hlswap_ == 0);
     }
 
     SUBCASE("ct_bytes_from function (clamped)") {
         ct_bytes_t seg;
         ct_bytes_from(&seg, buffer, sizeof(buffer), 32);
-        REQUIRE(seg.data == buffer);
-        REQUIRE(seg.cap == sizeof(buffer));
-        REQUIRE(seg.len == 32);
-        REQUIRE(seg.pos == 0);
-        REQUIRE(+seg.endian == CT_ENDIAN_BIG);
-        REQUIRE(+seg.hlswap == 0);
+        REQUIRE(seg.data_ == buffer);
+        REQUIRE(seg.cap_ == sizeof(buffer));
+        REQUIRE(seg.len_ == 32);
+        REQUIRE(seg.pos_ == 0);
+        REQUIRE(+seg.endian_ == CT_ENDIAN_BIG);
+        REQUIRE(+seg.hlswap_ == 0);
     }
 
     SUBCASE("ct_bytes_init function") {
         ct_bytes_t seg;
         ct_bytes_init(&seg, buffer, sizeof(buffer));
-        REQUIRE(seg.data == buffer);
-        REQUIRE(seg.cap == sizeof(buffer));
-        REQUIRE(seg.len == 0);
-        REQUIRE(seg.pos == 0);
-        REQUIRE(+seg.endian == CT_ENDIAN_BIG);
-        REQUIRE(+seg.hlswap == 0);
+        REQUIRE(seg.data_ == buffer);
+        REQUIRE(seg.cap_ == sizeof(buffer));
+        REQUIRE(seg.len_ == 0);
+        REQUIRE(seg.pos_ == 0);
+        REQUIRE(+seg.endian_ == CT_ENDIAN_BIG);
+        REQUIRE(+seg.hlswap_ == 0);
     }
 
     SUBCASE("ct_bytes_from function") {
         ct_bytes_t seg;
         ct_bytes_from(&seg, buffer, sizeof(buffer), 48);
-        REQUIRE(seg.data == buffer);
-        REQUIRE(seg.cap == sizeof(buffer));
-        REQUIRE(seg.len == 48);
-        REQUIRE(seg.pos == 0);
-        REQUIRE(+seg.endian == CT_ENDIAN_BIG);
-        REQUIRE(+seg.hlswap == 0);
+        REQUIRE(seg.data_ == buffer);
+        REQUIRE(seg.cap_ == sizeof(buffer));
+        REQUIRE(seg.len_ == 48);
+        REQUIRE(seg.pos_ == 0);
+        REQUIRE(+seg.endian_ == CT_ENDIAN_BIG);
+        REQUIRE(+seg.hlswap_ == 0);
     }
 
     SUBCASE("ct_bytes_from len > cap protection") {
         ct_bytes_t seg;
         ct_bytes_from(&seg, buffer, sizeof(buffer), 1000);
-        REQUIRE(seg.len == sizeof(buffer));
+        REQUIRE(seg.len_ == sizeof(buffer));
     }
 
     SUBCASE("Static Initialization Macros") {
-        ct_bytes_t seg_init = ct_bytes_INIT(buffer, sizeof(buffer));
-        REQUIRE(seg_init.data == buffer);
-        REQUIRE(seg_init.cap == sizeof(buffer));
-        REQUIRE(seg_init.len == 0);
-        REQUIRE(seg_init.pos == 0);
-        REQUIRE(+seg_init.endian == CT_ENDIAN_BIG);
-        REQUIRE(+seg_init.hlswap == 0);
+        ct_bytes_t seg_init = CT_BYTES_INIT(buffer, sizeof(buffer));
+        REQUIRE(seg_init.data_ == buffer);
+        REQUIRE(seg_init.cap_ == sizeof(buffer));
+        REQUIRE(seg_init.len_ == 0);
+        REQUIRE(seg_init.pos_ == 0);
+        REQUIRE(+seg_init.endian_ == CT_ENDIAN_BIG);
+        REQUIRE(+seg_init.hlswap_ == 0);
 
-        ct_bytes_t seg_from = ct_bytes_FROM(buffer, sizeof(buffer), 32);
-        REQUIRE(seg_from.data == buffer);
-        REQUIRE(seg_from.cap == sizeof(buffer));
-        REQUIRE(seg_from.len == 32);
-        REQUIRE(seg_from.pos == 0);
-        REQUIRE(+seg_from.endian == CT_ENDIAN_BIG);
-        REQUIRE(+seg_from.hlswap == 0);
+        ct_bytes_t seg_from = CT_BYTES_FROM(buffer, sizeof(buffer), 32);
+        REQUIRE(seg_from.data_ == buffer);
+        REQUIRE(seg_from.cap_ == sizeof(buffer));
+        REQUIRE(seg_from.len_ == 32);
+        REQUIRE(seg_from.pos_ == 0);
+        REQUIRE(+seg_from.endian_ == CT_ENDIAN_BIG);
+        REQUIRE(+seg_from.hlswap_ == 0);
     }
 }
 
@@ -676,10 +680,10 @@ TEST_CASE("seg View Operations" * doctest::test_suite("seg") * doctest::test_sui
     SUBCASE("since valid range") {
         ct_bytes_from(&seg, buffer, sizeof(buffer), 32);
         REQUIRE(ct_bytes_since(&seg, &view, 8, 24) == 0);
-        REQUIRE(view.data == buffer + 8);
-        REQUIRE(view.cap == sizeof(buffer) - 8);
-        REQUIRE(view.len == 16);
-        REQUIRE(view.pos == 0);
+        REQUIRE(view.data_ == buffer + 8);
+        REQUIRE(view.cap_ == sizeof(buffer) - 8);
+        REQUIRE(view.len_ == 16);
+        REQUIRE(view.pos_ == 0);
     }
 
     SUBCASE("since with default end (0)") {
@@ -687,13 +691,13 @@ TEST_CASE("seg View Operations" * doctest::test_suite("seg") * doctest::test_sui
 
         // Case 1: start=0, end=0 -> [0, 32]
         REQUIRE(ct_bytes_since(&seg, &view, 0, 0) == 0);
-        REQUIRE(view.data == buffer);
-        REQUIRE(view.len == 32);
+        REQUIRE(view.data_ == buffer);
+        REQUIRE(view.len_ == 32);
 
         // Case 2: start=10, end=0 -> [10, 32]
         REQUIRE(ct_bytes_since(&seg, &view, 10, 0) == 0);
-        REQUIRE(view.data == buffer + 10);
-        REQUIRE(view.len == 22);
+        REQUIRE(view.data_ == buffer + 10);
+        REQUIRE(view.len_ == 22);
     }
 
     SUBCASE("since invalid range") {
@@ -705,9 +709,9 @@ TEST_CASE("seg View Operations" * doctest::test_suite("seg") * doctest::test_sui
     SUBCASE("since empty range") {
         ct_bytes_from(&seg, buffer, sizeof(buffer), 32);
         REQUIRE(ct_bytes_since(&seg, &view, 10, 10) == 0);
-        REQUIRE(view.data == buffer + 10);
-        REQUIRE(view.len == 0);
-        REQUIRE(view.pos == 0);
+        REQUIRE(view.data_ == buffer + 10);
+        REQUIRE(view.len_ == 0);
+        REQUIRE(view.pos_ == 0);
     }
 
     SUBCASE("since inherits config") {
@@ -716,24 +720,24 @@ TEST_CASE("seg View Operations" * doctest::test_suite("seg") * doctest::test_sui
         ct_bytes_set_hlswap(&seg, 1);
 
         ct_bytes_since(&seg, &view, 0, 16);
-        REQUIRE(+view.endian == CT_ENDIAN_LITTLE);
-        REQUIRE(+view.hlswap == 1);
+        REQUIRE(+view.endian_ == CT_ENDIAN_LITTLE);
+        REQUIRE(+view.hlswap_ == 1);
     }
 
     SUBCASE("readable_since") {
         ct_bytes_from(&seg, buffer, sizeof(buffer), 32);
         ct_bytes_seek(&seg, 8);
         ct_bytes_readable_since(&seg, &view);
-        REQUIRE(view.data == buffer + 8);
-        REQUIRE(view.len == 24);
+        REQUIRE(view.data_ == buffer + 8);
+        REQUIRE(view.len_ == 24);
     }
 
     SUBCASE("writable_since") {
         ct_bytes_from(&seg, buffer, sizeof(buffer), 32);
         ct_bytes_seek(&seg, 8);
         ct_bytes_writable_since(&seg, &view);
-        REQUIRE(view.data == buffer + 8);
-        REQUIRE(view.len == sizeof(buffer) - 8);
+        REQUIRE(view.data_ == buffer + 8);
+        REQUIRE(view.len_ == sizeof(buffer) - 8);
     }
 
     SUBCASE("compact") {
@@ -1337,12 +1341,12 @@ TEST_CASE("seg Adversarial Boundary and Overflow Tests" * doctest::test_suite("s
         REQUIRE(result == -1);
     }
 
-    SUBCASE("ct_bytes_FROM macro lacks len <= cap protection") {
-        ct_bytes_t macro_seg = ct_bytes_FROM(buffer, 10, 20);
+    SUBCASE("CT_BYTES_FROM macro lacks len <= cap protection") {
+        ct_bytes_t macro_seg = CT_BYTES_FROM(buffer, 10, 20);
         // The macro does not clamp len, so len remains 20.
         // The function ct_bytes_from clamps it to 10.
         // Correct behavior should clamp or fail, but the macro allows len > cap.
-        REQUIRE(macro_seg.len <= macro_seg.cap);
+        REQUIRE(macro_seg.len_ <= macro_seg.cap_);
     }
 
     SUBCASE("Peek/Poke with INT_MIN offset") {
@@ -1481,18 +1485,18 @@ TEST_CASE("seg Challenger 2 Adversarial Boundary Tests" * doctest::test_suite("s
         ct_bytes_init(seg_ptr, buffer, 16);
 
         // Verify bitfields are correctly set to expected initial values
-        REQUIRE(+seg_ptr->endian == CT_ENDIAN_BIG);
-        REQUIRE(+seg_ptr->hlswap == 0U);
-        REQUIRE(+seg_ptr->overflow == 0U);
+        REQUIRE(+seg_ptr->endian_ == CT_ENDIAN_BIG);
+        REQUIRE(+seg_ptr->hlswap_ == 0U);
+        REQUIRE(+seg_ptr->overflow_ == 0U);
 
         // Perform a copy of the struct containing initialized bitfields (and potentially uninitialized padding/other
         // bits)
         ct_bytes_t copied_seg = *seg_ptr;
-        REQUIRE(copied_seg.data == buffer);
-        REQUIRE(copied_seg.cap == 16);
-        REQUIRE(+copied_seg.endian == CT_ENDIAN_BIG);
-        REQUIRE(+copied_seg.hlswap == 0U);
-        REQUIRE(+copied_seg.overflow == 0U);
+        REQUIRE(copied_seg.data_ == buffer);
+        REQUIRE(copied_seg.cap_ == 16);
+        REQUIRE(+copied_seg.endian_ == CT_ENDIAN_BIG);
+        REQUIRE(+copied_seg.hlswap_ == 0U);
+        REQUIRE(+copied_seg.overflow_ == 0U);
     }
 }
 
@@ -1546,18 +1550,18 @@ TEST_CASE("seg Challenger 4 Adversarial Boundary Tests" * doctest::test_suite("s
 
         // nullptr with 0 capacity
         ct_bytes_init(&seg, nullptr, 0);
-        REQUIRE(seg.data == nullptr);
-        REQUIRE(seg.cap == 0);
-        REQUIRE(seg.len == 0);
-        REQUIRE(seg.pos == 0);
+        REQUIRE(seg.data_ == nullptr);
+        REQUIRE(seg.cap_ == 0);
+        REQUIRE(seg.len_ == 0);
+        REQUIRE(seg.pos_ == 0);
         REQUIRE(ct_bytes_has_error(&seg) == 0);
 
         // nullptr with non-zero capacity
         ct_bytes_init(&seg, nullptr, 10);
-        REQUIRE(seg.data == nullptr);
-        REQUIRE(seg.cap == 10);
-        REQUIRE(seg.len == 0);
-        REQUIRE(seg.pos == 0);
+        REQUIRE(seg.data_ == nullptr);
+        REQUIRE(seg.cap_ == 10);
+        REQUIRE(seg.len_ == 0);
+        REQUIRE(seg.pos_ == 0);
 
         // Since length is 0, reading should fail and set overflow but not crash
         uint8_t val = 0;
@@ -1643,13 +1647,13 @@ TEST_CASE("seg Challenger 3 Adversarial Safety Tests" * doctest::test_suite("seg
         // Call since with valid range
         int res = ct_bytes_since(&seg, &view, 2, 8);
         REQUIRE(res == 0);
-        REQUIRE(view.data == buffer + 2);
-        REQUIRE(view.cap == 14);  // 16 - 2
-        REQUIRE(view.len == 6);   // 8 - 2
-        REQUIRE(view.pos == 0);
-        REQUIRE(+view.endian == +seg.endian);
-        REQUIRE(+view.hlswap == +seg.hlswap);
-        REQUIRE(+view.overflow == 0);
+        REQUIRE(view.data_ == buffer + 2);
+        REQUIRE(view.cap_ == 14);  // 16 - 2
+        REQUIRE(view.len_ == 6);   // 8 - 2
+        REQUIRE(view.pos_ == 0);
+        REQUIRE(+view.endian_ == +seg.endian_);
+        REQUIRE(+view.hlswap_ == +seg.hlswap_);
+        REQUIRE(+view.overflow_ == 0);
 
         // Call since with invalid range, view should not be modified on failure
         memset(&view, 0x5A, sizeof(view));
