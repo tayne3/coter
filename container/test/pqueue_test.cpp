@@ -54,7 +54,7 @@ TEST_CASE("pqueue basic operations" * doctest::test_suite("pqueue")) {
     ct_pqueue_destroy(&pq);
 }
 
-TEST_CASE("PQueue Static Mode" * doctest::test_suite("pqueue")) {
+TEST_CASE("pqueue static mode" * doctest::test_suite("pqueue")) {
     ct_pqueue_t pq;
     int         buffer[10];
     ct_pqueue_init_s(&pq, int, buffer, 10, pqueue_int_cmp);
@@ -73,7 +73,7 @@ TEST_CASE("PQueue Static Mode" * doctest::test_suite("pqueue")) {
     ct_pqueue_destroy(&pq);
 }
 
-TEST_CASE("PQueue Alignment and Large Elements" * doctest::test_suite("pqueue")) {
+TEST_CASE("pqueue alignment and large elements" * doctest::test_suite("pqueue")) {
     struct large {
         char data[500];
     };

@@ -21,7 +21,7 @@ void array_check_content(const ct_array_t* arr, const std::vector<int>& expected
 
 TEST_SUITE_BEGIN("array");
 
-TEST_CASE("Array Lifecycle and properties") {
+TEST_CASE("array lifecycle and properties") {
     ct_array_t arr;
 
     SUBCASE("Init with zero capacity") {
@@ -48,7 +48,7 @@ TEST_CASE("Array Lifecycle and properties") {
     }
 }
 
-TEST_CASE("Array Capacity Management") {
+TEST_CASE("array capacity management") {
     ct_array_t arr;
     ct_array_init(&arr, sizeof(int), 0);
 
@@ -97,7 +97,7 @@ TEST_CASE("Array Capacity Management") {
     ct_array_destroy(&arr);
 }
 
-TEST_CASE("Array Data Manipulation") {
+TEST_CASE("array data manipulation") {
     ct_array_t arr;
     ct_array_init(&arr, sizeof(int), 0);
 
@@ -171,7 +171,7 @@ TEST_CASE("Array Data Manipulation") {
     ct_array_destroy(&arr);
 }
 
-TEST_CASE("Array Accessors and Safety") {
+TEST_CASE("array accessors and safety") {
     ct_array_t arr;
     ct_array_init(&arr, sizeof(int), 10);
     int val = 99;
@@ -223,7 +223,7 @@ TEST_CASE("Array Accessors and Safety") {
     ct_array_destroy(&arr);
 }
 
-TEST_CASE("Array Foreach Macro") {
+TEST_CASE("array foreach macro") {
     ct_array_t arr;
     ct_array_init(&arr, sizeof(int), 0);
 

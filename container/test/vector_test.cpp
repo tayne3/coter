@@ -12,7 +12,7 @@ CT_VEC_DECL(int, IntVec);
 // Define the generated implementation.
 CT_VEC_IMPL(int, IntVec);
 
-TEST_CASE("Vec Init and Destroy" * doctest::test_suite("vec")) {
+TEST_CASE("vector init and destroy" * doctest::test_suite("vector")) {
     IntVec_t v;
     REQUIRE(IntVec_init(&v, 4) == 0);
 
@@ -26,7 +26,7 @@ TEST_CASE("Vec Init and Destroy" * doctest::test_suite("vec")) {
     REQUIRE(IntVec_init(nullptr, 10) == -1);
 }
 
-TEST_CASE("Vec Push and Pop" * doctest::test_suite("vec")) {
+TEST_CASE("vector push and pop" * doctest::test_suite("vector")) {
     IntVec_t v;
     IntVec_init(&v, 0);
 
@@ -49,7 +49,7 @@ TEST_CASE("Vec Push and Pop" * doctest::test_suite("vec")) {
     IntVec_destroy(&v);
 }
 
-TEST_CASE("Vec Resize and Reserve" * doctest::test_suite("vec")) {
+TEST_CASE("vector resize and reserve" * doctest::test_suite("vector")) {
     IntVec_t v;
     IntVec_init(&v, 0);
 
