@@ -1,6 +1,6 @@
 /**
  * @file jobpool.c
- * @brief 任务池实现
+ * @brief Fixed-size job pool with a shared work queue.
  */
 #include "coter/thread/jobpool.h"
 
@@ -15,34 +15,37 @@
 // -------------------------[STATIC DECLARATION]-------------------------
 
 /**
- * @brief 任务
+ * @brief Work item.
  */
 typedef struct job {
-    ct_jobpool_routine_t routine;  // 执行函数
-    void*                arg;      // 执行参数
+    ct_jobpool_routine_t routine_;  ///< Routine to execute.
+    void*                arg_;      ///< Routine argument.
 } job_t;
 
-#define CT_JOBPOOL_JOB_INIT(_routine, _arg) {.routine = _routine, .arg = _arg}
+#define CT_JOBPOOL_JOB_INIT(routine_value_, arg_value_) {.routine_ = (routine_value_), .arg_ = (arg_value_)}
 
+/**
+ * @brief Worker thread state.
+ */
 typedef struct unit {
-    ct_list_t      list[1];      // 链表节点
-    ct_msgqueue_t* job_queue;    // 工作队列（指向共享队列）
-    ct_thread_t    thread;       // 线程
-    size_t         yield_every;  // 连续执行 N 个任务后让出 CPU（0=禁用）
+    ct_list_t      list_[1];      ///< Intrusive list node.
+    ct_msgqueue_t* job_queue_;    ///< Shared work queue.
+    ct_thread_t    thread_;       ///< Worker thread handle.
+    size_t         yield_every_;  ///< Yield interval for consecutive jobs; 0 disables.
 } unit_t;
 
 /**
- * @brief 任务池
+ * @brief Job pool.
  */
 struct ct_jobpool {
-    job_t*        job_buffer;       // 工作队列缓冲区
-    ct_msgqueue_t job_queue[1];     // 工作队列（所有线程共享）
-    ct_list_t     regular_list[1];  // 工作线程链表
-    size_t        thread_max;       // 线程数
-    size_t        job_max;          // 工作队列容量
+    job_t*        job_buffer_;       ///< Work queue storage.
+    ct_msgqueue_t job_queue_[1];     ///< Shared work queue.
+    ct_list_t     regular_list_[1];  ///< Worker list.
+    size_t        thread_max_;       ///< Worker count.
+    size_t        job_max_;          ///< Queue capacity.
 };
 
-static int ct_jobpool_thread_do_regular(void* arg);
+static int jobpool_worker_thread(void* arg);
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
@@ -52,20 +55,20 @@ ct_jobpool_t* ct_jobpool_create(size_t thread_max, size_t job_max, const ct_jobp
     ct_jobpool_t* self = (ct_jobpool_t*)malloc(sizeof(ct_jobpool_t));
     if (!self) { return NULL; }
 
-    self->thread_max = thread_max;
-    self->job_max    = job_max;
+    self->thread_max_ = thread_max;
+    self->job_max_    = job_max;
 
-    self->job_buffer = (job_t*)calloc(job_max, sizeof(job_t));
-    if (!self->job_buffer) {
+    self->job_buffer_ = (job_t*)calloc(job_max, sizeof(job_t));
+    if (!self->job_buffer_) {
         free(self);
         return NULL;
     }
-    ct_msgqueue_init(self->job_queue, self->job_buffer, sizeof(job_t), job_max);
-    ct_list_init(self->regular_list);
+    ct_msgqueue_init(self->job_queue_, self->job_buffer_, sizeof(job_t), job_max);
+    ct_list_init(self->regular_list_);
 
     ct_thread_attr_t attr = CT_THREAD_ATTR_INIT;
-    if (config && config->thread_attr) {
-        memcpy(&attr, config->thread_attr, sizeof(ct_thread_attr_t));
+    if (config && config->thread_attr_) {
+        memcpy(&attr, config->thread_attr_, sizeof(ct_thread_attr_t));
     } else {
         ct_thread_attr_set_stack_size(&attr, 1 * 1024 * 1024);
     }
@@ -75,21 +78,21 @@ ct_jobpool_t* ct_jobpool_create(size_t thread_max, size_t job_max, const ct_jobp
         if (!unit) {
             ct_thread_attr_destroy(&attr);
             ct_jobpool_destroy(self);
-            return NULL;  // 内存申请失败，视为整体失败
+            return NULL;  // Treat allocation failure as total failure.
         }
 
-        unit->job_queue   = self->job_queue;
-        unit->yield_every = config ? config->yield_every : 0;
-        ct_list_init(unit->list);
+        unit->job_queue_   = self->job_queue_;
+        unit->yield_every_ = config ? config->yield_every_ : 0;
+        ct_list_init(unit->list_);
 
-        const int ret = ct_thread_create(&unit->thread, &attr, ct_jobpool_thread_do_regular, unit);
+        const int ret = ct_thread_create(&unit->thread_, &attr, jobpool_worker_thread, unit);
         if (ret != 0) {
             free(unit);
             ct_thread_attr_destroy(&attr);
             ct_jobpool_destroy(self);
-            return NULL;  // 线程创建失败，视为整体失败
+            return NULL;  // Treat thread creation failure as total failure.
         }
-        ct_list_append(self->regular_list, unit->list);
+        ct_list_append(self->regular_list_, unit->list_);
     }
 
     ct_thread_attr_destroy(&attr);
@@ -99,62 +102,62 @@ ct_jobpool_t* ct_jobpool_create(size_t thread_max, size_t job_max, const ct_jobp
 void ct_jobpool_destroy(ct_jobpool_t* self) {
     if (!self) { return; }
 
-    // 关闭队列，唤醒所有阻塞中的工作线程
-    ct_msgqueue_close(self->job_queue);
+    // Close the queue and wake all blocked workers.
+    ct_msgqueue_close(self->job_queue_);
 
-    // 等待所有线程退出
-    ct_list_foreach_entry_safe(unit, self->regular_list, unit_t, list) {
-        ct_thread_join(&unit->thread, NULL);
-        ct_list_remove(unit->list);
+    // Wait for every worker to exit.
+    ct_list_foreach_entry_safe(unit, self->regular_list_, unit_t, list_) {
+        ct_thread_join(&unit->thread_, NULL);
+        ct_list_remove(unit->list_);
         free(unit);
     }
 
-    ct_msgqueue_destroy(self->job_queue);
-    if (self->job_buffer) { free(self->job_buffer); }
+    ct_msgqueue_destroy(self->job_queue_);
+    if (self->job_buffer_) { free(self->job_buffer_); }
     free(self);
 }
 
 int ct_jobpool_submit(ct_jobpool_t* self, ct_jobpool_routine_t routine, void* arg) {
     if (!self || !routine) { return -1; }
     const job_t job = CT_JOBPOOL_JOB_INIT(routine, arg);
-    return ct_msgqueue_push(self->job_queue, &job) != 0 ? -1 : 0;
+    return ct_msgqueue_push(self->job_queue_, &job) != 0 ? -1 : 0;
 }
 
 int ct_jobpool_try_submit(ct_jobpool_t* self, ct_jobpool_routine_t routine, void* arg) {
     if (!self || !routine) { return -1; }
     const job_t job = CT_JOBPOOL_JOB_INIT(routine, arg);
-    return ct_msgqueue_try_push(self->job_queue, &job) != 0 ? -1 : 0;
+    return ct_msgqueue_try_push(self->job_queue_, &job) != 0 ? -1 : 0;
 }
 
 int ct_jobpool_submit_for(ct_jobpool_t* self, ct_jobpool_routine_t routine, void* arg, ct_time64_t timeout_ms) {
     if (!self || !routine) { return -1; }
     const job_t job = CT_JOBPOOL_JOB_INIT(routine, arg);
-    return ct_msgqueue_push_for(self->job_queue, &job, timeout_ms) != 0 ? -1 : 0;
+    return ct_msgqueue_push_for(self->job_queue_, &job, timeout_ms) != 0 ? -1 : 0;
 }
 
 size_t ct_jobpool_pending(ct_jobpool_t* self) {
     if (!self) { return 0; }
-    return ct_msgqueue_size(self->job_queue);
+    return ct_msgqueue_size(self->job_queue_);
 }
 
 // -------------------------[STATIC DEFINITION]-------------------------
 
-static int ct_jobpool_thread_do_regular(void* arg) {
+static int jobpool_worker_thread(void* arg) {
     unit_t* unit   = (unit_t*)arg;
     size_t  consec = 0;
 
     job_t job;
     for (;;) {
-        if (ct_msgqueue_try_pop(unit->job_queue, &job) != 0) {
+        if (ct_msgqueue_try_pop(unit->job_queue_, &job) != 0) {
             consec = 0;
-            if (ct_msgqueue_pop(unit->job_queue, &job) != 0) { break; }
+            if (ct_msgqueue_pop(unit->job_queue_, &job) != 0) { break; }
         } else {
             ++consec;
         }
 
-        if (job.routine) { job.routine(job.arg); }
+        if (job.routine_) { job.routine_(job.arg_); }
 
-        if (unit->yield_every > 0 && consec >= unit->yield_every) {
+        if (unit->yield_every_ > 0 && consec >= unit->yield_every_) {
             consec = 0;
             ct_thread_yield();
         }
