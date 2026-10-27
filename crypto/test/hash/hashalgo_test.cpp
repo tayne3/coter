@@ -1,3 +1,7 @@
+/**
+ * @file hashalgo_test.cpp
+ * @brief Hash algorithm tests.
+ */
 #include "coter/crypto/hash/hash.h"
 #include "coter/testing/doctest.h"
 

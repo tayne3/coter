@@ -146,9 +146,9 @@ uint64_t ct_hashalgo_siphash_64(const char* data, size_t size, const uint8_t sip
     uint64_t v3 = UINT64_C(0x7465646279746573);
 
     {
-        const uint64_t* _key = (uint64_t*)siphash_keys;
-        const uint64_t  k0   = ct_le_get_u64((const uint8_t*)&_key[0]);
-        const uint64_t  k1   = ct_le_get_u64((const uint8_t*)&_key[1]);
+        const uint64_t* key = (uint64_t*)siphash_keys;
+        const uint64_t  k0   = ct_le_get_u64((const uint8_t*)&key[0]);
+        const uint64_t  k1   = ct_le_get_u64((const uint8_t*)&key[1]);
 
         v0 ^= k0;
         v1 ^= k1;
