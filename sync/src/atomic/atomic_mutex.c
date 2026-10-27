@@ -1,8 +1,4 @@
-/**
- * @file atomic_mutex.c
- * @brief Cross-platform atomic operations
- */
-#include "coter/core/config.h"
+#include "coter/sync/atomic/atomic_mutex.h"
 
 #if CT_ATOMIC_USE_MUTEX
 

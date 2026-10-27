@@ -7,13 +7,13 @@
 
 #include "coter/core/macro.h"
 
-#if CT_ATOMIC_USE_MUTEX
+#if CT_ATOMIC_USE_MUTEX || defined(COTER_TEST_ATOMIC_MUTEX)
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
- * @brief Lock-free atomic flag type
+ * @brief Atomic flag type
  */
 typedef struct ct_atomic_flag {
     volatile bool _v;
@@ -24,8 +24,14 @@ typedef struct ct_atomic_flag {
  */
 #define CT_ATOMIC_FLAG_INIT {0}
 
-CT_API void __ct_atomic_lock(void);
-CT_API void __ct_atomic_unlock(void);
+#if CT_ATOMIC_USE_MUTEX
+#define CT_ATOMIC_MUTEX_API CT_API
+#else
+#define CT_ATOMIC_MUTEX_API
+#endif
+
+CT_ATOMIC_MUTEX_API void __ct_atomic_lock(void);
+CT_ATOMIC_MUTEX_API void __ct_atomic_unlock(void);
 
 /**
  * @brief Atomically sets flag and returns previous value
@@ -65,612 +71,97 @@ typedef void* volatile ct_atomic_ptr_t;
 
 #define CT_ATOMIC_VAR_INIT(value) (value)
 
-CT_INLINE bool ct_atomic_bool_load(const ct_atomic_bool_t* p) {
-    bool v;
-    __ct_atomic_lock();
-    v = *p;
-    __ct_atomic_unlock();
-    return v;
-}
-CT_INLINE void ct_atomic_bool_store(ct_atomic_bool_t* p, bool v) {
-    __ct_atomic_lock();
-    *p = v;
-    __ct_atomic_unlock();
-}
-CT_INLINE bool ct_atomic_bool_exchange(ct_atomic_bool_t* p, bool v) {
-    bool old;
-    __ct_atomic_lock();
-    old = *p;
-    *p  = v;
-    __ct_atomic_unlock();
-    return old;
-}
-CT_INLINE bool ct_atomic_bool_compare_exchange(ct_atomic_bool_t* p, bool* expected, bool desired) {
-    bool ret = false;
-    __ct_atomic_lock();
-    if (*p == *expected) {
-        *p  = desired;
-        ret = true;
-    } else {
-        *expected = *p;
+#define CT_ATOMIC_MUTEX_GEN_BASE_OP(name, type)                                                                 \
+    CT_INLINE type ct_atomic_##name##_load(const ct_atomic_##name##_t* p) {                                     \
+        type v;                                                                                                 \
+        __ct_atomic_lock();                                                                                     \
+        v = *p;                                                                                                 \
+        __ct_atomic_unlock();                                                                                   \
+        return v;                                                                                               \
+    }                                                                                                           \
+    CT_INLINE void ct_atomic_##name##_store(ct_atomic_##name##_t* p, type v) {                                  \
+        __ct_atomic_lock();                                                                                     \
+        *p = v;                                                                                                 \
+        __ct_atomic_unlock();                                                                                   \
+    }                                                                                                           \
+    CT_INLINE type ct_atomic_##name##_exchange(ct_atomic_##name##_t* p, type v) {                               \
+        type old;                                                                                               \
+        __ct_atomic_lock();                                                                                     \
+        old = *p;                                                                                               \
+        *p  = v;                                                                                                \
+        __ct_atomic_unlock();                                                                                   \
+        return old;                                                                                             \
+    }                                                                                                           \
+    CT_INLINE bool ct_atomic_##name##_compare_exchange(ct_atomic_##name##_t* p, type* expected, type desired) { \
+        bool ret = false;                                                                                       \
+        __ct_atomic_lock();                                                                                     \
+        if (*p == *expected) {                                                                                  \
+            *p  = desired;                                                                                      \
+            ret = true;                                                                                         \
+        } else {                                                                                                \
+            *expected = *p;                                                                                     \
+        }                                                                                                       \
+        __ct_atomic_unlock();                                                                                   \
+        return ret;                                                                                             \
     }
-    __ct_atomic_unlock();
-    return ret;
-}
 
-CT_INLINE char ct_atomic_char_load(const ct_atomic_char_t* p) {
-    char v;
-    __ct_atomic_lock();
-    v = *p;
-    __ct_atomic_unlock();
-    return v;
-}
-CT_INLINE void ct_atomic_char_store(ct_atomic_char_t* p, char v) {
-    __ct_atomic_lock();
-    *p = v;
-    __ct_atomic_unlock();
-}
-CT_INLINE char ct_atomic_char_exchange(ct_atomic_char_t* p, char v) {
-    char old;
-    __ct_atomic_lock();
-    old = *p;
-    *p  = v;
-    __ct_atomic_unlock();
-    return old;
-}
-CT_INLINE char ct_atomic_char_add(ct_atomic_char_t* p, char n) {
-    char v;
-    __ct_atomic_lock();
-    v = *p;
-    *p += n;
-    __ct_atomic_unlock();
-    return v;
-}
-CT_INLINE char ct_atomic_char_sub(ct_atomic_char_t* p, char n) {
-    char v;
-    __ct_atomic_lock();
-    v = *p;
-    *p -= n;
-    __ct_atomic_unlock();
-    return v;
-}
-CT_INLINE bool ct_atomic_char_compare_exchange(ct_atomic_char_t* p, char* expected, char desired) {
-    bool ret = false;
-    __ct_atomic_lock();
-    if (*p == *expected) {
-        *p  = desired;
-        ret = true;
-    } else {
-        *expected = *p;
+#define CT_ATOMIC_MUTEX_GEN_ARITH_OP(name, type)                             \
+    CT_INLINE type ct_atomic_##name##_add(ct_atomic_##name##_t* p, type n) { \
+        type v;                                                              \
+        __ct_atomic_lock();                                                  \
+        v = *p;                                                              \
+        *p += n;                                                             \
+        __ct_atomic_unlock();                                                \
+        return v;                                                            \
+    }                                                                        \
+    CT_INLINE type ct_atomic_##name##_sub(ct_atomic_##name##_t* p, type n) { \
+        type v;                                                              \
+        __ct_atomic_lock();                                                  \
+        v = *p;                                                              \
+        *p -= n;                                                             \
+        __ct_atomic_unlock();                                                \
+        return v;                                                            \
     }
-    __ct_atomic_unlock();
-    return ret;
-}
 
-CT_INLINE signed char ct_atomic_schar_load(const ct_atomic_schar_t* p) {
-    signed char v;
-    __ct_atomic_lock();
-    v = *p;
-    __ct_atomic_unlock();
-    return v;
-}
-CT_INLINE void ct_atomic_schar_store(ct_atomic_schar_t* p, signed char v) {
-    __ct_atomic_lock();
-    *p = v;
-    __ct_atomic_unlock();
-}
-CT_INLINE signed char ct_atomic_schar_exchange(ct_atomic_schar_t* p, signed char v) {
-    signed char old;
-    __ct_atomic_lock();
-    old = *p;
-    *p  = v;
-    __ct_atomic_unlock();
-    return old;
-}
-CT_INLINE signed char ct_atomic_schar_add(ct_atomic_schar_t* p, signed char n) {
-    signed char v;
-    __ct_atomic_lock();
-    v = *p;
-    *p += n;
-    __ct_atomic_unlock();
-    return v;
-}
-CT_INLINE signed char ct_atomic_schar_sub(ct_atomic_schar_t* p, signed char n) {
-    signed char v;
-    __ct_atomic_lock();
-    v = *p;
-    *p -= n;
-    __ct_atomic_unlock();
-    return v;
-}
-CT_INLINE bool ct_atomic_schar_compare_exchange(ct_atomic_schar_t* p, signed char* expected, signed char desired) {
-    bool ret = false;
-    __ct_atomic_lock();
-    if (*p == *expected) {
-        *p  = desired;
-        ret = true;
-    } else {
-        *expected = *p;
-    }
-    __ct_atomic_unlock();
-    return ret;
-}
+CT_ATOMIC_MUTEX_GEN_BASE_OP(bool, bool)
 
-CT_INLINE unsigned char ct_atomic_uchar_load(const ct_atomic_uchar_t* p) {
-    unsigned char v;
-    __ct_atomic_lock();
-    v = *p;
-    __ct_atomic_unlock();
-    return v;
-}
-CT_INLINE void ct_atomic_uchar_store(ct_atomic_uchar_t* p, unsigned char v) {
-    __ct_atomic_lock();
-    *p = v;
-    __ct_atomic_unlock();
-}
-CT_INLINE unsigned char ct_atomic_uchar_exchange(ct_atomic_uchar_t* p, unsigned char v) {
-    unsigned char old;
-    __ct_atomic_lock();
-    old = *p;
-    *p  = v;
-    __ct_atomic_unlock();
-    return old;
-}
-CT_INLINE unsigned char ct_atomic_uchar_add(ct_atomic_uchar_t* p, unsigned char n) {
-    unsigned char v;
-    __ct_atomic_lock();
-    v = *p;
-    *p += n;
-    __ct_atomic_unlock();
-    return v;
-}
-CT_INLINE unsigned char ct_atomic_uchar_sub(ct_atomic_uchar_t* p, unsigned char n) {
-    unsigned char v;
-    __ct_atomic_lock();
-    v = *p;
-    *p -= n;
-    __ct_atomic_unlock();
-    return v;
-}
-CT_INLINE bool ct_atomic_uchar_compare_exchange(ct_atomic_uchar_t* p, unsigned char* expected, unsigned char desired) {
-    bool ret = false;
-    __ct_atomic_lock();
-    if (*p == *expected) {
-        *p  = desired;
-        ret = true;
-    } else {
-        *expected = *p;
-    }
-    __ct_atomic_unlock();
-    return ret;
-}
+CT_ATOMIC_MUTEX_GEN_BASE_OP(char, char)
+CT_ATOMIC_MUTEX_GEN_ARITH_OP(char, char)
 
-CT_INLINE short ct_atomic_short_load(const ct_atomic_short_t* p) {
-    short v;
-    __ct_atomic_lock();
-    v = *p;
-    __ct_atomic_unlock();
-    return v;
-}
-CT_INLINE void ct_atomic_short_store(ct_atomic_short_t* p, short v) {
-    __ct_atomic_lock();
-    *p = v;
-    __ct_atomic_unlock();
-}
-CT_INLINE short ct_atomic_short_exchange(ct_atomic_short_t* p, short v) {
-    short old;
-    __ct_atomic_lock();
-    old = *p;
-    *p  = v;
-    __ct_atomic_unlock();
-    return old;
-}
-CT_INLINE short ct_atomic_short_add(ct_atomic_short_t* p, short n) {
-    short v;
-    __ct_atomic_lock();
-    v = *p;
-    *p += n;
-    __ct_atomic_unlock();
-    return v;
-}
-CT_INLINE short ct_atomic_short_sub(ct_atomic_short_t* p, short n) {
-    short v;
-    __ct_atomic_lock();
-    v = *p;
-    *p -= n;
-    __ct_atomic_unlock();
-    return v;
-}
-CT_INLINE bool ct_atomic_short_compare_exchange(ct_atomic_short_t* p, short* expected, short desired) {
-    bool ret = false;
-    __ct_atomic_lock();
-    if (*p == *expected) {
-        *p  = desired;
-        ret = true;
-    } else {
-        *expected = *p;
-    }
-    __ct_atomic_unlock();
-    return ret;
-}
+CT_ATOMIC_MUTEX_GEN_BASE_OP(schar, signed char)
+CT_ATOMIC_MUTEX_GEN_ARITH_OP(schar, signed char)
 
-CT_INLINE unsigned short ct_atomic_ushort_load(const ct_atomic_ushort_t* p) {
-    unsigned short v;
-    __ct_atomic_lock();
-    v = *p;
-    __ct_atomic_unlock();
-    return v;
-}
-CT_INLINE void ct_atomic_ushort_store(ct_atomic_ushort_t* p, unsigned short v) {
-    __ct_atomic_lock();
-    *p = v;
-    __ct_atomic_unlock();
-}
-CT_INLINE unsigned short ct_atomic_ushort_exchange(ct_atomic_ushort_t* p, unsigned short v) {
-    unsigned short old;
-    __ct_atomic_lock();
-    old = *p;
-    *p  = v;
-    __ct_atomic_unlock();
-    return old;
-}
-CT_INLINE unsigned short ct_atomic_ushort_add(ct_atomic_ushort_t* p, unsigned short n) {
-    unsigned short v;
-    __ct_atomic_lock();
-    v = *p;
-    *p += n;
-    __ct_atomic_unlock();
-    return v;
-}
-CT_INLINE unsigned short ct_atomic_ushort_sub(ct_atomic_ushort_t* p, unsigned short n) {
-    unsigned short v;
-    __ct_atomic_lock();
-    v = *p;
-    *p -= n;
-    __ct_atomic_unlock();
-    return v;
-}
-CT_INLINE bool ct_atomic_ushort_compare_exchange(ct_atomic_ushort_t* p, unsigned short* expected,
-                                                 unsigned short desired) {
-    bool ret = false;
-    __ct_atomic_lock();
-    if (*p == *expected) {
-        *p  = desired;
-        ret = true;
-    } else {
-        *expected = *p;
-    }
-    __ct_atomic_unlock();
-    return ret;
-}
+CT_ATOMIC_MUTEX_GEN_BASE_OP(uchar, unsigned char)
+CT_ATOMIC_MUTEX_GEN_ARITH_OP(uchar, unsigned char)
 
-CT_INLINE int ct_atomic_int_load(const ct_atomic_int_t* p) {
-    int v;
-    __ct_atomic_lock();
-    v = *p;
-    __ct_atomic_unlock();
-    return v;
-}
-CT_INLINE void ct_atomic_int_store(ct_atomic_int_t* p, int v) {
-    __ct_atomic_lock();
-    *p = v;
-    __ct_atomic_unlock();
-}
-CT_INLINE int ct_atomic_int_exchange(ct_atomic_int_t* p, int v) {
-    int old;
-    __ct_atomic_lock();
-    old = *p;
-    *p  = v;
-    __ct_atomic_unlock();
-    return old;
-}
-CT_INLINE int ct_atomic_int_add(ct_atomic_int_t* p, int n) {
-    int v;
-    __ct_atomic_lock();
-    v = *p;
-    *p += n;
-    __ct_atomic_unlock();
-    return v;
-}
-CT_INLINE int ct_atomic_int_sub(ct_atomic_int_t* p, int n) {
-    int v;
-    __ct_atomic_lock();
-    v = *p;
-    *p -= n;
-    __ct_atomic_unlock();
-    return v;
-}
-CT_INLINE bool ct_atomic_int_compare_exchange(ct_atomic_int_t* p, int* expected, int desired) {
-    bool ret = false;
-    __ct_atomic_lock();
-    if (*p == *expected) {
-        *p  = desired;
-        ret = true;
-    } else {
-        *expected = *p;
-    }
-    __ct_atomic_unlock();
-    return ret;
-}
+CT_ATOMIC_MUTEX_GEN_BASE_OP(short, short)
+CT_ATOMIC_MUTEX_GEN_ARITH_OP(short, short)
 
-CT_INLINE unsigned ct_atomic_uint_load(const ct_atomic_uint_t* p) {
-    unsigned v;
-    __ct_atomic_lock();
-    v = *p;
-    __ct_atomic_unlock();
-    return v;
-}
-CT_INLINE void ct_atomic_uint_store(ct_atomic_uint_t* p, unsigned v) {
-    __ct_atomic_lock();
-    *p = v;
-    __ct_atomic_unlock();
-}
-CT_INLINE unsigned ct_atomic_uint_exchange(ct_atomic_uint_t* p, unsigned v) {
-    unsigned old;
-    __ct_atomic_lock();
-    old = *p;
-    *p  = v;
-    __ct_atomic_unlock();
-    return old;
-}
-CT_INLINE unsigned ct_atomic_uint_add(ct_atomic_uint_t* p, unsigned n) {
-    unsigned v;
-    __ct_atomic_lock();
-    v = *p;
-    *p += n;
-    __ct_atomic_unlock();
-    return v;
-}
-CT_INLINE unsigned ct_atomic_uint_sub(ct_atomic_uint_t* p, unsigned n) {
-    unsigned v;
-    __ct_atomic_lock();
-    v = *p;
-    *p -= n;
-    __ct_atomic_unlock();
-    return v;
-}
-CT_INLINE bool ct_atomic_uint_compare_exchange(ct_atomic_uint_t* p, unsigned* expected, unsigned desired) {
-    bool ret = false;
-    __ct_atomic_lock();
-    if (*p == *expected) {
-        *p  = desired;
-        ret = true;
-    } else {
-        *expected = *p;
-    }
-    __ct_atomic_unlock();
-    return ret;
-}
+CT_ATOMIC_MUTEX_GEN_BASE_OP(ushort, unsigned short)
+CT_ATOMIC_MUTEX_GEN_ARITH_OP(ushort, unsigned short)
 
-CT_INLINE long ct_atomic_long_load(const ct_atomic_long_t* p) {
-    long v;
-    __ct_atomic_lock();
-    v = *p;
-    __ct_atomic_unlock();
-    return v;
-}
-CT_INLINE void ct_atomic_long_store(ct_atomic_long_t* p, long v) {
-    __ct_atomic_lock();
-    *p = v;
-    __ct_atomic_unlock();
-}
-CT_INLINE long ct_atomic_long_exchange(ct_atomic_long_t* p, long v) {
-    long old;
-    __ct_atomic_lock();
-    old = *p;
-    *p  = v;
-    __ct_atomic_unlock();
-    return old;
-}
-CT_INLINE long ct_atomic_long_add(ct_atomic_long_t* p, long n) {
-    long v;
-    __ct_atomic_lock();
-    v = *p;
-    *p += n;
-    __ct_atomic_unlock();
-    return v;
-}
-CT_INLINE long ct_atomic_long_sub(ct_atomic_long_t* p, long n) {
-    long v;
-    __ct_atomic_lock();
-    v = *p;
-    *p -= n;
-    __ct_atomic_unlock();
-    return v;
-}
-CT_INLINE bool ct_atomic_long_compare_exchange(ct_atomic_long_t* p, long* expected, long desired) {
-    bool ret = false;
-    __ct_atomic_lock();
-    if (*p == *expected) {
-        *p  = desired;
-        ret = true;
-    } else {
-        *expected = *p;
-    }
-    __ct_atomic_unlock();
-    return ret;
-}
+CT_ATOMIC_MUTEX_GEN_BASE_OP(int, int)
+CT_ATOMIC_MUTEX_GEN_ARITH_OP(int, int)
 
-CT_INLINE unsigned long ct_atomic_ulong_load(const ct_atomic_ulong_t* p) {
-    unsigned long v;
-    __ct_atomic_lock();
-    v = *p;
-    __ct_atomic_unlock();
-    return v;
-}
-CT_INLINE void ct_atomic_ulong_store(ct_atomic_ulong_t* p, unsigned long v) {
-    __ct_atomic_lock();
-    *p = v;
-    __ct_atomic_unlock();
-}
-CT_INLINE unsigned long ct_atomic_ulong_exchange(ct_atomic_ulong_t* p, unsigned long v) {
-    unsigned long old;
-    __ct_atomic_lock();
-    old = *p;
-    *p  = v;
-    __ct_atomic_unlock();
-    return old;
-}
-CT_INLINE unsigned long ct_atomic_ulong_add(ct_atomic_ulong_t* p, unsigned long n) {
-    unsigned long v;
-    __ct_atomic_lock();
-    v = *p;
-    *p += n;
-    __ct_atomic_unlock();
-    return v;
-}
-CT_INLINE unsigned long ct_atomic_ulong_sub(ct_atomic_ulong_t* p, unsigned long n) {
-    unsigned long v;
-    __ct_atomic_lock();
-    v = *p;
-    *p -= n;
-    __ct_atomic_unlock();
-    return v;
-}
-CT_INLINE bool ct_atomic_ulong_compare_exchange(ct_atomic_ulong_t* p, unsigned long* expected, unsigned long desired) {
-    bool ret = false;
-    __ct_atomic_lock();
-    if (*p == *expected) {
-        *p  = desired;
-        ret = true;
-    } else {
-        *expected = *p;
-    }
-    __ct_atomic_unlock();
-    return ret;
-}
+CT_ATOMIC_MUTEX_GEN_BASE_OP(uint, unsigned)
+CT_ATOMIC_MUTEX_GEN_ARITH_OP(uint, unsigned)
 
-CT_INLINE long long ct_atomic_llong_load(const ct_atomic_llong_t* p) {
-    long long v;
-    __ct_atomic_lock();
-    v = *p;
-    __ct_atomic_unlock();
-    return v;
-}
-CT_INLINE void ct_atomic_llong_store(ct_atomic_llong_t* p, long long v) {
-    __ct_atomic_lock();
-    *p = v;
-    __ct_atomic_unlock();
-}
-CT_INLINE long long ct_atomic_llong_exchange(ct_atomic_llong_t* p, long long v) {
-    long long old;
-    __ct_atomic_lock();
-    old = *p;
-    *p  = v;
-    __ct_atomic_unlock();
-    return old;
-}
-CT_INLINE long long ct_atomic_llong_add(ct_atomic_llong_t* p, long long n) {
-    long long v;
-    __ct_atomic_lock();
-    v = *p;
-    *p += n;
-    __ct_atomic_unlock();
-    return v;
-}
-CT_INLINE long long ct_atomic_llong_sub(ct_atomic_llong_t* p, long long n) {
-    long long v;
-    __ct_atomic_lock();
-    v = *p;
-    *p -= n;
-    __ct_atomic_unlock();
-    return v;
-}
-CT_INLINE bool ct_atomic_llong_compare_exchange(ct_atomic_llong_t* p, long long* expected, long long desired) {
-    bool ret = false;
-    __ct_atomic_lock();
-    if (*p == *expected) {
-        *p  = desired;
-        ret = true;
-    } else {
-        *expected = *p;
-    }
-    __ct_atomic_unlock();
-    return ret;
-}
+CT_ATOMIC_MUTEX_GEN_BASE_OP(long, long)
+CT_ATOMIC_MUTEX_GEN_ARITH_OP(long, long)
 
-CT_INLINE unsigned long long ct_atomic_ullong_load(const ct_atomic_ullong_t* p) {
-    unsigned long long v;
-    __ct_atomic_lock();
-    v = *p;
-    __ct_atomic_unlock();
-    return v;
-}
-CT_INLINE void ct_atomic_ullong_store(ct_atomic_ullong_t* p, unsigned long long v) {
-    __ct_atomic_lock();
-    *p = v;
-    __ct_atomic_unlock();
-}
-CT_INLINE unsigned long long ct_atomic_ullong_exchange(ct_atomic_ullong_t* p, unsigned long long v) {
-    unsigned long long old;
-    __ct_atomic_lock();
-    old = *p;
-    *p  = v;
-    __ct_atomic_unlock();
-    return old;
-}
-CT_INLINE unsigned long long ct_atomic_ullong_add(ct_atomic_ullong_t* p, unsigned long long n) {
-    unsigned long long v;
-    __ct_atomic_lock();
-    v = *p;
-    *p += n;
-    __ct_atomic_unlock();
-    return v;
-}
-CT_INLINE unsigned long long ct_atomic_ullong_sub(ct_atomic_ullong_t* p, unsigned long long n) {
-    unsigned long long v;
-    __ct_atomic_lock();
-    v = *p;
-    *p -= n;
-    __ct_atomic_unlock();
-    return v;
-}
-CT_INLINE bool ct_atomic_ullong_compare_exchange(ct_atomic_ullong_t* p, unsigned long long* expected,
-                                                 unsigned long long desired) {
-    bool ret = false;
-    __ct_atomic_lock();
-    if (*p == *expected) {
-        *p  = desired;
-        ret = true;
-    } else {
-        *expected = *p;
-    }
-    __ct_atomic_unlock();
-    return ret;
-}
+CT_ATOMIC_MUTEX_GEN_BASE_OP(ulong, unsigned long)
+CT_ATOMIC_MUTEX_GEN_ARITH_OP(ulong, unsigned long)
 
-CT_INLINE void* ct_atomic_ptr_load(const ct_atomic_ptr_t* p) {
-    void* v;
-    __ct_atomic_lock();
-    v = *p;
-    __ct_atomic_unlock();
-    return v;
-}
-CT_INLINE void ct_atomic_ptr_store(ct_atomic_ptr_t* p, void* v) {
-    __ct_atomic_lock();
-    *p = v;
-    __ct_atomic_unlock();
-}
-CT_INLINE void* ct_atomic_ptr_exchange(ct_atomic_ptr_t* p, void* v) {
-    void* old;
-    __ct_atomic_lock();
-    old = *p;
-    *p  = v;
-    __ct_atomic_unlock();
-    return old;
-}
-CT_INLINE bool ct_atomic_ptr_compare_exchange(ct_atomic_ptr_t* p, void** expected, void* desired) {
-    bool ret = false;
-    __ct_atomic_lock();
-    if (*p == *expected) {
-        *p  = desired;
-        ret = true;
-    } else {
-        *expected = *p;
-    }
-    __ct_atomic_unlock();
-    return ret;
-}
+CT_ATOMIC_MUTEX_GEN_BASE_OP(llong, long long)
+CT_ATOMIC_MUTEX_GEN_ARITH_OP(llong, long long)
+
+CT_ATOMIC_MUTEX_GEN_BASE_OP(ullong, unsigned long long)
+CT_ATOMIC_MUTEX_GEN_ARITH_OP(ullong, unsigned long long)
+
+CT_ATOMIC_MUTEX_GEN_BASE_OP(ptr, void*)
+
+#undef CT_ATOMIC_MUTEX_GEN_BASE_OP
+#undef CT_ATOMIC_MUTEX_GEN_ARITH_OP
 
 #ifdef __cplusplus
 }
