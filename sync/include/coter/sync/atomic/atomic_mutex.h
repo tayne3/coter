@@ -16,7 +16,7 @@ extern "C" {
  * @brief Atomic flag type
  */
 typedef struct ct_atomic_flag {
-    volatile bool _v;
+    volatile bool v_;
 } ct_atomic_flag_t;
 
 /**
@@ -30,8 +30,8 @@ typedef struct ct_atomic_flag {
 #define CT_ATOMIC_MUTEX_API
 #endif
 
-CT_ATOMIC_MUTEX_API void __ct_atomic_lock(void);
-CT_ATOMIC_MUTEX_API void __ct_atomic_unlock(void);
+CT_ATOMIC_MUTEX_API void atomic_mutex_lock(void);
+CT_ATOMIC_MUTEX_API void atomic_mutex_unlock(void);
 
 /**
  * @brief Atomically sets flag and returns previous value
@@ -39,10 +39,10 @@ CT_ATOMIC_MUTEX_API void __ct_atomic_unlock(void);
  */
 CT_INLINE bool ct_atomic_flag_test_and_set(ct_atomic_flag_t* p) {
     bool v;
-    __ct_atomic_lock();
-    v     = p->_v;
-    p->_v = true;
-    __ct_atomic_unlock();
+    atomic_mutex_lock();
+    v     = p->v_;
+    p->v_ = true;
+    atomic_mutex_unlock();
     return v;
 }
 
@@ -50,9 +50,9 @@ CT_INLINE bool ct_atomic_flag_test_and_set(ct_atomic_flag_t* p) {
  * @brief Atomically clears the flag
  */
 CT_INLINE void ct_atomic_flag_clear(ct_atomic_flag_t* p) {
-    __ct_atomic_lock();
-    p->_v = false;
-    __ct_atomic_unlock();
+    atomic_mutex_lock();
+    p->v_ = false;
+    atomic_mutex_unlock();
 }
 
 typedef volatile bool               ct_atomic_bool_t;
@@ -74,52 +74,52 @@ typedef void* volatile ct_atomic_ptr_t;
 #define CT_ATOMIC_MUTEX_GEN_BASE_OP(name, type)                                                                 \
     CT_INLINE type ct_atomic_##name##_load(const ct_atomic_##name##_t* p) {                                     \
         type v;                                                                                                 \
-        __ct_atomic_lock();                                                                                     \
+        atomic_mutex_lock();                                                                                     \
         v = *p;                                                                                                 \
-        __ct_atomic_unlock();                                                                                   \
+        atomic_mutex_unlock();                                                                                   \
         return v;                                                                                               \
     }                                                                                                           \
     CT_INLINE void ct_atomic_##name##_store(ct_atomic_##name##_t* p, type v) {                                  \
-        __ct_atomic_lock();                                                                                     \
+        atomic_mutex_lock();                                                                                     \
         *p = v;                                                                                                 \
-        __ct_atomic_unlock();                                                                                   \
+        atomic_mutex_unlock();                                                                                   \
     }                                                                                                           \
     CT_INLINE type ct_atomic_##name##_exchange(ct_atomic_##name##_t* p, type v) {                               \
         type old;                                                                                               \
-        __ct_atomic_lock();                                                                                     \
+        atomic_mutex_lock();                                                                                     \
         old = *p;                                                                                               \
         *p  = v;                                                                                                \
-        __ct_atomic_unlock();                                                                                   \
+        atomic_mutex_unlock();                                                                                   \
         return old;                                                                                             \
     }                                                                                                           \
     CT_INLINE bool ct_atomic_##name##_compare_exchange(ct_atomic_##name##_t* p, type* expected, type desired) { \
         bool ret = false;                                                                                       \
-        __ct_atomic_lock();                                                                                     \
+        atomic_mutex_lock();                                                                                     \
         if (*p == *expected) {                                                                                  \
             *p  = desired;                                                                                      \
             ret = true;                                                                                         \
         } else {                                                                                                \
             *expected = *p;                                                                                     \
         }                                                                                                       \
-        __ct_atomic_unlock();                                                                                   \
+        atomic_mutex_unlock();                                                                                   \
         return ret;                                                                                             \
     }
 
 #define CT_ATOMIC_MUTEX_GEN_ARITH_OP(name, type)                             \
     CT_INLINE type ct_atomic_##name##_add(ct_atomic_##name##_t* p, type n) { \
         type v;                                                              \
-        __ct_atomic_lock();                                                  \
+        atomic_mutex_lock();                                                  \
         v = *p;                                                              \
         *p += n;                                                             \
-        __ct_atomic_unlock();                                                \
+        atomic_mutex_unlock();                                                \
         return v;                                                            \
     }                                                                        \
     CT_INLINE type ct_atomic_##name##_sub(ct_atomic_##name##_t* p, type n) { \
         type v;                                                              \
-        __ct_atomic_lock();                                                  \
+        atomic_mutex_lock();                                                  \
         v = *p;                                                              \
         *p -= n;                                                             \
-        __ct_atomic_unlock();                                                \
+        atomic_mutex_unlock();                                                \
         return v;                                                            \
     }
 

@@ -17,24 +17,24 @@ extern "C" {
 #endif
 
 typedef struct ct_atomic_flag {
-    volatile bool _v;
+    volatile bool v_;
 } ct_atomic_flag_t;
 
 #define CT_ATOMIC_FLAG_INIT {0}
 
 CT_INLINE bool ct_atomic_flag_test_and_set(ct_atomic_flag_t* p) {
 #if CT_ATOMIC_USE_GCC_SYNC
-    return __sync_lock_test_and_set(&p->_v, 1);
+    return __sync_lock_test_and_set(&p->v_, 1);
 #else
-    return __atomic_test_and_set(&p->_v, __ATOMIC_ACQ_REL);
+    return __atomic_test_and_set(&p->v_, __ATOMIC_ACQ_REL);
 #endif
 }
 
 CT_INLINE void ct_atomic_flag_clear(ct_atomic_flag_t* p) {
 #if CT_ATOMIC_USE_GCC_SYNC
-    __sync_lock_release(&p->_v);
+    __sync_lock_release(&p->v_);
 #else
-    __atomic_clear(&p->_v, __ATOMIC_RELEASE);
+    __atomic_clear(&p->v_, __ATOMIC_RELEASE);
 #endif
 }
 

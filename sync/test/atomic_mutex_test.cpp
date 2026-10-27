@@ -1,3 +1,7 @@
+/**
+ * @file atomic_mutex_test.cpp
+ * @brief Tests for the mutex-based atomic fallback.
+ */
 #define COTER_TEST_ATOMIC_MUTEX
 #include "coter/sync/atomic/atomic_mutex.h"
 
@@ -7,14 +11,14 @@
 #include "coter/testing/doctest.h"
 
 #if !CT_ATOMIC_USE_MUTEX
-static ct_mutex_t g_test_atomic_mutex = CT_MUTEX_INITIALIZER;
+static ct_mutex_t s_test_atomic_mutex = CT_MUTEX_INITIALIZER;
 
-extern "C" void __ct_atomic_lock(void) {
-    (void)ct_mutex_lock(&g_test_atomic_mutex);
+extern "C" void atomic_mutex_lock(void) {
+    (void)ct_mutex_lock(&s_test_atomic_mutex);
 }
 
-extern "C" void __ct_atomic_unlock(void) {
-    (void)ct_mutex_unlock(&g_test_atomic_mutex);
+extern "C" void atomic_mutex_unlock(void) {
+    (void)ct_mutex_unlock(&s_test_atomic_mutex);
 }
 #endif
 

@@ -16,17 +16,17 @@ extern "C" {
 #endif
 
 typedef struct ct_atomic_flag {
-    volatile char _v;
+    volatile char v_;
 } ct_atomic_flag_t;
 
 #define CT_ATOMIC_FLAG_INIT {0}
 
 CT_INLINE bool ct_atomic_flag_test_and_set(ct_atomic_flag_t* p) {
-    return _InterlockedExchange8(&p->_v, 1) != 0;
+    return _InterlockedExchange8(&p->v_, 1) != 0;
 }
 
 CT_INLINE void ct_atomic_flag_clear(ct_atomic_flag_t* p) {
-    _InterlockedExchange8(&p->_v, 0);
+    _InterlockedExchange8(&p->v_, 0);
 }
 
 typedef volatile char               ct_atomic_bool_t;

@@ -1,6 +1,6 @@
 /**
  * @file atomic_test.cpp
- * @brief 原子操作测试
+ * @brief Atomic operation tests.
  */
 #include "coter/sync/atomic.h"
 
