@@ -4,6 +4,12 @@
  */
 #include "coter/sync/ref.h"
 
+/*
+ * The legacy __sync backend cannot express acquire/release ordering, so every
+ * operation uses a full barrier. This is slower on weakly ordered hardware but
+ * remains correct.
+ */
+
 void ct_refcount_saturate(ct_refcount_t* ref, ct_refcount_saturation_type_t type) {
     uint32_t poison = CT_REFCOUNT_SATURATED;
 
@@ -22,6 +28,11 @@ void ct_refcount_saturate(ct_refcount_t* ref, ct_refcount_saturation_type_t type
 
 #if CT_ATOMIC_USE_MUTEX
 
+/*
+ * All reference-count operations share one process-wide mutex. Correctness is
+ * preserved, but unrelated objects cannot be reference-counted in parallel
+ * under contention.
+ */
 static ct_mutex_t refcount_mutex = CT_MUTEX_INITIALIZER;
 
 void ct_refcount_init(ct_refcount_t* ref) {
@@ -116,6 +127,61 @@ bool ct_refcount_dec_and_mutex_lock(ct_refcount_t* ref, ct_mutex_t* lock) {
 
 #else
 
+void ct_refcount_init(ct_refcount_t* ref) {
+#if CT_ATOMIC_USE_GCC_SYNC
+    (void)__sync_lock_test_and_set(&ref->value, UINT32_C(1));
+#elif CT_ATOMIC_USE_GCC_ATOMIC
+    __atomic_store_n(&ref->value, UINT32_C(1), __ATOMIC_RELAXED);
+#elif CT_ATOMIC_USE_WIN
+    (void)_InterlockedExchange(&ref->value, 1);
+#endif
+}
+
+bool ct_refcount_inc_not_zero(ct_refcount_t* ref) {
+    uint32_t old;
+
+#if CT_ATOMIC_USE_GCC_SYNC
+    old = __sync_val_compare_and_swap(&ref->value, 0, 0);
+#elif CT_ATOMIC_USE_GCC_ATOMIC
+    old = __atomic_load_n(&ref->value, __ATOMIC_RELAXED);
+#elif CT_ATOMIC_USE_WIN
+    old = (uint32_t)_InterlockedCompareExchange(&ref->value, 0, 0);
+#endif
+
+    for (;;) {
+        uint32_t desired;
+
+        if (old == 0) { return false; }
+        if (old >= CT_REFCOUNT_SATURATED) { return true; }
+        if (old > CT_REFCOUNT_MAX) {
+            ct_refcount_saturate(ref, CT_REFCOUNT_ADD_NOT_ZERO_OVERFLOW);
+            return true;
+        }
+        desired = old + UINT32_C(1);
+
+#if CT_ATOMIC_USE_GCC_SYNC
+        {
+            uint32_t actual = __sync_val_compare_and_swap(&ref->value, old, desired);
+            if (actual == old) { break; }
+            old = actual;
+        }
+#elif CT_ATOMIC_USE_GCC_ATOMIC
+        if (__atomic_compare_exchange_n(&ref->value, &old, desired, true, __ATOMIC_RELAXED, __ATOMIC_RELAXED)) {
+            break;
+        }
+#elif CT_ATOMIC_USE_WIN
+        {
+            uint32_t actual = (uint32_t)_InterlockedCompareExchange(&ref->value, (long)desired, (long)old);
+            if (actual == old) { break; }
+            old = actual;
+        }
+#endif
+    }
+
+    if (CT_UNLIKELY(old >= CT_REFCOUNT_MAX)) { ct_refcount_saturate(ref, CT_REFCOUNT_ADD_NOT_ZERO_OVERFLOW); }
+    return true;
+}
+
 static bool ct_refcount_dec_not_one(ct_refcount_t* ref) {
     uint32_t value;
 
@@ -175,3 +241,12 @@ bool ct_refcount_dec_and_mutex_lock(ct_refcount_t* ref, ct_mutex_t* lock) {
 }
 
 #endif
+
+int ct_ref_put_mutex(ct_ref_t* self, void (*release)(ct_ref_t* self), ct_mutex_t* lock) {
+    if (release == NULL) { CT_ABORT(); }
+    if (ct_refcount_dec_and_mutex_lock(&self->count, lock)) {
+        release(self);
+        return 1;
+    }
+    return 0;
+}
