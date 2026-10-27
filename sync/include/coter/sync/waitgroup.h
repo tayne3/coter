@@ -18,9 +18,9 @@ extern "C" {
  * @brief Waitgroup
  */
 typedef struct ct_waitgroup {
-    ct_mutex_t _mu;
-    ct_cond_t  _cond;
-    uint32_t   _counter;
+    ct_mutex_t mu_;
+    ct_cond_t  cond_;
+    uint32_t   counter_;
 } ct_waitgroup_t;
 
 #define CT_WAITGROUP_INITIALIZER {CT_MUTEX_INITIALIZER, CT_COND_INITIALIZER, 0}

@@ -10,31 +10,31 @@
 
 int ct_waitgroup_init(ct_waitgroup_t* wg) {
     if (!wg) { return -1; }
-    if (ct_mutex_init(&wg->_mu) != 0) { return -1; }
-    if (ct_cond_init(&wg->_cond) != 0) {
-        ct_mutex_destroy(&wg->_mu);
+    if (ct_mutex_init(&wg->mu_) != 0) { return -1; }
+    if (ct_cond_init(&wg->cond_) != 0) {
+        ct_mutex_destroy(&wg->mu_);
         return -1;
     }
-    wg->_counter = 0;
+    wg->counter_ = 0;
     return 0;
 }
 
 void ct_waitgroup_destroy(ct_waitgroup_t* wg) {
     if (!wg) { return; }
-    ct_mutex_destroy(&wg->_mu);
-    ct_cond_destroy(&wg->_cond);
+    ct_mutex_destroy(&wg->mu_);
+    ct_cond_destroy(&wg->cond_);
 }
 
 void ct_waitgroup_add(ct_waitgroup_t* wg, int delta) {
     if (!wg) { return; }
 
-    ct_mutex_lock(&wg->_mu);
-    const int64_t next = (int64_t)wg->_counter + (int64_t)delta;
+    ct_mutex_lock(&wg->mu_);
+    const int64_t next = (int64_t)wg->counter_ + (int64_t)delta;
     if (next < 0 || next > UINT32_MAX) { CT_ABORT(); }
 
-    wg->_counter = (uint32_t)next;
-    if (wg->_counter == 0) { ct_cond_broadcast(&wg->_cond); }
-    ct_mutex_unlock(&wg->_mu);
+    wg->counter_ = (uint32_t)next;
+    if (wg->counter_ == 0) { ct_cond_broadcast(&wg->cond_); }
+    ct_mutex_unlock(&wg->mu_);
 }
 
 void ct_waitgroup_done(ct_waitgroup_t* wg) {
@@ -43,9 +43,9 @@ void ct_waitgroup_done(ct_waitgroup_t* wg) {
 
 void ct_waitgroup_wait(ct_waitgroup_t* wg) {
     if (!wg) { return; }
-    ct_mutex_lock(&wg->_mu);
-    while (wg->_counter > 0) { ct_cond_wait(&wg->_cond, &wg->_mu); }
-    ct_mutex_unlock(&wg->_mu);
+    ct_mutex_lock(&wg->mu_);
+    while (wg->counter_ > 0) { ct_cond_wait(&wg->cond_, &wg->mu_); }
+    ct_mutex_unlock(&wg->mu_);
 }
 
 bool ct_waitgroup_wait_for(ct_waitgroup_t* wg, ct_time64_t timeout_ms) {
@@ -56,15 +56,15 @@ bool ct_waitgroup_wait_for(ct_waitgroup_t* wg, ct_time64_t timeout_ms) {
     }
 
     const ct_time64_t deadline = ct_gettick_ms() + timeout_ms;
-    ct_mutex_lock(&wg->_mu);
-    while (wg->_counter > 0) {
+    ct_mutex_lock(&wg->mu_);
+    while (wg->counter_ > 0) {
         const ct_time64_t now = ct_gettick_ms();
         if (now >= deadline) {
-            ct_mutex_unlock(&wg->_mu);
+            ct_mutex_unlock(&wg->mu_);
             return false;
         }
-        (void)ct_cond_wait_for(&wg->_cond, &wg->_mu, deadline - now);
+        (void)ct_cond_wait_for(&wg->cond_, &wg->mu_, deadline - now);
     }
-    ct_mutex_unlock(&wg->_mu);
+    ct_mutex_unlock(&wg->mu_);
     return true;
 }
