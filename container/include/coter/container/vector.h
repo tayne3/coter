@@ -1,6 +1,6 @@
 /**
  * @file vector.h
- * @brief 类型安全的动态数组
+ * @brief Type-safe dynamic array.
  */
 #ifndef COTER_CONTAINER_VECTOR_H
 #define COTER_CONTAINER_VECTOR_H
@@ -13,15 +13,15 @@
 extern "C" {
 #endif
 
-// 动态数组-最大内存限制 (2GB)
+// Maximum vector memory limit (2 GiB).
 #ifndef CT_VEC_MEMORY_MAX
 #define CT_VEC_MEMORY_MAX 0x80000000
 #endif
 
 /**
- * @brief 声明一个类型安全的 Vector。
- * @param TYPE 元素类型 (e.g. int, struct foo)
- * @param NAME 生成的类型名 (e.g. IntList -> IntList_t)
+ * @brief Declare a type-safe vector.
+ * @param TYPE Element type (for example, int or struct foo).
+ * @param NAME Generated type name (for example, IntList -> IntList_t).
  */
 #define CT_VEC_DECL(TYPE, NAME)                                                      \
     typedef struct NAME {                                                            \
@@ -30,22 +30,22 @@ extern "C" {
         size_t cap_;                                                                  \
     } NAME##_t;                                                                      \
                                                                                      \
-    CT_MAYBE_UNUSED static inline size_t NAME##_size(const NAME##_t* self) {         \
+    CT_MAYBE_UNUSED CT_INLINE size_t NAME##_size(const NAME##_t* self) {         \
         return self ? self->size_ : 0;                                                \
     }                                                                                \
-    CT_MAYBE_UNUSED static inline size_t NAME##_capacity(const NAME##_t* self) {     \
+    CT_MAYBE_UNUSED CT_INLINE size_t NAME##_capacity(const NAME##_t* self) {     \
         return self ? self->cap_ : 0;                                                 \
     }                                                                                \
-    CT_MAYBE_UNUSED static inline bool NAME##_empty(const NAME##_t* self) {          \
+    CT_MAYBE_UNUSED CT_INLINE bool NAME##_empty(const NAME##_t* self) {          \
         return !self || self->size_ == 0;                                             \
     }                                                                                \
-    CT_MAYBE_UNUSED static inline TYPE* NAME##_at(NAME##_t* self, size_t idx) {      \
+    CT_MAYBE_UNUSED CT_INLINE TYPE* NAME##_at(NAME##_t* self, size_t idx) {      \
         return (self && idx < self->size_) ? &self->ptr_[idx] : NULL;                  \
     }                                                                                \
-    CT_MAYBE_UNUSED static inline TYPE* NAME##_front(NAME##_t* self) {               \
+    CT_MAYBE_UNUSED CT_INLINE TYPE* NAME##_front(NAME##_t* self) {               \
         return (self && self->size_ > 0) ? &self->ptr_[0] : NULL;                      \
     }                                                                                \
-    CT_MAYBE_UNUSED static inline TYPE* NAME##_back(NAME##_t* self) {                \
+    CT_MAYBE_UNUSED CT_INLINE TYPE* NAME##_back(NAME##_t* self) {                \
         return (self && self->size_ > 0) ? &self->ptr_[self->size_ - 1] : NULL;         \
     }                                                                                \
                                                                                      \
@@ -111,61 +111,61 @@ extern "C" {
     }
 
 /**
- * @brief 核心扩容逻辑
+ * @brief Core capacity-growth helper.
  *
- * @param p_ptr 指向数据区指针的指针 (因为 realloc 可能会改变地址)
- * @param p_cap 指向容量变量的指针
- * @param elem_size 单个元素的字节大小
- * @param new_cap 请求的新容量
- * @return true 成功, false 失败
+ * @param p_ptr Pointer to the data pointer; realloc may change the address.
+ * @param p_cap Pointer to the capacity variable.
+ * @param elem_size Element size in bytes.
+ * @param new_cap Requested new capacity.
+ * @return true on success; false on failure.
  */
 CT_API bool vector_reserve(void** p_ptr, size_t* p_cap, size_t elem_size, size_t new_cap);
 
 /**
- * @brief 核心调整大小逻辑
+ * @brief Core resize helper.
  *
- * @param p_ptr 指向数据区指针的指针
- * @param p_size 指向当前大小变量的指针
- * @param p_cap 指向容量变量的指针
- * @param elem_size 单个元素的字节大小
- * @param new_size 请求的新大小
- * @return true 成功, false 失败
+ * @param p_ptr Pointer to the data pointer.
+ * @param p_size Pointer to the current size variable.
+ * @param p_cap Pointer to the capacity variable.
+ * @param elem_size Element size in bytes.
+ * @param new_size Requested new size.
+ * @return true on success; false on failure.
  */
 CT_API bool vector_resize(void** p_ptr, size_t* p_size, size_t* p_cap, size_t elem_size, size_t new_size);
 
 /**
- * @brief 核心插入逻辑
+ * @brief Core insert helper.
  *
- * @param p_ptr 指向数据区指针的指针
- * @param p_size 指向当前大小变量的指针
- * @param p_cap 指向容量变量的指针
- * @param elem_size 单个元素的字节大小
- * @param idx 插入位置索引
- * @param data 要插入的数据指针 (如果是 NULL，则只开辟空间不拷贝)
- * @return true 成功, false 失败
+ * @param p_ptr Pointer to the data pointer.
+ * @param p_size Pointer to the current size variable.
+ * @param p_cap Pointer to the capacity variable.
+ * @param elem_size Element size in bytes.
+ * @param idx Insertion index.
+ * @param data Data to copy, or NULL to only reserve space.
+ * @return true on success; false on failure.
  */
 CT_API bool vector_insert(void** p_ptr, size_t* p_size, size_t* p_cap, size_t elem_size, size_t idx,
                                const void* data);
 
 /**
- * @brief 核心删除逻辑
+ * @brief Core erase helper.
  *
- * @param ptr 数据区指针
- * @param p_size 指向当前大小变量的指针
- * @param elem_size 单个元素的字节大小
- * @param idx 删除位置索引
- * @return true 成功, false 失败
+ * @param ptr Data pointer.
+ * @param p_size Pointer to the current size variable.
+ * @param elem_size Element size in bytes.
+ * @param idx Index to erase.
+ * @return true on success; false on failure.
  */
 CT_API bool vector_erase(void* ptr, size_t* p_size, size_t elem_size, size_t idx);
 
 /**
- * @brief 核心收缩逻辑
+ * @brief Core shrink helper.
  *
- * @param p_ptr 指向数据区指针的指针
- * @param size 当前大小
- * @param p_cap 指向容量变量的指针
- * @param elem_size 单个元素的字节大小
- * @return true 成功, false 失败
+ * @param p_ptr Pointer to the data pointer.
+ * @param size Current size.
+ * @param p_cap Pointer to the capacity variable.
+ * @param elem_size Element size in bytes.
+ * @return true on success; false on failure.
  */
 CT_API bool vector_shrink(void** p_ptr, size_t size, size_t* p_cap, size_t elem_size);
 

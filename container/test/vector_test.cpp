@@ -6,10 +6,10 @@
 
 #include "coter/testing/doctest.h"
 
-// 声明类型 (IntVec -> IntVec_t)
+// Declare the generated type (IntVec -> IntVec_t).
 CT_VEC_DECL(int, IntVec);
 
-// 定义实现
+// Define the generated implementation.
 CT_VEC_IMPL(int, IntVec);
 
 TEST_CASE("Vec Init and Destroy" * doctest::test_suite("vec")) {

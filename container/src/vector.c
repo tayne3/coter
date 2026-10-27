@@ -20,7 +20,7 @@ bool vector_reserve(void** p_ptr, size_t* p_cap, size_t elem_size, size_t new_ca
     target_cap |= target_cap >> 8;
     target_cap |= target_cap >> 16;
 #if SIZE_MAX > 0xFFFFFFFF
-    target_cap |= target_cap >> 32;  // 64 位系统
+    target_cap |= target_cap >> 32;  // 64-bit systems.
 #endif
     ++target_cap;
     if (target_cap > CT_VEC_MEMORY_MAX / elem_size) { return false; }

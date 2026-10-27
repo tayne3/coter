@@ -1,9 +1,6 @@
 /**
  * @file queue.h
- * @brief 队列实现
- * @note
- * 	定义了队列的数据结构和相关操作函数,包含队列的初始化、插入、删除、查询等操作。
- * 	队列是一种先进先出（FIFO）的数据结构，可以用于存储和访问一系列元素。
+ * @brief FIFO queue.
  */
 #ifndef COTER_CONTAINER_QUEUE_H
 #define COTER_CONTAINER_QUEUE_H
@@ -15,63 +12,64 @@ extern "C" {
 #endif
 
 /**
- * @brief 队列结构体
+ * @brief FIFO queue state.
  */
 typedef struct ct_queue {
-    char*  all_;   // 缓存区
-    size_t byte_;  // 元素字节大小
-    size_t max_;   // 缓存区长度
-    size_t head_;  // 头元素索引
-    size_t tail_;  // 尾元素索引
-    size_t size_;  // 元素数量
+    char*  all_;   ///< Element storage buffer.
+    size_t byte_;  ///< Element size in bytes.
+    size_t max_;   ///< Maximum number of elements.
+    size_t head_;  ///< Index of the oldest element.
+    size_t tail_;  ///< Index of the next write position.
+    size_t size_;  ///< Current number of elements.
 } ct_queue_t;
 
-#define ct_queue_max(self_)      ((self_)->max_)                                       // 获取 队列 最大容量
-#define ct_queue_size(self_)     ((self_)->size_)                                      // 获取 队列 大小
-#define ct_queue_is_empty(self_) ((self_)->size_ == 0)                                 // 判断 队列 是否为空
-#define ct_queue_is_full(self_)  ((self_)->size_ == (self_)->max_)                      // 判断 队列 是否已满
-#define ct_queue_clear(self_)    ((self_)->size_ = (self_)->head_ = (self_)->tail_ = 0)  // 清空 队列 所有元素
+#define ct_queue_max(self_)      ((self_)->max_)
+#define ct_queue_size(self_)     ((self_)->size_)
+#define ct_queue_is_empty(self_) ((self_)->size_ == 0)
+#define ct_queue_is_full(self_)  ((self_)->size_ == (self_)->max_)
+#define ct_queue_clear(self_)    ((self_)->size_ = (self_)->head_ = (self_)->tail_ = 0)
 
 /**
- * @brief 初始化队列
- * @param self 队列-变量指针
- * @param buffer 缓冲区地址
- * @param byte 单个元素字节大小
- * @param max 缓冲区大小
+ * @brief Initialize a queue over caller-provided storage.
+ * @param self Queue instance.
+ * @param buffer Storage buffer.
+ * @param byte Element size in bytes.
+ * @param max Maximum number of elements.
  */
 CT_API void ct_queue_init(ct_queue_t* self, void* buffer, size_t byte, size_t max);
 
 /**
- * @brief 将元素添加到队列的末尾。
- * @param self 队列-变量指针
- * @param item 要添加的元素
- * @return 队列状态
+ * @brief Append an element to the queue.
+ * @param self Queue instance.
+ * @param item Element to copy.
+ * @return true on success; otherwise false.
  */
 CT_API bool ct_queue_enqueue(ct_queue_t* self, const void* item);
 
 /**
- * @brief 移除并返回队列的第一个元素
- * @param self 队列-变量指针
- * @param item 用于存储元素的指针
- * @return 成功返回 true，失败返回 false
+ * @brief Remove and copy the oldest element.
+ * @param self Queue instance.
+ * @param item Destination for the element.
+ * @return true on success; otherwise false.
  */
 CT_API bool ct_queue_dequeue(ct_queue_t* self, void* item);
 
 /**
- * @brief 返回队列的首元素,但不会移除它
- * @param self 队列-变量指针
- * @param item 用于存储元素的指针
- * @return 成功返回 true，失败返回 false
+ * @brief Copy the oldest element without removing it.
+ * @param self Queue instance.
+ * @param item Destination for the element.
+ * @return true on success; otherwise false.
  */
 CT_API bool ct_queue_head(ct_queue_t* self, void* item);
 
 /**
- * @brief 遍历队列中的每个元素并执行回调函数
- *
- * @param self 队列实例
- * @param callback 回调函数, 返回非0值则停止遍历
- * @param arg 回调函数的参数
- * @return 遍历执行结果
+ * @brief Visit each queued element in FIFO order.
+ * @param self Queue instance.
+ * @param callback Callback invoked for each element; a non-zero return stops
+ *                 traversal.
+ * @param arg Caller-supplied callback context.
+ * @return The callback result that stopped traversal, or 0 if all elements
+ *         were visited.
  */
 CT_API int ct_queue_traverse(ct_queue_t* self, int (*callback)(void* item, void* arg), void* arg);
 

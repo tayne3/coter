@@ -9,7 +9,7 @@
 #include "coter/testing/doctest.h"
 
 namespace {
-void check_array_content(const ct_array_t* arr, const std::vector<int>& expected) {
+void array_check_content(const ct_array_t* arr, const std::vector<int>& expected) {
     REQUIRE(ct_array_size(arr) == expected.size());
     for (size_t i = 0; i < expected.size(); ++i) {
         const int* val = (const int*)ct_array_value(arr, i);
@@ -67,11 +67,11 @@ TEST_CASE("Array Capacity Management") {
         REQUIRE(ct_array_size(&arr) == 5);
         REQUIRE(ct_array_capacity(&arr) >= 5);
 
-        check_array_content(&arr, {0, 0, 0, 0, 0});
+        array_check_content(&arr, {0, 0, 0, 0, 0});
 
         REQUIRE(ct_array_resize(&arr, 2) == true);
         REQUIRE(ct_array_size(&arr) == 2);
-        check_array_content(&arr, {0, 0});
+        array_check_content(&arr, {0, 0});
     }
 
     SUBCASE("Shrink fits capacity to size") {
@@ -84,7 +84,7 @@ TEST_CASE("Array Capacity Management") {
         REQUIRE(ct_array_shrink(&arr) == true);
         REQUIRE(ct_array_capacity(&arr) == 1);
         REQUIRE(ct_array_size(&arr) == 1);
-        check_array_content(&arr, {1});
+        array_check_content(&arr, {1});
     }
 
     SUBCASE("Shrink empty array") {
@@ -107,12 +107,12 @@ TEST_CASE("Array Data Manipulation") {
         val = 20;
         REQUIRE(ct_array_push(&arr, &val) == true);
 
-        check_array_content(&arr, {10, 20});
+        array_check_content(&arr, {10, 20});
         REQUIRE(*(int*)ct_array_back(&arr) == 20);
         REQUIRE(*(int*)ct_array_front(&arr) == 10);
 
         REQUIRE(ct_array_pop(&arr) == true);
-        check_array_content(&arr, {10});
+        array_check_content(&arr, {10});
 
         REQUIRE(ct_array_pop(&arr) == true);
         REQUIRE(ct_array_empty(&arr) == true);
@@ -126,15 +126,15 @@ TEST_CASE("Array Data Manipulation") {
         ct_array_push(&arr, &vals[2]);  // [1, 3]
 
         REQUIRE(ct_array_insert(&arr, 1, &vals[1]) == true);  // [1, 2, 3]
-        check_array_content(&arr, {1, 2, 3});
+        array_check_content(&arr, {1, 2, 3});
 
         int val4 = 4;
         REQUIRE(ct_array_insert(&arr, 0, &val4) == true);  // [4, 1, 2, 3]
-        check_array_content(&arr, {4, 1, 2, 3});
+        array_check_content(&arr, {4, 1, 2, 3});
 
         int val5 = 5;
         REQUIRE(ct_array_insert(&arr, 4, &val5) == true);  // [4, 1, 2, 3, 5]
-        check_array_content(&arr, {4, 1, 2, 3, 5});
+        array_check_content(&arr, {4, 1, 2, 3, 5});
 
         REQUIRE(ct_array_insert(&arr, 6, &val5) == false);
     }
@@ -144,13 +144,13 @@ TEST_CASE("Array Data Manipulation") {
         for (int v : vals) ct_array_push(&arr, &v);
 
         REQUIRE(ct_array_erase(&arr, 2) == true);  // remove 3 -> [1, 2, 4, 5]
-        check_array_content(&arr, {1, 2, 4, 5});
+        array_check_content(&arr, {1, 2, 4, 5});
 
         REQUIRE(ct_array_erase(&arr, 0) == true);  // remove 1 -> [2, 4, 5]
-        check_array_content(&arr, {2, 4, 5});
+        array_check_content(&arr, {2, 4, 5});
 
         REQUIRE(ct_array_erase(&arr, 2) == true);  // remove 5 -> [2, 4]
-        check_array_content(&arr, {2, 4});
+        array_check_content(&arr, {2, 4});
 
         REQUIRE(ct_array_erase(&arr, 5) == false);
         ct_array_clear(&arr);

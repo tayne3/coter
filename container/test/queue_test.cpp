@@ -7,7 +7,7 @@
 #include "coter/testing/doctest.h"
 
 namespace {
-int traverse_callback(void* item, void* arg) {
+int queue_traverse_callback(void* item, void* arg) {
     typedef struct {
         int sum;
         int count;
@@ -126,7 +126,7 @@ TEST_CASE("queue_traverse" * doctest::test_suite("queue")) {
             int sum;
             int count;
         } result = {0, 0};
-        REQUIRE(ct_queue_traverse(&queue, traverse_callback, &result) == 0);
+        REQUIRE(ct_queue_traverse(&queue, queue_traverse_callback, &result) == 0);
         REQUIRE(result.sum == 0);
         REQUIRE(result.count == 0);
     }
@@ -137,7 +137,7 @@ TEST_CASE("queue_traverse" * doctest::test_suite("queue")) {
             int sum;
             int count;
         } result = {0, 0};
-        REQUIRE(ct_queue_traverse(&queue, traverse_callback, &result) == 0);
+        REQUIRE(ct_queue_traverse(&queue, queue_traverse_callback, &result) == 0);
         REQUIRE(result.sum == 15);
         REQUIRE(result.count == 5);
         REQUIRE(ct_queue_size(&queue) == 5);
@@ -151,7 +151,7 @@ TEST_CASE("queue_traverse" * doctest::test_suite("queue")) {
             int sum;
             int count;
         } result = {0, 0};
-        REQUIRE(ct_queue_traverse(&queue, traverse_callback, &result) == 0);
+        REQUIRE(ct_queue_traverse(&queue, queue_traverse_callback, &result) == 0);
         REQUIRE(result.sum == 30);
         REQUIRE(result.count == 10);
         REQUIRE(ct_queue_size(&queue) == 10);
@@ -165,7 +165,7 @@ TEST_CASE("queue_traverse" * doctest::test_suite("queue")) {
             int sum;
             int count;
         } result = {0, 0};
-        REQUIRE(ct_queue_traverse(&queue, traverse_callback, &result) == 0);
+        REQUIRE(ct_queue_traverse(&queue, queue_traverse_callback, &result) == 0);
         REQUIRE(result.sum == 30);
         REQUIRE(result.count == 10);
         REQUIRE(ct_queue_size(&queue) == 10);
@@ -182,7 +182,7 @@ TEST_CASE("queue_traverse" * doctest::test_suite("queue")) {
             int sum;
             int count;
         } result = {0, 0};
-        REQUIRE(ct_queue_traverse(&queue, traverse_callback, &result) == 0);
+        REQUIRE(ct_queue_traverse(&queue, queue_traverse_callback, &result) == 0);
         REQUIRE(result.sum == 0);
         REQUIRE(result.count == 0);
     }

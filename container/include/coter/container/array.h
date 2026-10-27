@@ -1,6 +1,6 @@
 /**
  * @file array.h
- * @brief 通用动态数组
+ * @brief Generic dynamic array.
  */
 #ifndef COTER_CONTAINER_ARRAY_H
 #define COTER_CONTAINER_ARRAY_H
@@ -12,142 +12,142 @@ extern "C" {
 #endif
 
 /**
- * @brief 通用动态数组结构体。
+ * @brief Generic dynamic array state.
  */
 typedef struct ct_array {
-    char*  ptr_;   ///< 指向存储元素的原始内存缓冲区的指针。
-    size_t byte_;  ///< 每个元素的字节大小。
-    size_t cap_;   ///< 当前已分配的容量 (以元素数量计)。
-    size_t size_;  ///< 当前存储的元素数量。
+    char*  ptr_;   ///< Pointer to the element storage buffer.
+    size_t byte_;  ///< Element size in bytes.
+    size_t cap_;   ///< Allocated capacity in elements.
+    size_t size_;  ///< Number of stored elements.
 } ct_array_t;
 
 #define ct_array_foreach(self_, TYPE, it_) \
     for (TYPE* it_ = (TYPE*)(self_)->ptr_; it_ < (TYPE*)(self_)->ptr_ + (self_)->size_; ++it_)
 
 /**
- * @brief 初始化一个动态数组。
- * @param self 动态数组指针。
- * @param byte 单个元素的字节大小。
- * @param capacity 初始容量 (以元素数量计)。
- * @return 成功返回 0, 失败返回 -1
+ * @brief Initialize a dynamic array.
+ * @param self Array instance.
+ * @param byte Element size in bytes.
+ * @param capacity Initial capacity in elements.
+ * @return 0 on success, -1 on failure.
  */
 CT_API int ct_array_init(ct_array_t* self, size_t byte, size_t capacity);
 
 /**
- * @brief 销毁动态数组，并释放其占用的内存。
- * @param self 动态数组指针。
+ * @brief Destroy a dynamic array and release its storage.
+ * @param self Array instance.
  */
 CT_API void ct_array_destroy(ct_array_t* self);
 
 /**
- * @brief 清空动态数组中的所有元素，但不释放内存。
- * @param self 动态数组指针。
+ * @brief Remove all elements without releasing storage.
+ * @param self Array instance.
  */
 CT_API void ct_array_clear(ct_array_t* self);
 
 /**
- * @brief 获取动态数组的当前容量。
- * @param self 动态数组指针。
- * @return 当前容量 (以元素数量计)。
+ * @brief Get the current capacity.
+ * @param self Array instance.
+ * @return Capacity in elements.
  */
 CT_API size_t ct_array_capacity(const ct_array_t* self);
 
 /**
- * @brief 获取动态数组中元素的数量。
- * @param self 动态数组指针。
- * @return 元素数量。
+ * @brief Get the number of stored elements.
+ * @param self Array instance.
+ * @return Number of elements.
  */
 CT_API size_t ct_array_size(const ct_array_t* self);
 
 /**
- * @brief 检查动态数组是否为空。
- * @param self 动态数组指针。
- * @return 为空返回true, 非空返回false
+ * @brief Test whether the array is empty.
+ * @param self Array instance.
+ * @return true if empty; otherwise false.
  */
 CT_API bool ct_array_empty(const ct_array_t* self);
 
 /**
- * @brief 请求动态数组的容量至少能容纳指定数量的元素。
- * @param self 动态数组指针。
- * @param capacity 期望的最小容量。
- * @return 成功返回true, 失败返回false
+ * @brief Ensure the array can hold at least the requested number of elements.
+ * @param self Array instance.
+ * @param capacity Requested minimum capacity.
+ * @return true on success; otherwise false.
  */
 CT_API bool ct_array_reserve(ct_array_t* self, size_t capacity);
 
 /**
- * @brief 调整动态数组的大小。
- * @param self 动态数组指针。
- * @param new_size 新的大小。
- * @return 成功返回true, 失败返回false
+ * @brief Resize the array.
+ * @param self Array instance.
+ * @param new_size New element count.
+ * @return true on success; otherwise false.
  */
 CT_API bool ct_array_resize(ct_array_t* self, size_t new_size);
 
 /**
- * @brief 收缩动态数组的容量以匹配其大小。
- * @param self 动态数组指针。
- * @return 成功返回true, 失败返回false
+ * @brief Shrink capacity to match the current size.
+ * @param self Array instance.
+ * @return true on success; otherwise false.
  */
 CT_API bool ct_array_shrink(ct_array_t* self);
 
 /**
- * @brief 在指定索引处插入一个新元素。
- * @param self 动态数组指针。
- * @param idx 插入位置的索引。
- * @param data 指向要插入元素数据的指针。
- * @return 成功返回true, 失败返回false
+ * @brief Insert an element at the given index.
+ * @param self Array instance.
+ * @param idx Insertion index.
+ * @param data Pointer to the element data.
+ * @return true on success; otherwise false.
  */
 CT_API bool ct_array_insert(ct_array_t* self, size_t idx, const void* data);
 
 /**
- * @brief 在动态数组的末尾添加一个新元素。
- * @param self 动态数组指针。
- * @param data 指向要添加元素数据的指针。
- * @return 成功返回true, 失败返回false
+ * @brief Append an element to the array.
+ * @param self Array instance.
+ * @param data Pointer to the element data.
+ * @return true on success; otherwise false.
  */
 CT_API bool ct_array_push(ct_array_t* self, const void* data);
 
 /**
- * @brief 移除动态数组中指定索引处的元素。
- * @param self 动态数组指针。
- * @param idx 要移除的元素的索引。
- * @return 成功返回true, 失败返回false
+ * @brief Remove the element at the given index.
+ * @param self Array instance.
+ * @param idx Element index.
+ * @return true on success; otherwise false.
  */
 CT_API bool ct_array_erase(ct_array_t* self, size_t idx);
 
 /**
- * @brief 移除动态数组的最后一个元素。
- * @param self 动态数组指针。
- * @return 成功返回true, 失败返回false
+ * @brief Remove the last element.
+ * @param self Array instance.
+ * @return true on success; otherwise false.
  */
 CT_API bool ct_array_pop(ct_array_t* self);
 
 /**
- * @brief 获取指向指定索引处元素的可变指针。
- * @param self 动态数组指针。
- * @param idx 元素索引。
- * @return 指向元素的指针；如果索引越界，则返回 `NULL`。
+ * @brief Get a mutable pointer to an element.
+ * @param self Array instance.
+ * @param idx Element index.
+ * @return Pointer to the element, or NULL if the index is out of bounds.
  */
 CT_API void* ct_array_at(ct_array_t* self, size_t idx);
 
 /**
- * @brief 获取指向指定索引处元素的常量指针。
- * @param self 指向动态数组的常量指针。
- * @param idx 元素索引。
- * @return 指向元素的常量指针；如果索引越界，则返回 `NULL`。
+ * @brief Get a const pointer to an element.
+ * @param self Array instance.
+ * @param idx Element index.
+ * @return Pointer to the element, or NULL if the index is out of bounds.
  */
 CT_API const void* ct_array_value(const ct_array_t* self, size_t idx);
 
 /**
- * @brief 获取指向动态数组第一个元素的可变指针。
- * @param self 动态数组指针。
- * @return 指向第一个元素的指针；如果数组为空，则返回 `NULL`。
+ * @brief Get a mutable pointer to the first element.
+ * @param self Array instance.
+ * @return Pointer to the first element, or NULL if the array is empty.
  */
 CT_API void* ct_array_front(ct_array_t* self);
 
 /**
- * @brief 获取指向动态数组最后一个元素的可变指针。
- * @param self 动态数组指针。
- * @return 指向最后一个元素的指针；如果数组为空，则返回 `NULL`。
+ * @brief Get a mutable pointer to the last element.
+ * @param self Array instance.
+ * @return Pointer to the last element, or NULL if the array is empty.
  */
 CT_API void* ct_array_back(ct_array_t* self);
 
