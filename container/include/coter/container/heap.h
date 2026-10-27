@@ -13,9 +13,9 @@ extern "C" {
 
 // Min-Heap Node
 typedef struct ct_heap_node {
-    struct ct_heap_node* child;  // Pointer to the first child node
-    struct ct_heap_node* left;   // Pointer to the left sibling, or the parent if it's the first child
-    struct ct_heap_node* right;  // Pointer to the right sibling
+    struct ct_heap_node* child_;  // Pointer to the first child node
+    struct ct_heap_node* left_;   // Pointer to the left sibling, or the parent if it's the first child
+    struct ct_heap_node* right_;  // Pointer to the right sibling
 } ct_heap_node_t;
 
 // Min-Heap Compare Callback (<0 indicates that a has a higher priority than b)
@@ -23,15 +23,15 @@ typedef int (*ct_heap_compare_cb)(const ct_heap_node_t* a, const ct_heap_node_t*
 
 // Min-Heap Structure
 typedef struct ct_heap {
-    ct_heap_node_t*    _root;
-    uint32_t           _size;
-    ct_heap_compare_cb _cmp;
+    ct_heap_node_t*    root_;
+    uint32_t           size_;
+    ct_heap_compare_cb cmp_;
 } ct_heap_t;
 
-#define CT_HEAP_INIT(cmp) {NULL, 0, (cmp)}
+#define CT_HEAP_INIT(cmp_) {NULL, 0, (cmp_)}
 
-#define ct_heap_size(h)     ((h)->_size)
-#define ct_heap_is_empty(h) ((h)->_size == 0)
+#define ct_heap_size(heap_)     ((heap_)->size_)
+#define ct_heap_is_empty(heap_) ((heap_)->size_ == 0)
 
 // Initialize the heap
 CT_API void ct_heap_init(ct_heap_t* heap, ct_heap_compare_cb cmp);
