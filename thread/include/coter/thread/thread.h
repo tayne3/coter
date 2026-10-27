@@ -1,6 +1,6 @@
 /**
  * @file thread.h
- * @brief Cross-platform Thread management
+ * @brief Cross-platform thread management.
  */
 #ifndef COTER_THREAD_THREAD_H
 #define COTER_THREAD_THREAD_H
@@ -21,7 +21,7 @@ typedef pthread_t ct_tid_t;
  * @brief Thread creation attributes.
  */
 typedef struct ct_thread_attr {
-    size_t stack_size;  // Stack size in bytes (0 for platform default)
+    size_t stack_size_;  ///< Stack size in bytes; 0 selects the platform default.
 } ct_thread_attr_t;
 
 #define CT_THREAD_ATTR_INIT {0}
@@ -48,8 +48,8 @@ CT_API int ct_thread_attr_set_stack_size(ct_thread_attr_t* attr, size_t stack_si
 
 #ifdef CT_OS_WIN
 typedef struct ct_thread {
-    HANDLE handle;
-    DWORD  id;
+    HANDLE handle_;
+    DWORD  id_;
 } ct_thread_t;
 #else
 typedef pthread_t ct_thread_t;
@@ -141,7 +141,7 @@ CT_API ct_tid_t ct_thread_current_id(void);
  */
 CT_INLINE ct_tid_t ct_thread_get_id(ct_thread_t thread) {
 #ifdef CT_OS_WIN
-    return thread.id;
+    return thread.id_;
 #else
     return thread;
 #endif
@@ -155,7 +155,7 @@ CT_INLINE ct_tid_t ct_thread_get_id(ct_thread_t thread) {
  */
 CT_INLINE int ct_thread_equal(ct_thread_t left, ct_thread_t right) {
 #ifdef CT_OS_WIN
-    return left.id == right.id;
+    return left.id_ == right.id_;
 #else
     return pthread_equal(left, right);
 #endif

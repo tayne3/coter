@@ -1,3 +1,7 @@
+/**
+ * @file thread_test.cpp
+ * @brief Thread management tests.
+ */
 #include "coter/thread/thread.h"
 
 #include <atomic>
@@ -19,7 +23,7 @@ TEST_CASE("thread operations" * doctest::test_suite("thread")) {
 
     SUBCASE("thread_detach_allows_background_completion") {
         struct detach_env {
-            std::atomic<int> done{0};
+            std::atomic<int> done_{0};
         };
 
         detach_env env;
@@ -28,16 +32,16 @@ TEST_CASE("thread operations" * doctest::test_suite("thread")) {
                     [](void* arg) {
                         detach_env* env = static_cast<detach_env*>(arg);
                         std::this_thread::sleep_for(std::chrono::milliseconds(20));
-                        env->done.store(1);
+                        env->done_.store(1);
                         return 0;
                     },
                     &env) == 0);
         REQUIRE(ct_thread_detach(&thread) == 0);
 
-        for (int i = 0; i < 200 && env.done.load() == 0; ++i) {
+        for (int i = 0; i < 200 && env.done_.load() == 0; ++i) {
             std::this_thread::sleep_for(std::chrono::milliseconds(5));
         }
-        REQUIRE(env.done.load() == 1);
+        REQUIRE(env.done_.load() == 1);
     }
 
     SUBCASE("thread_self_identity_helpers") {

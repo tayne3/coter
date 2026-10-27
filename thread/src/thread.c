@@ -1,3 +1,7 @@
+/**
+ * @file thread.c
+ * @brief Cross-platform thread management.
+ */
 #include "coter/thread/thread.h"
 
 #include <errno.h>
@@ -11,15 +15,15 @@
 #endif
 
 #ifdef CT_OS_WIN32
-typedef struct ct_thread__win32_ctx {
-    ct_thread_routine_t user_routine;
-    void*               user_arg;
-} ct_thread__win32_ctx_t;
+typedef struct thread_win32_ctx {
+    ct_thread_routine_t user_routine_;
+    void*               user_arg_;
+} thread_win32_ctx_t;
 
-static unsigned __stdcall ct_thread__win32_entry(void* data) {
-    ct_thread__win32_ctx_t* ctx     = (ct_thread__win32_ctx_t*)data;
-    ct_thread_routine_t     routine = ctx->user_routine;
-    void*                   arg     = ctx->user_arg;
+static unsigned __stdcall thread_win32_entry(void* data) {
+    thread_win32_ctx_t* ctx     = (thread_win32_ctx_t*)data;
+    ct_thread_routine_t routine = ctx->user_routine_;
+    void*               arg     = ctx->user_arg_;
     free(ctx);
     return (unsigned)routine(arg);
 }
@@ -36,7 +40,7 @@ void ct_thread_attr_destroy(ct_thread_attr_t* attr) {
 
 int ct_thread_attr_set_stack_size(ct_thread_attr_t* attr, size_t stack_size) {
     if (!attr) { return EINVAL; }
-    attr->stack_size = stack_size;
+    attr->stack_size_ = stack_size;
     return 0;
 }
 
@@ -45,31 +49,31 @@ int ct_thread_create(ct_thread_t* thread, const ct_thread_attr_t* attr, ct_threa
     memset(thread, 0, sizeof(ct_thread_t));
 
 #ifdef CT_OS_WIN
-    unsigned thrd_addr  = 0;
-    unsigned stack_size = (unsigned)(attr ? attr->stack_size : 0);
+    unsigned thread_id  = 0;
+    unsigned stack_size = (unsigned)(attr ? attr->stack_size_ : 0);
 
     errno = 0;
 #ifdef CT_OS_WIN32
-    ct_thread__win32_ctx_t* ctx = (ct_thread__win32_ctx_t*)malloc(sizeof(ct_thread__win32_ctx_t));
+    thread_win32_ctx_t* ctx = (thread_win32_ctx_t*)malloc(sizeof(thread_win32_ctx_t));
     if (!ctx) { return ENOMEM; }
-    ctx->user_routine = routine;
-    ctx->user_arg     = arg;
-    thread->handle    = (HANDLE)_beginthreadex(NULL, stack_size, ct_thread__win32_entry, ctx, 0, &thrd_addr);
-    if (!thread->handle) {
+    ctx->user_routine_ = routine;
+    ctx->user_arg_     = arg;
+    thread->handle_    = (HANDLE)_beginthreadex(NULL, stack_size, thread_win32_entry, ctx, 0, &thread_id);
+    if (!thread->handle_) {
         const int err = errno;
         free(ctx);
         return err ? err : EAGAIN;
     }
 #else
     _beginthreadex_proc_type start_address = (_beginthreadex_proc_type)(void (*)(void))routine;
-    thread->handle = (HANDLE)_beginthreadex(NULL, stack_size, start_address, arg, 0, &thrd_addr);
-    if (!thread->handle) {
+    thread->handle_ = (HANDLE)_beginthreadex(NULL, stack_size, start_address, arg, 0, &thread_id);
+    if (!thread->handle_) {
         const int err = errno;
         return err ? err : EAGAIN;
     }
 #endif
 
-    thread->id = (DWORD)thrd_addr;
+    thread->id_ = (DWORD)thread_id;
     return 0;
 #else
     pthread_attr_t  thread_attr;
@@ -79,8 +83,8 @@ int ct_thread_create(ct_thread_t* thread, const ct_thread_attr_t* attr, ct_threa
     if (attr) {
         pthread_attr_init(&thread_attr);
         attr_ptr = &thread_attr;
-        if (attr->stack_size > 0) {
-            ret = pthread_attr_setstacksize(&thread_attr, attr->stack_size);
+        if (attr->stack_size_ > 0) {
+            ret = pthread_attr_setstacksize(&thread_attr, attr->stack_size_);
             if (ret != 0) {
                 pthread_attr_destroy(&thread_attr);
                 return ret;
@@ -97,27 +101,27 @@ int ct_thread_create(ct_thread_t* thread, const ct_thread_attr_t* attr, ct_threa
 int ct_thread_join(ct_thread_t* thread, int* result) {
     if (!thread) { return EINVAL; }
 #ifdef CT_OS_WIN
-    if (!thread->handle) { return EINVAL; }
+    if (!thread->handle_) { return EINVAL; }
     DWORD exit_code = 0;
-    if (WaitForSingleObject(thread->handle, INFINITE) != WAIT_OBJECT_0) {
+    if (WaitForSingleObject(thread->handle_, INFINITE) != WAIT_OBJECT_0) {
         const DWORD err = GetLastError();
         return err ? (int)err : EIO;
     }
     if (result) {
-        if (!GetExitCodeThread(thread->handle, &exit_code)) {
+        if (!GetExitCodeThread(thread->handle_, &exit_code)) {
             const DWORD err = GetLastError();
-            CloseHandle(thread->handle);
-            thread->handle = NULL;
-            thread->id     = 0;
+            CloseHandle(thread->handle_);
+            thread->handle_ = NULL;
+            thread->id_     = 0;
             return err ? (int)err : EIO;
         }
     }
-    if (!CloseHandle(thread->handle)) {
+    if (!CloseHandle(thread->handle_)) {
         const DWORD err = GetLastError();
         return err ? (int)err : EIO;
     }
-    thread->handle = NULL;
-    thread->id     = 0;
+    thread->handle_ = NULL;
+    thread->id_     = 0;
     if (result) { *result = (int)exit_code; }
     return 0;
 #else
@@ -133,10 +137,10 @@ int ct_thread_join(ct_thread_t* thread, int* result) {
 int ct_thread_detach(ct_thread_t* thread) {
     if (!thread) { return EINVAL; }
 #ifdef CT_OS_WIN
-    if (!thread->handle) { return EINVAL; }
-    BOOL success   = CloseHandle(thread->handle);
-    thread->handle = NULL;
-    thread->id     = 0;
+    if (!thread->handle_) { return EINVAL; }
+    BOOL success    = CloseHandle(thread->handle_);
+    thread->handle_ = NULL;
+    thread->id_     = 0;
     return success ? 0 : (int)GetLastError();
 #else
     int ret = pthread_detach(*thread);
@@ -156,23 +160,23 @@ int ct_thread_yield(void) {
 
 #ifdef CT_OS_WIN
 int ct_thread_set_win_priority(ct_thread_t thread, int priority) {
-    if (!thread.handle) { return EINVAL; }
-    return SetThreadPriority(thread.handle, priority) ? 0 : (int)GetLastError();
+    if (!thread.handle_) { return EINVAL; }
+    return SetThreadPriority(thread.handle_, priority) ? 0 : (int)GetLastError();
 }
 #else
 int ct_thread_set_posix_sched(ct_thread_t thread, int policy, int priority) {
-    struct sched_param sched_param;
-    memset(&sched_param, 0, sizeof(sched_param));
-    sched_param.sched_priority = priority;
-    return pthread_setschedparam(thread, policy, &sched_param);
+    struct sched_param param;
+    memset(&param, 0, sizeof(param));
+    param.sched_priority = priority;
+    return pthread_setschedparam(thread, policy, &param);
 }
 #endif
 
 ct_thread_t ct_thread_self(void) {
 #ifdef CT_OS_WIN
     ct_thread_t thread;
-    thread.handle = GetCurrentThread();
-    thread.id     = GetCurrentThreadId();
+    thread.handle_ = GetCurrentThread();
+    thread.id_     = GetCurrentThreadId();
     return thread;
 #else
     return pthread_self();

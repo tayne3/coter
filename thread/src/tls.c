@@ -1,3 +1,7 @@
+/**
+ * @file tls.c
+ * @brief Cross-platform thread-local storage.
+ */
 #include "coter/thread/tls.h"
 
 #include <errno.h>

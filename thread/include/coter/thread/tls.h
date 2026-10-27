@@ -1,6 +1,6 @@
 /**
  * @file tls.h
- * @brief Cross-platform Thread Local Storage
+ * @brief Cross-platform thread-local storage.
  */
 #ifndef COTER_THREAD_TLS_H
 #define COTER_THREAD_TLS_H
@@ -18,26 +18,33 @@ typedef pthread_key_t ct_tls_key_t;
 #endif
 
 /**
- * @brief 创建线程局部存储键
- * @return 0=成功，非0=失败
+ * @brief Create a thread-local storage key.
+ * @param key Output storage for the new key.
+ * @param destructor Optional destructor invoked with the stored value when a thread exits.
+ * @return 0 on success, non-zero on failure.
  */
 CT_API int ct_tls_create(ct_tls_key_t* key, void (*destructor)(void*));
 
 /**
- * @brief 销毁线程局部存储键
- * @return 0=成功，非0=失败
+ * @brief Destroy a thread-local storage key.
+ * @param key Key to destroy.
+ * @return 0 on success, non-zero on failure.
  */
 CT_API int ct_tls_destroy(ct_tls_key_t key);
 
 /**
- * @brief 设置线程局部存储值
- * @return 0=成功，非0=失败
+ * @brief Set the calling thread's value for a key.
+ * @param key Key to update.
+ * @param value Value to store.
+ * @return 0 on success, non-zero on failure.
  */
 CT_API int ct_tls_set(ct_tls_key_t key, const void* value);
 
 /**
- * @brief 获取线程局部存储值
- * @note 返回 NULL 既可能表示未设置，也可能表示平台调用失败。
+ * @brief Get the calling thread's value for a key.
+ * @param key Key to query.
+ * @return The stored value, or NULL when unset or when the platform call fails.
+ * @note A NULL result may mean either "not set" or a platform failure.
  */
 CT_API void* ct_tls_get(ct_tls_key_t key);
 
