@@ -1,61 +1,58 @@
 /**
  * @file queue.c
- * @brief 队列实现
- * @note
- * 	定义了队列的数据结构和相关操作函数,包含队列的初始化、插入、删除、查询等操作。
- * 	队列是一种先进先出（FIFO）的数据结构，可以用于存储和访问一系列元素。
+ * @brief FIFO queue implementation.
  */
 #include "coter/container/queue.h"
 
 #include <string.h>
 
-#define CT_QUEUE_INDEX_INC(self, x) ((x) + 1 >= (self)->_max ? 0 : (x) + 1)  // 队列-索引 递增
-#define CT_QUEUE_INDEX_DEC(self, x) ((x) == 0 ? (self)->_max - 1 : (x) - 1)  // 队列-索引 递减
-#define CT_QUEUE_ITEM(self, idx)    (&(self)->_all[(idx) * (self)->_byte])   // 队列-数据
+#define CT_QUEUE_INDEX_INC(self_, idx_) ((idx_) + 1 >= (self_)->max_ ? 0 : (idx_) + 1)  // 队列-索引 递增
+#define CT_QUEUE_INDEX_DEC(self_, idx_) ((idx_) == 0 ? (self_)->max_ - 1 : (idx_) - 1)  // 队列-索引 递减
+#define CT_QUEUE_ITEM(self_, idx_)    (&(self_)->all_[(idx_) * (self_)->byte_])   // 队列-数据
 
 void ct_queue_init(ct_queue_t* self, void* buffer, size_t byte, size_t max) {
     if (!self || !buffer || !byte) { return; }
 
-    self->_all  = buffer;
-    self->_byte = byte;
-    self->_max  = max;
+    self->all_  = buffer;
+    self->byte_ = byte;
+    self->max_  = max;
 
     ct_queue_clear(self);
 }
 
 bool ct_queue_enqueue(ct_queue_t* self, const void* item) {
-    if (!self || !self->_byte || !item) { return false; }
+    if (!self || !self->byte_ || !item) { return false; }
 
     if (ct_queue_is_full(self)) { return false; }
-    memcpy(CT_QUEUE_ITEM(self, self->_tail), item, self->_byte);
-    self->_tail = CT_QUEUE_INDEX_INC(self, self->_tail);
-    self->_size++;
+    memcpy(CT_QUEUE_ITEM(self, self->tail_), item, self->byte_);
+    self->tail_ = CT_QUEUE_INDEX_INC(self, self->tail_);
+    self->size_++;
     return true;
 }
 
 bool ct_queue_dequeue(ct_queue_t* self, void* item) {
-    if (!self || !self->_byte || !item) { return false; }
+    if (!self || !self->byte_ || !item) { return false; }
 
     if (ct_queue_is_empty(self)) { return false; }
-    memcpy(item, CT_QUEUE_ITEM(self, self->_head), self->_byte);
-    self->_head = CT_QUEUE_INDEX_INC(self, self->_head);
-    self->_size--;
+    memcpy(item, CT_QUEUE_ITEM(self, self->head_), self->byte_);
+    self->head_ = CT_QUEUE_INDEX_INC(self, self->head_);
+    self->size_--;
     return true;
 }
 
 bool ct_queue_head(ct_queue_t* self, void* item) {
-    if (!self || !self->_byte || !item) { return false; }
+    if (!self || !self->byte_ || !item) { return false; }
 
     if (ct_queue_is_empty(self)) { return false; }
-    memcpy(item, CT_QUEUE_ITEM(self, self->_head), self->_byte);
+    memcpy(item, CT_QUEUE_ITEM(self, self->head_), self->byte_);
     return true;
 }
 
 int ct_queue_traverse(ct_queue_t* self, int (*callback)(void* item, void* arg), void* arg) {
-    if (!self || !self->_byte || !callback) { return -1; }
+    if (!self || !self->byte_ || !callback) { return -1; }
 
     int rc = 0;
-    for (size_t i = 0, idx = self->_head; i < self->_size; ++i) {
+    for (size_t i = 0, idx = self->head_; i < self->size_; ++i) {
         if ((rc = callback(CT_QUEUE_ITEM(self, idx), arg)) != 0) { break; }
         idx = CT_QUEUE_INDEX_INC(self, idx);
     }

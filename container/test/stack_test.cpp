@@ -1,3 +1,7 @@
+/**
+ * @file stack_test.cpp
+ * @brief LIFO stack tests.
+ */
 #include "coter/container/stack.h"
 
 #include "coter/testing/doctest.h"
@@ -24,7 +28,7 @@ TEST_CASE("stack_static_init" * doctest::test_suite("stack")) {
     REQUIRE((size_t)ct_stack_size(&stack) == 0);
     REQUIRE(ct_stack_isempty(&stack));
     REQUIRE(!ct_stack_isfull(&stack));
-    REQUIRE(stack._all == (char*)buffer);
+    REQUIRE(stack.all_ == (char*)buffer);
 }
 
 TEST_CASE("stack_push" * doctest::test_suite("stack")) {

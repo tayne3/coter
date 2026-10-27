@@ -18,19 +18,19 @@ extern "C" {
  * @brief 队列结构体
  */
 typedef struct ct_queue {
-    char*  _all;   // 缓存区
-    size_t _byte;  // 元素字节大小
-    size_t _max;   // 缓存区长度
-    size_t _head;  // 头元素索引
-    size_t _tail;  // 尾元素索引
-    size_t _size;  // 元素数量
+    char*  all_;   // 缓存区
+    size_t byte_;  // 元素字节大小
+    size_t max_;   // 缓存区长度
+    size_t head_;  // 头元素索引
+    size_t tail_;  // 尾元素索引
+    size_t size_;  // 元素数量
 } ct_queue_t;
 
-#define ct_queue_max(self)      ((self)->_max)                                       // 获取 队列 最大容量
-#define ct_queue_size(self)     ((self)->_size)                                      // 获取 队列 大小
-#define ct_queue_is_empty(self) ((self)->_size == 0)                                 // 判断 队列 是否为空
-#define ct_queue_is_full(self)  ((self)->_size == (self)->_max)                      // 判断 队列 是否已满
-#define ct_queue_clear(self)    ((self)->_size = (self)->_head = (self)->_tail = 0)  // 清空 队列 所有元素
+#define ct_queue_max(self_)      ((self_)->max_)                                       // 获取 队列 最大容量
+#define ct_queue_size(self_)     ((self_)->size_)                                      // 获取 队列 大小
+#define ct_queue_is_empty(self_) ((self_)->size_ == 0)                                 // 判断 队列 是否为空
+#define ct_queue_is_full(self_)  ((self_)->size_ == (self_)->max_)                      // 判断 队列 是否已满
+#define ct_queue_clear(self_)    ((self_)->size_ = (self_)->head_ = (self_)->tail_ = 0)  // 清空 队列 所有元素
 
 /**
  * @brief 初始化队列

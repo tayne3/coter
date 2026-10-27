@@ -12,19 +12,19 @@ extern "C" {
 #endif
 
 typedef struct ct_stack {
-    char*  _all;   // 元素缓冲区
-    size_t _byte;  // 单个元素字节大小
-    size_t _max;   // 缓冲区可容纳的元素数量
-    size_t _size;  // 当前元素数量
+    char*  all_;   // 元素缓冲区
+    size_t byte_;  // 单个元素字节大小
+    size_t max_;   // 缓冲区可容纳的元素数量
+    size_t size_;  // 当前元素数量
 } ct_stack_t, ct_stack_buf_t[1];
 
-#define CT_STACK_INIT(__buffer, __byte, __max) {(char*)(__buffer), (__byte), (__max), 0}
+#define CT_STACK_INIT(buf_, byte_, max_) {(char*)(buf_), (byte_), (max_), 0}
 
-#define ct_stack_max(self)     ((self)->_max)
-#define ct_stack_size(self)    ((self)->_size)
-#define ct_stack_isempty(self) ((self)->_size == 0)
-#define ct_stack_isfull(self)  ((self)->_size == (self)->_max)
-#define ct_stack_clear(self)   ((self)->_size = 0)
+#define ct_stack_max(self_)     ((self_)->max_)
+#define ct_stack_size(self_)    ((self_)->size_)
+#define ct_stack_isempty(self_) ((self_)->size_ == 0)
+#define ct_stack_isfull(self_)  ((self_)->size_ == (self_)->max_)
+#define ct_stack_clear(self_)   ((self_)->size_ = 0)
 
 /**
  * @brief 初始化栈

@@ -1,3 +1,7 @@
+/**
+ * @file queue_test.cpp
+ * @brief FIFO queue tests.
+ */
 #include "coter/container/queue.h"
 
 #include "coter/testing/doctest.h"
