@@ -1,3 +1,7 @@
+/**
+ * @file sem.c
+ * @brief Cross-platform semaphore implementation.
+ */
 #include "coter/sync/sem.h"
 
 #include <errno.h>
@@ -12,12 +16,12 @@ int ct_sem_init(ct_sem_t* sem, uint32_t value) {
     *sem = dispatch_semaphore_create((long)value);
     return *sem ? 0 : ENOMEM;
 #elif defined(CT_OS_MAC) && !defined(CT_COMPILER_CLANG)
-    if (pthread_mutex_init(&sem->mutex, NULL) != 0) { return EINVAL; }
-    if (pthread_cond_init(&sem->cond, NULL) != 0) {
-        pthread_mutex_destroy(&sem->mutex);
+    if (pthread_mutex_init(&sem->mutex_, NULL) != 0) { return EINVAL; }
+    if (pthread_cond_init(&sem->cond_, NULL) != 0) {
+        pthread_mutex_destroy(&sem->mutex_);
         return EINVAL;
     }
-    sem->count = value;
+    sem->count_ = value;
     return 0;
 #else
     return sem_init(sem, 0, value) == 0 ? 0 : errno;
@@ -40,9 +44,9 @@ int ct_sem_destroy(ct_sem_t* sem) {
     return 0;
 #endif
 #elif defined(CT_OS_MAC) && !defined(CT_COMPILER_CLANG)
-    int ret = pthread_cond_destroy(&sem->cond);
+    int ret = pthread_cond_destroy(&sem->cond_);
     if (ret != 0) { return ret == EBUSY ? EBUSY : EINVAL; }
-    ret = pthread_mutex_destroy(&sem->mutex);
+    ret = pthread_mutex_destroy(&sem->mutex_);
     if (ret != 0) { return ret == EBUSY ? EBUSY : EINVAL; }
     return 0;
 #else
@@ -60,17 +64,17 @@ int ct_sem_wait(ct_sem_t* sem) {
     if (!*sem) { return EINVAL; }
     return dispatch_semaphore_wait(*sem, DISPATCH_TIME_FOREVER) == 0 ? 0 : EINVAL;
 #elif defined(CT_OS_MAC) && !defined(CT_COMPILER_CLANG)
-    if (pthread_mutex_lock(&sem->mutex) != 0) { return EINVAL; }
+    if (pthread_mutex_lock(&sem->mutex_) != 0) { return EINVAL; }
 
-    while (sem->count == 0) {
-        if (pthread_cond_wait(&sem->cond, &sem->mutex) != 0) {
-            pthread_mutex_unlock(&sem->mutex);
+    while (sem->count_ == 0) {
+        if (pthread_cond_wait(&sem->cond_, &sem->mutex_) != 0) {
+            pthread_mutex_unlock(&sem->mutex_);
             return EINVAL;
         }
     }
 
-    --sem->count;
-    return pthread_mutex_unlock(&sem->mutex) == 0 ? 0 : EINVAL;
+    --sem->count_;
+    return pthread_mutex_unlock(&sem->mutex_) == 0 ? 0 : EINVAL;
 #else
     while (sem_wait(sem) != 0) {
         if (errno != EINTR) { return errno; }
@@ -90,15 +94,15 @@ int ct_sem_trywait(ct_sem_t* sem) {
     if (!*sem) { return EINVAL; }
     return dispatch_semaphore_wait(*sem, DISPATCH_TIME_NOW) == 0 ? 0 : EAGAIN;
 #elif defined(CT_OS_MAC) && !defined(CT_COMPILER_CLANG)
-    if (pthread_mutex_lock(&sem->mutex) != 0) { return EINVAL; }
+    if (pthread_mutex_lock(&sem->mutex_) != 0) { return EINVAL; }
 
-    if (sem->count == 0) {
-        pthread_mutex_unlock(&sem->mutex);
+    if (sem->count_ == 0) {
+        pthread_mutex_unlock(&sem->mutex_);
         return EAGAIN;
     }
 
-    --sem->count;
-    return pthread_mutex_unlock(&sem->mutex) == 0 ? 0 : EINVAL;
+    --sem->count_;
+    return pthread_mutex_unlock(&sem->mutex_) == 0 ? 0 : EINVAL;
 #else
     return sem_trywait(sem) == 0 ? 0 : errno;
 #endif
@@ -113,15 +117,15 @@ int ct_sem_post(ct_sem_t* sem) {
     dispatch_semaphore_signal(*sem);
     return 0;
 #elif defined(CT_OS_MAC) && !defined(CT_COMPILER_CLANG)
-    if (pthread_mutex_lock(&sem->mutex) != 0) { return EINVAL; }
+    if (pthread_mutex_lock(&sem->mutex_) != 0) { return EINVAL; }
 
-    ++sem->count;
-    if (pthread_cond_signal(&sem->cond) != 0) {
-        pthread_mutex_unlock(&sem->mutex);
+    ++sem->count_;
+    if (pthread_cond_signal(&sem->cond_) != 0) {
+        pthread_mutex_unlock(&sem->mutex_);
         return EINVAL;
     }
 
-    return pthread_mutex_unlock(&sem->mutex) == 0 ? 0 : EINVAL;
+    return pthread_mutex_unlock(&sem->mutex_) == 0 ? 0 : EINVAL;
 #else
     return sem_post(sem) == 0 ? 0 : errno;
 #endif
@@ -139,7 +143,7 @@ int ct_sem_wait_for(ct_sem_t* sem, uint32_t timeout_ms) {
     dispatch_time_t deadline = dispatch_time(DISPATCH_TIME_NOW, (int64_t)timeout_ms * 1000000LL);
     return dispatch_semaphore_wait(*sem, deadline) == 0 ? 0 : ETIMEDOUT;
 #elif defined(CT_OS_MAC) && !defined(CT_COMPILER_CLANG)
-    if (pthread_mutex_lock(&sem->mutex) != 0) { return EINVAL; }
+    if (pthread_mutex_lock(&sem->mutex_) != 0) { return EINVAL; }
 
     struct timespec ts;
 #if defined(CLOCK_REALTIME)
@@ -155,16 +159,16 @@ int ct_sem_wait_for(ct_sem_t* sem, uint32_t timeout_ms) {
     ts.tv_sec += ts.tv_nsec / 1000000000L;
     ts.tv_nsec %= 1000000000L;
 
-    while (sem->count == 0) {
-        int ret = pthread_cond_timedwait(&sem->cond, &sem->mutex, &ts);
+    while (sem->count_ == 0) {
+        int ret = pthread_cond_timedwait(&sem->cond_, &sem->mutex_, &ts);
         if (ret != 0) {
-            pthread_mutex_unlock(&sem->mutex);
+            pthread_mutex_unlock(&sem->mutex_);
             return ret == ETIMEDOUT ? ETIMEDOUT : EINVAL;
         }
     }
 
-    --sem->count;
-    return pthread_mutex_unlock(&sem->mutex) == 0 ? 0 : EINVAL;
+    --sem->count_;
+    return pthread_mutex_unlock(&sem->mutex_) == 0 ? 0 : EINVAL;
 #else
 #if HAVE_SEM_TIMEDWAIT
     struct timespec ts;

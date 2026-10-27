@@ -26,9 +26,9 @@ typedef void* ct_sem_t;
 typedef dispatch_semaphore_t ct_sem_t;
 #elif defined(CT_OS_MAC) && !defined(CT_COMPILER_CLANG)
 typedef struct ct_sem {
-    pthread_mutex_t mutex;
-    pthread_cond_t  cond;
-    uint32_t        count;
+    pthread_mutex_t mutex_;
+    pthread_cond_t  cond_;
+    uint32_t        count_;
 } ct_sem_t;
 #else
 typedef sem_t ct_sem_t;
