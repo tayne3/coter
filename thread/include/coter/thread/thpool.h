@@ -1,6 +1,6 @@
 /**
  * @file thpool.h
- * @brief 线程池实现
+ * @brief Dynamically sized thread pool.
  */
 #ifndef COTER_THREAD_THPOOL_H
 #define COTER_THREAD_THPOOL_H
@@ -12,74 +12,83 @@
 extern "C" {
 #endif
 
-// F(code, name, describe)
+// F(code, name, description)
 #define CT_THPOOL_ERROR_FOREACH(F)       \
-    F(0, Normal, "normal")               \
-    F(1, Closed, "thpool is closed")     \
-    F(2, Overload, "thpool is overload") \
-    F(3, TaskNull, "task is null")       \
-    F(4, MemAlloc, "memory allocation failed")
+    F(0, NORMAL, "normal")               \
+    F(1, CLOSED, "thpool is closed")     \
+    F(2, OVERLOAD, "thpool is overload") \
+    F(3, TASK_NULL, "task is null")      \
+    F(4, MEM_ALLOC, "memory allocation failed")
 
-enum ct_thpool_error {
-#define F(code, name, describe) CTThPoolError_##name = code,
+/**
+ * @brief Thread pool error codes.
+ */
+typedef enum ct_thpool_error {
+#define F(code, name, description) CT_THPOOL_ERROR_##name = code,
     CT_THPOOL_ERROR_FOREACH(F)
 #undef F
-        CTThPoolError_Max,
-};
+    CT_THPOOL_ERROR_MAX,
+} ct_thpool_error_t;
 
-// 线程池执行函数
+/**
+ * @brief Thread pool task routine.
+ */
 typedef void (*ct_thpool_routine_t)(void*);
-// 线程池
+
+/**
+ * @brief Thread pool handle.
+ */
 typedef struct ct_thpool ct_thpool_t;
 
-// 线程池配置
+/**
+ * @brief Thread pool configuration.
+ */
 typedef struct ct_thpool_config {
-    ct_thread_attr_t* thread_attr;   // 线程属性 (NULL=使用默认; 非NULL=create时值拷贝，调用方可随后释放)
-    size_t            idle_timeout;  // 空闲超时时间 (单位: ms, 0代表不回收线程)
-    bool              non_blocking;  // 是否非阻塞模式
-    size_t            max_tasks;     // 最大阻塞任务数 (0代表不限制)
+    ct_thread_attr_t* thread_attr_;   ///< Thread attributes; NULL uses defaults. Copied during creation.
+    size_t            idle_timeout_;  ///< Idle timeout in milliseconds; 0 keeps idle workers.
+    bool              non_blocking_;  ///< Reject submissions instead of blocking when overloaded.
+    size_t            max_tasks_;     ///< Maximum blocked submitters; 0 means unlimited.
 } ct_thpool_config_t;
 
 /**
- * @brief 创建线程池
- *
- * @param size 线程池的最大容量
- * @param config 线程池配置 (NULL 则使用默认配置)
- * @return 成功返回线程池指针, 失败返回NULL
+ * @brief Create a thread pool.
+ * @param size Maximum number of worker threads.
+ * @param config Optional configuration; NULL selects defaults.
+ * @return A new thread pool, or NULL on failure.
  */
 CT_API ct_thpool_t* ct_thpool_create(size_t size, ct_thpool_config_t* config) CT_ATTR_THROW;
 
 /**
- * @brief 关闭线程池
- *
- * @param self 线程池指针
+ * @brief Close a thread pool and stop accepting new tasks.
+ * @param self Thread pool.
  */
 CT_API void ct_thpool_close(ct_thpool_t* self);
 
 /**
- * @brief 销毁线程池
- *
- * @param self 线程池指针
+ * @brief Close and destroy a thread pool.
+ * @param self Thread pool.
  */
 CT_API void ct_thpool_destroy(ct_thpool_t* self);
 
 /**
- * @brief 提交任务
- *
- * @param self 线程池指针
- * @param routine 执行函数
- * @param arg 执行参数
- * @return 0=成功; 非0=失败
+ * @brief Submit a task.
+ * @param self Thread pool.
+ * @param routine Routine to execute.
+ * @param arg Routine argument.
+ * @return 0 on success, non-zero error code on failure.
  */
 CT_API int ct_thpool_submit(ct_thpool_t* self, ct_thpool_routine_t routine, void* arg);
 
 /**
- * @brief 获取错误描述
+ * @brief Get the description of an error code.
+ * @param error_code Error code returned by a thread pool operation.
+ * @return A static description string.
  */
 CT_API const char* ct_thpool_strerror(int error_code);
 
 /**
- * @brief 获取默认配置
+ * @brief Fill a configuration object with default values.
+ * @param config Configuration to initialize.
  */
 CT_API void ct_thpool_default_config(ct_thpool_config_t* config);
 

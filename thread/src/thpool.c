@@ -1,6 +1,6 @@
 /**
  * @file thpool.c
- * @brief 线程池实现
+ * @brief Dynamically sized thread pool.
  */
 #include "coter/thread/thpool.h"
 
@@ -15,77 +15,77 @@
 // -------------------------[STATIC DECLARATION]-------------------------
 
 /**
- * @brief 工作任务
+ * @brief Work task.
  */
 typedef struct task {
-    ct_thpool_routine_t routine;  // 执行函数
-    void*               arg;      // 执行参数
+    ct_thpool_routine_t routine_;  ///< Routine to execute.
+    void*               arg_;      ///< Routine argument.
 } task_t;
 
-#define TASK_INIT(routine, arg) {routine, arg}
+#define THPOOL_TASK_INIT(routine_, arg_) {(routine_), (arg_)}
 
 /**
- * @brief 工作者
+ * @brief Worker thread state.
  */
 typedef struct worker {
-    ct_list_t     list[1];       // 链表节点
-    ct_thread_t   thread;        // 线程
-    ct_thpool_t*  thpool;        // 所属线程池
-    task_t        task_buff[1];  // 任务缓存
-    ct_msgqueue_t tasks[1];      // 任务队列
-    ct_time64_t   last_use;      // 上次活动时间 (ms)
+    ct_list_t     list_[1];       ///< Intrusive list node.
+    ct_thread_t   thread_;        ///< Worker thread handle.
+    ct_thpool_t*  thpool_;        ///< Owning thread pool.
+    task_t        task_buff_[1];  ///< Queue storage.
+    ct_msgqueue_t tasks_[1];      ///< Task queue.
+    ct_time64_t   last_use_;      ///< Last activity timestamp in milliseconds.
 } worker_t;
 
 /**
- * @brief 线程池状态
+ * @brief Thread pool status.
  */
 typedef struct status {
-    ct_atomic_long_t capacity;    // 最大线程数 (为0表示不限制)
-    ct_atomic_long_t total_size;  // 总线程数
-    ct_atomic_long_t wait_size;   // 等待任务数
-    ct_atomic_long_t closed;      // 是否关闭
+    ct_atomic_long_t capacity_;    ///< Maximum workers; 0 means unlimited.
+    ct_atomic_long_t total_size_;  ///< Total workers.
+    ct_atomic_long_t wait_size_;   ///< Blocked submitters.
+    ct_atomic_long_t closed_;      ///< Non-zero once the pool is closed.
 } status_t;
 
 /**
- * @brief 线程池
+ * @brief Thread pool.
  */
 struct ct_thpool {
-    status_t         status;           // 线程池状态
-    ct_thread_attr_t thread_attr;      // 线程属性
-    size_t           idle_timeout;     // 空闲超时时间 (ms, 0=不回收线程)
-    size_t           max_tasks;        // 最大阻塞任务数 (0=不限制)
-    bool             non_blocking;     // 是否非阻塞模式
-    bool             has_thread_attr;  // 是否使用自定义线程属性
+    status_t         status_;           ///< Thread pool status.
+    ct_thread_attr_t thread_attr_;      ///< Worker thread attributes.
+    size_t           idle_timeout_;     ///< Idle timeout in milliseconds; 0 keeps workers.
+    size_t           max_tasks_;        ///< Maximum blocked submitters; 0 means unlimited.
+    bool             non_blocking_;     ///< Reject submissions when overloaded.
+    bool             has_thread_attr_;  ///< Non-zero when thread_attr_ is configured.
 
-    ct_list_t  worker_head[1];   // 工作者队列
-    ct_mutex_t worker_mutex[1];  // 互斥锁
-    ct_cond_t  worker_cond[1];   // 条件变量
+    ct_list_t  worker_head_[1];   ///< Idle worker list.
+    ct_mutex_t worker_mutex_[1];  ///< Protects the worker list.
+    ct_cond_t  worker_cond_[1];   ///< Signals worker availability.
 
-    ct_thread_t monitor_thread;  // 监视线程
+    ct_thread_t monitor_thread_;  ///< Idle-worker monitor.
 };
 
-#define ctl_is_closed(pool) ct_atomic_long_load(&(pool)->status.closed)
+#define THPOOL_IS_CLOSED(pool_) ct_atomic_long_load(&(pool_)->status_.closed_)
 
-// 初始化 线程池属性
-static void ctl_config_init(ct_thpool_t* self, ct_thpool_config_t* attr);
-// 初始化 线程池状态
-static void ctl_status_init(ct_thpool_t* self, size_t size);
-// 获取工作者
-static int ctl_retrieve_worker(ct_thpool_t* self, worker_t** worker);
-// 回收工作者
-static bool ctl_revert_worker(ct_thpool_t* self, worker_t* worker);
+/* Initialize pool configuration. */
+static void thpool_config_init(ct_thpool_t* self, ct_thpool_config_t* attr);
+/* Initialize pool status. */
+static void thpool_status_init(ct_thpool_t* self, size_t size);
+/* Acquire an idle worker or create one. */
+static int thpool_retrieve_worker(ct_thpool_t* self, worker_t** worker);
+/* Return a worker to the idle list or retire it. */
+static bool thpool_revert_worker(ct_thpool_t* self, worker_t* worker);
 
-// 工作者-创建
-static worker_t* ctl_worker_create(ct_thpool_t* self);
-// 工作者-线程执行函数
-static int ctl_worker_thread(void* arg);
-// 工作者-输入任务
-static void ctl_worker_input(worker_t* worker, ct_thpool_routine_t routine, void* arg);
-// 工作者-结束
-static void ctl_worker_finish(worker_t* worker);
+/* Create a worker. */
+static worker_t* thpool_worker_create(ct_thpool_t* self);
+/* Worker thread entry point. */
+static int thpool_worker_thread(void* arg);
+/* Queue a task on a worker. */
+static void thpool_worker_input(worker_t* worker, ct_thpool_routine_t routine, void* arg);
+/* Stop a worker's queue. */
+static void thpool_worker_finish(worker_t* worker);
 
-// 监视器-动态调整线程数量
-static int ctl_monitor_thread(void* arg);
+/* Monitor thread: retire idle workers. */
+static int thpool_monitor_thread(void* arg);
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
@@ -93,17 +93,17 @@ ct_thpool_t* ct_thpool_create(size_t size, ct_thpool_config_t* config) {
     ct_thpool_t* self = (ct_thpool_t*)malloc(sizeof(ct_thpool_t));
     if (!self) { return NULL; }
 
-    ctl_config_init(self, config);
-    ctl_status_init(self, size);
-    ct_list_init(self->worker_head);
-    ct_mutex_init(self->worker_mutex);
-    ct_cond_init(self->worker_cond);
+    thpool_config_init(self, config);
+    thpool_status_init(self, size);
+    ct_list_init(self->worker_head_);
+    ct_mutex_init(self->worker_mutex_);
+    ct_cond_init(self->worker_cond_);
 
-    if (self->idle_timeout > 0) {
+    if (self->idle_timeout_ > 0) {
         ct_thread_attr_t attr;
         ct_thread_attr_init(&attr);
-        ct_thread_attr_set_stack_size(&attr, 1 * 1024);  // 设置堆栈大小: 1KB
-        ct_thread_create(&self->monitor_thread, &attr, ctl_monitor_thread, self);
+        ct_thread_attr_set_stack_size(&attr, 1 * 1024);  // Monitor thread stack: 1 KiB.
+        ct_thread_create(&self->monitor_thread_, &attr, thpool_monitor_thread, self);
         ct_thread_attr_destroy(&attr);
     }
     return self;
@@ -111,262 +111,262 @@ ct_thpool_t* ct_thpool_create(size_t size, ct_thpool_config_t* config) {
 
 void ct_thpool_close(ct_thpool_t* self) {
     if (!self) { return; }
-    if (ctl_is_closed(self)) { return; }
-    ct_atomic_long_store(&self->status.closed, 1);
+    if (THPOOL_IS_CLOSED(self)) { return; }
+    ct_atomic_long_store(&self->status_.closed_, 1);
 
-    if (self->idle_timeout > 0) { ct_thread_join(&self->monitor_thread, NULL); }
+    if (self->idle_timeout_ > 0) { ct_thread_join(&self->monitor_thread_, NULL); }
 
     ct_list_t stale_head[1];
     ct_list_init(stale_head);
 
-    ct_mutex_lock(self->worker_mutex);
-    ct_list_foreach_entry_safe(worker, self->worker_head, worker_t, list) {
-        ct_list_remove(worker->list);
-        ct_list_append(stale_head, worker->list);
-        ctl_worker_finish(worker);
+    ct_mutex_lock(self->worker_mutex_);
+    ct_list_foreach_entry_safe(worker, self->worker_head_, worker_t, list_) {
+        ct_list_remove(worker->list_);
+        ct_list_append(stale_head, worker->list_);
+        thpool_worker_finish(worker);
     }
-    ct_mutex_unlock(self->worker_mutex);
+    ct_mutex_unlock(self->worker_mutex_);
 
-    ct_list_foreach_entry_safe(worker, stale_head, worker_t, list) {
-        ct_thread_join(&worker->thread, NULL);
-        ct_msgqueue_destroy(worker->tasks);
+    ct_list_foreach_entry_safe(worker, stale_head, worker_t, list_) {
+        ct_thread_join(&worker->thread_, NULL);
+        ct_msgqueue_destroy(worker->tasks_);
         free(worker);
     }
 
-    ct_mutex_lock(self->worker_mutex);
-    ct_cond_broadcast(self->worker_cond);
-    ct_mutex_unlock(self->worker_mutex);
+    ct_mutex_lock(self->worker_mutex_);
+    ct_cond_broadcast(self->worker_cond_);
+    ct_mutex_unlock(self->worker_mutex_);
 }
 
 void ct_thpool_destroy(ct_thpool_t* self) {
     if (!self) { return; }
     ct_thpool_close(self);
 
-    // 等待所有工作者线程退出
-    ct_mutex_lock(self->worker_mutex);
-    while (ct_atomic_long_load(&self->status.total_size) > 0) {
-        ct_cond_wait_for(self->worker_cond, self->worker_mutex, 1000);
+    // Wait for all worker threads to exit.
+    ct_mutex_lock(self->worker_mutex_);
+    while (ct_atomic_long_load(&self->status_.total_size_) > 0) {
+        ct_cond_wait_for(self->worker_cond_, self->worker_mutex_, 1000);
     }
-    ct_mutex_unlock(self->worker_mutex);
-    ct_mutex_destroy(self->worker_mutex);
-    ct_cond_destroy(self->worker_cond);
+    ct_mutex_unlock(self->worker_mutex_);
+    ct_mutex_destroy(self->worker_mutex_);
+    ct_cond_destroy(self->worker_cond_);
 
-    if (self->has_thread_attr) { ct_thread_attr_destroy(&self->thread_attr); }
+    if (self->has_thread_attr_) { ct_thread_attr_destroy(&self->thread_attr_); }
     free(self);
 }
 
 int ct_thpool_submit(ct_thpool_t* self, ct_thpool_routine_t routine, void* arg) {
-    if (!self) { return CTThPoolError_Closed; }
-    if (!routine) { return CTThPoolError_TaskNull; }
-    if (ctl_is_closed(self)) { return CTThPoolError_Closed; }
+    if (!self) { return CT_THPOOL_ERROR_CLOSED; }
+    if (!routine) { return CT_THPOOL_ERROR_TASK_NULL; }
+    if (THPOOL_IS_CLOSED(self)) { return CT_THPOOL_ERROR_CLOSED; }
 
     worker_t* worker = NULL;
-    const int ret    = ctl_retrieve_worker(self, &worker);
-    if (ret == 0) { ctl_worker_input(worker, routine, arg); }
+    const int ret    = thpool_retrieve_worker(self, &worker);
+    if (ret == 0) { thpool_worker_input(worker, routine, arg); }
     return ret;
 }
 
 const char* ct_thpool_strerror(int error_code) {
-    const char* CTThPoolErrorDescriptions[] = {
-#define F(code, name, desc) desc,
+    const char* descriptions[] = {
+#define F(code, name, description) description,
         CT_THPOOL_ERROR_FOREACH(F)
 #undef F
     };
-    if (error_code >= CTThPoolError_Max) { return "unknown error"; }
-    return CTThPoolErrorDescriptions[error_code];
+    if (error_code >= CT_THPOOL_ERROR_MAX) { return "unknown error"; }
+    return descriptions[error_code];
 }
 
 void ct_thpool_default_config(ct_thpool_config_t* config) {
     if (!config) { return; }
-    config->thread_attr  = NULL;
-    config->idle_timeout = 1000;
-    config->non_blocking = false;
-    config->max_tasks    = 1000;
+    config->thread_attr_  = NULL;
+    config->idle_timeout_ = 1000;
+    config->non_blocking_ = false;
+    config->max_tasks_    = 1000;
 }
 
 // -------------------------[STATIC DEFINITION]-------------------------
 
-static void ctl_config_init(ct_thpool_t* self, ct_thpool_config_t* attr) {
-    self->idle_timeout    = 1000;
-    self->non_blocking    = false;
-    self->max_tasks       = 1000;
-    self->has_thread_attr = false;
+static void thpool_config_init(ct_thpool_t* self, ct_thpool_config_t* attr) {
+    self->idle_timeout_    = 1000;
+    self->non_blocking_    = false;
+    self->max_tasks_       = 1000;
+    self->has_thread_attr_ = false;
 
     if (attr) {
-        if (attr->thread_attr) {
-            memcpy(&self->thread_attr, attr->thread_attr, sizeof(ct_thread_attr_t));
-            self->has_thread_attr = true;
+        if (attr->thread_attr_) {
+            memcpy(&self->thread_attr_, attr->thread_attr_, sizeof(ct_thread_attr_t));
+            self->has_thread_attr_ = true;
         }
-        self->idle_timeout = attr->idle_timeout == 0 ? 0 : CT_MAX(attr->idle_timeout, 50U);
-        self->non_blocking = attr->non_blocking;
-        self->max_tasks    = attr->max_tasks;
+        self->idle_timeout_ = attr->idle_timeout_ == 0 ? 0 : CT_MAX(attr->idle_timeout_, 50U);
+        self->non_blocking_ = attr->non_blocking_;
+        self->max_tasks_    = attr->max_tasks_;
     }
 }
 
-static void ctl_status_init(ct_thpool_t* self, size_t size) {
-    status_t* sstatus   = &self->status;
-    sstatus->capacity   = CT_ATOMIC_VAR_INIT(size);
-    sstatus->total_size = CT_ATOMIC_VAR_INIT(0);
-    sstatus->wait_size  = CT_ATOMIC_VAR_INIT(0);
-    sstatus->closed     = CT_ATOMIC_VAR_INIT(0);
+static void thpool_status_init(ct_thpool_t* self, size_t size) {
+    status_t* status    = &self->status_;
+    status->capacity_   = CT_ATOMIC_VAR_INIT(size);
+    status->total_size_ = CT_ATOMIC_VAR_INIT(0);
+    status->wait_size_  = CT_ATOMIC_VAR_INIT(0);
+    status->closed_     = CT_ATOMIC_VAR_INIT(0);
 }
 
-static int ctl_retrieve_worker(ct_thpool_t* self, worker_t** worker) {
-    if (!self || !worker) { return CTThPoolError_Closed; }
-    ct_mutex_lock(self->worker_mutex);
+static int thpool_retrieve_worker(ct_thpool_t* self, worker_t** worker) {
+    if (!self || !worker) { return CT_THPOOL_ERROR_CLOSED; }
+    ct_mutex_lock(self->worker_mutex_);
 
 Retry:
-    if (!ct_list_isempty(self->worker_head)) {
-        *worker = ct_list_first_entry(self->worker_head, worker_t, list);
+    if (!ct_list_isempty(self->worker_head_)) {
+        *worker = ct_list_first_entry(self->worker_head_, worker_t, list_);
         if (*worker) {
-            ct_list_remove((*worker)->list);
-            ct_mutex_unlock(self->worker_mutex);
+            ct_list_remove((*worker)->list_);
+            ct_mutex_unlock(self->worker_mutex_);
             return 0;
         }
     }
 
-    const long capacity = ct_atomic_long_load(&self->status.capacity);
-    if (capacity == 0 || capacity > ct_atomic_long_load(&self->status.total_size)) {
-        ct_mutex_unlock(self->worker_mutex);
-        *worker = ctl_worker_create(self);
-        if (!*worker) { return CTThPoolError_MemAlloc; }
+    const long capacity = ct_atomic_long_load(&self->status_.capacity_);
+    if (capacity == 0 || capacity > ct_atomic_long_load(&self->status_.total_size_)) {
+        ct_mutex_unlock(self->worker_mutex_);
+        *worker = thpool_worker_create(self);
+        if (!*worker) { return CT_THPOOL_ERROR_MEM_ALLOC; }
         return 0;
     }
 
-    if (self->non_blocking ||
-        (self->max_tasks > 0 && ct_atomic_long_load(&self->status.wait_size) >= (long)self->max_tasks)) {
-        ct_mutex_unlock(self->worker_mutex);
-        return CTThPoolError_Overload;
+    if (self->non_blocking_ ||
+        (self->max_tasks_ > 0 && ct_atomic_long_load(&self->status_.wait_size_) >= (long)self->max_tasks_)) {
+        ct_mutex_unlock(self->worker_mutex_);
+        return CT_THPOOL_ERROR_OVERLOAD;
     }
 
-    ct_atomic_long_add(&self->status.wait_size, 1);
-    ct_cond_wait(self->worker_cond, self->worker_mutex);
-    ct_atomic_long_sub(&self->status.wait_size, 1);
+    ct_atomic_long_add(&self->status_.wait_size_, 1);
+    ct_cond_wait(self->worker_cond_, self->worker_mutex_);
+    ct_atomic_long_sub(&self->status_.wait_size_, 1);
 
-    if (ctl_is_closed(self)) {
-        ct_mutex_unlock(self->worker_mutex);
-        return CTThPoolError_Closed;
+    if (THPOOL_IS_CLOSED(self)) {
+        ct_mutex_unlock(self->worker_mutex_);
+        return CT_THPOOL_ERROR_CLOSED;
     }
 
     goto Retry;
 }
 
-static bool ctl_revert_worker(ct_thpool_t* self, worker_t* worker) {
-    if (ctl_is_closed(self)) { return false; }
-    const long capacity = ct_atomic_long_load(&self->status.capacity);
-    if ((capacity > 0 && capacity <= ct_atomic_long_load(&self->status.total_size))) {
-        ct_mutex_lock(self->worker_mutex);
-        ct_cond_broadcast(self->worker_cond);
-        ct_mutex_unlock(self->worker_mutex);
+static bool thpool_revert_worker(ct_thpool_t* self, worker_t* worker) {
+    if (THPOOL_IS_CLOSED(self)) { return false; }
+    const long capacity = ct_atomic_long_load(&self->status_.capacity_);
+    if ((capacity > 0 && capacity <= ct_atomic_long_load(&self->status_.total_size_))) {
+        ct_mutex_lock(self->worker_mutex_);
+        ct_cond_broadcast(self->worker_cond_);
+        ct_mutex_unlock(self->worker_mutex_);
         return false;
     }
 
-    worker->last_use = ct_gettick_ms();
+    worker->last_use_ = ct_gettick_ms();
 
-    ct_mutex_lock(self->worker_mutex);
-    if (ctl_is_closed(self)) {
-        ct_mutex_unlock(self->worker_mutex);
+    ct_mutex_lock(self->worker_mutex_);
+    if (THPOOL_IS_CLOSED(self)) {
+        ct_mutex_unlock(self->worker_mutex_);
         return false;
     }
-    ct_list_append(self->worker_head, worker->list);
-    ct_cond_signal(self->worker_cond);
-    ct_mutex_unlock(self->worker_mutex);
+    ct_list_append(self->worker_head_, worker->list_);
+    ct_cond_signal(self->worker_cond_);
+    ct_mutex_unlock(self->worker_mutex_);
     return true;
 }
 
-static worker_t* ctl_worker_create(ct_thpool_t* self) {
+static worker_t* thpool_worker_create(ct_thpool_t* self) {
     worker_t* worker = (worker_t*)malloc(sizeof(worker_t));
     if (!worker) { return NULL; }
-    ct_list_init(worker->list);
-    worker->thpool   = self;
-    worker->last_use = ct_gettick_ms();
-    ct_msgqueue_init(worker->tasks, worker->task_buff, sizeof(task_t), 1);
+    ct_list_init(worker->list_);
+    worker->thpool_   = self;
+    worker->last_use_ = ct_gettick_ms();
+    ct_msgqueue_init(worker->tasks_, worker->task_buff_, sizeof(task_t), 1);
 
-    const int ret =
-        ct_thread_create(&worker->thread, self->has_thread_attr ? &self->thread_attr : NULL, ctl_worker_thread, worker);
+    const int ret = ct_thread_create(&worker->thread_, self->has_thread_attr_ ? &self->thread_attr_ : NULL,
+                                     thpool_worker_thread, worker);
     if (ret != 0) {
-        ct_msgqueue_destroy(worker->tasks);
+        ct_msgqueue_destroy(worker->tasks_);
         free(worker);
         return NULL;
     }
-    ct_atomic_long_add(&self->status.total_size, 1);
+    ct_atomic_long_add(&self->status_.total_size_, 1);
     return worker;
 }
 
-static int ctl_worker_thread(void* arg) {
+static int thpool_worker_thread(void* arg) {
     worker_t* worker = (worker_t*)arg;
     if (!worker) { return 0; }
-    ct_thpool_t* pool = worker->thpool;
+    ct_thpool_t* pool = worker->thpool_;
     if (!pool) { return 0; }
 
     task_t task;
-    while (ct_msgqueue_pop(worker->tasks, &task) == 0) {
-        task.routine(task.arg);
-        if (!ctl_revert_worker(worker->thpool, worker)) {
-            ct_thread_detach(&worker->thread);
-            ct_msgqueue_destroy(worker->tasks);
+    while (ct_msgqueue_pop(worker->tasks_, &task) == 0) {
+        task.routine_(task.arg_);
+        if (!thpool_revert_worker(worker->thpool_, worker)) {
+            ct_thread_detach(&worker->thread_);
+            ct_msgqueue_destroy(worker->tasks_);
             free(worker);
             break;
         }
     }
 
-    ct_atomic_long_sub(&pool->status.total_size, 1);
-    ct_mutex_lock(pool->worker_mutex);
-    ct_cond_signal(pool->worker_cond);
-    ct_mutex_unlock(pool->worker_mutex);
+    ct_atomic_long_sub(&pool->status_.total_size_, 1);
+    ct_mutex_lock(pool->worker_mutex_);
+    ct_cond_signal(pool->worker_cond_);
+    ct_mutex_unlock(pool->worker_mutex_);
 
     return 0;
 }
 
-static void ctl_worker_input(worker_t* worker, ct_thpool_routine_t routine, void* arg) {
+static void thpool_worker_input(worker_t* worker, ct_thpool_routine_t routine, void* arg) {
     if (!worker || !routine) { return; }
-    const task_t task = TASK_INIT(routine, arg);
-    ct_msgqueue_push(worker->tasks, &task);
+    const task_t task = THPOOL_TASK_INIT(routine, arg);
+    ct_msgqueue_push(worker->tasks_, &task);
 }
 
-static void ctl_worker_finish(worker_t* worker) {
+static void thpool_worker_finish(worker_t* worker) {
     if (!worker) { return; }
-    ct_msgqueue_close(worker->tasks);
+    ct_msgqueue_close(worker->tasks_);
 }
 
-static int ctl_monitor_thread(void* arg) {
+static int thpool_monitor_thread(void* arg) {
     ct_thpool_t* pool = (ct_thpool_t*)arg;
     ct_time64_t  now, last = ct_gettick_ms();
 
-    while (!ctl_is_closed(pool)) {
+    while (!THPOOL_IS_CLOSED(pool)) {
         now = ct_gettick_ms();
 
-        if (now >= last + (ct_time64_t)pool->idle_timeout) {
+        if (now >= last + (ct_time64_t)pool->idle_timeout_) {
             last = now;
 
-            const ct_time64_t expiry_time = now - pool->idle_timeout;
-            const size_t      total_size  = ct_atomic_long_load(&pool->status.total_size);
+            const ct_time64_t expiry_time = now - pool->idle_timeout_;
+            const size_t      total_size  = ct_atomic_long_load(&pool->status_.total_size_);
 
             ct_list_t stale_head[1];
             ct_list_init(stale_head);
 
-            // 遍历工作者队列，找出空闲超时的工作者
-            ct_mutex_lock(pool->worker_mutex);
-            ct_list_foreach_entry_safe(worker, pool->worker_head, worker_t, list) {
-                if (worker->last_use < expiry_time) {
-                    ct_list_remove(worker->list);
-                    ct_list_append(stale_head, worker->list);
-                    ctl_worker_finish(worker);
+            // Collect workers that have been idle past the timeout.
+            ct_mutex_lock(pool->worker_mutex_);
+            ct_list_foreach_entry_safe(worker, pool->worker_head_, worker_t, list_) {
+                if (worker->last_use_ < expiry_time) {
+                    ct_list_remove(worker->list_);
+                    ct_list_append(stale_head, worker->list_);
+                    thpool_worker_finish(worker);
                 }
             }
-            ct_mutex_unlock(pool->worker_mutex);
+            ct_mutex_unlock(pool->worker_mutex_);
 
             size_t stale_size = 0;
-            ct_list_foreach_entry_safe(worker, stale_head, worker_t, list) {
-                ct_thread_join(&worker->thread, NULL);
-                ct_msgqueue_destroy(worker->tasks);
+            ct_list_foreach_entry_safe(worker, stale_head, worker_t, list_) {
+                ct_thread_join(&worker->thread_, NULL);
+                ct_msgqueue_destroy(worker->tasks_);
                 free(worker);
                 ++stale_size;
             }
 
-            // 如果所有线程都是过期的且有等待任务，则通知工作者
-            if ((total_size == 0 || total_size == stale_size) && ct_atomic_long_load(&pool->status.wait_size) > 0) {
-                ct_cond_broadcast(pool->worker_cond);
+            // Wake a worker if every thread expired while tasks are waiting.
+            if ((total_size == 0 || total_size == stale_size) && ct_atomic_long_load(&pool->status_.wait_size_) > 0) {
+                ct_cond_broadcast(pool->worker_cond_);
             }
         }
 
