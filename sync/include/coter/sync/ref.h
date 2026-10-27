@@ -51,15 +51,15 @@ typedef volatile uint32_t ct_refcount_value_t;
  * prevents concurrent invalid operations from wrapping a broken counter back
  * into a valid-looking, releasable count.
  *
- * The `value` field is public only because the increment/decrement fast paths
+ * The `value_` field is public only because the increment/decrement fast paths
  * need to be header-only inline atomics. Treat it as opaque and never inspect
  * or modify it directly.
  */
 typedef struct ct_refcount {
-    ct_refcount_value_t value;
+    ct_refcount_value_t value_;
 } ct_refcount_t;
 
-CT_STATIC_ASSERT(sizeof(((ct_refcount_t*)0)->value) == 4);
+CT_STATIC_ASSERT(sizeof(((ct_refcount_t*)0)->value_) == 4);
 
 typedef enum ct_refcount_saturation_type {
     /** inc_not_zero() observed an overflow. */
@@ -123,11 +123,11 @@ CT_INLINE void ct_refcount_inc(ct_refcount_t* ref) {
     uint32_t old;
 
 #if CT_ATOMIC_USE_GCC_SYNC
-    old = __sync_fetch_and_add(&ref->value, UINT32_C(1));
+    old = __sync_fetch_and_add(&ref->value_, UINT32_C(1));
 #elif CT_ATOMIC_USE_GCC_ATOMIC
-    old = __atomic_fetch_add(&ref->value, UINT32_C(1), __ATOMIC_RELAXED);
+    old = __atomic_fetch_add(&ref->value_, UINT32_C(1), __ATOMIC_RELAXED);
 #elif CT_ATOMIC_USE_WIN
-    old = (uint32_t)_InterlockedExchangeAdd(&ref->value, 1);
+    old = (uint32_t)_InterlockedExchangeAdd(&ref->value_, 1);
 #endif
 
     if (CT_UNLIKELY(old == 0)) {
@@ -149,11 +149,11 @@ CT_ATTR_NODISCARD CT_INLINE bool ct_refcount_dec_and_test(ct_refcount_t* ref) {
     uint32_t old;
 
 #if CT_ATOMIC_USE_GCC_SYNC
-    old = __sync_fetch_and_sub(&ref->value, UINT32_C(1));
+    old = __sync_fetch_and_sub(&ref->value_, UINT32_C(1));
 #elif CT_ATOMIC_USE_GCC_ATOMIC
-    old = __atomic_fetch_sub(&ref->value, UINT32_C(1), __ATOMIC_RELEASE);
+    old = __atomic_fetch_sub(&ref->value_, UINT32_C(1), __ATOMIC_RELEASE);
 #elif CT_ATOMIC_USE_WIN
-    old = (uint32_t)_InterlockedExchangeAdd(&ref->value, -1);
+    old = (uint32_t)_InterlockedExchangeAdd(&ref->value_, -1);
 #endif
 
     if (CT_LIKELY(old > 1 && old <= CT_REFCOUNT_MAX)) { return false; }
@@ -216,22 +216,22 @@ CT_ATTR_NODISCARD CT_API bool ct_refcount_dec_and_mutex_lock(ct_refcount_t* ref,
  * how to release the containing object once ct_ref_put() says it's safe to.
  *
  * @code
- * // `obj` is a user-owned object containing a ct_ref_t named `ref`.
- * ct_ref_init(&obj->ref);        // count = 1
- * ct_ref_get(&obj->ref);         // count = 2
- * (void)ct_ref_put(&obj->ref);   // count = 1, object stays alive
- * if (ct_ref_put(&obj->ref)) {   // count = 0
+ * // `obj` is a user-owned object containing a ct_ref_t named `ref_`.
+ * ct_ref_init(&obj->ref_);        // count = 1
+ * ct_ref_get(&obj->ref_);         // count = 2
+ * (void)ct_ref_put(&obj->ref_);   // count = 1, object stays alive
+ * if (ct_ref_put(&obj->ref_)) {   // count = 0
  *     object_destroy(obj);
  * }
  * @endcode
  */
 typedef struct ct_ref {
-    ct_refcount_t count;
+    ct_refcount_t count_;
 } ct_ref_t;
 
 /** @brief Initializes @p self with one owned reference. */
 CT_INLINE void ct_ref_init(ct_ref_t* self) {
-    ct_refcount_init(&self->count);
+    ct_refcount_init(&self->count_);
 }
 
 /**
@@ -239,7 +239,7 @@ CT_INLINE void ct_ref_init(ct_ref_t* self) {
  * @see ct_refcount_inc
  */
 CT_INLINE void ct_ref_get(ct_ref_t* self) {
-    ct_refcount_inc(&self->count);
+    ct_refcount_inc(&self->count_);
 }
 
 /**
@@ -248,12 +248,12 @@ CT_INLINE void ct_ref_get(ct_ref_t* self) {
  * @see ct_refcount_inc_not_zero
  */
 CT_ATTR_NODISCARD CT_INLINE bool ct_ref_get_not_zero(ct_ref_t* self) {
-    return ct_refcount_inc_not_zero(&self->count);
+    return ct_refcount_inc_not_zero(&self->count_);
 }
 
 /** @brief Drops one owned reference; true means the caller must release the object. */
 CT_ATTR_NODISCARD CT_INLINE bool ct_ref_put(ct_ref_t* self) {
-    return ct_refcount_dec_and_test(&self->count);
+    return ct_refcount_dec_and_test(&self->count_);
 }
 
 /**
@@ -264,13 +264,13 @@ CT_ATTR_NODISCARD CT_INLINE bool ct_ref_put(ct_ref_t* self) {
  *
  * @code
  * static void object_release(ct_ref_t* ref) {
- *     object_t* obj = CT_CONTAINER_OF(ref, object_t, ref);
- *     remove_object(obj);  // still under obj->lock
- *     ct_mutex_unlock(&obj->lock);
+ *     object_t* obj = CT_CONTAINER_OF(ref, object_t, ref_);
+ *     remove_object(obj);  // still under obj->lock_
+ *     ct_mutex_unlock(&obj->lock_);
  *     object_destroy(obj);
  * }
  *
- * ct_ref_put_mutex(&obj->ref, object_release, &obj->lock);
+ * ct_ref_put_mutex(&obj->ref_, object_release, &obj->lock_);
  * @endcode
  */
 CT_API int ct_ref_put_mutex(ct_ref_t* self, void (*release)(ct_ref_t* self), ct_mutex_t* lock);
@@ -288,10 +288,10 @@ CT_API int ct_ref_put_mutex(ct_ref_t* self, void (*release)(ct_ref_t* self), ct_
  *
  * @code
  * typedef struct my_object {
- *     ct_ref_t ref;
+ *     ct_ref_t ref_;
  * } my_object_t;
  *
- * CT_REF_DEFINE(my_object, my_object_t, ref)
+ * CT_REF_DEFINE(my_object, my_object_t, ref_)
  *
  * my_object_t* p = my_object_get(obj);
  * my_object_put(p, my_object_destroy);

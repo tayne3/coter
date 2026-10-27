@@ -11,15 +11,15 @@
 
 namespace {
 struct robj {
-    ct_ref_t ref;
-    bool     released;
+    ct_ref_t ref_;
+    bool     released_;
 };
 
 void robj_release(robj* object) {
-    object->released = true;
+    object->released_ = true;
 }
 
-CT_REF_DEFINE(robj, robj, ref)
+CT_REF_DEFINE(robj, robj, ref_)
 }  // namespace
 
 TEST_SUITE_BEGIN("ref");
@@ -43,7 +43,7 @@ TEST_CASE("reference lifecycle") {
     SUBCASE("get not zero does not revive a dead reference") {
         REQUIRE(ct_ref_put(&ref));
         CHECK_FALSE(ct_ref_get_not_zero(&ref));
-        CHECK(ref.count.value == 0);
+        CHECK(ref.count_.value_ == 0);
     }
 }
 
@@ -52,56 +52,56 @@ TEST_CASE("invalid transitions saturate the reference count") {
 
     SUBCASE("incrementing zero saturates") {
         ct_ref_get(&ref);
-        CHECK(static_cast<uint32_t>(ref.count.value) == CT_REFCOUNT_SATURATED + CT_REFCOUNT_ADD_USE_AFTER_FREE);
+        CHECK(static_cast<uint32_t>(ref.count_.value_) == CT_REFCOUNT_SATURATED + CT_REFCOUNT_ADD_USE_AFTER_FREE);
         CHECK_FALSE(ct_ref_put(&ref));
-        CHECK(static_cast<uint32_t>(ref.count.value) >= CT_REFCOUNT_SATURATED);
+        CHECK(static_cast<uint32_t>(ref.count_.value_) >= CT_REFCOUNT_SATURATED);
     }
 
     SUBCASE("decrementing zero saturates") {
         CHECK_FALSE(ct_ref_put(&ref));
-        CHECK(static_cast<uint32_t>(ref.count.value) == CT_REFCOUNT_SATURATED + CT_REFCOUNT_SUB_USE_AFTER_FREE);
+        CHECK(static_cast<uint32_t>(ref.count_.value_) == CT_REFCOUNT_SATURATED + CT_REFCOUNT_SUB_USE_AFTER_FREE);
     }
 
     SUBCASE("incrementing the maximum count saturates") {
-        ref.count.value = CT_REFCOUNT_MAX;
+        ref.count_.value_ = CT_REFCOUNT_MAX;
         ct_ref_get(&ref);
-        CHECK(static_cast<uint32_t>(ref.count.value) == CT_REFCOUNT_SATURATED + CT_REFCOUNT_ADD_OVERFLOW);
+        CHECK(static_cast<uint32_t>(ref.count_.value_) == CT_REFCOUNT_SATURATED + CT_REFCOUNT_ADD_OVERFLOW);
         CHECK_FALSE(ct_ref_put(&ref));
-        CHECK(static_cast<uint32_t>(ref.count.value) >= CT_REFCOUNT_SATURATED);
+        CHECK(static_cast<uint32_t>(ref.count_.value_) >= CT_REFCOUNT_SATURATED);
     }
 
     SUBCASE("get not zero saturates on overflow") {
-        ref.count.value = CT_REFCOUNT_MAX;
+        ref.count_.value_ = CT_REFCOUNT_MAX;
         CHECK(ct_ref_get_not_zero(&ref));
-        CHECK(static_cast<uint32_t>(ref.count.value) == CT_REFCOUNT_SATURATED + CT_REFCOUNT_ADD_NOT_ZERO_OVERFLOW);
+        CHECK(static_cast<uint32_t>(ref.count_.value_) == CT_REFCOUNT_SATURATED + CT_REFCOUNT_ADD_NOT_ZERO_OVERFLOW);
     }
 
     SUBCASE("get not zero preserves an existing poison reason") {
         const uint32_t poisoned = CT_REFCOUNT_SATURATED + CT_REFCOUNT_SUB_USE_AFTER_FREE;
-        ref.count.value         = static_cast<uint32_t>(poisoned);
+        ref.count_.value_ = static_cast<uint32_t>(poisoned);
 
         CHECK(ct_ref_get_not_zero(&ref));
-        CHECK(static_cast<uint32_t>(ref.count.value) == poisoned);
+        CHECK(static_cast<uint32_t>(ref.count_.value_) == poisoned);
     }
 
     SUBCASE("get not zero repairs a transient overflow state") {
-        ref.count.value = static_cast<uint32_t>(CT_REFCOUNT_MAX + UINT32_C(1));
+        ref.count_.value_ = static_cast<uint32_t>(CT_REFCOUNT_MAX + UINT32_C(1));
 
         CHECK(ct_ref_get_not_zero(&ref));
-        CHECK(static_cast<uint32_t>(ref.count.value) == CT_REFCOUNT_SATURATED + CT_REFCOUNT_ADD_NOT_ZERO_OVERFLOW);
+        CHECK(static_cast<uint32_t>(ref.count_.value_) == CT_REFCOUNT_SATURATED + CT_REFCOUNT_ADD_NOT_ZERO_OVERFLOW);
     }
 
     SUBCASE("mutex put poisons a transient overflow state") {
         ct_mutex_t lock;
         REQUIRE(ct_mutex_init(&lock) == 0);
 
-        ref.count.value = static_cast<uint32_t>(CT_REFCOUNT_MAX + UINT32_C(1));
+        ref.count_.value_ = static_cast<uint32_t>(CT_REFCOUNT_MAX + UINT32_C(1));
 
-        CHECK_FALSE(ct_refcount_dec_and_mutex_lock(&ref.count, &lock));
+        CHECK_FALSE(ct_refcount_dec_and_mutex_lock(&ref.count_, &lock));
         const uint32_t poisoned = CT_REFCOUNT_SATURATED + CT_REFCOUNT_SUB_USE_AFTER_FREE;
-        CHECK(static_cast<uint32_t>(ref.count.value) == poisoned);
+        CHECK(static_cast<uint32_t>(ref.count_.value_) == poisoned);
         CHECK(ct_ref_get_not_zero(&ref));
-        CHECK(static_cast<uint32_t>(ref.count.value) == poisoned);
+        CHECK(static_cast<uint32_t>(ref.count_.value_) == poisoned);
         CHECK(ct_mutex_trylock(&lock) == 0);
         CHECK(ct_mutex_unlock(&lock) == 0);
         CHECK(ct_mutex_destroy(&lock) == 0);
@@ -128,7 +128,7 @@ TEST_CASE("concurrent references balance while an owner remains") {
     for (auto& thread : threads) { thread.join(); }
 
     CHECK_FALSE(unexpected_release.load(std::memory_order_relaxed));
-    CHECK(ref.count.value == 1);
+    CHECK(ref.count_.value_ == 1);
     CHECK(ct_ref_put(&ref));
 }
 
@@ -167,59 +167,59 @@ TEST_CASE("get not zero races safely with the final put") {
 
 TEST_CASE("mutex put behavior") {
     struct mutex_ref {
-        ct_ref_t   ref;
-        ct_mutex_t mutex;
-        bool       released;
+        ct_ref_t   ref_;
+        ct_mutex_t mutex_;
+        bool       released_;
     };
 
     auto release_mutex_ref = [](ct_ref_t* ref) {
-        mutex_ref* object = CT_CONTAINER_OF(ref, mutex_ref, ref);
-        object->released  = true;
-        ct_mutex_unlock(&object->mutex);
+        mutex_ref* object = CT_CONTAINER_OF(ref, mutex_ref, ref_);
+        object->released_ = true;
+        ct_mutex_unlock(&object->mutex_);
     };
 
     mutex_ref object{};
-    ct_ref_init(&object.ref);
-    REQUIRE(ct_mutex_init(&object.mutex) == 0);
+    ct_ref_init(&object.ref_);
+    REQUIRE(ct_mutex_init(&object.mutex_) == 0);
 
     SUBCASE("release runs with the mutex held for the final reference") {
-        CHECK(ct_ref_put_mutex(&object.ref, release_mutex_ref, &object.mutex) == 1);
-        CHECK(object.released);
-        CHECK(ct_mutex_trylock(&object.mutex) == 0);
-        CHECK(ct_mutex_unlock(&object.mutex) == 0);
+        CHECK(ct_ref_put_mutex(&object.ref_, release_mutex_ref, &object.mutex_) == 1);
+        CHECK(object.released_);
+        CHECK(ct_mutex_trylock(&object.mutex_) == 0);
+        CHECK(ct_mutex_unlock(&object.mutex_) == 0);
     }
 
     SUBCASE("non-final put does not acquire the mutex") {
-        ct_ref_get(&object.ref);
+        ct_ref_get(&object.ref_);
 
-        CHECK(ct_ref_put_mutex(&object.ref, release_mutex_ref, &object.mutex) == 0);
-        CHECK_FALSE(object.released);
-        CHECK(ct_mutex_trylock(&object.mutex) == 0);
-        CHECK(ct_mutex_unlock(&object.mutex) == 0);
-        CHECK(ct_ref_put(&object.ref));
+        CHECK(ct_ref_put_mutex(&object.ref_, release_mutex_ref, &object.mutex_) == 0);
+        CHECK_FALSE(object.released_);
+        CHECK(ct_mutex_trylock(&object.mutex_) == 0);
+        CHECK(ct_mutex_unlock(&object.mutex_) == 0);
+        CHECK(ct_ref_put(&object.ref_));
     }
 
     SUBCASE("put after zero saturates instead of silently skipping") {
-        REQUIRE(ct_ref_put(&object.ref));
+        REQUIRE(ct_ref_put(&object.ref_));
 
-        CHECK(ct_ref_put_mutex(&object.ref, release_mutex_ref, &object.mutex) == 0);
-        CHECK(static_cast<uint32_t>(object.ref.count.value) >= CT_REFCOUNT_SATURATED);
-        CHECK(ct_mutex_trylock(&object.mutex) == 0);
-        CHECK(ct_mutex_unlock(&object.mutex) == 0);
+        CHECK(ct_ref_put_mutex(&object.ref_, release_mutex_ref, &object.mutex_) == 0);
+        CHECK(static_cast<uint32_t>(object.ref_.count_.value_) >= CT_REFCOUNT_SATURATED);
+        CHECK(ct_mutex_trylock(&object.mutex_) == 0);
+        CHECK(ct_mutex_unlock(&object.mutex_) == 0);
     }
 
-    CHECK(ct_mutex_destroy(&object.mutex) == 0);
+    CHECK(ct_mutex_destroy(&object.mutex_) == 0);
 }
 
 TEST_CASE("typed reference helpers preserve lifecycle rules") {
     robj object{};
-    ct_ref_init(&object.ref);
+    ct_ref_init(&object.ref_);
 
     CHECK(robj_get(&object) == &object);
     robj_put(&object, robj_release);
-    CHECK_FALSE(object.released);
+    CHECK_FALSE(object.released_);
     robj_put(&object, robj_release);
-    CHECK(object.released);
+    CHECK(object.released_);
 
     CHECK(robj_get_not_zero(&object) == nullptr);
 }
