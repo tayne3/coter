@@ -1,6 +1,6 @@
 /**
  * @file msgqueue.c
- * @brief 消息队列
+ * @brief Thread-safe message queue implementation.
  */
 #include "coter/sync/msgqueue.h"
 
@@ -8,45 +8,45 @@
 
 #include "coter/core/platform.h"
 
-static int mq__wait_not_full(ct_msgqueue_t* self, ct_time64_t timeout_ms);
-static int mq__wait_not_empty(ct_msgqueue_t* self, ct_time64_t timeout_ms);
+static int msgqueue_wait_not_full(ct_msgqueue_t* self, ct_time64_t timeout_ms);
+static int msgqueue_wait_not_empty(ct_msgqueue_t* self, ct_time64_t timeout_ms);
 
 void ct_msgqueue_init(ct_msgqueue_t* self, void* buffer, size_t byte, size_t max) {
-    ct_queue_init(self->queue, buffer, byte, max);
-    ct_mutex_init(&self->mutex);
-    ct_cond_init(&self->not_empty);
-    ct_cond_init(&self->not_full);
-    self->is_shut = false;
+    ct_queue_init(self->queue_, buffer, byte, max);
+    ct_mutex_init(&self->mutex_);
+    ct_cond_init(&self->not_empty_);
+    ct_cond_init(&self->not_full_);
+    self->is_shut_ = false;
 }
 
 void ct_msgqueue_close(ct_msgqueue_t* self) {
     if (!self) { return; }
 
-    ct_mutex_lock(&self->mutex);
-    if (!self->is_shut) {
-        self->is_shut = true;
-        ct_cond_broadcast(&self->not_empty);
-        ct_cond_broadcast(&self->not_full);
+    ct_mutex_lock(&self->mutex_);
+    if (!self->is_shut_) {
+        self->is_shut_ = true;
+        ct_cond_broadcast(&self->not_empty_);
+        ct_cond_broadcast(&self->not_full_);
     }
-    ct_mutex_unlock(&self->mutex);
+    ct_mutex_unlock(&self->mutex_);
 }
 
 void ct_msgqueue_destroy(ct_msgqueue_t* self) {
     if (!self) { return; }
 
     ct_msgqueue_close(self);
-    ct_cond_destroy(&self->not_full);
-    ct_cond_destroy(&self->not_empty);
-    ct_mutex_destroy(&self->mutex);
+    ct_cond_destroy(&self->not_full_);
+    ct_cond_destroy(&self->not_empty_);
+    ct_mutex_destroy(&self->mutex_);
 }
 
 bool ct_msgqueue_is_empty(ct_msgqueue_t* self) {
     if (!self) { return true; }
 
     bool is_empty;
-    ct_mutex_lock(&self->mutex);
-    is_empty = ct_queue_is_empty(self->queue);
-    ct_mutex_unlock(&self->mutex);
+    ct_mutex_lock(&self->mutex_);
+    is_empty = ct_queue_is_empty(self->queue_);
+    ct_mutex_unlock(&self->mutex_);
     return is_empty;
 }
 
@@ -54,9 +54,9 @@ bool ct_msgqueue_is_full(ct_msgqueue_t* self) {
     if (!self) { return true; }
 
     bool is_full;
-    ct_mutex_lock(&self->mutex);
-    is_full = ct_queue_is_full(self->queue);
-    ct_mutex_unlock(&self->mutex);
+    ct_mutex_lock(&self->mutex_);
+    is_full = ct_queue_is_full(self->queue_);
+    ct_mutex_unlock(&self->mutex_);
     return is_full;
 }
 
@@ -64,123 +64,123 @@ size_t ct_msgqueue_size(ct_msgqueue_t* self) {
     if (!self) { return 0; }
 
     size_t size;
-    ct_mutex_lock(&self->mutex);
-    size = ct_queue_size(self->queue);
-    ct_mutex_unlock(&self->mutex);
+    ct_mutex_lock(&self->mutex_);
+    size = ct_queue_size(self->queue_);
+    ct_mutex_unlock(&self->mutex_);
     return size;
 }
 
 int ct_msgqueue_push(ct_msgqueue_t* self, const void* item) {
     if (!self || !item) { return EINVAL; }
 
-    ct_mutex_lock(&self->mutex);
-    if (self->is_shut) {
-        ct_mutex_unlock(&self->mutex);
+    ct_mutex_lock(&self->mutex_);
+    if (self->is_shut_) {
+        ct_mutex_unlock(&self->mutex_);
         return EPIPE;
     }
-    const int result = mq__wait_not_full(self, -1);
+    const int result = msgqueue_wait_not_full(self, -1);
     if (result == 0) {
-        ct_queue_enqueue(self->queue, item);
-        ct_cond_signal(&self->not_empty);
+        ct_queue_enqueue(self->queue_, item);
+        ct_cond_signal(&self->not_empty_);
     }
-    ct_mutex_unlock(&self->mutex);
+    ct_mutex_unlock(&self->mutex_);
     return result;
 }
 
 int ct_msgqueue_pop(ct_msgqueue_t* self, void* item) {
     if (!self || !item) { return EINVAL; }
 
-    ct_mutex_lock(&self->mutex);
-    if (self->is_shut) {
-        ct_mutex_unlock(&self->mutex);
+    ct_mutex_lock(&self->mutex_);
+    if (self->is_shut_) {
+        ct_mutex_unlock(&self->mutex_);
         return EPIPE;
     }
-    const int result = mq__wait_not_empty(self, -1);
+    const int result = msgqueue_wait_not_empty(self, -1);
     if (result == 0) {
-        ct_queue_dequeue(self->queue, item);
-        ct_cond_signal(&self->not_full);
+        ct_queue_dequeue(self->queue_, item);
+        ct_cond_signal(&self->not_full_);
     }
-    ct_mutex_unlock(&self->mutex);
+    ct_mutex_unlock(&self->mutex_);
     return result;
 }
 
 int ct_msgqueue_try_push(ct_msgqueue_t* self, const void* item) {
     if (!self || !item) { return EINVAL; }
 
-    ct_mutex_lock(&self->mutex);
-    if (self->is_shut) {
-        ct_mutex_unlock(&self->mutex);
+    ct_mutex_lock(&self->mutex_);
+    if (self->is_shut_) {
+        ct_mutex_unlock(&self->mutex_);
         return EPIPE;
     }
-    if (ct_queue_is_full(self->queue)) {
-        ct_mutex_unlock(&self->mutex);
+    if (ct_queue_is_full(self->queue_)) {
+        ct_mutex_unlock(&self->mutex_);
         return EAGAIN;
     }
 
-    ct_queue_enqueue(self->queue, item);
-    ct_cond_signal(&self->not_empty);
-    ct_mutex_unlock(&self->mutex);
+    ct_queue_enqueue(self->queue_, item);
+    ct_cond_signal(&self->not_empty_);
+    ct_mutex_unlock(&self->mutex_);
     return 0;
 }
 
 int ct_msgqueue_try_pop(ct_msgqueue_t* self, void* item) {
     if (!self || !item) { return EINVAL; }
 
-    ct_mutex_lock(&self->mutex);
-    if (self->is_shut) {
-        ct_mutex_unlock(&self->mutex);
+    ct_mutex_lock(&self->mutex_);
+    if (self->is_shut_) {
+        ct_mutex_unlock(&self->mutex_);
         return EPIPE;
     }
-    if (ct_queue_is_empty(self->queue)) {
-        ct_mutex_unlock(&self->mutex);
+    if (ct_queue_is_empty(self->queue_)) {
+        ct_mutex_unlock(&self->mutex_);
         return EAGAIN;
     }
 
-    ct_queue_dequeue(self->queue, item);
-    ct_cond_signal(&self->not_full);
-    ct_mutex_unlock(&self->mutex);
+    ct_queue_dequeue(self->queue_, item);
+    ct_cond_signal(&self->not_full_);
+    ct_mutex_unlock(&self->mutex_);
     return 0;
 }
 
 int ct_msgqueue_push_for(ct_msgqueue_t* self, const void* item, ct_time64_t timeout_ms) {
     if (!self || !item) { return EINVAL; }
 
-    ct_mutex_lock(&self->mutex);
-    if (self->is_shut) {
-        ct_mutex_unlock(&self->mutex);
+    ct_mutex_lock(&self->mutex_);
+    if (self->is_shut_) {
+        ct_mutex_unlock(&self->mutex_);
         return EPIPE;
     }
-    const int result = mq__wait_not_full(self, timeout_ms);
+    const int result = msgqueue_wait_not_full(self, timeout_ms);
     if (result == 0) {
-        ct_queue_enqueue(self->queue, item);
-        ct_cond_signal(&self->not_empty);
+        ct_queue_enqueue(self->queue_, item);
+        ct_cond_signal(&self->not_empty_);
     }
-    ct_mutex_unlock(&self->mutex);
+    ct_mutex_unlock(&self->mutex_);
     return result;
 }
 
 int ct_msgqueue_pop_for(ct_msgqueue_t* self, void* item, ct_time64_t timeout_ms) {
     if (!self || !item) { return EINVAL; }
 
-    ct_mutex_lock(&self->mutex);
-    if (self->is_shut) {
-        ct_mutex_unlock(&self->mutex);
+    ct_mutex_lock(&self->mutex_);
+    if (self->is_shut_) {
+        ct_mutex_unlock(&self->mutex_);
         return EPIPE;
     }
-    const int result = mq__wait_not_empty(self, timeout_ms);
+    const int result = msgqueue_wait_not_empty(self, timeout_ms);
     if (result == 0) {
-        ct_queue_dequeue(self->queue, item);
-        ct_cond_signal(&self->not_full);
+        ct_queue_dequeue(self->queue_, item);
+        ct_cond_signal(&self->not_full_);
     }
-    ct_mutex_unlock(&self->mutex);
+    ct_mutex_unlock(&self->mutex_);
     return result;
 }
 
-static int mq__wait_not_full(ct_msgqueue_t* self, ct_time64_t timeout_ms) {
+static int msgqueue_wait_not_full(ct_msgqueue_t* self, ct_time64_t timeout_ms) {
     const ct_time64_t deadline = timeout_ms > 0 ? ct_gettick_ms() + timeout_ms : 0;
 
-    while (ct_queue_is_full(self->queue)) {
-        if (self->is_shut) { return EPIPE; }
+    while (ct_queue_is_full(self->queue_)) {
+        if (self->is_shut_) { return EPIPE; }
         if (timeout_ms == 0) { return ETIMEDOUT; }
 
         ct_time64_t wait_ms = timeout_ms;
@@ -190,17 +190,17 @@ static int mq__wait_not_full(ct_msgqueue_t* self, ct_time64_t timeout_ms) {
             wait_ms = deadline - now;
         }
 
-        int result = ct_cond_wait_for(&self->not_full, &self->mutex, wait_ms);
+        int result = ct_cond_wait_for(&self->not_full_, &self->mutex_, wait_ms);
         if (result != 0) { return result; }
     }
-    return self->is_shut ? EPIPE : 0;
+    return self->is_shut_ ? EPIPE : 0;
 }
 
-static int mq__wait_not_empty(ct_msgqueue_t* self, ct_time64_t timeout_ms) {
+static int msgqueue_wait_not_empty(ct_msgqueue_t* self, ct_time64_t timeout_ms) {
     const ct_time64_t deadline = timeout_ms > 0 ? ct_gettick_ms() + timeout_ms : 0;
 
-    while (ct_queue_is_empty(self->queue)) {
-        if (self->is_shut) { return EPIPE; }
+    while (ct_queue_is_empty(self->queue_)) {
+        if (self->is_shut_) { return EPIPE; }
         if (timeout_ms == 0) { return ETIMEDOUT; }
 
         ct_time64_t wait_ms = timeout_ms;
@@ -210,8 +210,8 @@ static int mq__wait_not_empty(ct_msgqueue_t* self, ct_time64_t timeout_ms) {
             wait_ms = deadline - now;
         }
 
-        int result = ct_cond_wait_for(&self->not_empty, &self->mutex, wait_ms);
+        int result = ct_cond_wait_for(&self->not_empty_, &self->mutex_, wait_ms);
         if (result != 0) { return result; }
     }
-    return self->is_shut ? EPIPE : 0;
+    return self->is_shut_ ? EPIPE : 0;
 }
