@@ -20,7 +20,7 @@
  * @brief Reads a little-endian 32-bit integer from a byte buffer.
  * @param p The byte buffer.
  */
-static uint32_t md5__load_le32(const uint8_t* p) {
+static uint32_t md5_load_le32(const uint8_t* p) {
     return ((uint32_t)p[0]) | ((uint32_t)p[1] << 8) | ((uint32_t)p[2] << 16) | ((uint32_t)p[3] << 24);
 }
 
@@ -29,7 +29,7 @@ static uint32_t md5__load_le32(const uint8_t* p) {
  * @param p The byte buffer.
  * @param v The 32-bit integer to write.
  */
-static void md5__store_le32(uint8_t* p, uint32_t v) {
+static void md5_store_le32(uint8_t* p, uint32_t v) {
     p[0] = (uint8_t)(v);
     p[1] = (uint8_t)(v >> 8);
     p[2] = (uint8_t)(v >> 16);
@@ -42,7 +42,7 @@ static void md5__store_le32(uint8_t* p, uint32_t v) {
  * @param block Input data.
  * @note This function performs the transformation step of the MD5 algorithm.
  */
-static void md5__transform(uint32_t buf[4], const uint8_t block[64]) {
+static void md5_transform(uint32_t buf[4], const uint8_t block[64]) {
 #define F1(x, y, z) (z ^ (x & (y ^ z)))
 #define F2(x, y, z) F1(z, x, y)
 #define F3(x, y, z) (x ^ y ^ z)
@@ -59,7 +59,7 @@ static void md5__transform(uint32_t buf[4], const uint8_t block[64]) {
     uint32_t in[16];
     int      i;
 
-    for (i = 0; i < 16; ++i) { in[i] = md5__load_le32(block + i * 4); }
+    for (i = 0; i < 16; ++i) { in[i] = md5_load_le32(block + i * 4); }
 
     a = buf[0];
     b = buf[1];
@@ -148,27 +148,27 @@ static void md5__transform(uint32_t buf[4], const uint8_t block[64]) {
 }
 
 void ct_md5_init(ct_md5_ctx_t* self) {
-    self->buf[0]  = UINT32_C(0x67452301);
-    self->buf[1]  = UINT32_C(0xefcdab89);
-    self->buf[2]  = UINT32_C(0x98badcfe);
-    self->buf[3]  = UINT32_C(0x10325476);
-    self->bits[0] = 0;
-    self->bits[1] = 0;
-    memset(self->in, 0, sizeof(self->in));
+    self->buf_[0]  = UINT32_C(0x67452301);
+    self->buf_[1]  = UINT32_C(0xefcdab89);
+    self->buf_[2]  = UINT32_C(0x98badcfe);
+    self->buf_[3]  = UINT32_C(0x10325476);
+    self->bits_[0] = 0;
+    self->bits_[1] = 0;
+    memset(self->in_, 0, sizeof(self->in_));
 }
 
 void ct_md5_update(ct_md5_ctx_t* self, const void* data, size_t len) {
     const uint8_t* buf = data;
 
     {
-        uint32_t t = self->bits[0];
-        if ((self->bits[0] = t + ((uint32_t)len << 3)) < t) { ++self->bits[1]; }
-        self->bits[1] += (uint32_t)(len >> 29);
+        uint32_t t = self->bits_[0];
+        if ((self->bits_[0] = t + ((uint32_t)len << 3)) < t) { ++self->bits_[1]; }
+        self->bits_[1] += (uint32_t)(len >> 29);
 
         t = (t >> 3) & 0x3f;
 
         if (t) {
-            uint8_t* p = (uint8_t*)self->in + t;
+            uint8_t* p = (uint8_t*)self->in_ + t;
 
             t = 64 - t;
             if (len < t) {
@@ -176,45 +176,45 @@ void ct_md5_update(ct_md5_ctx_t* self, const void* data, size_t len) {
                 return;
             }
             memcpy(p, buf, t);
-            md5__transform(self->buf, self->in);
+            md5_transform(self->buf_, self->in_);
             buf += t;
             len -= t;
         }
     }
 
     for (; len >= 64;) {
-        memcpy(self->in, buf, 64);
-        md5__transform(self->buf, self->in);
+        memcpy(self->in_, buf, 64);
+        md5_transform(self->buf_, self->in_);
         buf += 64;
         len -= 64;
     }
 
-    memcpy(self->in, buf, len);
+    memcpy(self->in_, buf, len);
 }
 
 void ct_md5_final(ct_md5_ctx_t* self, uint8_t digest[16]) {
     {
-        unsigned int count = (self->bits[0] >> 3) & 0x3F;
-        uint8_t*     p     = self->in + count;
+        unsigned int count = (self->bits_[0] >> 3) & 0x3F;
+        uint8_t*     p     = self->in_ + count;
         *p++               = 0x80;
         count              = 64 - 1 - count;
         if (count < 8) {
             memset(p, 0, count);
-            md5__transform(self->buf, self->in);
-            memset(self->in, 0, 56);
+            md5_transform(self->buf_, self->in_);
+            memset(self->in_, 0, 56);
         } else {
             memset(p, 0, count - 8);
         }
     }
 
-    md5__store_le32(self->in + 56, self->bits[0]);
-    md5__store_le32(self->in + 60, self->bits[1]);
+    md5_store_le32(self->in_ + 56, self->bits_[0]);
+    md5_store_le32(self->in_ + 60, self->bits_[1]);
 
-    md5__transform(self->buf, self->in);
-    md5__store_le32(digest, self->buf[0]);
-    md5__store_le32(digest + 4, self->buf[1]);
-    md5__store_le32(digest + 8, self->buf[2]);
-    md5__store_le32(digest + 12, self->buf[3]);
+    md5_transform(self->buf_, self->in_);
+    md5_store_le32(digest, self->buf_[0]);
+    md5_store_le32(digest + 4, self->buf_[1]);
+    md5_store_le32(digest + 8, self->buf_[2]);
+    md5_store_le32(digest + 12, self->buf_[3]);
 
     ct_md5_init(self);
 }

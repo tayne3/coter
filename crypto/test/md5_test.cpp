@@ -1,3 +1,7 @@
+/**
+ * @file md5_test.cpp
+ * @brief MD5 tests.
+ */
 #include "coter/crypto/md5.h"
 
 #include <cstddef>
@@ -8,8 +12,8 @@
 
 TEST_CASE("md5 test" * doctest::test_suite("md5")) {
     struct md5_test {
-        const char*   data;
-        const uint8_t target[16];
+        const char*   data_;
+        const uint8_t target_[16];
     };
 
     const md5_test md5_test_all[] = {
@@ -40,36 +44,36 @@ TEST_CASE("md5 test" * doctest::test_suite("md5")) {
     };
 
     for (const auto& test_case : md5_test_all) {
-        CAPTURE(test_case.data);
-        const size_t data_len = std::strlen(test_case.data);
+        CAPTURE(test_case.data_);
+        const size_t data_len = std::strlen(test_case.data_);
 
         {
             uint8_t buffer[16] = {0};
 
             ct_md5_ctx_t ctx;
             ct_md5_init(&ctx);
-            ct_md5_update(&ctx, test_case.data, data_len);
+            ct_md5_update(&ctx, test_case.data_, data_len);
             ct_md5_final(&ctx, buffer);
 
-            REQUIRE(std::memcmp(buffer, test_case.target, 16) == 0);
+            REQUIRE(std::memcmp(buffer, test_case.target_, 16) == 0);
         }
 
         {
             uint8_t buffer[16] = {0};
 
             ct_md5_ctx_t ctx = CT_MD5_CTX_INIT;
-            ct_md5_update(&ctx, test_case.data, data_len);
+            ct_md5_update(&ctx, test_case.data_, data_len);
             ct_md5_final(&ctx, buffer);
 
-            REQUIRE(std::memcmp(buffer, test_case.target, 16) == 0);
+            REQUIRE(std::memcmp(buffer, test_case.target_, 16) == 0);
         }
 
         {
             uint8_t buffer[16] = {0};
 
-            ct_md5_sum(test_case.data, data_len, buffer);
+            ct_md5_sum(test_case.data_, data_len, buffer);
 
-            REQUIRE(std::memcmp(buffer, test_case.target, 16) == 0);
+            REQUIRE(std::memcmp(buffer, test_case.target_, 16) == 0);
         }
     }
 }

@@ -49,9 +49,9 @@ extern "C" {
  * @endcode
  */
 typedef struct ct_md5_ctx {
-    uint32_t buf[4];
-    uint32_t bits[2];
-    uint8_t  in[64];
+    uint32_t buf_[4];
+    uint32_t bits_[2];
+    uint8_t  in_[64];
 } ct_md5_ctx_t;
 
 #define CT_MD5_CTX_INIT           \
