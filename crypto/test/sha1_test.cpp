@@ -1,3 +1,7 @@
+/**
+ * @file sha1_test.cpp
+ * @brief SHA1 tests.
+ */
 #include "coter/crypto/sha1.h"
 
 #include <cstring>
@@ -8,7 +12,7 @@
 
 namespace {
 
-std::string digest_to_hex(const uint8_t digest[20]) {
+std::string sha1_digest_to_hex(const uint8_t digest[20]) {
     static const char hex_chars[] = "0123456789abcdef";
     std::string       result;
     result.reserve(40);
@@ -23,8 +27,8 @@ std::string digest_to_hex(const uint8_t digest[20]) {
 
 TEST_CASE("sha1" * doctest::test_suite("sha1")) {
     struct ct_sha1_test {
-        const char* data;
-        const char* target;
+        const char* data_;
+        const char* target_;
     } ct_sha1_test_all[] = {
         {
             "",
@@ -63,24 +67,24 @@ TEST_CASE("sha1" * doctest::test_suite("sha1")) {
     const int size = (int)(sizeof(ct_sha1_test_all) / sizeof(ct_sha1_test_all[0]));
     for (int i = 0; i < size; ++i) {
         const struct ct_sha1_test* it  = &ct_sha1_test_all[i];
-        const size_t               len = std::strlen(it->data);
+        const size_t               len = std::strlen(it->data_);
         INFO("i=" << i);
 
         // Test ct_sha1_sum
         {
             uint8_t digest[20] = {0};
-            ct_sha1_sum(it->data, len, digest);
-            REQUIRE(digest_to_hex(digest) == std::string(it->target));
+            ct_sha1_sum(it->data_, len, digest);
+            REQUIRE(sha1_digest_to_hex(digest) == std::string(it->target_));
         }
 
         // Test ct_sha1_init / ct_sha1_update / ct_sha1_final
         {
             ct_sha1_ctx_t ctx;
             ct_sha1_init(&ctx);
-            ct_sha1_update(&ctx, it->data, len);
+            ct_sha1_update(&ctx, it->data_, len);
             uint8_t digest[20] = {0};
             ct_sha1_final(&ctx, digest);
-            REQUIRE(digest_to_hex(digest) == std::string(it->target));
+            REQUIRE(sha1_digest_to_hex(digest) == std::string(it->target_));
         }
     }
 }

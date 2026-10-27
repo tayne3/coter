@@ -22,9 +22,9 @@ extern "C" {
  * including state variables, processed bit count, and data buffer.
  */
 typedef struct {
-    uint32_t      state[5];   /**< SHA1 state variables */
-    uint32_t      count[2];   /**< Processed bit count, low-order word first */
-    unsigned char buffer[64]; /**< Data buffer */
+    uint32_t      state_[5];   /**< SHA1 state variables */
+    uint32_t      count_[2];   /**< Processed bit count, low-order word first */
+    unsigned char buffer_[64]; /**< Data buffer */
 } ct_sha1_ctx_t;
 
 /**
