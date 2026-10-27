@@ -1,9 +1,6 @@
 /**
  * @file shutdown_signal.h
  * @brief Cancellation and shutdown primitives.
- *
- * ct_timeout_signal_t  — lock-free cancel/deadline token; poll-only, no blocking.
- * ct_shutdown_token_t  — wraps the above with a mutex + condvar for blocking waits.
  */
 #ifndef COTER_SYNC_SHUTDOWN_SIGNAL_H
 #define COTER_SYNC_SHUTDOWN_SIGNAL_H
@@ -18,9 +15,12 @@
 extern "C" {
 #endif
 
+/**
+ * @brief Lock-free cancel/deadline token for polling.
+ */
 typedef struct ct_timeout_signal {
-    ct_atomic_llong_t deadline_ms; /**< Absolute uptime deadline (ms); <0 = no deadline. */
-    ct_atomic_int_t   cancelled;   /**< Non-zero once cancelled. One-way; never cleared. */
+    ct_atomic_llong_t deadline_ms_; /**< Absolute uptime deadline (ms); <0 = no deadline. */
+    ct_atomic_int_t   cancelled_;   /**< Non-zero once cancelled. One-way; never cleared. */
 } ct_timeout_signal_t;
 
 /**
@@ -52,13 +52,15 @@ CT_API bool ct_timeout_signal_is_done(const ct_timeout_signal_t* token);
 CT_API ct_time64_t ct_timeout_signal_remaining(const ct_timeout_signal_t* token);
 
 /**
+ * @brief Blocking shutdown token wrapping a timeout signal.
+ *
  * Extends ct_timeout_signal_t with a mutex and condvar so threads can block
  * in ct_shutdown_token_wait() until cancelled or expired.
  */
 typedef struct ct_shutdown_token {
-    ct_timeout_signal_t token;
-    ct_mutex_t          mutex;
-    ct_cond_t           cond;
+    ct_timeout_signal_t token_;
+    ct_mutex_t          mutex_;
+    ct_cond_t           cond_;
 } ct_shutdown_token_t;
 
 /**
@@ -82,13 +84,13 @@ CT_API bool ct_shutdown_token_cancel(ct_shutdown_token_t* ctx);
 /** Delegates to ct_timeout_signal_is_done(); always false for NULL. */
 CT_INLINE bool ct_shutdown_token_is_done(const ct_shutdown_token_t* ctx) {
     if (!ctx) { return false; }
-    return ct_timeout_signal_is_done(&ctx->token);
+    return ct_timeout_signal_is_done(&ctx->token_);
 }
 
 /** Delegates to ct_timeout_signal_remaining(); returns -1 for NULL. */
 CT_INLINE ct_time64_t ct_shutdown_token_remaining(const ct_shutdown_token_t* ctx) {
     if (!ctx) { return -1; }
-    return ct_timeout_signal_remaining(&ctx->token);
+    return ct_timeout_signal_remaining(&ctx->token_);
 }
 
 /**
@@ -103,7 +105,7 @@ CT_API bool ct_shutdown_token_wait(ct_shutdown_token_t* ctx, ct_time64_t timeout
 /** Returns a pointer to the inner ct_timeout_signal_t; NULL for NULL ctx. */
 CT_INLINE ct_timeout_signal_t* ct_shutdown_token_token(ct_shutdown_token_t* ctx) {
     if (!ctx) { return NULL; }
-    return &ctx->token;
+    return &ctx->token_;
 }
 
 #ifdef __cplusplus

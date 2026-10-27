@@ -82,7 +82,7 @@ TEST_CASE("shutdown_token: basic lifecycle") {
 
     REQUIRE_FALSE(ct_shutdown_token_is_done(&ctx));
     REQUIRE(ct_shutdown_token_remaining(&ctx) == -1);
-    REQUIRE(ct_shutdown_token_token(&ctx) == &ctx.token);
+    REQUIRE(ct_shutdown_token_token(&ctx) == &ctx.token_);
 
     bool first = ct_shutdown_token_cancel(&ctx);
     REQUIRE(first);
@@ -146,11 +146,11 @@ TEST_CASE("shutdown_token: multiple concurrent waiters all wake on cancel") {
     ct_shutdown_token_t ctx;
     REQUIRE(ct_shutdown_token_init(&ctx, -1) == 0);
 
-    constexpr int N          = 4;
-    bool          results[N] = {};
+    constexpr int waiter_count          = 4;
+    bool          results[waiter_count] = {};
 
-    std::thread waiters[N];
-    for (int i = 0; i < N; ++i) {
+    std::thread waiters[waiter_count];
+    for (int i = 0; i < waiter_count; ++i) {
         waiters[i] = std::thread([&ctx, &results, i] { results[i] = ct_shutdown_token_wait(&ctx, -1); });
     }
 
@@ -159,7 +159,7 @@ TEST_CASE("shutdown_token: multiple concurrent waiters all wake on cancel") {
 
     for (auto& t : waiters) { t.join(); }
 
-    for (int i = 0; i < N; ++i) { REQUIRE(results[i]); }
+    for (int i = 0; i < waiter_count; ++i) { REQUIRE(results[i]); }
 
     ct_shutdown_token_destroy(&ctx);
 }
@@ -183,11 +183,11 @@ TEST_CASE("shutdown_token: multiple concurrent cancel calls") {
     ct_shutdown_token_t ctx;
     REQUIRE(ct_shutdown_token_init(&ctx, -1) == 0);
 
-    constexpr int N          = 8;
-    bool          results[N] = {};
+    constexpr int closer_count          = 8;
+    bool          results[closer_count] = {};
 
-    std::thread closers[N];
-    for (int i = 0; i < N; ++i) {
+    std::thread closers[closer_count];
+    for (int i = 0; i < closer_count; ++i) {
         closers[i] = std::thread([&ctx, &results, i]() mutable {
             std::this_thread::sleep_for(ms(10));
             results[i] = ct_shutdown_token_cancel(&ctx);
@@ -197,7 +197,7 @@ TEST_CASE("shutdown_token: multiple concurrent cancel calls") {
     for (auto& t : closers) { t.join(); }
 
     int true_count = 0;
-    for (int i = 0; i < N; ++i) {
+    for (int i = 0; i < closer_count; ++i) {
         if (results[i]) true_count++;
     }
     REQUIRE(true_count == 1);
