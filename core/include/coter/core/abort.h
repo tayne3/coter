@@ -20,9 +20,9 @@
 #endif
 
 #if CT_HAS_EXCEPTIONS
-#define CT_THROW(ex) throw(ex)
+#define CT_THROW(exception_) throw(exception_)
 #else
-#define CT_THROW(ex) CT_ABORT()
+#define CT_THROW(exception_) CT_ABORT()
 #endif
 
 #endif  // COTER_CORE_ABORT_H
