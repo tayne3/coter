@@ -53,84 +53,84 @@ int ct_strncpy_s(char* dest, size_t dest_size, const char* src, size_t count) {
     return (int)i;
 }
 
-void* ct_reverse_memcpy(void* dest, const void* src, size_t n) {
-    if (!dest || !src || !n || dest == src) { return dest; }
+void* ct_reverse_memcpy(void* dest, const void* src, size_t count) {
+    if (!dest || !src || !count || dest == src) { return dest; }
 
     size_t multiple;
     size_t remain;
 
-    const uint8_t* s = (const uint8_t*)src;
-    uint8_t*       d = (uint8_t*)dest;
+    const uint8_t* src_ptr = (const uint8_t*)src;
+    uint8_t*       dst_ptr = (uint8_t*)dest;
 
-    if (n < sizeof(uint64_t)) {
+    if (count < sizeof(uint64_t)) {
         multiple = 0;
-        remain   = n;
+        remain   = count;
     } else {
-        multiple = n / sizeof(uint64_t);
-        remain   = n % sizeof(uint64_t);
+        multiple = count / sizeof(uint64_t);
+        remain   = count % sizeof(uint64_t);
     }
 
     // Handle the trailing bytes that do not form a full 8-byte word.
     if (remain > 0) {
-        for (size_t i = 0; i < remain; ++i) { d[i] = s[n - 1 - i]; }
+        for (size_t i = 0; i < remain; ++i) { dst_ptr[i] = src_ptr[count - 1 - i]; }
     }
 
     if (multiple > 0) {
-        n -= remain;
-        d += remain;
-        s += n;
+        count -= remain;
+        dst_ptr += remain;
+        src_ptr += count;
 
         for (size_t i = 0; i < multiple; ++i) {
-            *d++ = *--s;
-            *d++ = *--s;
-            *d++ = *--s;
-            *d++ = *--s;
+            *dst_ptr++ = *--src_ptr;
+            *dst_ptr++ = *--src_ptr;
+            *dst_ptr++ = *--src_ptr;
+            *dst_ptr++ = *--src_ptr;
 
-            *d++ = *--s;
-            *d++ = *--s;
-            *d++ = *--s;
-            *d++ = *--s;
+            *dst_ptr++ = *--src_ptr;
+            *dst_ptr++ = *--src_ptr;
+            *dst_ptr++ = *--src_ptr;
+            *dst_ptr++ = *--src_ptr;
         }
     }
 
     return dest;
 }
 
-void* ct_reverse_memmove(void* dest, const void* src, size_t n) {
-    if (!dest || !src || !n) { return dest; }
+void* ct_reverse_memmove(void* dest, const void* src, size_t count) {
+    if (!dest || !src || !count) { return dest; }
 
-    const uint8_t* s = (const uint8_t*)src;
-    uint8_t*       d = (uint8_t*)dest;
+    const uint8_t* src_ptr = (const uint8_t*)src;
+    uint8_t*       dst_ptr = (uint8_t*)dest;
 
-    if (d < s) {
-        if (d + n > s) {
-            const size_t len = s - d;
-            ct_reverse_memcpy(d, d + n, len);
-            n -= len;
-            d += len;
+    if (dst_ptr < src_ptr) {
+        if (dst_ptr + count > src_ptr) {
+            const size_t len = src_ptr - dst_ptr;
+            ct_reverse_memcpy(dst_ptr, dst_ptr + count, len);
+            count -= len;
+            dst_ptr += len;
         } else {
-            ct_reverse_memcpy(d, src, n);
+            ct_reverse_memcpy(dst_ptr, src, count);
             return dest;
         }
-    } else if (d > s) {
-        if (d < s + n) {
-            const size_t len = d - s;
-            n -= len;
-            ct_reverse_memcpy(d + n, s, len);
+    } else if (dst_ptr > src_ptr) {
+        if (dst_ptr < src_ptr + count) {
+            const size_t len = dst_ptr - src_ptr;
+            count -= len;
+            ct_reverse_memcpy(dst_ptr + count, src_ptr, len);
         } else {
-            ct_reverse_memcpy(d, s, n);
+            ct_reverse_memcpy(dst_ptr, src_ptr, count);
             return dest;
         }
     }
 
     uint8_t val;
 
-    const size_t half = n / 2;
+    const size_t half = count / 2;
 
     for (size_t i = 0; i < half; ++i) {
-        val          = d[i];
-        d[i]         = d[n - 1 - i];
-        d[n - 1 - i] = val;
+        val                    = dst_ptr[i];
+        dst_ptr[i]             = dst_ptr[count - 1 - i];
+        dst_ptr[count - 1 - i] = val;
     }
 
     return dest;

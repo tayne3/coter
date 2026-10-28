@@ -57,18 +57,18 @@ CT_API int ct_strncpy_s(char* dest, size_t dest_size, const char* src, size_t co
 /// @brief Copy memory in reverse byte order
 /// @param dest Destination buffer
 /// @param src Source buffer
-/// @param n Number of bytes to copy
+/// @param count Number of bytes to copy
 /// @return Pointer to dest
-/// @note Copies src[0..n-1] to dest[n-1..0]; undefined behavior if buffers overlap
-CT_API void* ct_reverse_memcpy(void* dest, const void* src, size_t n);
+/// @note Copies src[0..count-1] to dest[count-1..0]; undefined behavior if buffers overlap
+CT_API void* ct_reverse_memcpy(void* dest, const void* src, size_t count);
 
 /// @brief Copy memory in reverse byte order (overlap-safe)
 /// @param dest Destination buffer
 /// @param src Source buffer
-/// @param n Number of bytes to copy
+/// @param count Number of bytes to copy
 /// @return Pointer to dest
-/// @note Copies src[0..n-1] to dest[n-1..0]; safe for overlapping buffers
-CT_API void* ct_reverse_memmove(void* dest, const void* src, size_t n);
+/// @note Copies src[0..count-1] to dest[count-1..0]; safe for overlapping buffers
+CT_API void* ct_reverse_memmove(void* dest, const void* src, size_t count);
 
 #if HAVE_MEMRCHR
 #define ct_memrchr memrchr
@@ -96,14 +96,14 @@ CT_INLINE void* ct_memrchr(const void* mem, int byte, size_t count) {
 constexpr const char* ct_basename(const char* path) noexcept {
     if (!path) return "(nil)";
     const char* result = path;
-    for (const char* p = path; *p; ++p) {
+    for (const char* cursor = path; *cursor; ++cursor) {
 #ifdef CT_OS_WIN
-        if (*p == '/' || *p == '\\')
+        if (*cursor == '/' || *cursor == '\\')
 #else
-        if (*p == '/')
+        if (*cursor == '/')
 #endif
         {
-            result = p + 1;
+            result = cursor + 1;
         }
     }
     return result;
@@ -111,13 +111,15 @@ constexpr const char* ct_basename(const char* path) noexcept {
 #elif defined(__cplusplus) && CT_CPLUSPLUS >= CT_CXX_11
 namespace coter {
 namespace detail {
-    constexpr const char* ct_basename_impl(const char* p, const char* last) noexcept {
+    constexpr const char* ct_basename_impl(const char* cursor, const char* last_sep) noexcept {
 #ifdef CT_OS_WIN
-        return (*p == '\0')              ? last :
-               (*p == '/' || *p == '\\') ? ct_basename_impl(p + 1, p + 1) :
-                                           ct_basename_impl(p + 1, last);
+        return (*cursor == '\0') ? last_sep
+               : (*cursor == '/' || *cursor == '\\') ? ct_basename_impl(cursor + 1, cursor + 1)
+                                                      : ct_basename_impl(cursor + 1, last_sep);
 #else
-        return (*p == '\0') ? last : (*p == '/') ? ct_basename_impl(p + 1, p + 1) : ct_basename_impl(p + 1, last);
+        return (*cursor == '\0') ? last_sep
+               : (*cursor == '/') ? ct_basename_impl(cursor + 1, cursor + 1)
+                                  : ct_basename_impl(cursor + 1, last_sep);
 #endif
     }
 }  // namespace detail
@@ -132,15 +134,15 @@ extern "C" {
 CT_INLINE CT_ATTR_PURE const char* ct_basename(const char* path) {
     if (!path) { return "(nil)"; }
     const char* result = path;
-    const char* p;
-    for (p = path; *p; ++p) {
+    const char* cursor;
+    for (cursor = path; *cursor; ++cursor) {
 #ifdef CT_OS_WIN
-        if (*p == '/' || *p == '\\')
+        if (*cursor == '/' || *cursor == '\\')
 #else
-        if (*p == '/')
+        if (*cursor == '/')
 #endif
         {
-            result = p + 1;
+            result = cursor + 1;
         }
     }
     return result;
