@@ -13,20 +13,20 @@ const char* ct_opt_strerror(ct_opt_status_t s) {
     }
 }
 
-static int ct_opt__is_dashdash(const char* a) {
+static int opt_is_dashdash(const char* a) {
     return a && a[0] == '-' && a[1] == '-' && a[2] == '\0';
 }
-static int ct_opt__is_short(const char* a) {
+static int opt_is_short(const char* a) {
     return a && a[0] == '-' && a[1] != '-' && a[1] != '\0';
 }
-static int ct_opt__is_long(const char* a) {
+static int opt_is_long(const char* a) {
     return a && a[0] == '-' && a[1] == '-' && a[2] != '\0';
 }
-static int ct_opt__is_end(const ct_opt_def_t* d) {
+static int opt_is_end(const ct_opt_def_t* d) {
     return !d->longname && !d->shortname;
 }
 
-static int ct_opt__match(const char* longname, const char* option) {
+static int opt_match(const char* longname, const char* option) {
     const char *a = option, *n = longname;
     if (!longname) { return 0; }
     for (; *a && *n && *a != '='; ++a, ++n) {
@@ -35,7 +35,7 @@ static int ct_opt__match(const char* longname, const char* option) {
     return *n == '\0' && (*a == '\0' || *a == '=');
 }
 
-static void ct_opt__permute(char** argv, int from, int to, int count) {
+static void opt_permute(char** argv, int from, int to, int count) {
     for (int k = 0; k < count; ++k) {
         char* tmp = argv[from + k];
         for (int j = from + k; j > to + k; --j) { argv[j] = argv[j - 1]; }
@@ -43,17 +43,17 @@ static void ct_opt__permute(char** argv, int from, int to, int count) {
     }
 }
 
-static ct_opt_status_t ct_opt__parse_short(ct_opt_t* opts, const ct_opt_def_t* defs, int* out_id) {
+static ct_opt_status_t opt_parse_short(ct_opt_t* opts, const ct_opt_def_t* defs, int* out_id) {
     opts->optopt = 0;
     opts->optarg = NULL;
 
     char* option = opts->argv[opts->optind];
     if (!option) { return CT_OPT_DONE; }
-    if (ct_opt__is_dashdash(option)) {
+    if (opt_is_dashdash(option)) {
         ++opts->optind;
         return CT_OPT_DONE;
     }
-    if (!ct_opt__is_short(option)) { return CT_OPT_DONE; }
+    if (!opt_is_short(option)) { return CT_OPT_DONE; }
 
     option += opts->subind + 1;
     opts->optopt = option[0];
@@ -63,7 +63,7 @@ static ct_opt_status_t ct_opt__parse_short(ct_opt_t* opts, const ct_opt_def_t* d
 
     int type = -1;
     if (option[0] >= 33 && option[0] < 127) {
-        for (int i = 0; !ct_opt__is_end(&defs[i]); ++i) {
+        for (int i = 0; !opt_is_end(&defs[i]); ++i) {
             if (defs[i].shortname == (int)option[0]) { type = (int)defs[i].argtype; }
         }
     }
@@ -104,15 +104,15 @@ static ct_opt_status_t ct_opt__parse_short(ct_opt_t* opts, const ct_opt_def_t* d
     }
 }
 
-static ct_opt_status_t ct_opt__parse_long(ct_opt_t* opts, const ct_opt_def_t* defs, int* out_id) {
+static ct_opt_status_t opt_parse_long(ct_opt_t* opts, const ct_opt_def_t* defs, int* out_id) {
     opts->optopt = 0;
     opts->optarg = NULL;
 
     char* option = opts->argv[opts->optind] + 2; /* skip "--" */
     ++opts->optind;
 
-    for (int i = 0; !ct_opt__is_end(&defs[i]); ++i) {
-        if (!ct_opt__match(defs[i].longname, option)) { continue; }
+    for (int i = 0; !opt_is_end(&defs[i]); ++i) {
+        if (!opt_match(defs[i].longname, option)) { continue; }
 
         opts->optopt = defs[i].shortname;
         if (out_id) { *out_id = defs[i].shortname; }
@@ -156,15 +156,15 @@ ct_opt_status_t ct_opt_next(ct_opt_t* opts, const ct_opt_def_t* defs, int* out_i
     for (int i = opts->optind; opts->argv[i]; ++i) {
         char* arg = opts->argv[i];
 
-        if (ct_opt__is_dashdash(arg)) {
+        if (opt_is_dashdash(arg)) {
             int target = opts->optind;
-            if (i > target) { ct_opt__permute(opts->argv, i, target, 1); }
+            if (i > target) { opt_permute(opts->argv, i, target, 1); }
             opts->optind = target + 1;
             return CT_OPT_DONE;
         }
 
-        int is_short = ct_opt__is_short(arg);
-        int is_long  = ct_opt__is_long(arg);
+        int is_short = opt_is_short(arg);
+        int is_long  = opt_is_long(arg);
         if (!is_short && !is_long) {
             if (!opts->permute) {
                 opts->optind = i;
@@ -173,18 +173,18 @@ ct_opt_status_t ct_opt_next(ct_opt_t* opts, const ct_opt_def_t* defs, int* out_i
             continue;
         }
 
-        int target        = opts->optind;
-        opts->optind      = i;
-        ct_opt_status_t r = is_short ? ct_opt__parse_short(opts, defs, out_id) : ct_opt__parse_long(opts, defs, out_id);
+        int target               = opts->optind;
+        opts->optind             = i;
+        ct_opt_status_t r        = is_short ? opt_parse_short(opts, defs, out_id) : opt_parse_long(opts, defs, out_id);
         int             consumed = opts->optind - i;
-        if (i > target) ct_opt__permute(opts->argv, i, target, consumed);
+        if (i > target) opt_permute(opts->argv, i, target, consumed);
         opts->optind = target + consumed;
         return r;
     }
     return CT_OPT_DONE;
 }
 
-static ct_opt_help_config_t ct_opt__resolve_config(const ct_opt_help_config_t* cfg) {
+static ct_opt_help_config_t opt_resolve_config(const ct_opt_help_config_t* cfg) {
     ct_opt_help_config_t r = CT_OPT_HELP_CONFIG_INIT;
     if (!cfg) { return r; }
     if (cfg->width > 0) { r.width = cfg->width; }
@@ -193,7 +193,7 @@ static ct_opt_help_config_t ct_opt__resolve_config(const ct_opt_help_config_t* c
     return r;
 }
 
-static int ct_opt__help_width(const ct_opt_def_t* opt) {
+static int opt_help_width(const ct_opt_def_t* opt) {
     const int   has_short = (opt->shortname >= 33 && opt->shortname < 127);
     const int   has_long  = (opt->longname && opt->longname[0]);
     const char* metavar   = opt->metavar ? opt->metavar : "ARG";
@@ -206,7 +206,7 @@ static int ct_opt__help_width(const ct_opt_def_t* opt) {
     return w;
 }
 
-static int ct_opt__help_option(const ct_opt_def_t* opt, int col, FILE* out) {
+static int opt_help_option(const ct_opt_def_t* opt, int col, FILE* out) {
     const int   has_short = (opt->shortname >= 33 && opt->shortname < 127);
     const int   has_long  = (opt->longname && opt->longname[0]);
     const char* metavar   = opt->metavar ? opt->metavar : "ARG";
@@ -230,7 +230,7 @@ static int ct_opt__help_option(const ct_opt_def_t* opt, int col, FILE* out) {
     return printed;
 }
 
-static void ct_opt__help_desc(const char* desc, int col, int width, FILE* out) {
+static void opt_help_desc(const char* desc, int col, int width, FILE* out) {
     int avail = width - col;
     int pos   = 0;
     if (avail < 10) avail = 10;
@@ -266,7 +266,7 @@ void ct_opt_usage(FILE* out, const char* progname, const ct_opt_def_t* defs, int
     fprintf(out, "Usage: %s", progname);
     if (defs) {
         int has_opts = 0;
-        for (int i = 0; (count < 0 || i < count) && !ct_opt__is_end(&defs[i]); ++i) {
+        for (int i = 0; (count < 0 || i < count) && !opt_is_end(&defs[i]); ++i) {
             if (defs[i].longname || (defs[i].shortname >= 33 && defs[i].shortname < 127)) {
                 has_opts = 1;
                 break;
@@ -279,14 +279,14 @@ void ct_opt_usage(FILE* out, const char* progname, const ct_opt_def_t* defs, int
 }
 
 void ct_opt_help(FILE* out, const ct_opt_def_t* defs, int count, const ct_opt_help_config_t* cfg) {
-    if (!out || !defs || !count || ct_opt__is_end(&defs[0])) { return; }
-    ct_opt_help_config_t c        = ct_opt__resolve_config(cfg);
+    if (!out || !defs || !count || opt_is_end(&defs[0])) { return; }
+    ct_opt_help_config_t c        = opt_resolve_config(cfg);
     const int            desc_max = c.min_desc >= c.width ? c.width / 2 : c.width - c.min_desc;
 
     int desc_col = 0, actual_max = 0;
-    for (int i = 0; (count < 0 || i < count) && !ct_opt__is_end(&defs[i]); ++i) {
+    for (int i = 0; (count < 0 || i < count) && !opt_is_end(&defs[i]); ++i) {
         if (!defs[i].desc || !defs[i].desc[0]) { continue; }
-        int lw = ct_opt__help_width(&defs[i]) + 2;
+        int lw = opt_help_width(&defs[i]) + 2;
         if (lw > actual_max) { actual_max = lw; }
         if (lw <= c.max_left && lw <= desc_max && lw > desc_col) { desc_col = lw; }
     }
@@ -294,16 +294,16 @@ void ct_opt_help(FILE* out, const ct_opt_def_t* defs, int count, const ct_opt_he
     if (desc_col > desc_max) { desc_col = desc_max; }
     if (desc_col < 2) { desc_col = 2; }
 
-    for (int i = 0; (count < 0 || i < count) && !ct_opt__is_end(&defs[i]); ++i) {
+    for (int i = 0; (count < 0 || i < count) && !opt_is_end(&defs[i]); ++i) {
         const ct_opt_def_t* opt = &defs[i];
         if (!opt->desc || !opt->desc[0]) { continue; }
-        if (ct_opt__help_width(opt) + 2 > desc_col) {
-            ct_opt__help_option(opt, 0, out);
+        if (opt_help_width(opt) + 2 > desc_col) {
+            opt_help_option(opt, 0, out);
             fputc('\n', out);
             fprintf(out, "%*s", desc_col, "");
         } else {
-            ct_opt__help_option(opt, desc_col, out);
+            opt_help_option(opt, desc_col, out);
         }
-        ct_opt__help_desc(opt->desc, desc_col, c.width, out);
+        opt_help_desc(opt->desc, desc_col, c.width, out);
     }
 }
