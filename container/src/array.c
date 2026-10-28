@@ -12,7 +12,7 @@ int ct_array_init(ct_array_t* self, size_t byte, size_t capacity) {
     self->byte_ = byte;
     self->cap_  = 0;
     self->size_ = 0;
-    if (capacity > 0 && !vector_reserve((void**)&self->ptr_, &self->cap_, self->byte_, capacity)) { return -1; }
+    if (capacity > 0 && !ct_vector_impl_reserve((void**)&self->ptr_, &self->cap_, self->byte_, capacity)) { return -1; }
     return 0;
 }
 
@@ -44,32 +44,32 @@ bool ct_array_is_empty(const ct_array_t* self) {
 
 bool ct_array_reserve(ct_array_t* self, size_t capacity) {
     if (!self) { return false; }
-    return vector_reserve((void**)&self->ptr_, &self->cap_, self->byte_, capacity);
+    return ct_vector_impl_reserve((void**)&self->ptr_, &self->cap_, self->byte_, capacity);
 }
 
 bool ct_array_resize(ct_array_t* self, size_t new_size) {
     if (!self) { return false; }
-    return vector_resize((void**)&self->ptr_, &self->size_, &self->cap_, self->byte_, new_size);
+    return ct_vector_impl_resize((void**)&self->ptr_, &self->size_, &self->cap_, self->byte_, new_size);
 }
 
 bool ct_array_shrink(ct_array_t* self) {
     if (!self) { return false; }
-    return vector_shrink((void**)&self->ptr_, self->size_, &self->cap_, self->byte_);
+    return ct_vector_impl_shrink((void**)&self->ptr_, self->size_, &self->cap_, self->byte_);
 }
 
 bool ct_array_insert(ct_array_t* self, size_t idx, const void* data) {
     if (!self) { return false; }
-    return vector_insert((void**)&self->ptr_, &self->size_, &self->cap_, self->byte_, idx, data);
+    return ct_vector_impl_insert((void**)&self->ptr_, &self->size_, &self->cap_, self->byte_, idx, data);
 }
 
 bool ct_array_push(ct_array_t* self, const void* data) {
     if (!self) { return false; }
-    return vector_insert((void**)&self->ptr_, &self->size_, &self->cap_, self->byte_, self->size_, data);
+    return ct_vector_impl_insert((void**)&self->ptr_, &self->size_, &self->cap_, self->byte_, self->size_, data);
 }
 
 bool ct_array_erase(ct_array_t* self, size_t idx) {
     if (!self) { return false; }
-    return vector_erase(self->ptr_, &self->size_, self->byte_, idx);
+    return ct_vector_impl_erase(self->ptr_, &self->size_, self->byte_, idx);
 }
 
 bool ct_array_pop(ct_array_t* self) {

@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-bool vector_reserve(void** p_ptr, size_t* p_cap, size_t elem_size, size_t new_cap) {
+bool ct_vector_impl_reserve(void** p_ptr, size_t* p_cap, size_t elem_size, size_t new_cap) {
     if (!p_ptr || !p_cap || elem_size == 0) { return false; }
     if (*p_cap >= new_cap) { return true; }
     if (new_cap > CT_VEC_MEMORY_MAX / elem_size) { return false; }
@@ -33,11 +33,11 @@ bool vector_reserve(void** p_ptr, size_t* p_cap, size_t elem_size, size_t new_ca
     return true;
 }
 
-bool vector_resize(void** p_ptr, size_t* p_size, size_t* p_cap, size_t elem_size, size_t new_size) {
+bool ct_vector_impl_resize(void** p_ptr, size_t* p_size, size_t* p_cap, size_t elem_size, size_t new_size) {
     if (!p_ptr || !p_size || !p_cap || elem_size == 0) { return false; }
 
     if (new_size > *p_cap) {
-        if (!vector_reserve(p_ptr, p_cap, elem_size, new_size)) { return false; }
+        if (!ct_vector_impl_reserve(p_ptr, p_cap, elem_size, new_size)) { return false; }
     }
     if (new_size > *p_size) {
         char* base = (char*)(*p_ptr);
@@ -48,11 +48,12 @@ bool vector_resize(void** p_ptr, size_t* p_size, size_t* p_cap, size_t elem_size
     return true;
 }
 
-bool vector_insert(void** p_ptr, size_t* p_size, size_t* p_cap, size_t elem_size, size_t idx, const void* data) {
+bool ct_vector_impl_insert(void** p_ptr, size_t* p_size, size_t* p_cap, size_t elem_size, size_t idx,
+                           const void* data) {
     if (!p_ptr || !p_size || !p_cap || elem_size == 0) { return false; }
     if (idx > *p_size) { return false; }
     if (*p_size >= *p_cap) {
-        if (!vector_reserve(p_ptr, p_cap, elem_size, *p_size + 1)) { return false; }
+        if (!ct_vector_impl_reserve(p_ptr, p_cap, elem_size, *p_size + 1)) { return false; }
     }
 
     char* base = (char*)(*p_ptr);
@@ -65,7 +66,7 @@ bool vector_insert(void** p_ptr, size_t* p_size, size_t* p_cap, size_t elem_size
     return true;
 }
 
-bool vector_erase(void* ptr, size_t* p_size, size_t elem_size, size_t idx) {
+bool ct_vector_impl_erase(void* ptr, size_t* p_size, size_t elem_size, size_t idx) {
     if (!ptr || !p_size || elem_size == 0) { return false; }
     if (idx >= *p_size) { return false; }
 
@@ -78,7 +79,7 @@ bool vector_erase(void* ptr, size_t* p_size, size_t elem_size, size_t idx) {
     return true;
 }
 
-bool vector_shrink(void** p_ptr, size_t size, size_t* p_cap, size_t elem_size) {
+bool ct_vector_impl_shrink(void** p_ptr, size_t size, size_t* p_cap, size_t elem_size) {
     if (!p_ptr || !p_cap || elem_size == 0) { return false; }
     if (*p_cap == size) { return true; }
     if (size == 0) {
