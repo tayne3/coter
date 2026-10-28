@@ -29,19 +29,19 @@
 #include "coter/core/strings.h"
 
 // X-macro: single source of truth for error codes and their descriptions
-#define INI_ERROR_FOREACH(F)                   \
-    F(0, Normal, "normal")                     \
-    F(1, PathInvalid, "path invalid")          \
-    F(2, FileOpen, "file open failed")         \
-    F(3, KeyNotFound, "key not found")         \
-    F(4, SectionNotFound, "section not found") \
-    F(5, MemoryAlloc, "memory allocation failed")
+#define INI_ERROR_FOREACH(F)                     \
+    F(0, NORMAL, "normal")                       \
+    F(1, PATH_INVALID, "path invalid")           \
+    F(2, FILE_OPEN, "file open failed")          \
+    F(3, KEY_NOT_FOUND, "key not found")         \
+    F(4, SECTION_NOT_FOUND, "section not found") \
+    F(5, MEMORY_ALLOC, "memory allocation failed")
 
 enum ct_ini_error {
-#define F(code, name, describe) INIError_##name = code,
+#define F(code, name, describe) INI_ERROR_##name = code,
     INI_ERROR_FOREACH(F)
 #undef F
-        INIError_Max,
+        INI_ERROR_MAX,
 };
 
 struct ct_ini_key_s {
@@ -67,11 +67,11 @@ struct ct_ini_s {
 // STATIC FUNCTION DECLARATIONS
 // ============================================================================
 
-static char* ct_ini__strdup(const char* s);
-static char* ct_ini__process_quoted_value(const char* s);
-static void  ct_ini__free_key(ct_ini_key_t* key);
-static void  ct_ini__free_section(ct_ini_section_t* section);
-static bool  ct_ini__is_blank_tail(const char* s);
+static char* ini_strdup(const char* s);
+static char* ini_process_quoted_value(const char* s);
+static void  ini_free_key(ct_ini_key_t* key);
+static void  ini_free_section(ct_ini_section_t* section);
+static bool  ini_is_blank_tail(const char* s);
 
 // ============================================================================
 // LIFECYCLE MANAGEMENT
@@ -82,7 +82,7 @@ ct_ini_t* ct_ini_create(const char* path) {
     if (!self) { return NULL; }
 
     self->sections   = NULL;
-    self->last_error = INIError_Normal;
+    self->last_error = INI_ERROR_NORMAL;
     self->delim      = '=';
     self->nosection  = false;
 
@@ -100,7 +100,7 @@ void ct_ini_destroy(ct_ini_t* self) {
     ct_ini_section_t* section = self->sections;
     while (section) {
         ct_ini_section_t* next = section->next;
-        ct_ini__free_section(section);
+        ini_free_section(section);
         section = next;
     }
     free(self);
@@ -112,18 +112,18 @@ void ct_ini_clear(ct_ini_t* self) {
     ct_ini_section_t* section = self->sections;
     while (section) {
         ct_ini_section_t* next = section->next;
-        ct_ini__free_section(section);
+        ini_free_section(section);
         section = next;
     }
     self->sections   = NULL;
-    self->last_error = INIError_Normal;
+    self->last_error = INI_ERROR_NORMAL;
 }
 
 int ct_ini_load(ct_ini_t* self, const char* path) {
     if (!self) { return -1; }
 
     FILE* fp = fopen(path, "r");
-    if (!fp) { return self->last_error = INIError_FileOpen; }
+    if (!fp) { return self->last_error = INI_ERROR_FILE_OPEN; }
 
     char*             line            = NULL;
     size_t            line_cap        = 0;
@@ -134,7 +134,7 @@ int ct_ini_load(ct_ini_t* self, const char* path) {
             line_cap = 128;
             line     = (char*)malloc(line_cap);
             if (!line) {
-                self->last_error = INIError_MemoryAlloc;
+                self->last_error = INI_ERROR_MEMORY_ALLOC;
                 break;
             }
         }
@@ -148,7 +148,7 @@ int ct_ini_load(ct_ini_t* self, const char* path) {
                 size_t new_cap  = line_cap * 2;
                 char*  new_line = (char*)realloc(line, new_cap);
                 if (!new_line) {
-                    self->last_error = INIError_MemoryAlloc;
+                    self->last_error = INI_ERROR_MEMORY_ALLOC;
                     free(line);
                     fclose(fp);
                     return -1;
@@ -241,9 +241,9 @@ void ct_ini_set_nosection(ct_ini_t* self, bool enabled) {
 
 int ct_ini_save_to(ct_ini_t* self, const char* path) {
     if (!self) { return -1; }
-    if (STR_ISEMPTY(path)) { return self->last_error = INIError_PathInvalid; }
+    if (STR_ISEMPTY(path)) { return self->last_error = INI_ERROR_PATH_INVALID; }
     FILE* fp = fopen(path, "w");
-    if (!fp) { return self->last_error = INIError_FileOpen; }
+    if (!fp) { return self->last_error = INI_ERROR_FILE_OPEN; }
 
     ct_ini_section_t* section = self->sections;
     while (section) {
@@ -275,7 +275,7 @@ const char* ct_ini_error_string(int code) {
         INI_ERROR_FOREACH(F)
 #undef F
     };
-    if (code < 0 || code >= INIError_Max) { return "Unknown error"; }
+    if (code < 0 || code >= INI_ERROR_MAX) { return "Unknown error"; }
     return descriptions[code];
 }
 
@@ -291,10 +291,10 @@ ct_ini_section_t* ct_ini_get_section(ct_ini_t* self, const char* name) {
 
     section = (ct_ini_section_t*)malloc(sizeof(ct_ini_section_t));
     if (!section) {
-        self->last_error = INIError_MemoryAlloc;
+        self->last_error = INI_ERROR_MEMORY_ALLOC;
         return NULL;
     }
-    section->name  = ct_ini__strdup(name);
+    section->name  = ini_strdup(name);
     section->keys  = NULL;
     section->next  = self->sections;
     self->sections = section;
@@ -326,13 +326,13 @@ int ct_ini_remove_section(ct_ini_t* self, const char* name) {
             } else {
                 self->sections = curr->next;
             }
-            ct_ini__free_section(curr);
+            ini_free_section(curr);
             return 0;
         }
         prev = curr;
         curr = curr->next;
     }
-    return self->last_error = INIError_SectionNotFound;
+    return self->last_error = INI_ERROR_SECTION_NOT_FOUND;
 }
 
 ct_ini_section_t* ct_ini_first_section(const ct_ini_t* self) {
@@ -387,8 +387,8 @@ ct_ini_key_t* ct_ini_section_add_key(ct_ini_section_t* section, const char* key,
     k = (ct_ini_key_t*)malloc(sizeof(ct_ini_key_t));
     if (!k) { return NULL; }
 
-    k->key        = ct_ini__strdup(key);
-    k->value      = ct_ini__process_quoted_value(value ? value : "");
+    k->key        = ini_strdup(key);
+    k->value      = ini_process_quoted_value(value ? value : "");
     k->next       = section->keys;
     section->keys = k;
 
@@ -408,13 +408,13 @@ int ct_ini_section_remove_key(ct_ini_section_t* section, const char* key) {
             } else {
                 section->keys = curr->next;
             }
-            ct_ini__free_key(curr);
+            ini_free_key(curr);
             return 0;
         }
         prev = curr;
         curr = curr->next;
     }
-    return INIError_KeyNotFound;
+    return INI_ERROR_KEY_NOT_FOUND;
 }
 
 ct_ini_key_t* ct_ini_section_first_key(const ct_ini_section_t* section) {
@@ -456,7 +456,7 @@ ct_ini_key_t* ct_ini_find_key(ct_ini_t* self, const char* section, const char* k
 void ct_ini_key_set_value(ct_ini_key_t* key, const char* value) {
     if (key) {
         if (key->value) { free(key->value); }
-        key->value = ct_ini__process_quoted_value(value ? value : "");
+        key->value = ini_process_quoted_value(value ? value : "");
     }
 }
 
@@ -487,7 +487,7 @@ int64_t ct_ini_key_get_i64(const ct_ini_key_t* key, int64_t default_value) {
     if (!key || !key->value) { return default_value; }
     char*         end;
     const int64_t val = strtoll(key->value, &end, 0);
-    if (end == key->value || !ct_ini__is_blank_tail(end)) { return default_value; }
+    if (end == key->value || !ini_is_blank_tail(end)) { return default_value; }
     return val;
 }
 
@@ -499,7 +499,7 @@ uint64_t ct_ini_key_get_u64(const ct_ini_key_t* key, uint64_t default_value) {
     if (*s == '-') { return default_value; }
     char*          end;
     const uint64_t val = strtoull(key->value, &end, 0);
-    if (end == key->value || !ct_ini__is_blank_tail(end)) { return default_value; }
+    if (end == key->value || !ini_is_blank_tail(end)) { return default_value; }
     return val;
 }
 
@@ -538,7 +538,7 @@ bool ct_ini_key_get_bool(const ct_ini_key_t* key, bool default_value) {
 // STATIC FUNCTION IMPLEMENTATIONS
 // ============================================================================
 
-static char* ct_ini__strdup(const char* s) {
+static char* ini_strdup(const char* s) {
     if (!s) { return NULL; }
     const size_t len = strlen(s);
     char*        dup = (char*)malloc(len + 1);
@@ -547,7 +547,7 @@ static char* ct_ini__strdup(const char* s) {
 }
 
 // Remove matching outer quotes to allow: key = " value with spaces "
-static char* ct_ini__process_quoted_value(const char* s) {
+static char* ini_process_quoted_value(const char* s) {
     if (!s) { return NULL; }
 
     const size_t len = strlen(s);
@@ -566,10 +566,10 @@ static char* ct_ini__process_quoted_value(const char* s) {
         }
     }
 
-    return ct_ini__strdup(s);
+    return ini_strdup(s);
 }
 
-static void ct_ini__free_key(ct_ini_key_t* key) {
+static void ini_free_key(ct_ini_key_t* key) {
     if (key) {
         if (key->key) { free(key->key); }
         if (key->value) { free(key->value); }
@@ -577,20 +577,20 @@ static void ct_ini__free_key(ct_ini_key_t* key) {
     }
 }
 
-static void ct_ini__free_section(ct_ini_section_t* section) {
+static void ini_free_section(ct_ini_section_t* section) {
     if (section) {
         if (section->name) { free(section->name); }
         ct_ini_key_t* key = section->keys;
         while (key) {
             ct_ini_key_t* next = key->next;
-            ct_ini__free_key(key);
+            ini_free_key(key);
             key = next;
         }
         free(section);
     }
 }
 
-static bool ct_ini__is_blank_tail(const char* s) {
+static bool ini_is_blank_tail(const char* s) {
     while (*s) {
         if (!isspace((unsigned char)*s)) { return false; }
         s++;
