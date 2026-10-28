@@ -7,8 +7,7 @@ file(WRITE
   ${CMAKE_CURRENT_BINARY_DIR}/doctest_main.cpp
   "#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN\n#include \"coter/testing/doctest.h\""
 )
-add_library(coter_doctest_main OBJECT ${CMAKE_CURRENT_BINARY_DIR}/doctest_main.cpp)
-set_target_properties(coter_doctest_main PROPERTIES EXCLUDE_FROM_ALL TRUE)
+add_library(coter_doctest_main OBJECT EXCLUDE_FROM_ALL ${CMAKE_CURRENT_BINARY_DIR}/doctest_main.cpp)
 target_link_libraries(coter_doctest_main PUBLIC coter_testing)
 add_library(coter::doctest_main ALIAS coter_doctest_main)
 
@@ -17,8 +16,7 @@ file(WRITE
   ${CMAKE_CURRENT_BINARY_DIR}/nanobench_impl.cpp
   "#define ANKERL_NANOBENCH_IMPLEMENT\n#include \"coter/testing/nanobench.h\""
 )
-add_library(coter_nanobench OBJECT ${CMAKE_CURRENT_BINARY_DIR}/nanobench_impl.cpp)
-set_target_properties(coter_nanobench PROPERTIES EXCLUDE_FROM_ALL TRUE)
+add_library(coter_nanobench OBJECT EXCLUDE_FROM_ALL ${CMAKE_CURRENT_BINARY_DIR}/nanobench_impl.cpp)
 target_link_libraries(coter_nanobench PUBLIC coter_testing)
 add_library(coter::nanobench ALIAS coter_nanobench)
 
@@ -27,7 +25,6 @@ file(WRITE
   ${CMAKE_CURRENT_BINARY_DIR}/fff_impl.cpp
   "#include \"coter/testing/fff.h\"\nDEFINE_FFF_GLOBALS;"
 )
-add_library(coter_fff OBJECT ${CMAKE_CURRENT_BINARY_DIR}/fff_impl.cpp)
-set_target_properties(coter_fff PROPERTIES EXCLUDE_FROM_ALL TRUE)
+add_library(coter_fff OBJECT EXCLUDE_FROM_ALL ${CMAKE_CURRENT_BINARY_DIR}/fff_impl.cpp)
 target_link_libraries(coter_fff PUBLIC coter_testing)
 add_library(coter::fff ALIAS coter_fff)
