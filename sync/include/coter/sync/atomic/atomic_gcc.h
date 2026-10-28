@@ -22,19 +22,19 @@ typedef struct ct_atomic_flag {
 
 #define CT_ATOMIC_FLAG_INIT {0}
 
-CT_INLINE bool ct_atomic_flag_test_and_set(ct_atomic_flag_t* p) {
+CT_INLINE bool ct_atomic_flag_test_and_set(ct_atomic_flag_t* ptr) {
 #if CT_ATOMIC_USE_GCC_SYNC
-    return __sync_lock_test_and_set(&p->v_, 1);
+    return __sync_lock_test_and_set(&ptr->v_, 1);
 #else
-    return __atomic_test_and_set(&p->v_, __ATOMIC_ACQ_REL);
+    return __atomic_test_and_set(&ptr->v_, __ATOMIC_ACQ_REL);
 #endif
 }
 
-CT_INLINE void ct_atomic_flag_clear(ct_atomic_flag_t* p) {
+CT_INLINE void ct_atomic_flag_clear(ct_atomic_flag_t* ptr) {
 #if CT_ATOMIC_USE_GCC_SYNC
-    __sync_lock_release(&p->v_);
+    __sync_lock_release(&ptr->v_);
 #else
-    __atomic_clear(&p->v_, __ATOMIC_RELEASE);
+    __atomic_clear(&ptr->v_, __ATOMIC_RELEASE);
 #endif
 }
 
@@ -62,11 +62,11 @@ typedef void* volatile ct_atomic_ptr_t;
 #define CT_ATOMIC_SUB(ptr_, value_)      __sync_fetch_and_sub(ptr_, value_)
 #define CT_ATOMIC_CAS(ptr_, expected_, desired_)                           \
     ({                                                                     \
-        __typeof__(*(ptr_)) _old =                                         \
+        __typeof__(*(ptr_)) old_ =                                         \
             __sync_val_compare_and_swap((ptr_), *(expected_), (desired_)); \
-        bool _success = (_old == *(expected_));                            \
-        if (!_success) { *(expected_) = _old; }                            \
-        _success;                                                          \
+        bool success_ = (old_ == *(expected_));                            \
+        if (!success_) { *(expected_) = old_; }                            \
+        success_;                                                          \
     })
 #else
 #define CT_ATOMIC_LOAD(ptr_)             __atomic_load_n(ptr_, __ATOMIC_ACQUIRE)
@@ -74,30 +74,30 @@ typedef void* volatile ct_atomic_ptr_t;
 #define CT_ATOMIC_EXCHANGE(ptr_, value_) __atomic_exchange_n(ptr_, value_, __ATOMIC_SEQ_CST)
 #define CT_ATOMIC_ADD(ptr_, value_)      __atomic_fetch_add(ptr_, value_, __ATOMIC_SEQ_CST)
 #define CT_ATOMIC_SUB(ptr_, value_)      __atomic_fetch_sub(ptr_, value_, __ATOMIC_SEQ_CST)
-#define CT_ATOMIC_CAS(ptr_, expected_, desired_)                                                   \
+#define CT_ATOMIC_CAS(ptr_, expected_, desired_) \
     __atomic_compare_exchange_n(ptr_, expected_, desired_, false, __ATOMIC_ACQ_REL, __ATOMIC_ACQUIRE)
 #endif
 
-#define CT_ATOMIC_GEN_BASE_OP(name, type)                                                                       \
-    CT_INLINE type ct_atomic_##name##_load(const ct_atomic_##name##_t* p) {                                     \
-        return CT_ATOMIC_LOAD(p);                                                                               \
-    }                                                                                                           \
-    CT_INLINE void ct_atomic_##name##_store(ct_atomic_##name##_t* p, type v) {                                  \
-        CT_ATOMIC_STORE(p, v);                                                                                  \
-    }                                                                                                           \
-    CT_INLINE type ct_atomic_##name##_exchange(ct_atomic_##name##_t* p, type v) {                               \
-        return CT_ATOMIC_EXCHANGE(p, v);                                                                        \
-    }                                                                                                           \
-    CT_INLINE bool ct_atomic_##name##_compare_exchange(ct_atomic_##name##_t* p, type* expected, type desired) { \
-        return CT_ATOMIC_CAS(p, expected, desired);                                                             \
+#define CT_ATOMIC_GEN_BASE_OP(name, type)                                                                         \
+    CT_INLINE type ct_atomic_##name##_load(const ct_atomic_##name##_t* ptr) {                                     \
+        return CT_ATOMIC_LOAD(ptr);                                                                               \
+    }                                                                                                             \
+    CT_INLINE void ct_atomic_##name##_store(ct_atomic_##name##_t* ptr, type value) {                              \
+        CT_ATOMIC_STORE(ptr, value);                                                                              \
+    }                                                                                                             \
+    CT_INLINE type ct_atomic_##name##_exchange(ct_atomic_##name##_t* ptr, type value) {                           \
+        return CT_ATOMIC_EXCHANGE(ptr, value);                                                                    \
+    }                                                                                                             \
+    CT_INLINE bool ct_atomic_##name##_compare_exchange(ct_atomic_##name##_t* ptr, type* expected, type desired) { \
+        return CT_ATOMIC_CAS(ptr, expected, desired);                                                             \
     }
 
-#define CT_ATOMIC_GEN_ARITH_OP(name, type)                                   \
-    CT_INLINE type ct_atomic_##name##_add(ct_atomic_##name##_t* p, type v) { \
-        return CT_ATOMIC_ADD(p, v);                                          \
-    }                                                                        \
-    CT_INLINE type ct_atomic_##name##_sub(ct_atomic_##name##_t* p, type v) { \
-        return CT_ATOMIC_SUB(p, v);                                          \
+#define CT_ATOMIC_GEN_ARITH_OP(name, type)                                         \
+    CT_INLINE type ct_atomic_##name##_add(ct_atomic_##name##_t* ptr, type value) { \
+        return CT_ATOMIC_ADD(ptr, value);                                          \
+    }                                                                              \
+    CT_INLINE type ct_atomic_##name##_sub(ct_atomic_##name##_t* ptr, type value) { \
+        return CT_ATOMIC_SUB(ptr, value);                                          \
     }
 
 CT_ATOMIC_GEN_BASE_OP(bool, bool)
@@ -135,17 +135,17 @@ CT_ATOMIC_GEN_ARITH_OP(llong, long long)
 CT_ATOMIC_GEN_BASE_OP(ullong, unsigned long long)
 CT_ATOMIC_GEN_ARITH_OP(ullong, unsigned long long)
 
-CT_INLINE void* ct_atomic_ptr_load(const ct_atomic_ptr_t* p) {
-    return CT_ATOMIC_LOAD(p);
+CT_INLINE void* ct_atomic_ptr_load(const ct_atomic_ptr_t* ptr) {
+    return CT_ATOMIC_LOAD(ptr);
 }
-CT_INLINE void ct_atomic_ptr_store(ct_atomic_ptr_t* p, void* v) {
-    CT_ATOMIC_STORE(p, v);
+CT_INLINE void ct_atomic_ptr_store(ct_atomic_ptr_t* ptr, void* value) {
+    CT_ATOMIC_STORE(ptr, value);
 }
-CT_INLINE void* ct_atomic_ptr_exchange(ct_atomic_ptr_t* p, void* v) {
-    return CT_ATOMIC_EXCHANGE(p, v);
+CT_INLINE void* ct_atomic_ptr_exchange(ct_atomic_ptr_t* ptr, void* value) {
+    return CT_ATOMIC_EXCHANGE(ptr, value);
 }
-CT_INLINE bool ct_atomic_ptr_compare_exchange(ct_atomic_ptr_t* p, void** expected, void* desired) {
-    return CT_ATOMIC_CAS(p, expected, desired);
+CT_INLINE bool ct_atomic_ptr_compare_exchange(ct_atomic_ptr_t* ptr, void** expected, void* desired) {
+    return CT_ATOMIC_CAS(ptr, expected, desired);
 }
 
 #undef CT_ATOMIC_LOAD
