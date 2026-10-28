@@ -158,11 +158,11 @@ struct tm* ct_gmtime_r(const time_t* ts, struct tm* tm) {
 
 static const uint8_t s_days[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
-static int dt__leap_year(int year) {
+static int datetime_leap_year(int year) {
     return (year % 4 == 0 && year % 100 != 0) || year % 400 == 0;
 }
 
-static int64_t dt__days_from_civil(int year, int month, int day) {
+static int64_t datetime_days_from_civil(int year, int month, int day) {
     year -= (month <= 2);
     const int64_t era = (year >= 0 ? year : year - 399) / 400;
     const int64_t yoe = year - era * 400;
@@ -171,7 +171,7 @@ static int64_t dt__days_from_civil(int year, int month, int day) {
     return era * 146097 + doe - 719468;
 }
 
-static void dt__civil_from_days(int64_t z, int* year, int* month, int* day) {
+static void datetime_civil_from_days(int64_t z, int* year, int* month, int* day) {
     z += 719468;
     const int64_t era = (z >= 0 ? z : z - 146096) / 146097;
     const int64_t doe = z - era * 146097;
@@ -187,12 +187,12 @@ static void dt__civil_from_days(int64_t z, int* year, int* month, int* day) {
     *day   = (int)dd;
 }
 
-static int dt__valid_date(int year, int month, int day) {
+static int datetime_valid_date(int year, int month, int day) {
     return year >= 1 && year <= 9999 && month >= 1 && month <= 12 && day >= 1 &&
            day <= ct_datetime_days_in_month(year, month);
 }
 
-static int dt__valid_time(int hour, int min, int sec, int ms) {
+static int datetime_valid_time(int hour, int min, int sec, int ms) {
     return hour >= 0 && hour <= 23 && min >= 0 && min <= 59 && sec >= 0 && sec <= 60 && ms >= 0 && ms <= 999;
 }
 
@@ -221,7 +221,8 @@ ct_datetime_t ct_datetime_now(void) {
 }
 
 ct_time_t ct_datetime_mktime(const ct_datetime_t* dt) {
-    if (!dt || !dt__valid_date(dt->year, dt->month, dt->day) || !dt__valid_time(dt->hour, dt->min, dt->sec, dt->ms)) {
+    if (!dt || !datetime_valid_date(dt->year, dt->month, dt->day) ||
+        !datetime_valid_time(dt->hour, dt->min, dt->sec, dt->ms)) {
         return (ct_time_t)-1;
     }
 
@@ -238,16 +239,17 @@ ct_time_t ct_datetime_mktime(const ct_datetime_t* dt) {
 }
 
 bool ct_datetime_add_days(ct_datetime_t* dt, int days) {
-    if (!dt || !dt__valid_date(dt->year, dt->month, dt->day) || !dt__valid_time(dt->hour, dt->min, dt->sec, dt->ms)) {
+    if (!dt || !datetime_valid_date(dt->year, dt->month, dt->day) ||
+        !datetime_valid_time(dt->hour, dt->min, dt->sec, dt->ms)) {
         return false;
     }
 
-    const int64_t shifted = dt__days_from_civil(dt->year, dt->month, dt->day) + (int64_t)days;
+    const int64_t shifted = datetime_days_from_civil(dt->year, dt->month, dt->day) + (int64_t)days;
 
     int year;
     int month;
     int day;
-    dt__civil_from_days(shifted, &year, &month, &day);
+    datetime_civil_from_days(shifted, &year, &month, &day);
     if (year < 1 || year > 9999) { return false; }
 
     dt->year  = year;
@@ -260,14 +262,14 @@ int ct_datetime_days_in_month(int year, int month) {
     if (month < 1 || month > 12) { return 0; }
 
     int days = s_days[month - 1];
-    if (month == 2 && dt__leap_year(year)) { ++days; }
+    if (month == 2 && datetime_leap_year(year)) { ++days; }
     return days;
 }
 
 char* ct_datetime_fmt(const ct_datetime_t* dt, char* buf, size_t size) {
     if (buf && size > 0) { buf[0] = '\0'; }
-    if (!dt || !buf || size == 0 || !dt__valid_date(dt->year, dt->month, dt->day) ||
-        !dt__valid_time(dt->hour, dt->min, dt->sec, dt->ms)) {
+    if (!dt || !buf || size == 0 || !datetime_valid_date(dt->year, dt->month, dt->day) ||
+        !datetime_valid_time(dt->hour, dt->min, dt->sec, dt->ms)) {
         return NULL;
     }
 
@@ -281,8 +283,8 @@ char* ct_datetime_fmt(const ct_datetime_t* dt, char* buf, size_t size) {
 
 char* ct_datetime_fmt_iso(const ct_datetime_t* dt, char* buf, size_t size) {
     if (buf && size > 0) { buf[0] = '\0'; }
-    if (!dt || !buf || size == 0 || !dt__valid_date(dt->year, dt->month, dt->day) ||
-        !dt__valid_time(dt->hour, dt->min, dt->sec, dt->ms)) {
+    if (!dt || !buf || size == 0 || !datetime_valid_date(dt->year, dt->month, dt->day) ||
+        !datetime_valid_time(dt->hour, dt->min, dt->sec, dt->ms)) {
         return NULL;
     }
 
