@@ -120,7 +120,6 @@ void ct_msleep(uint32_t ms) {
 void ct_usleep(uint32_t us) {
 #ifdef CT_OS_WIN
     if (us > 0U) {
-        // DWORD ms = (DWORD)(us / 1000U);
         us /= 1000U;
         Sleep(us > 0U ? (DWORD)us : 1U);
     } else {

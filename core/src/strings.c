@@ -70,7 +70,7 @@ void* ct_reverse_memcpy(void* dest, const void* src, size_t n) {
         remain   = n % sizeof(uint64_t);
     }
 
-    // 处理尾部不足8字节的部分
+    // Handle the trailing bytes that do not form a full 8-byte word.
     if (remain > 0) {
         for (size_t i = 0; i < remain; ++i) { d[i] = s[n - 1 - i]; }
     }

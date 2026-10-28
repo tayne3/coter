@@ -32,9 +32,9 @@
 // newline
 #define STR_NEWLINE "\n"
 
-// 打印命令说明
+// Print command help.
 static void ix_shell_help(int status);
-// 打印项目版本
+// Print project version.
 static void ix_shell_version(void);
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
