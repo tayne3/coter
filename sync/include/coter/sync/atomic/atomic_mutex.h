@@ -84,7 +84,7 @@ typedef volatile long long          CT_ATTR_ALIGNED(8) ct_atomic_llong_t;
 typedef volatile unsigned long long CT_ATTR_ALIGNED(8) ct_atomic_ullong_t;
 typedef void* volatile ct_atomic_ptr_t;
 
-#define CT_ATOMIC_VAR_INIT(value) (value)
+#define CT_ATOMIC_VAR_INIT(value_) (value_)
 
 #define CT_ATOMIC_MUTEX_GEN_BASE_OP(name, type)                                                                 \
     CT_INLINE type ct_atomic_##name##_load(const ct_atomic_##name##_t* p) {                                     \

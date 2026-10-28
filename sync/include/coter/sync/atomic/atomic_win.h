@@ -43,7 +43,7 @@ typedef volatile long long          CT_ATTR_ALIGNED(8) ct_atomic_llong_t;
 typedef volatile unsigned long long CT_ATTR_ALIGNED(8) ct_atomic_ullong_t;
 typedef void* volatile ct_atomic_ptr_t;
 
-#define CT_ATOMIC_VAR_INIT(value) (value)
+#define CT_ATOMIC_VAR_INIT(value_) (value_)
 
 CT_INLINE bool ct_atomic_bool_load(const ct_atomic_bool_t* p) {
     return _InterlockedCompareExchange8((volatile char*)p, 0, 0) != 0;

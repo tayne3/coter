@@ -52,28 +52,30 @@ typedef volatile long long          CT_ATTR_ALIGNED(8) ct_atomic_llong_t;
 typedef volatile unsigned long long CT_ATTR_ALIGNED(8) ct_atomic_ullong_t;
 typedef void* volatile ct_atomic_ptr_t;
 
-#define CT_ATOMIC_VAR_INIT(value) (value)
+#define CT_ATOMIC_VAR_INIT(value_) (value_)
 
 #if CT_ATOMIC_USE_GCC_SYNC
-#define CT_ATOMIC_LOAD(p)        __sync_val_compare_and_swap(p, 0, 0)
-#define CT_ATOMIC_STORE(p, v)    (void)__sync_lock_test_and_set(p, v)
-#define CT_ATOMIC_EXCHANGE(p, v) __sync_lock_test_and_set(p, v)
-#define CT_ATOMIC_ADD(p, v)      __sync_fetch_and_add(p, v)
-#define CT_ATOMIC_SUB(p, v)      __sync_fetch_and_sub(p, v)
-#define CT_ATOMIC_CAS(p, exp, des)                                                   \
-    ({                                                                               \
-        __typeof__(*(p)) _old     = __sync_val_compare_and_swap((p), *(exp), (des)); \
-        bool             _success = (_old == *(exp));                                \
-        if (!_success) { *(exp) = _old; }                                            \
-        _success;                                                                    \
+#define CT_ATOMIC_LOAD(ptr_)             __sync_val_compare_and_swap(ptr_, 0, 0)
+#define CT_ATOMIC_STORE(ptr_, value_)    (void)__sync_lock_test_and_set(ptr_, value_)
+#define CT_ATOMIC_EXCHANGE(ptr_, value_) __sync_lock_test_and_set(ptr_, value_)
+#define CT_ATOMIC_ADD(ptr_, value_)      __sync_fetch_and_add(ptr_, value_)
+#define CT_ATOMIC_SUB(ptr_, value_)      __sync_fetch_and_sub(ptr_, value_)
+#define CT_ATOMIC_CAS(ptr_, expected_, desired_)                           \
+    ({                                                                     \
+        __typeof__(*(ptr_)) _old =                                         \
+            __sync_val_compare_and_swap((ptr_), *(expected_), (desired_)); \
+        bool _success = (_old == *(expected_));                            \
+        if (!_success) { *(expected_) = _old; }                            \
+        _success;                                                          \
     })
 #else
-#define CT_ATOMIC_LOAD(p)          __atomic_load_n(p, __ATOMIC_ACQUIRE)
-#define CT_ATOMIC_STORE(p, v)      __atomic_store_n(p, v, __ATOMIC_RELEASE)
-#define CT_ATOMIC_EXCHANGE(p, v)   __atomic_exchange_n(p, v, __ATOMIC_SEQ_CST)
-#define CT_ATOMIC_ADD(p, v)        __atomic_fetch_add(p, v, __ATOMIC_SEQ_CST)
-#define CT_ATOMIC_SUB(p, v)        __atomic_fetch_sub(p, v, __ATOMIC_SEQ_CST)
-#define CT_ATOMIC_CAS(p, exp, des) __atomic_compare_exchange_n(p, exp, des, false, __ATOMIC_ACQ_REL, __ATOMIC_ACQUIRE)
+#define CT_ATOMIC_LOAD(ptr_)             __atomic_load_n(ptr_, __ATOMIC_ACQUIRE)
+#define CT_ATOMIC_STORE(ptr_, value_)    __atomic_store_n(ptr_, value_, __ATOMIC_RELEASE)
+#define CT_ATOMIC_EXCHANGE(ptr_, value_) __atomic_exchange_n(ptr_, value_, __ATOMIC_SEQ_CST)
+#define CT_ATOMIC_ADD(ptr_, value_)      __atomic_fetch_add(ptr_, value_, __ATOMIC_SEQ_CST)
+#define CT_ATOMIC_SUB(ptr_, value_)      __atomic_fetch_sub(ptr_, value_, __ATOMIC_SEQ_CST)
+#define CT_ATOMIC_CAS(ptr_, expected_, desired_)                                                   \
+    __atomic_compare_exchange_n(ptr_, expected_, desired_, false, __ATOMIC_ACQ_REL, __ATOMIC_ACQUIRE)
 #endif
 
 #define CT_ATOMIC_GEN_BASE_OP(name, type)                                                                       \
