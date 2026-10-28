@@ -11,23 +11,23 @@
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
-static uint64_t ct_random_rotl(uint64_t x, int k);
-static uint64_t ct_random_splitmix64(uint64_t* state);
-static uint64_t ct_random_seed_material(void);
-static uint64_t ct_random_mix64(uint64_t value);
+static uint64_t random_rotl(uint64_t x, int k);
+static uint64_t random_splitmix64(uint64_t* state);
+static uint64_t random_seed_material(void);
+static uint64_t random_mix64(uint64_t value);
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
 void ct_random_init(ct_random_t* self) {
     if (!self) { return; }
-    ct_random_seed(self, ct_random_seed_material());
+    ct_random_seed(self, random_seed_material());
 }
 
 void ct_random_seed(ct_random_t* self, uint64_t seed) {
     if (!self) { return; }
 
-    self->_s[0] = ct_random_splitmix64(&seed);
-    self->_s[1] = ct_random_splitmix64(&seed);
+    self->_s[0] = random_splitmix64(&seed);
+    self->_s[1] = random_splitmix64(&seed);
 
     if (self->_s[0] == 0 && self->_s[1] == 0) { self->_s[0] = 0x9E3779B97F4A7C15ULL; }
 }
@@ -40,8 +40,8 @@ uint64_t ct_random_u64(ct_random_t* self) {
     const uint64_t result = s0 + s1;
 
     s1 ^= s0;
-    self->_s[0] = ct_random_rotl(s0, 55) ^ s1 ^ (s1 << 14);
-    self->_s[1] = ct_random_rotl(s1, 36);
+    self->_s[0] = random_rotl(s0, 55) ^ s1 ^ (s1 << 14);
+    self->_s[1] = random_rotl(s1, 36);
 
     return result;
 }
@@ -99,18 +99,18 @@ void ct_random_bytes(ct_random_t* self, void* buffer, size_t size) {
 
 // -------------------------[STATIC DEFINITION]-------------------------
 
-static uint64_t ct_random_rotl(uint64_t x, int k) {
+static uint64_t random_rotl(uint64_t x, int k) {
     return (x << k) | (x >> (64 - k));
 }
 
-static uint64_t ct_random_splitmix64(uint64_t* state) {
+static uint64_t random_splitmix64(uint64_t* state) {
     uint64_t z = (*state += 0x9E3779B97F4A7C15ull);
     z          = (z ^ (z >> 30)) * 0xBF58476D1CE4E5B9ull;
     z          = (z ^ (z >> 27)) * 0x94D049BB133111EBull;
     return z ^ (z >> 31);
 }
 
-static uint64_t ct_random_seed_material(void) {
+static uint64_t random_seed_material(void) {
     uint64_t seed = (uint64_t)ct_unixtime_sec();
     seed ^= ((uint64_t)ct_unixtime_us() << 7);
     seed ^= ((uint64_t)ct_unixtime_ms() << 17);
@@ -118,11 +118,11 @@ static uint64_t ct_random_seed_material(void) {
     seed ^= ((uint64_t)ct_gethrtime_us() << 41);
     seed ^= ((uint64_t)ct_getpid() << 53);
     seed ^= (uint64_t)(uintptr_t)&seed;
-    seed ^= ct_random_rotl(seed, 17);
-    return ct_random_mix64(seed);
+    seed ^= random_rotl(seed, 17);
+    return random_mix64(seed);
 }
 
-static uint64_t ct_random_mix64(uint64_t value) {
+static uint64_t random_mix64(uint64_t value) {
     value ^= value >> 30;
     value *= 0xBF58476D1CE4E5B9ull;
     value ^= value >> 27;
