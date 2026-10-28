@@ -10,11 +10,11 @@
 
 static ct_mutex_t s_mutex = CT_MUTEX_INITIALIZER;
 
-void atomic_mutex_lock(void) {
+void ct_atomic_mutex_impl_lock(void) {
     (void)ct_mutex_lock(&s_mutex);
 }
 
-void atomic_mutex_unlock(void) {
+void ct_atomic_mutex_impl_unlock(void) {
     (void)ct_mutex_unlock(&s_mutex);
 }
 

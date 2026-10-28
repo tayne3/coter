@@ -13,11 +13,11 @@
 #if !CT_ATOMIC_USE_MUTEX
 static ct_mutex_t s_test_atomic_mutex = CT_MUTEX_INITIALIZER;
 
-extern "C" void atomic_mutex_lock(void) {
+extern "C" void ct_atomic_mutex_impl_lock(void) {
     (void)ct_mutex_lock(&s_test_atomic_mutex);
 }
 
-extern "C" void atomic_mutex_unlock(void) {
+extern "C" void ct_atomic_mutex_impl_unlock(void) {
     (void)ct_mutex_unlock(&s_test_atomic_mutex);
 }
 #endif
