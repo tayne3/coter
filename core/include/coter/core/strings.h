@@ -29,30 +29,30 @@ extern "C" {
 #endif
 
 /// @brief Format string with buffer size limit.
-/// @param __s Destination buffer (NULL to query required size)
-/// @param __maxlen Buffer size
-/// @param __format Format string
+/// @param buf Destination buffer (NULL to query required size)
+/// @param buf_size Buffer size
+/// @param format Format string
 /// @param ... Variable arguments
 /// @return Characters that would be written (C99), or -1 on error
-CT_API int ct_snprintf(char* __s, size_t __maxlen, const char* __format, ...);
+CT_API int ct_snprintf(char* buf, size_t buf_size, const char* format, ...);
 
 /// @brief Safe string formatting with guaranteed null termination.
-/// @param __s Destination buffer
-/// @param __maxlen Buffer size
-/// @param __format Format string
+/// @param buf Destination buffer
+/// @param buf_size Buffer size
+/// @param format Format string
 /// @param ... Format arguments
-/// @return Characters written (capped at __maxlen-1), or -1 on invalid parameters
-/// @note Always null-terminates; return value never exceeds __maxlen-1
-CT_API int ct_snprintf_s(char* __s, size_t __maxlen, const char* __format, ...);
+/// @return Characters written (capped at buf_size - 1), or -1 on invalid parameters
+/// @note Always null-terminates; return value never exceeds buf_size - 1
+CT_API int ct_snprintf_s(char* buf, size_t buf_size, const char* format, ...);
 
 /// @brief Safe string copy with size limit and null termination.
-/// @param __s Destination buffer
-/// @param __maxlen Destination buffer size
-/// @param __src Source string
-/// @param __n Maximum characters to copy
+/// @param dest Destination buffer
+/// @param dest_size Destination buffer size
+/// @param src Source string
+/// @param count Maximum characters to copy
 /// @return Characters copied, or -1 on invalid parameters or truncation
-/// @note Copies min(__maxlen-1, __n) characters or until source null terminator
-CT_API int ct_strncpy_s(char* __s, size_t __maxlen, const char* __src, size_t __n);
+/// @note Copies min(dest_size - 1, count) characters or until source null terminator
+CT_API int ct_strncpy_s(char* dest, size_t dest_size, const char* src, size_t count);
 
 /// @brief Copy memory in reverse byte order
 /// @param dest Destination buffer
@@ -74,15 +74,15 @@ CT_API void* ct_reverse_memmove(void* dest, const void* src, size_t n);
 #define ct_memrchr memrchr
 #else
 /// @brief Search memory for a byte in reverse order
-/// @param __s Memory block to search
-/// @param __c Byte value to find
-/// @param __n Number of bytes to examine
-/// @return Pointer to last occurrence of __c, or NULL if not found
+/// @param mem Memory block to search
+/// @param byte Byte value to find
+/// @param count Number of bytes to examine
+/// @return Pointer to last occurrence of byte, or NULL if not found
 /// @note Fallback implementation when system memrchr unavailable
-CT_INLINE void* ct_memrchr(const void* __s, int __c, size_t __n) {
-    const uint8_t* ptr = (const uint8_t*)__s + __n;
-    while (__n--) {
-        if (*--ptr == (uint8_t)__c) { return (void*)ptr; }
+CT_INLINE void* ct_memrchr(const void* mem, int byte, size_t count) {
+    const uint8_t* cursor = (const uint8_t*)mem + count;
+    while (count--) {
+        if (*--cursor == (uint8_t)byte) { return (void*)cursor; }
     }
     return NULL;
 }

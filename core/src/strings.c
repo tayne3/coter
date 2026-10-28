@@ -4,52 +4,52 @@
  */
 #include "coter/core/strings.h"
 
-int ct_snprintf(char* __s, size_t __maxlen, const char* __format, ...) {
-    if (!__format) { return -1; }
+int ct_snprintf(char* buf, size_t buf_size, const char* format, ...) {
+    if (!format) { return -1; }
     va_list args;
-    va_start(args, __format);
+    va_start(args, format);
     int ret;
 #ifdef _MSC_VER
-    if (__s == NULL || __maxlen == 0) {
-        ret = _vscprintf(__format, args);
+    if (buf == NULL || buf_size == 0) {
+        ret = _vscprintf(format, args);
     } else {
         va_list args1;
         va_copy(args1, args);
-        ret = _vsnprintf_s(__s, __maxlen, _TRUNCATE, __format, args);
+        ret = _vsnprintf_s(buf, buf_size, _TRUNCATE, format, args);
         va_end(args);
-        if (ret == -1) { ret = _vscprintf(__format, args1); }
+        if (ret == -1) { ret = _vscprintf(format, args1); }
         va_end(args1);
     }
 #else
-    ret = vsnprintf(__s, __maxlen, __format, args);
+    ret = vsnprintf(buf, buf_size, format, args);
 #endif
     va_end(args);
     return ret;
 }
 
-int ct_snprintf_s(char* __s, size_t __maxlen, const char* __format, ...) {
-    if (__s == NULL || __maxlen == 0 || __format == NULL) { return -1; }
+int ct_snprintf_s(char* buf, size_t buf_size, const char* format, ...) {
+    if (buf == NULL || buf_size == 0 || format == NULL) { return -1; }
     int     result;
     va_list args;
-    va_start(args, __format);
-    result = vsnprintf(__s, __maxlen, __format, args);
+    va_start(args, format);
+    result = vsnprintf(buf, buf_size, format, args);
     va_end(args);
-    __s[__maxlen - 1] = '\0';
-    if (result < 0) { return (int)(__maxlen - 1); }
-    return (result >= (int)__maxlen) ? (int)__maxlen - 1 : result;
+    buf[buf_size - 1] = '\0';
+    if (result < 0) { return (int)(buf_size - 1); }
+    return (result >= (int)buf_size) ? (int)buf_size - 1 : result;
 }
 
-int ct_strncpy_s(char* __s, size_t __maxlen, const char* __src, size_t __n) {
-    if (__s == NULL || __maxlen == 0) { return -1; }
-    if (__src == NULL || __n == 0) {
-        __s[0] = '\0';
+int ct_strncpy_s(char* dest, size_t dest_size, const char* src, size_t count) {
+    if (dest == NULL || dest_size == 0) { return -1; }
+    if (src == NULL || count == 0) {
+        dest[0] = '\0';
         return -1;
     }
     size_t i;
-    size_t len = CT_MIN(__maxlen - 1, __n);
-    for (i = 0; i < len && __src[i] != '\0'; ++i) { __s[i] = __src[i]; }
-    __s[i] = '\0';
-    if (i < __n && __src[i] != '\0') { return -1; }
+    size_t len = CT_MIN(dest_size - 1, count);
+    for (i = 0; i < len && src[i] != '\0'; ++i) { dest[i] = src[i]; }
+    dest[i] = '\0';
+    if (i < count && src[i] != '\0') { return -1; }
     return (int)i;
 }
 
