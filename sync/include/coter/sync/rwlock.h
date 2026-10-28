@@ -30,14 +30,14 @@ CT_API int ct_rwlock_wrunlock(ct_rwlock_t* lock);
 #elif HAVE_PTHREAD_RWLOCK
 typedef pthread_rwlock_t ct_rwlock_t;
 #define CT_RWLOCK_INITIALIZER  PTHREAD_RWLOCK_INITIALIZER
-#define ct_rwlock_init(l)      pthread_rwlock_init(l, NULL)
-#define ct_rwlock_destroy(l)   pthread_rwlock_destroy(l)
-#define ct_rwlock_rdlock(l)    pthread_rwlock_rdlock(l)
-#define ct_rwlock_wrlock(l)    pthread_rwlock_wrlock(l)
-#define ct_rwlock_tryrdlock(l) pthread_rwlock_tryrdlock(l)
-#define ct_rwlock_trywrlock(l) pthread_rwlock_trywrlock(l)
-#define ct_rwlock_rdunlock(l)  pthread_rwlock_unlock(l)
-#define ct_rwlock_wrunlock(l)  pthread_rwlock_unlock(l)
+#define ct_rwlock_init(lock_)      pthread_rwlock_init(lock_, NULL)
+#define ct_rwlock_destroy(lock_)   pthread_rwlock_destroy(lock_)
+#define ct_rwlock_rdlock(lock_)    pthread_rwlock_rdlock(lock_)
+#define ct_rwlock_wrlock(lock_)    pthread_rwlock_wrlock(lock_)
+#define ct_rwlock_tryrdlock(lock_) pthread_rwlock_tryrdlock(lock_)
+#define ct_rwlock_trywrlock(lock_) pthread_rwlock_trywrlock(lock_)
+#define ct_rwlock_rdunlock(lock_)  pthread_rwlock_unlock(lock_)
+#define ct_rwlock_wrunlock(lock_)  pthread_rwlock_unlock(lock_)
 #else
 typedef struct ct_rwlock {
     ct_mutex_t mutex_;

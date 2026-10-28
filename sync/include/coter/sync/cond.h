@@ -26,11 +26,11 @@ CT_API int ct_cond_wait(ct_cond_t* cond, ct_mutex_t* mutex);
 typedef pthread_cond_t ct_cond_t;
 #define CT_COND_INITIALIZER PTHREAD_COND_INITIALIZER
 
-#define ct_cond_init(c)      pthread_cond_init(c, NULL)
-#define ct_cond_destroy(c)   pthread_cond_destroy(c)
-#define ct_cond_signal(c)    pthread_cond_signal(c)
-#define ct_cond_broadcast(c) pthread_cond_broadcast(c)
-#define ct_cond_wait(c, m)   pthread_cond_wait(c, m)
+#define ct_cond_init(cond_)         pthread_cond_init(cond_, NULL)
+#define ct_cond_destroy(cond_)      pthread_cond_destroy(cond_)
+#define ct_cond_signal(cond_)       pthread_cond_signal(cond_)
+#define ct_cond_broadcast(cond_)    pthread_cond_broadcast(cond_)
+#define ct_cond_wait(cond_, mutex_) pthread_cond_wait(cond_, mutex_)
 #endif
 
 /**

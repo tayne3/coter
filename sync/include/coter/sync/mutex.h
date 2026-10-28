@@ -24,11 +24,11 @@ CT_API int ct_mutex_trylock(ct_mutex_t* mutex);
 typedef pthread_mutex_t ct_mutex_t;
 #define CT_MUTEX_INITIALIZER PTHREAD_MUTEX_INITIALIZER
 
-#define ct_mutex_init(m)    pthread_mutex_init(m, NULL)
-#define ct_mutex_destroy(m) pthread_mutex_destroy(m)
-#define ct_mutex_lock(m)    pthread_mutex_lock(m)
-#define ct_mutex_unlock(m)  pthread_mutex_unlock(m)
-#define ct_mutex_trylock(m) pthread_mutex_trylock(m)
+#define ct_mutex_init(mutex_)    pthread_mutex_init(mutex_, NULL)
+#define ct_mutex_destroy(mutex_) pthread_mutex_destroy(mutex_)
+#define ct_mutex_lock(mutex_)    pthread_mutex_lock(mutex_)
+#define ct_mutex_unlock(mutex_)  pthread_mutex_unlock(mutex_)
+#define ct_mutex_trylock(mutex_) pthread_mutex_trylock(mutex_)
 #endif
 
 #ifdef __cplusplus
