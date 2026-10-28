@@ -32,17 +32,27 @@ typedef struct ct_pqueue {
 #define ct_pqueue_item_size(self_)  ((uint16_t)((self_)->item_size_))
 #define ct_pqueue_is_dynamic(self_) ((self_)->is_dynamic_)
 
+// Internal helper shared by ct_pqueue_init() and ct_pqueue_init_s().
+#define CT_PQUEUE_INIT_FIELDS(pqueue_, self_, type_, compare_, storage_, capacity_, dynamic_flag_) \
+    do {                                                                                           \
+        ct_pqueue_t* pqueue_ = (self_);                                                            \
+        CT_STATIC_ASSERT(sizeof(type_) <= 512);                                                    \
+        pqueue_->all_        = (char*)(storage_);                                                  \
+        pqueue_->cap_        = (uint32_t)(capacity_);                                              \
+        pqueue_->size_       = 0;                                                                  \
+        pqueue_->cmp_        = (compare_);                                                         \
+        pqueue_->item_size_  = (uint32_t)((sizeof(type_) + 3) & ~3);                               \
+        pqueue_->is_dynamic_ = (dynamic_flag_);                                                    \
+    } while (0)
+
 /**
  * @brief Initialize a dynamically growing priority queue.
  * @param self Queue instance.
  * @param type_ Element type.
  * @param cmp_ Comparison callback.
  */
-#define ct_pqueue_init(self_, type_, cmp_)               \
-    do {                                                 \
-        CT_STATIC_ASSERT(sizeof(type_) <= 512);          \
-        pqueue_init_dynamic(self_, sizeof(type_), cmp_); \
-    } while (0)
+#define ct_pqueue_init(self_, type_, cmp_) \
+    CT_PQUEUE_INIT_FIELDS(CT_UNIQUE_ID(ct_pqueue_), self_, type_, cmp_, NULL, 0, 1)
 
 /**
  * @brief Initialize a priority queue over caller-provided storage.
@@ -52,29 +62,8 @@ typedef struct ct_pqueue {
  * @param cap_ Capacity in elements.
  * @param cmp_ Comparison callback.
  */
-#define ct_pqueue_init_s(self_, type_, buf_, cap_, cmp_)            \
-    do {                                                            \
-        CT_STATIC_ASSERT(sizeof(type_) <= 512);                     \
-        pqueue_init_static(self_, sizeof(type_), buf_, cap_, cmp_); \
-    } while (0)
-
-CT_INLINE void pqueue_init_dynamic(ct_pqueue_t* self, size_t item_size, ct_compare_cb cmp) {
-    self->all_        = NULL;
-    self->cap_        = 0;
-    self->size_       = 0;
-    self->cmp_        = cmp;
-    self->item_size_  = (uint32_t)((item_size + 3) & ~3);
-    self->is_dynamic_ = 1;
-}
-
-CT_INLINE void pqueue_init_static(ct_pqueue_t* self, size_t item_size, void* buf, size_t cap, ct_compare_cb cmp) {
-    self->all_        = (char*)buf;
-    self->cap_        = (uint32_t)cap;
-    self->size_       = 0;
-    self->cmp_        = cmp;
-    self->item_size_  = (uint32_t)((item_size + 3) & ~3);
-    self->is_dynamic_ = 0;
-}
+#define ct_pqueue_init_s(self_, type_, buf_, cap_, cmp_) \
+    CT_PQUEUE_INIT_FIELDS(CT_UNIQUE_ID(ct_pqueue_), self_, type_, cmp_, buf_, cap_, 0)
 
 /**
  * @brief Destroy a priority queue and release its storage.
