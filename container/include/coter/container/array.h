@@ -64,7 +64,7 @@ CT_API size_t ct_array_size(const ct_array_t* self);
  * @param self Array instance.
  * @return true if empty; otherwise false.
  */
-CT_API bool ct_array_empty(const ct_array_t* self);
+CT_API bool ct_array_is_empty(const ct_array_t* self);
 
 /**
  * @brief Ensure the array can hold at least the requested number of elements.

@@ -16,21 +16,21 @@ int ct_stack_init(ct_stack_buf_t self, void* buffer, size_t byte, size_t max) {
 }
 
 bool ct_stack_push(ct_stack_buf_t self, const void* item) {
-    if (!self || ct_stack_isfull(self)) { return false; }
+    if (!self || ct_stack_is_full(self)) { return false; }
     memcpy(self->all_ + self->size_ * self->byte_, item, self->byte_);
     self->size_++;
     return true;
 }
 
 bool ct_stack_pop(ct_stack_buf_t self, void* item) {
-    if (!self || ct_stack_isempty(self)) { return false; }
+    if (!self || ct_stack_is_empty(self)) { return false; }
     self->size_--;
     if (item) { memcpy(item, self->all_ + self->size_ * self->byte_, self->byte_); }
     return true;
 }
 
 bool ct_stack_top(ct_stack_buf_t self, void* item) {
-    if (!self || ct_stack_isempty(self)) { return false; }
+    if (!self || ct_stack_is_empty(self)) { return false; }
     if (item) { memcpy(item, self->all_ + (self->size_ - 1) * self->byte_, self->byte_); }
     return true;
 }

@@ -32,8 +32,8 @@ typedef struct ct_msgbuf {
 #define ct_msgbuf_capacity(self_)  ((self_)->cap_)
 #define ct_msgbuf_available(self_) (size_t)(((self_)->buffer_ + (self_)->cap_) - (self_)->write_pos_)
 #define ct_msgbuf_clear(self_)     ((self_)->write_pos_ = (self_)->buffer_)
-#define ct_msgbuf_isempty(self_)   ((self_)->write_pos_ == (self_)->buffer_)
-#define ct_msgbuf_isfull(self_)    ((self_)->write_pos_ == ((self_)->buffer_ + (self_)->cap_))
+#define ct_msgbuf_is_empty(self_)  ((self_)->write_pos_ == (self_)->buffer_)
+#define ct_msgbuf_is_full(self_)   ((self_)->write_pos_ == ((self_)->buffer_ + (self_)->cap_))
 
 #define ct_msgbuf_fmt(self_, ...)                                                          \
     do {                                                                                   \

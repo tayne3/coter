@@ -14,8 +14,8 @@ TEST_CASE("stack_init" * doctest::test_suite("stack")) {
         ct_stack_init(&stack, buffer, sizeof(int), i);
         REQUIRE((size_t)ct_stack_max(&stack) == i);
         REQUIRE((size_t)ct_stack_size(&stack) == 0);
-        REQUIRE(ct_stack_isempty(&stack));
-        REQUIRE(!ct_stack_isfull(&stack));
+        REQUIRE(ct_stack_is_empty(&stack));
+        REQUIRE(!ct_stack_is_full(&stack));
     }
 }
 
@@ -26,8 +26,8 @@ TEST_CASE("stack_static_init" * doctest::test_suite("stack")) {
 
     REQUIRE((size_t)ct_stack_max(&stack) == max);
     REQUIRE((size_t)ct_stack_size(&stack) == 0);
-    REQUIRE(ct_stack_isempty(&stack));
-    REQUIRE(!ct_stack_isfull(&stack));
+    REQUIRE(ct_stack_is_empty(&stack));
+    REQUIRE(!ct_stack_is_full(&stack));
     REQUIRE(stack.all_ == (char*)buffer);
 }
 
@@ -41,17 +41,17 @@ TEST_CASE("stack_push" * doctest::test_suite("stack")) {
         ct_stack_push(&stack, &val);
         REQUIRE((size_t)ct_stack_max(&stack) == max);
         REQUIRE((size_t)ct_stack_size(&stack) == i);
-        REQUIRE(!ct_stack_isempty(&stack));
+        REQUIRE(!ct_stack_is_empty(&stack));
         if (i == max)
-            REQUIRE(ct_stack_isfull(&stack));
+            REQUIRE(ct_stack_is_full(&stack));
         else
-            REQUIRE(!ct_stack_isfull(&stack));
+            REQUIRE(!ct_stack_is_full(&stack));
     }
     ct_stack_clear(&stack);
     REQUIRE((size_t)ct_stack_max(&stack) == max);
     REQUIRE((size_t)ct_stack_size(&stack) == 0);
-    REQUIRE(ct_stack_isempty(&stack));
-    REQUIRE(!ct_stack_isfull(&stack));
+    REQUIRE(ct_stack_is_empty(&stack));
+    REQUIRE(!ct_stack_is_full(&stack));
 }
 
 TEST_CASE("stack_pop" * doctest::test_suite("stack")) {
@@ -69,17 +69,17 @@ TEST_CASE("stack_pop" * doctest::test_suite("stack")) {
         REQUIRE(item == (int)(max - i + 1));
         REQUIRE((size_t)ct_stack_max(&stack) == max);
         REQUIRE((size_t)ct_stack_size(&stack) == max - i);
-        REQUIRE(!ct_stack_isfull(&stack));
+        REQUIRE(!ct_stack_is_full(&stack));
         if (i == max)
-            REQUIRE(ct_stack_isempty(&stack));
+            REQUIRE(ct_stack_is_empty(&stack));
         else
-            REQUIRE(!ct_stack_isempty(&stack));
+            REQUIRE(!ct_stack_is_empty(&stack));
     }
     ct_stack_clear(&stack);
     REQUIRE((size_t)ct_stack_max(&stack) == max);
     REQUIRE((size_t)ct_stack_size(&stack) == 0);
-    REQUIRE(ct_stack_isempty(&stack));
-    REQUIRE(!ct_stack_isfull(&stack));
+    REQUIRE(ct_stack_is_empty(&stack));
+    REQUIRE(!ct_stack_is_full(&stack));
 }
 
 TEST_CASE("stack_top" * doctest::test_suite("stack")) {
@@ -101,11 +101,11 @@ TEST_CASE("stack_top" * doctest::test_suite("stack")) {
         REQUIRE(item_prev == (int)(max - i + 1));
         REQUIRE((size_t)ct_stack_max(&stack) == max);
         REQUIRE((size_t)ct_stack_size(&stack) == max - i);
-        REQUIRE(!ct_stack_isfull(&stack));
+        REQUIRE(!ct_stack_is_full(&stack));
         if (i == max) {
-            REQUIRE(ct_stack_isempty(&stack));
+            REQUIRE(ct_stack_is_empty(&stack));
         } else {
-            REQUIRE(!ct_stack_isempty(&stack));
+            REQUIRE(!ct_stack_is_empty(&stack));
             ct_stack_top(&stack, &item_next);
             REQUIRE(item_next == (int)(max - i));
         }
@@ -113,6 +113,6 @@ TEST_CASE("stack_top" * doctest::test_suite("stack")) {
     ct_stack_clear(&stack);
     REQUIRE((size_t)ct_stack_max(&stack) == max);
     REQUIRE((size_t)ct_stack_size(&stack) == 0);
-    REQUIRE(ct_stack_isempty(&stack));
-    REQUIRE(!ct_stack_isfull(&stack));
+    REQUIRE(ct_stack_is_empty(&stack));
+    REQUIRE(!ct_stack_is_full(&stack));
 }

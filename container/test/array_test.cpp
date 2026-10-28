@@ -28,7 +28,7 @@ TEST_CASE("array lifecycle and properties") {
         REQUIRE(ct_array_init(&arr, sizeof(int), 0) == 0);
         REQUIRE(ct_array_size(&arr) == 0);
         REQUIRE(ct_array_capacity(&arr) == 0);
-        REQUIRE(ct_array_empty(&arr) == true);
+        REQUIRE(ct_array_is_empty(&arr) == true);
         REQUIRE(arr.ptr_ == nullptr);
         ct_array_destroy(&arr);
     }
@@ -37,7 +37,7 @@ TEST_CASE("array lifecycle and properties") {
         REQUIRE(ct_array_init(&arr, sizeof(int), 10) == 0);
         REQUIRE(ct_array_size(&arr) == 0);
         REQUIRE(ct_array_capacity(&arr) >= 10);
-        REQUIRE(ct_array_empty(&arr) == true);
+        REQUIRE(ct_array_is_empty(&arr) == true);
         REQUIRE(arr.ptr_ != nullptr);
         ct_array_destroy(&arr);
     }
@@ -115,7 +115,7 @@ TEST_CASE("array data manipulation") {
         array_check_content(&arr, {10});
 
         REQUIRE(ct_array_pop(&arr) == true);
-        REQUIRE(ct_array_empty(&arr) == true);
+        REQUIRE(ct_array_is_empty(&arr) == true);
 
         REQUIRE(ct_array_pop(&arr) == false);
     }
@@ -165,7 +165,7 @@ TEST_CASE("array data manipulation") {
         ct_array_clear(&arr);
         REQUIRE(ct_array_size(&arr) == 0);
         REQUIRE(ct_array_capacity(&arr) == cap);
-        REQUIRE(ct_array_empty(&arr) == true);
+        REQUIRE(ct_array_is_empty(&arr) == true);
     }
 
     ct_array_destroy(&arr);
@@ -200,7 +200,7 @@ TEST_CASE("array accessors and safety") {
     SUBCASE("nullptr self checks") {
         REQUIRE(ct_array_capacity(nullptr) == 0);
         REQUIRE(ct_array_size(nullptr) == 0);
-        REQUIRE(ct_array_empty(nullptr) == true);
+        REQUIRE(ct_array_is_empty(nullptr) == true);
 
         REQUIRE(ct_array_reserve(nullptr, 10) == false);
         REQUIRE(ct_array_resize(nullptr, 10) == false);

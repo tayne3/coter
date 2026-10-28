@@ -23,11 +23,11 @@ typedef struct ct_stack {
 
 #define CT_STACK_INIT(buf_, byte_, max_) {(char*)(buf_), (byte_), (max_), 0}
 
-#define ct_stack_max(self_)     ((self_)->max_)
-#define ct_stack_size(self_)    ((self_)->size_)
-#define ct_stack_isempty(self_) ((self_)->size_ == 0)
-#define ct_stack_isfull(self_)  ((self_)->size_ == (self_)->max_)
-#define ct_stack_clear(self_)   ((self_)->size_ = 0)
+#define ct_stack_max(self_)      ((self_)->max_)
+#define ct_stack_size(self_)     ((self_)->size_)
+#define ct_stack_is_empty(self_) ((self_)->size_ == 0)
+#define ct_stack_is_full(self_)  ((self_)->size_ == (self_)->max_)
+#define ct_stack_clear(self_)    ((self_)->size_ = 0)
 
 /**
  * @brief Initialize a stack over caller-provided storage.

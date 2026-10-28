@@ -38,7 +38,7 @@ size_t ct_array_size(const ct_array_t* self) {
     return self ? self->size_ : 0;
 }
 
-bool ct_array_empty(const ct_array_t* self) {
+bool ct_array_is_empty(const ct_array_t* self) {
     return !self || self->size_ == 0;
 }
 

@@ -33,7 +33,7 @@ typedef struct ct_list {
  */
 #define ct_list_entry(node_, type_, member_) CT_CONTAINER_OF(node_, type_, member_)
 
-#define ct_list_isempty(head_)         ((head_)->next_ == (void*)(head_))
+#define ct_list_is_empty(head_)        ((head_)->next_ == (void*)(head_))
 #define ct_list_first(head_)           ((head_)->next_)
 #define ct_list_last(head_)            ((head_)->prev_)
 #define ct_list_is_first(head_, node_) ((node_)->next_ == (void*)(head_))

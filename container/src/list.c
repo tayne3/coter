@@ -58,7 +58,7 @@ void ct_list_remove(ct_list_t* node) {
 
 void ct_list_splice_prev(ct_list_t* self, ct_list_t* list) {
     if (!self || !list) { return; }
-    if (ct_list_isempty(list)) { return; }
+    if (ct_list_is_empty(list)) { return; }
     ct_list_last(list)->next_  = ct_list_first(self);
     ct_list_first(self)->prev_ = ct_list_last(list);
     ct_list_first(list)->prev_ = self;
@@ -68,7 +68,7 @@ void ct_list_splice_prev(ct_list_t* self, ct_list_t* list) {
 
 void ct_list_splice_next(ct_list_t* self, ct_list_t* list) {
     if (!self || !list) { return; }
-    if (ct_list_isempty(list)) { return; }
+    if (ct_list_is_empty(list)) { return; }
     ct_list_first(list)->prev_ = ct_list_last(self);
     ct_list_last(self)->next_  = ct_list_first(list);
     ct_list_last(list)->next_  = self;

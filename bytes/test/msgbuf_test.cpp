@@ -82,53 +82,53 @@ TEST_CASE_FIXTURE(MsgbufFixture, "msgbuf operations") {
     SUBCASE("Basic Read/Write") {
         REQUIRE(small_bytes_ != nullptr);
         ct_msgbuf_clear(small_bytes_);
-        REQUIRE(ct_msgbuf_isempty(small_bytes_));
-        REQUIRE_FALSE(ct_msgbuf_isfull(small_bytes_));
+        REQUIRE(ct_msgbuf_is_empty(small_bytes_));
+        REQUIRE_FALSE(ct_msgbuf_is_full(small_bytes_));
         char*  byte_buffer = ct_msgbuf_buffer(small_bytes_);
         size_t write_len;
         write_len = ct_msgbuf_write(small_bytes_, "A", 1);
         REQUIRE(write_len == 1);
         REQUIRE(ct_msgbuf_size(small_bytes_) == 1);
-        REQUIRE_FALSE(ct_msgbuf_isempty(small_bytes_));
-        REQUIRE_FALSE(ct_msgbuf_isfull(small_bytes_));
+        REQUIRE_FALSE(ct_msgbuf_is_empty(small_bytes_));
+        REQUIRE_FALSE(ct_msgbuf_is_full(small_bytes_));
         REQUIRE(byte_buffer[0] == 'A');
         write_len = ct_msgbuf_write(small_bytes_, "Hello", 5);
         REQUIRE(write_len == 5);
         REQUIRE(ct_msgbuf_size(small_bytes_) == 6);
-        REQUIRE_FALSE(ct_msgbuf_isempty(small_bytes_));
-        REQUIRE_FALSE(ct_msgbuf_isfull(small_bytes_));
+        REQUIRE_FALSE(ct_msgbuf_is_empty(small_bytes_));
+        REQUIRE_FALSE(ct_msgbuf_is_full(small_bytes_));
         REQUIRE(std::memcmp(&byte_buffer[1], "Hello", 5) == 0);
         ct_msgbuf_clear(small_bytes_);
         REQUIRE(ct_msgbuf_size(small_bytes_) == 0);
-        REQUIRE(ct_msgbuf_isempty(small_bytes_));
-        REQUIRE_FALSE(ct_msgbuf_isfull(small_bytes_));
+        REQUIRE(ct_msgbuf_is_empty(small_bytes_));
+        REQUIRE_FALSE(ct_msgbuf_is_full(small_bytes_));
     }
 
     SUBCASE("Boundary Conditions") {
         REQUIRE(small_bytes_ != nullptr);
         ct_msgbuf_clear(small_bytes_);
-        REQUIRE(ct_msgbuf_isempty(small_bytes_));
-        REQUIRE_FALSE(ct_msgbuf_isfull(small_bytes_));
+        REQUIRE(ct_msgbuf_is_empty(small_bytes_));
+        REQUIRE_FALSE(ct_msgbuf_is_full(small_bytes_));
         size_t write_len;
         write_len = ct_msgbuf_write(small_bytes_, "", 0);
         REQUIRE(write_len == 0);
         REQUIRE(ct_msgbuf_size(small_bytes_) == 0);
-        REQUIRE(ct_msgbuf_isempty(small_bytes_));
-        REQUIRE_FALSE(ct_msgbuf_isfull(small_bytes_));
+        REQUIRE(ct_msgbuf_is_empty(small_bytes_));
+        REQUIRE_FALSE(ct_msgbuf_is_full(small_bytes_));
         char large_data[16 * 2];
         std::memset(large_data, 'A', sizeof(large_data));
         write_len = ct_msgbuf_write(small_bytes_, large_data, sizeof(large_data));
         REQUIRE(write_len == 16);
         REQUIRE(ct_msgbuf_size(small_bytes_) == 16);
-        REQUIRE_FALSE(ct_msgbuf_isempty(small_bytes_));
-        REQUIRE(ct_msgbuf_isfull(small_bytes_));
+        REQUIRE_FALSE(ct_msgbuf_is_empty(small_bytes_));
+        REQUIRE(ct_msgbuf_is_full(small_bytes_));
     }
 
     SUBCASE("Sequential Operations") {
         REQUIRE(small_bytes_ != nullptr);
         ct_msgbuf_clear(small_bytes_);
-        REQUIRE(ct_msgbuf_isempty(small_bytes_));
-        REQUIRE_FALSE(ct_msgbuf_isfull(small_bytes_));
+        REQUIRE(ct_msgbuf_is_empty(small_bytes_));
+        REQUIRE_FALSE(ct_msgbuf_is_full(small_bytes_));
         char*  byte_buffer = ct_msgbuf_buffer(small_bytes_);
         size_t write_len;
         ct_msgbuf_clear(small_bytes_);
@@ -136,29 +136,29 @@ TEST_CASE_FIXTURE(MsgbufFixture, "msgbuf operations") {
         write_len += ct_msgbuf_write(small_bytes_, " World", 6);
         REQUIRE(write_len == 11);
         REQUIRE(ct_msgbuf_size(small_bytes_) == 11);
-        REQUIRE_FALSE(ct_msgbuf_isempty(small_bytes_));
-        REQUIRE_FALSE(ct_msgbuf_isfull(small_bytes_));
+        REQUIRE_FALSE(ct_msgbuf_is_empty(small_bytes_));
+        REQUIRE_FALSE(ct_msgbuf_is_full(small_bytes_));
         REQUIRE(std::memcmp(byte_buffer, "Hello World", 11) == 0);
         ct_msgbuf_clear(small_bytes_);
         write_len = ct_msgbuf_write(small_bytes_, "AB", 2);
         REQUIRE(write_len == 2);
         REQUIRE(ct_msgbuf_size(small_bytes_) == 2);
-        REQUIRE_FALSE(ct_msgbuf_isempty(small_bytes_));
-        REQUIRE_FALSE(ct_msgbuf_isfull(small_bytes_));
+        REQUIRE_FALSE(ct_msgbuf_is_empty(small_bytes_));
+        REQUIRE_FALSE(ct_msgbuf_is_full(small_bytes_));
         REQUIRE(std::memcmp(byte_buffer, "AB", 2) == 0);
         write_len += ct_msgbuf_write(small_bytes_, "CD", 2);
         REQUIRE(write_len == 4);
         REQUIRE(ct_msgbuf_size(small_bytes_) == 4);
-        REQUIRE_FALSE(ct_msgbuf_isempty(small_bytes_));
-        REQUIRE_FALSE(ct_msgbuf_isfull(small_bytes_));
+        REQUIRE_FALSE(ct_msgbuf_is_empty(small_bytes_));
+        REQUIRE_FALSE(ct_msgbuf_is_full(small_bytes_));
         REQUIRE(std::memcmp(byte_buffer, "ABCD", 4) == 0);
     }
 
     SUBCASE("Buffer Overflow Handling") {
         REQUIRE(small_bytes_ != nullptr);
         ct_msgbuf_clear(small_bytes_);
-        REQUIRE(ct_msgbuf_isempty(small_bytes_));
-        REQUIRE_FALSE(ct_msgbuf_isfull(small_bytes_));
+        REQUIRE(ct_msgbuf_is_empty(small_bytes_));
+        REQUIRE_FALSE(ct_msgbuf_is_full(small_bytes_));
         char*  byte_buffer = ct_msgbuf_buffer(small_bytes_);
         size_t write_len;
         ct_msgbuf_clear(small_bytes_);
@@ -167,8 +167,8 @@ TEST_CASE_FIXTURE(MsgbufFixture, "msgbuf operations") {
         write_len = ct_msgbuf_write(small_bytes_, "B", 1);
         REQUIRE(write_len == 0);
         REQUIRE(ct_msgbuf_size(small_bytes_) == 16);
-        REQUIRE_FALSE(ct_msgbuf_isempty(small_bytes_));
-        REQUIRE(ct_msgbuf_isfull(small_bytes_));
+        REQUIRE_FALSE(ct_msgbuf_is_empty(small_bytes_));
+        REQUIRE(ct_msgbuf_is_full(small_bytes_));
         REQUIRE(std::memcmp(byte_buffer, "AAAAAAAAAAAAAAAA", 16) == 0);
     }
 

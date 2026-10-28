@@ -216,7 +216,7 @@ static int thpool_retrieve_worker(ct_thpool_t* self, worker_t** worker) {
     ct_mutex_lock(self->worker_mutex_);
 
 Retry:
-    if (!ct_list_isempty(self->worker_head_)) {
+    if (!ct_list_is_empty(self->worker_head_)) {
         *worker = ct_list_first_entry(self->worker_head_, worker_t, list_);
         if (*worker) {
             ct_list_remove((*worker)->list_);

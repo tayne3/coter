@@ -49,7 +49,7 @@ static void msgbuf_destroy_buffer_pool(buffer_pool_t* pool) {
 static ct_msgbuf_t* msgbuf_get_free_buffer(buffer_pool_t* pool) {
     ct_mutex_lock(&pool->mutex_);
     ct_msgbuf_t* buffer;
-    if (ct_list_isempty(&pool->free_buffers_)) {
+    if (ct_list_is_empty(&pool->free_buffers_)) {
         buffer = ct_msgbuf_create(buffer_size);
     } else {
         buffer = ct_list_first_entry(&pool->free_buffers_, ct_msgbuf_t, list_);
@@ -69,10 +69,10 @@ static void msgbuf_return_filled_buffer(buffer_pool_t* pool, ct_msgbuf_t* buffer
 
 static void msgbuf_consume_chunks(test_context_t* ctx) {
     ct_mutex_lock(&ctx->filled_pool_->mutex_);
-    while (ct_list_isempty(&ctx->filled_pool_->filled_buffers_) && !ctx->test_complete_) {
+    while (ct_list_is_empty(&ctx->filled_pool_->filled_buffers_) && !ctx->test_complete_) {
         ct_cond_wait(&ctx->filled_pool_->cond_, &ctx->filled_pool_->mutex_);
     }
-    if (ct_list_isempty(&ctx->filled_pool_->filled_buffers_) && ctx->test_complete_) {
+    if (ct_list_is_empty(&ctx->filled_pool_->filled_buffers_) && ctx->test_complete_) {
         ct_mutex_unlock(&ctx->filled_pool_->mutex_);
         return;
     }
@@ -101,7 +101,7 @@ static void msgbuf_produce_chunk(test_context_t* ctx) {
                                          CT_MIN(remaining, ct_msgbuf_available(ctx->current_buffer_)));
         write_ptr += written;
         remaining -= written;
-        if (ct_msgbuf_isfull(ctx->current_buffer_)) {
+        if (ct_msgbuf_is_full(ctx->current_buffer_)) {
             uint8_t* buffer_data = (uint8_t*)ct_msgbuf_buffer(ctx->current_buffer_);
             size_t   buffer_size = ct_msgbuf_size(ctx->current_buffer_);
             for (size_t i = 0; i < buffer_size; ++i) {
@@ -155,7 +155,7 @@ TEST_CASE("msgbuf concurrent" * doctest::test_suite("msgbuf") * doctest::test_su
         ct_cond_signal(&filled_pool.cond_);
         consumer_thread.join();
     }
-    while (!ct_list_isempty(&filled_pool.filled_buffers_)) { msgbuf_consume_chunks(&ctx); }
+    while (!ct_list_is_empty(&filled_pool.filled_buffers_)) { msgbuf_consume_chunks(&ctx); }
     ct_msgbuf_destroy(ctx.current_buffer_);
     ct_mutex_destroy(&ctx.mutex_);
     msgbuf_destroy_buffer_pool(&free_pool);
