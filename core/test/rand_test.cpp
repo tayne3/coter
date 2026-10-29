@@ -18,6 +18,27 @@ TEST_CASE("rand_null_safety") {
     ct_random_init(nullptr);
     ct_random_bytes(nullptr, buffer, sizeof(buffer));
     ct_random_bytes(nullptr, nullptr, sizeof(buffer));
+
+    ct_random_t rng;
+    ct_random_seed(&rng, 1);
+    ct_random_bytes(&rng, nullptr, sizeof(buffer));
+}
+
+TEST_CASE("rand_known_answer") {
+    // Seed expansion: two SplitMix64 outputs. Expected state and outputs were
+    // generated with an independent xoroshiro128++ 1.0 reference implementation.
+    const uint64_t expected[] = {
+        0x2ABFEA6A9AF18078ULL, 0x2132616B35565259ULL, 0x850378C3B2E42309ULL, 0x326DF705CC29056DULL,
+        0x7D556729FDD0E190ULL, 0xBD0B25417FDA149CULL, 0x4D328DD0ACB646CCULL, 0x31ED08428BACB3D7ULL,
+    };
+
+    ct_random_t rng;
+    ct_random_seed(&rng, 0x0123456789ABCDEFULL);
+
+    REQUIRE(rng._s[0] == 0x157A3807A48FAA9DULL);
+    REQUIRE(rng._s[1] == 0xD573529B34A1D093ULL);
+
+    for (const uint64_t value : expected) { REQUIRE(ct_random_u64(&rng) == value); }
 }
 
 TEST_CASE("rand_seed_is_reproducible") {
@@ -30,14 +51,30 @@ TEST_CASE("rand_seed_is_reproducible") {
     for (int i = 0; i < 64; ++i) { REQUIRE(ct_random_u64(&lhs) == ct_random_u64(&rhs)); }
 }
 
-TEST_CASE("rand_i64_is_reproducible") {
-    ct_random_t lhs;
-    ct_random_t rhs;
+TEST_CASE("rand_reseed_resets_sequence") {
+    ct_random_t rng;
+    uint64_t    first[8] = {0};
 
-    ct_random_seed(&lhs, 42);
-    ct_random_seed(&rhs, 42);
+    ct_random_seed(&rng, 0x123456789ABCDEF0ULL);
+    for (uint64_t& value : first) { value = ct_random_u64(&rng); }
 
-    for (int i = 0; i < 64; ++i) { REQUIRE(ct_random_i64(&lhs) == ct_random_i64(&rhs)); }
+    ct_random_seed(&rng, 0x123456789ABCDEF0ULL);
+    for (uint64_t value : first) { REQUIRE(ct_random_u64(&rng) == value); }
+}
+
+TEST_CASE("rand_i64_matches_u64_bit_pattern") {
+    ct_random_t unsigned_rng;
+    ct_random_t signed_rng;
+
+    ct_random_seed(&unsigned_rng, 123);
+    ct_random_seed(&signed_rng, 123);
+
+    for (int i = 0; i < 1024; ++i) {
+        const uint64_t raw          = ct_random_u64(&unsigned_rng);
+        const int64_t  signed_value = ct_random_i64(&signed_rng);
+
+        REQUIRE(static_cast<uint64_t>(signed_value) == raw);
+    }
 }
 
 TEST_CASE("rand_edge_seeds_are_reproducible") {
@@ -50,6 +87,9 @@ TEST_CASE("rand_edge_seeds_are_reproducible") {
     ct_random_seed(&zero_b, 0);
     ct_random_seed(&max_a, UINT64_MAX);
     ct_random_seed(&max_b, UINT64_MAX);
+
+    REQUIRE((zero_a._s[0] | zero_a._s[1]) != 0);
+    REQUIRE((max_a._s[0] | max_a._s[1]) != 0);
 
     for (int i = 0; i < 16; ++i) {
         REQUIRE(ct_random_u64(&zero_a) == ct_random_u64(&zero_b));
@@ -75,6 +115,7 @@ TEST_CASE("rand_different_seeds_diverge") {
 }
 
 TEST_CASE("rand_auto_init_changes_state") {
+    // Smoke test only: automatic seeding is best-effort and not guaranteed unique.
     ct_random_t rng;
     ct_random_init(&rng);
 
@@ -82,6 +123,17 @@ TEST_CASE("rand_auto_init_changes_state") {
     const uint64_t b = ct_random_u64(&rng);
 
     REQUIRE(a != b);
+}
+
+TEST_CASE("rand_auto_init_produces_valid_state") {
+    // Automatic seeding is best-effort, but a seeded state must never be all-zero.
+    ct_random_t rng;
+
+    for (int i = 0; i < 100; ++i) {
+        ct_random_init(&rng);
+        REQUIRE((rng._s[0] | rng._s[1]) != 0);
+        (void)ct_random_u64(&rng);
+    }
 }
 
 TEST_CASE("rand_u64_range_uses_half_open_interval") {
@@ -127,6 +179,24 @@ TEST_CASE("rand_i64_range_handles_extreme_bounds") {
         REQUIRE(high >= INT64_MAX - 32);
         REQUIRE(high < INT64_MAX);
     }
+}
+
+TEST_CASE("rand_range_handles_full_span_and_singletons") {
+    ct_random_t rng;
+    ct_random_seed(&rng, 5);
+
+    for (int i = 0; i < 10000; ++i) {
+        REQUIRE(ct_random_u64_range(&rng, 0, UINT64_MAX) < UINT64_MAX);
+
+        const int64_t value = ct_random_i64_range(&rng, INT64_MIN, INT64_MAX);
+        REQUIRE(value >= INT64_MIN);
+        REQUIRE(value < INT64_MAX);
+    }
+
+    REQUIRE(ct_random_u64_range(&rng, 7, 8) == 7);
+    REQUIRE(ct_random_i64_range(&rng, -7, -6) == -7);
+    REQUIRE(ct_random_i64_range(&rng, INT64_MIN, INT64_MIN + 1) == INT64_MIN);
+    REQUIRE(ct_random_i64_range(&rng, INT64_MAX - 1, INT64_MAX) == INT64_MAX - 1);
 }
 
 TEST_CASE("rand_f64_is_unit_interval") {
@@ -177,8 +247,13 @@ TEST_CASE("rand_bytes_zero_length_is_noop") {
     uint8_t     buffer[4] = {1, 2, 3, 4};
 
     ct_random_seed(&rng, 123);
+    const uint64_t state0 = rng._s[0];
+    const uint64_t state1 = rng._s[1];
+
     ct_random_bytes(&rng, buffer, 0);
 
+    REQUIRE(rng._s[0] == state0);
+    REQUIRE(rng._s[1] == state1);
     REQUIRE(buffer[0] == 1);
     REQUIRE(buffer[1] == 2);
     REQUIRE(buffer[2] == 3);
