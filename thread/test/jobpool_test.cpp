@@ -6,6 +6,7 @@
 
 #include <atomic>
 #include <thread>
+#include <vector>
 
 #include "coter/core/time.h"
 #include "coter/sync/mutex.h"
@@ -279,6 +280,111 @@ TEST_CASE("jobpool_time_sliced_mixed_tasks") {
     REQUIRE(done.load(std::memory_order_relaxed) == task_count);
 
     ct_jobpool_destroy(pool);
+}
+
+TEST_CASE("jobpool_destroy_wakes_blocked_workers") {
+    ct_jobpool_t* pool = ct_jobpool_create(4, 8, NULL);
+    REQUIRE(pool != nullptr);
+
+    ct_msleep(20);  // Let the workers enter pop() and block.
+
+    const ct_time64_t start = ct_gettick_ms();
+    ct_jobpool_destroy(pool);
+    REQUIRE(ct_gettick_ms() - start < 5000);
+}
+
+TEST_CASE("jobpool_destroy_waits_for_running_job") {
+    ct_jobpool_t* pool = ct_jobpool_create(1, 8, NULL);
+    REQUIRE(pool != nullptr);
+
+    struct ctx_t {
+        std::atomic<bool>* started_;
+        std::atomic<bool>* finished_;
+    };
+
+    std::atomic<bool> started{false};
+    std::atomic<bool> finished{false};
+    ctx_t             ctx{&started, &finished};
+
+    REQUIRE(ct_jobpool_submit(
+                pool,
+                [](void* arg) {
+                    auto* c = static_cast<ctx_t*>(arg);
+                    c->started_->store(true, std::memory_order_relaxed);
+                    ct_msleep(50);
+                    c->finished_->store(true, std::memory_order_relaxed);
+                },
+                &ctx) == 0);
+
+    for (int i = 0; i < 5000 && !started.load(std::memory_order_relaxed); ++i) { ct_msleep(1); }
+    REQUIRE(started.load(std::memory_order_relaxed) == true);
+
+    ct_jobpool_destroy(pool);
+    REQUIRE(finished.load(std::memory_order_relaxed) == true);
+}
+
+TEST_CASE("jobpool_multi_producer_exactly_once") {
+    constexpr size_t producer_count = 4;
+    constexpr size_t per_producer   = 1000;
+    constexpr size_t task_count     = producer_count * per_producer;
+
+    ct_jobpool_t* pool = ct_jobpool_create(4, 64, NULL);
+    REQUIRE(pool != nullptr);
+
+    struct ctx_t {
+        ct_mutex_t*          mu_;
+        std::vector<int>*    counts_;
+        std::atomic<size_t>* done_;
+    };
+    struct task_t {
+        ctx_t* ctx_;
+        size_t index_;
+    };
+
+    ct_mutex_t          mu;
+    std::vector<int>    counts(task_count, 0);
+    std::atomic<size_t> done{0};
+    ctx_t               ctx{&mu, &counts, &done};
+    std::vector<task_t> tasks(task_count);
+
+    ct_mutex_init(&mu);
+    for (size_t i = 0; i < task_count; ++i) { tasks[i] = task_t{&ctx, i}; }
+
+    auto producer = [&](size_t base) {
+        for (size_t i = 0; i < per_producer; ++i) {
+            REQUIRE(ct_jobpool_submit(
+                        pool,
+                        [](void* arg) {
+                            auto* task = static_cast<task_t*>(arg);
+                            ct_mutex_lock(task->ctx_->mu_);
+                            ++(*task->ctx_->counts_)[task->index_];
+                            ct_mutex_unlock(task->ctx_->mu_);
+                            task->ctx_->done_->fetch_add(1, std::memory_order_relaxed);
+                        },
+                        &tasks[base + i]) == 0);
+        }
+    };
+
+    std::thread producers[producer_count];
+    for (size_t i = 0; i < producer_count; ++i) { producers[i] = std::thread(producer, i * per_producer); }
+    for (size_t i = 0; i < producer_count; ++i) { producers[i].join(); }
+
+    for (int i = 0; i < 5000 && done.load(std::memory_order_relaxed) < task_count; ++i) { ct_msleep(1); }
+    REQUIRE(done.load(std::memory_order_relaxed) == task_count);
+
+    ct_mutex_lock(&mu);
+    bool all_once = true;
+    for (size_t i = 0; i < task_count; ++i) {
+        if (counts[i] != 1) {
+            all_once = false;
+            break;
+        }
+    }
+    ct_mutex_unlock(&mu);
+    REQUIRE(all_once);
+
+    ct_jobpool_destroy(pool);
+    ct_mutex_destroy(&mu);
 }
 
 TEST_SUITE_END();
