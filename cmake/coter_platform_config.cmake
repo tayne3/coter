@@ -36,6 +36,7 @@ check_symbol_exists("memrchr" "string.h" HAVE_MEMRCHR)
 check_symbol_exists("clock_gettime" "time.h" HAVE_CLOCK_GETTIME)
 check_symbol_exists("sem_timedwait" "semaphore.h" HAVE_SEM_TIMEDWAIT)
 check_symbol_exists("pthread_rwlock_init" "pthread.h" HAVE_PTHREAD_RWLOCK)
+check_symbol_exists("pthread_cond_clockwait" "pthread.h" HAVE_PTHREAD_COND_CLOCKWAIT)
 
 if(UNIX AND NOT APPLE)
   if(NOT HAVE_CLOCK_GETTIME)

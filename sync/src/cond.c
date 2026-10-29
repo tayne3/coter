@@ -36,9 +36,24 @@ int ct_cond_wait(ct_cond_t* cond, ct_mutex_t* mutex) {
 
 static int cond_timedwait(ct_cond_t* cond, ct_mutex_t* mutex, ct_time64_t timeout_ms) {
 #ifdef CT_OS_WIN
-    timeout_ms = CT_MIN(timeout_ms, (ct_time64_t)UINT32_MAX);
+    timeout_ms = CT_MIN(timeout_ms, (ct_time64_t)UINT32_MAX - 1);
     if (SleepConditionVariableSRW((PCONDITION_VARIABLE)cond, (PSRWLOCK)mutex, (DWORD)timeout_ms, 0)) { return 0; }
     return GetLastError() == ERROR_TIMEOUT ? ETIMEDOUT : (int)GetLastError();
+#elif defined(CT_OS_DARWIN)
+    struct timespec ts;
+    ts.tv_sec  = (time_t)(timeout_ms / 1000);
+    ts.tv_nsec = (long)(timeout_ms % 1000) * 1000000L;
+    return pthread_cond_timedwait_relative_np(cond, mutex, &ts);
+#elif HAVE_PTHREAD_COND_CLOCKWAIT && HAVE_CLOCK_GETTIME
+    struct timespec ts;
+    if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0) { return errno; }
+
+    ts.tv_sec += (time_t)(timeout_ms / 1000);
+    ts.tv_nsec += (long)(timeout_ms % 1000) * 1000000L;
+    ts.tv_sec += ts.tv_nsec / 1000000000L;
+    ts.tv_nsec %= 1000000000L;
+
+    return pthread_cond_clockwait(cond, mutex, CLOCK_MONOTONIC, &ts);
 #else
     struct timespec ts;
 
@@ -67,7 +82,8 @@ int ct_cond_wait_for(ct_cond_t* cond, ct_mutex_t* mutex, ct_time64_t timeout_ms)
     if (timeout_ms < 0) { return ct_cond_wait(cond, mutex); }
     if (timeout_ms == 0) { return ETIMEDOUT; }
 
-    const ct_time64_t deadline = ct_gettick_ms() + timeout_ms;
+    const ct_time64_t start    = ct_gettick_ms();
+    const ct_time64_t deadline = timeout_ms > INT64_MAX - start ? INT64_MAX : start + timeout_ms;
     for (;;) {
         const ct_time64_t now = ct_gettick_ms();
         if (now >= deadline) { return ETIMEDOUT; }

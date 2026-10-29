@@ -35,6 +35,10 @@
 #cmakedefine01 HAVE_CLOCK_GETTIME
 #endif
 
+#ifndef HAVE_PTHREAD_COND_CLOCKWAIT
+#cmakedefine01 HAVE_PTHREAD_COND_CLOCKWAIT
+#endif
+
 #ifndef HAVE_PTHREAD_RWLOCK
 #cmakedefine01 HAVE_PTHREAD_RWLOCK
 #endif
