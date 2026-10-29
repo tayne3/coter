@@ -12,7 +12,7 @@ extern "C" {
 #endif
 
 /**
- * @brief Pseudo-random generator state.
+ * @brief Pseudo-random generator state (xoroshiro128++).
  */
 typedef struct ct_random {
     uint64_t _s[2];
@@ -21,13 +21,22 @@ typedef struct ct_random {
 /**
  * @brief Initialize the generator with a non-cryptographic automatic seed.
  *
- * @note This module is intended for tests and general sampling. Do not use it
- * for keys, tokens, session ids, or other security-sensitive data.
+ * @note Automatic seeding is best-effort. It is not reproducible, and
+ * distinct or re-initialized instances are not guaranteed to receive
+ * distinct states. Use ct_random_seed() when reproducibility is required.
+ *
+ * @warning This module is intended for tests and general sampling. It is not
+ * cryptographically secure; do not use it for keys, tokens, session ids, or
+ * other security-sensitive data.
  */
 CT_API void ct_random_init(ct_random_t* self) CT_ATTR_THROW;
 
 /**
  * @brief Initialize the generator with a deterministic seed.
+ *
+ * @note The same seed produces the same sequence within the same library
+ * version and algorithm. Output sequences are not guaranteed to be stable
+ * across versions or algorithm changes.
  */
 CT_API void ct_random_seed(ct_random_t* self, uint64_t seed) CT_ATTR_THROW;
 
