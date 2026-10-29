@@ -27,7 +27,7 @@ typedef enum ct_thpool_error {
 #define F(code, name, description) CT_THPOOL_ERROR_##name = code,
     CT_THPOOL_ERROR_FOREACH(F)
 #undef F
-    CT_THPOOL_ERROR_MAX,
+        CT_THPOOL_ERROR_MAX,
 } ct_thpool_error_t;
 
 /**
@@ -44,7 +44,7 @@ typedef struct ct_thpool ct_thpool_t;
  * @brief Thread pool configuration.
  */
 typedef struct ct_thpool_config {
-    ct_thread_attr_t* thread_attr_;   ///< Thread attributes; NULL uses defaults. Copied during creation.
+    ct_thread_attr_t* thread_attr_;   ///< Worker thread attributes; NULL uses defaults. Copied during creation.
     size_t            idle_timeout_;  ///< Idle timeout in milliseconds; 0 keeps idle workers.
     bool              non_blocking_;  ///< Reject submissions instead of blocking when overloaded.
     size_t            max_tasks_;     ///< Maximum blocked submitters; 0 means unlimited.
@@ -52,7 +52,7 @@ typedef struct ct_thpool_config {
 
 /**
  * @brief Create a thread pool.
- * @param size Maximum number of worker threads.
+ * @param size Maximum number of worker threads; 0 means unlimited.
  * @param config Optional configuration; NULL selects defaults.
  * @return A new thread pool, or NULL on failure.
  */
@@ -60,12 +60,17 @@ CT_API ct_thpool_t* ct_thpool_create(size_t size, ct_thpool_config_t* config) CT
 
 /**
  * @brief Close a thread pool and stop accepting new tasks.
+ *
+ * Tasks that were already accepted continue to run. This function does not
+ * wait for them; use ct_thpool_destroy() when the pool must be drained.
+ *
  * @param self Thread pool.
  */
 CT_API void ct_thpool_close(ct_thpool_t* self);
 
 /**
  * @brief Close and destroy a thread pool.
+ *
  * @param self Thread pool.
  */
 CT_API void ct_thpool_destroy(ct_thpool_t* self);
