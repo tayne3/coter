@@ -37,11 +37,11 @@ uint64_t ct_random_u64(ct_random_t* self) {
 
     const uint64_t s0     = self->_s[0];
     uint64_t       s1     = self->_s[1];
-    const uint64_t result = s0 + s1;
+    const uint64_t result = random_rotl(s0 + s1, 17) + s0;
 
     s1 ^= s0;
-    self->_s[0] = random_rotl(s0, 55) ^ s1 ^ (s1 << 14);
-    self->_s[1] = random_rotl(s1, 36);
+    self->_s[0] = random_rotl(s0, 49) ^ s1 ^ (s1 << 21);
+    self->_s[1] = random_rotl(s1, 28);
 
     return result;
 }
