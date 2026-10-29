@@ -98,36 +98,47 @@ void jobpool_test_add(size_t data_count, size_t task_count, size_t job_count) {
 
 }  // namespace
 
-TEST_CASE("jobpool_add_10_1_10" * doctest::test_suite("jobpool")) {
+TEST_SUITE_BEGIN("jobpool");
+
+TEST_CASE("jobpool_add_10_1_10") {
     jobpool_test_add(10, 1, 10);
 }
 
-TEST_CASE("jobpool_add_10_10_1" * doctest::test_suite("jobpool")) {
+TEST_CASE("jobpool_add_10_10_1") {
     jobpool_test_add(10, 10, 1);
 }
 
-TEST_CASE("jobpool_add_500_10_1" * doctest::test_suite("jobpool")) {
+TEST_CASE("jobpool_add_500_10_1") {
     jobpool_test_add(500, 10, 1);
 }
 
-TEST_CASE("jobpool_create_invalid_params" * doctest::test_suite("jobpool")) {
+TEST_CASE("jobpool_create_invalid_params") {
     // A zero thread count must fail.
     REQUIRE(ct_jobpool_create(0, 10, NULL) == nullptr);
     // A zero queue capacity must fail.
     REQUIRE(ct_jobpool_create(4, 0, NULL) == nullptr);
 }
 
-TEST_CASE("jobpool_create_with_config_stack_size" * doctest::test_suite("jobpool")) {
+TEST_CASE("jobpool_config_init") {
+    ct_jobpool_config_t config = CT_JOBPOOL_CONFIG_INIT;
+    REQUIRE(config.thread_attr_ == nullptr);
+
+    ct_jobpool_t* pool = ct_jobpool_create(2, 8, &config);
+    REQUIRE(pool != nullptr);
+    ct_jobpool_destroy(pool);
+}
+
+TEST_CASE("jobpool_create_with_config_stack_size") {
     ct_thread_attr_t attr = CT_THREAD_ATTR_INIT;
     ct_thread_attr_set_stack_size(&attr, 512 * 1024);  // 512 KiB stack.
 
-    ct_jobpool_config_t config = {&attr, 0};  // yield_every = 0 (disabled).
+    ct_jobpool_config_t config = {&attr};
     ct_jobpool_t*       pool   = ct_jobpool_create(2, 8, &config);
     REQUIRE(pool != nullptr);
     ct_jobpool_destroy(pool);
 }
 
-TEST_CASE("jobpool_try_submit_full" * doctest::test_suite("jobpool")) {
+TEST_CASE("jobpool_try_submit_full") {
     // With capacity 1, try_submit must fail once both the worker and queue are busy.
     ct_jobpool_t* pool = ct_jobpool_create(1, 1, NULL);
     REQUIRE(pool != nullptr);
@@ -146,7 +157,7 @@ TEST_CASE("jobpool_try_submit_full" * doctest::test_suite("jobpool")) {
     ct_jobpool_destroy(pool);
 }
 
-TEST_CASE("jobpool_submit_for_timeout" * doctest::test_suite("jobpool")) {
+TEST_CASE("jobpool_submit_for_timeout") {
     // Fill the queue manually, then submit with a timeout.
     ct_jobpool_t* pool = ct_jobpool_create(1, 1, NULL);
     REQUIRE(pool != nullptr);
@@ -169,7 +180,7 @@ TEST_CASE("jobpool_submit_for_timeout" * doctest::test_suite("jobpool")) {
     ct_jobpool_destroy(pool);
 }
 
-TEST_CASE("jobpool_pending" * doctest::test_suite("jobpool")) {
+TEST_CASE("jobpool_pending") {
     // Keep the worker busy so queued jobs remain pending.
     ct_jobpool_t* pool = ct_jobpool_create(1, 100, NULL);
     REQUIRE(pool != nullptr);
@@ -191,12 +202,11 @@ TEST_CASE("jobpool_pending" * doctest::test_suite("jobpool")) {
     ct_jobpool_destroy(pool);
 }
 
-TEST_CASE("jobpool_yield_every_dense_tasks" * doctest::test_suite("jobpool")) {
-    // Dense micro-tasks must all complete regardless of the yield interval.
+TEST_CASE("jobpool_dense_tasks") {
+    // Dense micro-tasks must all complete with the internal time-sliced yield policy.
     constexpr size_t task_count = 5000;
 
-    ct_jobpool_config_t config = {NULL, 64};  // Yield after every 64 consecutive jobs.
-    ct_jobpool_t*       pool   = ct_jobpool_create(4, task_count, &config);
+    ct_jobpool_t* pool = ct_jobpool_create(4, task_count, NULL);
     REQUIRE(pool != nullptr);
 
     ct_mutex_t mu;
@@ -234,6 +244,8 @@ TEST_CASE("jobpool_yield_every_dense_tasks" * doctest::test_suite("jobpool")) {
     REQUIRE(done == task_count);
     ct_mutex_unlock(&mu);
 
-    ct_mutex_destroy(&mu);
     ct_jobpool_destroy(pool);
+    ct_mutex_destroy(&mu);
 }
+
+TEST_SUITE_END();

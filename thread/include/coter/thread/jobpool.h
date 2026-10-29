@@ -28,17 +28,17 @@ typedef struct ct_jobpool ct_jobpool_t;
  */
 typedef struct ct_jobpool_config {
     ct_thread_attr_t* thread_attr_;  ///< Worker thread attributes; NULL uses defaults.
-
-    /**
-     * Yield the CPU after this many consecutive jobs (0 disables explicit
-     * yielding and relies on OS preemption). Useful for dense micro-task
-     * workloads that would otherwise monopolize a core.
-     */
-    size_t yield_every_;
 } ct_jobpool_config_t;
+
+#define CT_JOBPOOL_CONFIG_INIT {NULL}
 
 /**
  * @brief Create a job pool.
+ *
+ * Workers cooperatively yield the CPU at an internal time-based interval to
+ * avoid monopolizing a core during dense job execution. This policy is not
+ * configurable.
+ *
  * @param thread_max Number of worker threads.
  * @param job_max Maximum number of queued jobs.
  * @param config Optional configuration; NULL selects defaults.
