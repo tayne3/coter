@@ -4,6 +4,7 @@
  */
 #include "coter/sync/msgqueue.h"
 
+#include <cerrno>
 #include <thread>
 #include <vector>
 
@@ -12,12 +13,11 @@
 #include "coter/sync/atomic.h"
 #include "coter/testing/doctest.h"
 
-
 namespace {
 struct int_queue_env {
     explicit int_queue_env(size_t capacity) : storage_(capacity, 0) {
         REQUIRE(capacity > 0);
-        ct_msgqueue_init(&queue_, storage_.data(), sizeof(int), capacity);
+        REQUIRE(ct_msgqueue_init(&queue_, storage_.data(), sizeof(int), capacity) == 0);
     }
 
     ~int_queue_env() {
@@ -30,11 +30,11 @@ struct int_queue_env {
 };
 
 struct timed_call_env {
-    ct_msgqueue_t*  queue_ = NULL;
-    int             value_ = 0;
+    ct_msgqueue_t*  queue_      = NULL;
+    int             value_      = 0;
     ct_time64_t     timeout_ms_ = 0;
-    ct_atomic_int_t ready_ = CT_ATOMIC_VAR_INIT(0);
-    ct_atomic_int_t result_ = CT_ATOMIC_VAR_INIT(0);
+    ct_atomic_int_t ready_      = CT_ATOMIC_VAR_INIT(0);
+    ct_atomic_int_t result_     = CT_ATOMIC_VAR_INIT(0);
 };
 
 static timed_call_env msgqueue_make_timed_call_env(ct_msgqueue_t* queue, int value, ct_time64_t timeout_ms) {
@@ -102,6 +102,16 @@ static void msgqueue_run_blocking_fifo_case(size_t data_size, size_t capacity) {
     REQUIRE_FALSE(ct_msgqueue_is_full(&env.queue_));
 }
 }  // namespace
+
+TEST_CASE("msgqueue_init rejects invalid arguments" * doctest::test_suite("msgqueue")) {
+    ct_msgqueue_t queue     = {};
+    int           buffer[4] = {};
+
+    REQUIRE(ct_msgqueue_init(NULL, buffer, sizeof(buffer[0]), 4) == EINVAL);
+    REQUIRE(ct_msgqueue_init(&queue, NULL, sizeof(buffer[0]), 4) == EINVAL);
+    REQUIRE(ct_msgqueue_init(&queue, buffer, 0, 4) == EINVAL);
+    REQUIRE(ct_msgqueue_init(&queue, buffer, sizeof(buffer[0]), 0) == EINVAL);
+}
 
 TEST_CASE("blocking push and pop preserve fifo order" * doctest::test_suite("event") *
           doctest::test_suite("msgqueue")) {

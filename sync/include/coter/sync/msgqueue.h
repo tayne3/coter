@@ -31,8 +31,10 @@ typedef struct ct_msgqueue {
  * @param buffer Caller-owned storage for the queue elements.
  * @param byte Size of one element in bytes.
  * @param max Maximum number of elements in the queue.
+ * @return 0 on success, EINVAL when an argument is invalid, otherwise an
+ *         initialization error code.
  */
-CT_API void ct_msgqueue_init(ct_msgqueue_t* self, void* buffer, size_t byte, size_t max);
+CT_API int ct_msgqueue_init(ct_msgqueue_t* self, void* buffer, size_t byte, size_t max);
 
 /**
  * @brief Close the queue and wake all blocked producers and consumers.

@@ -63,7 +63,11 @@ ct_jobpool_t* ct_jobpool_create(size_t thread_max, size_t job_max, const ct_jobp
         free(self);
         return NULL;
     }
-    ct_msgqueue_init(self->job_queue_, self->job_buffer_, sizeof(job_t), job_max);
+    if (ct_msgqueue_init(self->job_queue_, self->job_buffer_, sizeof(job_t), job_max) != 0) {
+        free(self->job_buffer_);
+        free(self);
+        return NULL;
+    }
     ct_list_init(self->regular_list_);
 
     ct_thread_attr_t attr = CT_THREAD_ATTR_INIT;

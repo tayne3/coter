@@ -11,12 +11,25 @@
 static int msgqueue_wait_not_full(ct_msgqueue_t* self, ct_time64_t timeout_ms);
 static int msgqueue_wait_not_empty(ct_msgqueue_t* self, ct_time64_t timeout_ms);
 
-void ct_msgqueue_init(ct_msgqueue_t* self, void* buffer, size_t byte, size_t max) {
+int ct_msgqueue_init(ct_msgqueue_t* self, void* buffer, size_t byte, size_t max) {
+    if (!self || !buffer || byte == 0 || max == 0) { return EINVAL; }
+
     ct_queue_init(self->queue_, buffer, byte, max);
-    ct_mutex_init(&self->mutex_);
-    ct_cond_init(&self->not_empty_);
-    ct_cond_init(&self->not_full_);
+
+    int rc;
+    if ((rc = ct_mutex_init(&self->mutex_)) != 0) { return rc; }
+    if ((rc = ct_cond_init(&self->not_empty_)) != 0) {
+        ct_mutex_destroy(&self->mutex_);
+        return rc;
+    }
+    if ((rc = ct_cond_init(&self->not_full_)) != 0) {
+        ct_cond_destroy(&self->not_empty_);
+        ct_mutex_destroy(&self->mutex_);
+        return rc;
+    }
+
     self->is_shut_ = false;
+    return 0;
 }
 
 void ct_msgqueue_close(ct_msgqueue_t* self) {

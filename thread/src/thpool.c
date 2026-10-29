@@ -280,7 +280,10 @@ static worker_t* thpool_worker_create(ct_thpool_t* self) {
     ct_list_init(worker->list_);
     worker->thpool_   = self;
     worker->last_use_ = ct_gettick_ms();
-    ct_msgqueue_init(worker->tasks_, worker->task_buff_, sizeof(task_t), 1);
+    if (ct_msgqueue_init(worker->tasks_, worker->task_buff_, sizeof(task_t), 1) != 0) {
+        free(worker);
+        return NULL;
+    }
 
     const int ret = ct_thread_create(&worker->thread_, self->has_thread_attr_ ? &self->thread_attr_ : NULL,
                                      thpool_worker_thread, worker);
