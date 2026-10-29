@@ -1,5 +1,6 @@
 #include "coter/core/time.h"
 
+#include <atomic>
 #include <climits>
 #include <cstdio>
 #include <cstdlib>
@@ -24,6 +25,51 @@ bool same_datetime(const ct_datetime_t& a, const ct_datetime_t& b) {
 
 }  // namespace
 
+TEST_SUITE_BEGIN("time");
+
+TEST_CASE("hrtime_concurrent_first_use") {
+    const int threads = 8;
+    const int loops   = 1000;
+
+    std::atomic<bool>        start{false};
+    std::vector<ct_time64_t> results(threads, 0);
+    std::vector<int>         failed(threads, 0);
+    std::vector<std::thread> ts;
+    ts.reserve(threads);
+
+    for (int t = 0; t < threads; ++t) {
+        ts.emplace_back([&, t]() {
+            while (!start.load(std::memory_order_acquire)) {}
+            ct_time64_t prev = ct_gethrtime_us();
+            if (prev <= 0) {
+                failed[t] = 1;
+                return;
+            }
+            for (int i = 0; i < loops; ++i) {
+                const ct_time64_t curr = ct_gethrtime_us();
+                if (curr < prev) {
+                    failed[t] = 1;
+                    return;
+                }
+                prev = curr;
+            }
+            results[t] = prev;
+        });
+    }
+
+    start.store(true, std::memory_order_release);
+    for (auto& th : ts) { th.join(); }
+
+    for (int f : failed) { REQUIRE(f == 0); }
+
+    const ct_time64_t end = ct_gethrtime_us();
+    for (const ct_time64_t value : results) {
+        REQUIRE(value > 0);
+        REQUIRE(end >= value);
+        REQUIRE(end - value < 5000000);  // All threads must see the same clock.
+    }
+}
+
 TEST_CASE("uptime_monotonic") {
     const ct_time64_t t1 = ct_gettick_ms();
     const ct_time64_t t2 = ct_gettick_ms();
@@ -36,7 +82,7 @@ TEST_CASE("uptime_monotonic") {
     }
 }
 
-TEST_CASE("sleep_timing" * doctest::test_suite("timing")) {
+TEST_CASE("sleep_timing") {
     const int durations[] = {10, 50, 100, 200};
     for (int i = 0; i < 4; ++i) {
         const ct_time64_t start_us = ct_gethrtime_us();
@@ -62,7 +108,7 @@ TEST_CASE("hrtime_monotonic") {
     }
 }
 
-TEST_CASE("timeofday_consistency" * doctest::test_suite("timing")) {
+TEST_CASE("timeofday_consistency") {
     const ct_time64_t us1 = ct_unixtime_us();
     const ct_time64_t ms1 = us1 / 1000;
     const ct_time64_t ms2 = ct_unixtime_ms();
@@ -70,13 +116,13 @@ TEST_CASE("timeofday_consistency" * doctest::test_suite("timing")) {
     REQUIRE(ms2 <= ms1 + 10);
 }
 
-TEST_CASE("time_now_consistency" * doctest::test_suite("timing")) {
+TEST_CASE("time_now_consistency") {
     const ct_time_t   now = ct_unixtime_sec();
     const ct_time64_t ms  = ct_unixtime_ms();
     REQUIRE(std::llabs((long long)now - (long long)(ms / 1000)) <= 2);
 }
 
-TEST_CASE("localtime_r_consistency" * doctest::test_suite("concurrency")) {
+TEST_CASE("localtime_r_consistency") {
     struct tm       tmv{};
     const ct_time_t now = ct_unixtime_sec();
     REQUIRE(ct_localtime_r(&now, &tmv) != nullptr);
@@ -95,7 +141,7 @@ TEST_CASE("localtime_r_consistency" * doctest::test_suite("concurrency")) {
     REQUIRE(tmv.tm_sec <= 60);
 }
 
-TEST_CASE("localtime_r_concurrent" * doctest::test_suite("concurrency")) {
+TEST_CASE("localtime_r_concurrent") {
     const int                threads = 4;
     const int                loops   = 20;
     std::vector<std::thread> ts;
@@ -115,7 +161,7 @@ TEST_CASE("localtime_r_concurrent" * doctest::test_suite("concurrency")) {
     for (auto& th : ts) { th.join(); }
 }
 
-TEST_CASE("sleep_seconds_quick" * doctest::test_suite("timing")) {
+TEST_CASE("sleep_seconds_quick") {
     const ct_time64_t start_us = ct_gethrtime_us();
     ct_sleep(0);
     const ct_time64_t end_us   = ct_gethrtime_us();
@@ -123,7 +169,7 @@ TEST_CASE("sleep_seconds_quick" * doctest::test_suite("timing")) {
     REQUIRE(quick_ms <= 5);
 }
 
-TEST_CASE("usleep_minimum_behavior" * doctest::test_suite("timing")) {
+TEST_CASE("usleep_minimum_behavior") {
     const ct_time64_t s1 = ct_gethrtime_us();
     ct_usleep(1);
     const ct_time64_t e1  = ct_gethrtime_us();
@@ -147,7 +193,7 @@ TEST_CASE("usleep_minimum_behavior" * doctest::test_suite("timing")) {
     REQUIRE(ms2 <= 20);
 }
 
-TEST_CASE("datetime: days_in_month" * doctest::test_suite("datetime")) {
+TEST_CASE("days_in_month") {
     CHECK(ct_datetime_days_in_month(2024, 1) == 31);
     CHECK(ct_datetime_days_in_month(2023, 2) == 28);
     CHECK(ct_datetime_days_in_month(2024, 2) == 29);
@@ -159,7 +205,7 @@ TEST_CASE("datetime: days_in_month" * doctest::test_suite("datetime")) {
     CHECK(ct_datetime_days_in_month(2024, 13) == 0);
 }
 
-TEST_CASE("datetime: formatting" * doctest::test_suite("datetime")) {
+TEST_CASE("formatting") {
     const ct_datetime_t dt = {2024, 2, 29, 12, 34, 56, 789};
 
     char buf[CT_DATETIME_FMT_BUFLEN];
@@ -204,7 +250,7 @@ TEST_CASE("datetime: formatting" * doctest::test_suite("datetime")) {
     CHECK(std::strcmp(duration, expected) == 0);
 }
 
-TEST_CASE("datetime: add_days" * doctest::test_suite("datetime")) {
+TEST_CASE("add_days") {
     ct_datetime_t dt = {2024, 3, 1, 12, 0, 0, 0};
     CHECK(ct_datetime_add_days(&dt, -1));
     CHECK(dt.year == 2024);
@@ -262,7 +308,7 @@ TEST_CASE("datetime: add_days" * doctest::test_suite("datetime")) {
     CHECK(same_datetime(huge, huge_before));
 }
 
-TEST_CASE("datetime: now and mktime" * doctest::test_suite("datetime")) {
+TEST_CASE("now and mktime") {
     const ct_datetime_t now = ct_datetime_now();
 
     CHECK(now.year >= 2000);
@@ -319,3 +365,5 @@ TEST_CASE("datetime: now and mktime" * doctest::test_suite("datetime")) {
         CHECK(is_zero_datetime(ct_datetime_localtime((ct_time_t)std::numeric_limits<ct_time_t>::max())));
     }
 }
+
+TEST_SUITE_END();

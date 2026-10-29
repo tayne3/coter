@@ -68,22 +68,32 @@ ct_time64_t ct_unixtime_us(void) {
 #endif
 }
 
+#ifdef CT_OS_WIN
+static INIT_ONCE s_freq_once = INIT_ONCE_STATIC_INIT;
+static LONGLONG  s_freq      = 0;
+
+static BOOL CALLBACK time_hrtime_init(PINIT_ONCE once, PVOID param, PVOID* context) {
+    LARGE_INTEGER freq;
+    CT_UNUSED(once);
+    CT_UNUSED(param);
+    CT_UNUSED(context);
+
+    if (!QueryPerformanceFrequency(&freq) || freq.QuadPart <= 0) { return FALSE; }
+    s_freq = freq.QuadPart;
+    return TRUE;
+}
+#endif
+
 ct_time64_t ct_gethrtime_us(void) {
 #ifdef CT_OS_WIN
-    static LONGLONG s_freq = 0;
-    if (s_freq == 0) {
-        LARGE_INTEGER freq;
-        QueryPerformanceFrequency(&freq);
-        s_freq = freq.QuadPart;
-    }
-    if (s_freq != 0) {
-        LARGE_INTEGER count;
-        QueryPerformanceCounter(&count);
-        const int64_t whole = (count.QuadPart / s_freq) * INT64_C(1000000);
-        const int64_t part  = (count.QuadPart % s_freq) * INT64_C(1000000) / s_freq;
-        return whole + part;
-    }
-    return 0LL;
+    if (!InitOnceExecuteOnce(&s_freq_once, time_hrtime_init, NULL, NULL)) { return 0; }
+
+    LARGE_INTEGER count;
+    if (!QueryPerformanceCounter(&count)) { return 0; }
+
+    const int64_t whole = (count.QuadPart / s_freq) * INT64_C(1000000);
+    const int64_t part  = (count.QuadPart % s_freq) * INT64_C(1000000) / s_freq;
+    return whole + part;
 #elif HAVE_CLOCK_GETTIME
     struct timespec ts = {0};
     if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0) { return 0; }
