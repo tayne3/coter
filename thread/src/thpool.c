@@ -4,10 +4,12 @@
  */
 #include "coter/thread/thpool.h"
 
+#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "coter/container/list.h"
+#include "coter/core/abort.h"
 #include "coter/sync/atomic.h"
 #include "coter/sync/msgqueue.h"
 #include "coter/thread/thread.h"
@@ -28,12 +30,13 @@ typedef struct task {
  * @brief Worker thread state.
  */
 typedef struct worker {
-    ct_list_t     list_[1];       ///< Intrusive list node.
-    ct_thread_t   thread_;        ///< Worker thread handle.
-    ct_thpool_t*  thpool_;        ///< Owning thread pool.
-    task_t        task_buff_[1];  ///< Queue storage.
-    ct_msgqueue_t tasks_[1];      ///< Task queue.
-    ct_time64_t   last_use_;      ///< Last activity timestamp in milliseconds.
+    ct_list_t        list_[1];       ///< Intrusive list node.
+    ct_thread_t      thread_;        ///< Worker thread handle.
+    ct_thpool_t*     thpool_;        ///< Owning thread pool.
+    task_t           task_buff_[1];  ///< Queue storage.
+    ct_msgqueue_t    tasks_[1];      ///< Task queue.
+    ct_time64_t      last_use_;      ///< Last activity timestamp in milliseconds.
+    ct_atomic_bool_t orphaned_;      ///< Worker was handed out but no task was queued.
 } worker_t;
 
 /**
@@ -41,7 +44,7 @@ typedef struct worker {
  */
 typedef struct status {
     ct_atomic_long_t capacity_;    ///< Maximum workers; 0 means unlimited.
-    ct_atomic_long_t total_size_;  ///< Total workers.
+    ct_atomic_long_t total_size_;  ///< Total workers, including slots being created.
     ct_atomic_long_t wait_size_;   ///< Blocked submitters.
     ct_atomic_long_t closed_;      ///< Non-zero once the pool is closed.
 } status_t;
@@ -80,9 +83,11 @@ static worker_t* thpool_worker_create(ct_thpool_t* self);
 /* Worker thread entry point. */
 static int thpool_worker_thread(void* arg);
 /* Queue a task on a worker. */
-static void thpool_worker_input(worker_t* worker, ct_thpool_routine_t routine, void* arg);
+static int thpool_worker_input(worker_t* worker, ct_thpool_routine_t routine, void* arg);
 /* Stop a worker's queue. */
 static void thpool_worker_finish(worker_t* worker);
+/* Join a thread; abort because continuing would risk use-after-free. */
+static void thpool_thread_join(ct_thread_t* thread);
 
 /* Monitor thread: retire idle workers. */
 static int thpool_monitor_thread(void* arg);
@@ -96,25 +101,41 @@ ct_thpool_t* ct_thpool_create(size_t size, ct_thpool_config_t* config) {
     thpool_config_init(self, config);
     thpool_status_init(self, size);
     ct_list_init(self->worker_head_);
-    ct_mutex_init(self->worker_mutex_);
-    ct_cond_init(self->worker_cond_);
 
-    if (self->idle_timeout_ > 0) {
-        ct_thread_attr_t attr;
-        ct_thread_attr_init(&attr);
-        ct_thread_attr_set_stack_size(&attr, 1 * 1024);  // Monitor thread stack: 1 KiB.
-        ct_thread_create(&self->monitor_thread_, &attr, thpool_monitor_thread, self);
-        ct_thread_attr_destroy(&attr);
+    if (ct_mutex_init(self->worker_mutex_) != 0) {
+        if (self->has_thread_attr_) { ct_thread_attr_destroy(&self->thread_attr_); }
+        free(self);
+        return NULL;
+    }
+    if (ct_cond_init(self->worker_cond_) != 0) {
+        ct_mutex_destroy(self->worker_mutex_);
+        if (self->has_thread_attr_) { ct_thread_attr_destroy(&self->thread_attr_); }
+        free(self);
+        return NULL;
+    }
+
+    if (self->idle_timeout_ > 0 && ct_thread_create(&self->monitor_thread_, NULL, thpool_monitor_thread, self) != 0) {
+        ct_cond_destroy(self->worker_cond_);
+        ct_mutex_destroy(self->worker_mutex_);
+        if (self->has_thread_attr_) { ct_thread_attr_destroy(&self->thread_attr_); }
+        free(self);
+        return NULL;
     }
     return self;
 }
 
 void ct_thpool_close(ct_thpool_t* self) {
     if (!self) { return; }
-    if (THPOOL_IS_CLOSED(self)) { return; }
-    ct_atomic_long_store(&self->status_.closed_, 1);
 
-    if (self->idle_timeout_ > 0) { ct_thread_join(&self->monitor_thread_, NULL); }
+    // Publish the closed state and wake blocked submitters while holding the
+    // mutex, so nobody can miss the wakeup between its closed check and wait.
+    ct_mutex_lock(self->worker_mutex_);
+    const long was_closed = ct_atomic_long_exchange(&self->status_.closed_, 1);
+    ct_cond_broadcast(self->worker_cond_);
+    ct_mutex_unlock(self->worker_mutex_);
+    if (was_closed) { return; }
+
+    if (self->idle_timeout_ > 0) { thpool_thread_join(&self->monitor_thread_); }
 
     ct_list_t stale_head[1];
     ct_list_init(stale_head);
@@ -128,23 +149,20 @@ void ct_thpool_close(ct_thpool_t* self) {
     ct_mutex_unlock(self->worker_mutex_);
 
     ct_list_foreach_entry_safe(worker, stale_head, worker_t, list_) {
-        ct_thread_join(&worker->thread_, NULL);
+        thpool_thread_join(&worker->thread_);
         ct_msgqueue_destroy(worker->tasks_);
         free(worker);
     }
-
-    ct_mutex_lock(self->worker_mutex_);
-    ct_cond_broadcast(self->worker_cond_);
-    ct_mutex_unlock(self->worker_mutex_);
 }
 
 void ct_thpool_destroy(ct_thpool_t* self) {
     if (!self) { return; }
     ct_thpool_close(self);
 
-    // Wait for all worker threads to exit.
+    // Wait for all workers to exit and all blocked submitters to return before
+    // destroying the mutex/condition variable they may still use.
     ct_mutex_lock(self->worker_mutex_);
-    while (ct_atomic_long_load(&self->status_.total_size_) > 0) {
+    while (ct_atomic_long_load(&self->status_.total_size_) > 0 || ct_atomic_long_load(&self->status_.wait_size_) > 0) {
         ct_cond_wait_for(self->worker_cond_, self->worker_mutex_, 1000);
     }
     ct_mutex_unlock(self->worker_mutex_);
@@ -161,9 +179,10 @@ int ct_thpool_submit(ct_thpool_t* self, ct_thpool_routine_t routine, void* arg) 
     if (THPOOL_IS_CLOSED(self)) { return CT_THPOOL_ERROR_CLOSED; }
 
     worker_t* worker = NULL;
-    const int ret    = thpool_retrieve_worker(self, &worker);
-    if (ret == 0) { thpool_worker_input(worker, routine, arg); }
-    return ret;
+    int       ret;
+    if ((ret = thpool_retrieve_worker(self, &worker)) != 0) { return ret; }
+    if ((ret = thpool_worker_input(worker, routine, arg)) != 0) { return ret; }
+    return 0;
 }
 
 const char* ct_thpool_strerror(int error_code) {
@@ -172,7 +191,7 @@ const char* ct_thpool_strerror(int error_code) {
         CT_THPOOL_ERROR_FOREACH(F)
 #undef F
     };
-    if (error_code >= CT_THPOOL_ERROR_MAX) { return "unknown error"; }
+    if (error_code < 0 || error_code >= CT_THPOOL_ERROR_MAX) { return "unknown error"; }
     return descriptions[error_code];
 }
 
@@ -216,6 +235,11 @@ static int thpool_retrieve_worker(ct_thpool_t* self, worker_t** worker) {
     ct_mutex_lock(self->worker_mutex_);
 
 Retry:
+    if (THPOOL_IS_CLOSED(self)) {
+        ct_mutex_unlock(self->worker_mutex_);
+        return CT_THPOOL_ERROR_CLOSED;
+    }
+
     if (!ct_list_is_empty(self->worker_head_)) {
         *worker = ct_list_first_entry(self->worker_head_, worker_t, list_);
         if (*worker) {
@@ -227,9 +251,19 @@ Retry:
 
     const long capacity = ct_atomic_long_load(&self->status_.capacity_);
     if (capacity == 0 || capacity > ct_atomic_long_load(&self->status_.total_size_)) {
+        // Reserve the worker slot before dropping the lock so close/destroy can
+        // see that a worker is being created.
+        ct_atomic_long_add(&self->status_.total_size_, 1);
         ct_mutex_unlock(self->worker_mutex_);
+
         *worker = thpool_worker_create(self);
-        if (!*worker) { return CT_THPOOL_ERROR_MEM_ALLOC; }
+        if (!*worker) {
+            ct_mutex_lock(self->worker_mutex_);
+            ct_atomic_long_sub(&self->status_.total_size_, 1);
+            ct_cond_broadcast(self->worker_cond_);
+            ct_mutex_unlock(self->worker_mutex_);
+            return CT_THPOOL_ERROR_MEM_ALLOC;
+        }
         return 0;
     }
 
@@ -243,31 +277,18 @@ Retry:
     ct_cond_wait(self->worker_cond_, self->worker_mutex_);
     ct_atomic_long_sub(&self->status_.wait_size_, 1);
 
-    if (THPOOL_IS_CLOSED(self)) {
-        ct_mutex_unlock(self->worker_mutex_);
-        return CT_THPOOL_ERROR_CLOSED;
-    }
+    if (ct_atomic_long_load(&self->status_.wait_size_) == 0) { ct_cond_broadcast(self->worker_cond_); }
 
     goto Retry;
 }
 
 static bool thpool_revert_worker(ct_thpool_t* self, worker_t* worker) {
-    if (THPOOL_IS_CLOSED(self)) { return false; }
-    const long capacity = ct_atomic_long_load(&self->status_.capacity_);
-    if ((capacity > 0 && capacity <= ct_atomic_long_load(&self->status_.total_size_))) {
-        ct_mutex_lock(self->worker_mutex_);
-        ct_cond_broadcast(self->worker_cond_);
-        ct_mutex_unlock(self->worker_mutex_);
-        return false;
-    }
-
-    worker->last_use_ = ct_gettick_ms();
-
     ct_mutex_lock(self->worker_mutex_);
     if (THPOOL_IS_CLOSED(self)) {
         ct_mutex_unlock(self->worker_mutex_);
         return false;
     }
+    worker->last_use_ = ct_gettick_ms();
     ct_list_append(self->worker_head_, worker->list_);
     ct_cond_signal(self->worker_cond_);
     ct_mutex_unlock(self->worker_mutex_);
@@ -280,6 +301,7 @@ static worker_t* thpool_worker_create(ct_thpool_t* self) {
     ct_list_init(worker->list_);
     worker->thpool_   = self;
     worker->last_use_ = ct_gettick_ms();
+    ct_atomic_bool_store(&worker->orphaned_, false);
     if (ct_msgqueue_init(worker->tasks_, worker->task_buff_, sizeof(task_t), 1) != 0) {
         free(worker);
         return NULL;
@@ -292,7 +314,6 @@ static worker_t* thpool_worker_create(ct_thpool_t* self) {
         free(worker);
         return NULL;
     }
-    ct_atomic_long_add(&self->status_.total_size_, 1);
     return worker;
 }
 
@@ -302,29 +323,49 @@ static int thpool_worker_thread(void* arg) {
     ct_thpool_t* pool = worker->thpool_;
     if (!pool) { return 0; }
 
+    bool   pool_owned = false;
     task_t task;
     while (ct_msgqueue_pop(worker->tasks_, &task) == 0) {
+        pool_owned = false;
         task.routine_(task.arg_);
-        if (!thpool_revert_worker(worker->thpool_, worker)) {
-            ct_thread_detach(&worker->thread_);
-            ct_msgqueue_destroy(worker->tasks_);
-            free(worker);
-            break;
-        }
+        if (!thpool_revert_worker(pool, worker)) { break; }
+        pool_owned = true;
     }
 
-    ct_atomic_long_sub(&pool->status_.total_size_, 1);
+    // Workers returned to the idle list are joined and freed by the pool.
+    // A worker that was not returned, or whose task could not be queued, must
+    // release its own resources.
+    if (!pool_owned || ct_atomic_bool_load(&worker->orphaned_)) {
+        ct_thread_detach(&worker->thread_);
+        ct_msgqueue_destroy(worker->tasks_);
+        free(worker);
+    }
+
+    // Publish the counter change under the mutex so destroy() cannot tear down
+    // the mutex/condition variable while this thread is still using them.
     ct_mutex_lock(pool->worker_mutex_);
-    ct_cond_signal(pool->worker_cond_);
+    ct_atomic_long_sub(&pool->status_.total_size_, 1);
+    ct_cond_broadcast(pool->worker_cond_);
     ct_mutex_unlock(pool->worker_mutex_);
 
     return 0;
 }
 
-static void thpool_worker_input(worker_t* worker, ct_thpool_routine_t routine, void* arg) {
-    if (!worker || !routine) { return; }
-    const task_t task = THPOOL_TASK_INIT(routine, arg);
-    ct_msgqueue_push(worker->tasks_, &task);
+static int thpool_worker_input(worker_t* worker, ct_thpool_routine_t routine, void* arg) {
+    if (!worker || !routine) { return EINVAL; }
+    const task_t task   = THPOOL_TASK_INIT(routine, arg);
+    const int    result = ct_msgqueue_push(worker->tasks_, &task);
+    if (result != 0) {
+        // No task was queued. Mark the worker before closing its queue so it
+        // wakes up, frees itself, and releases its total_size_ slot.
+        ct_atomic_bool_store(&worker->orphaned_, true);
+        thpool_worker_finish(worker);
+    }
+    return result;
+}
+
+static void thpool_thread_join(ct_thread_t* thread) {
+    if (ct_thread_join(thread, NULL) != 0) { CT_ABORT(); }
 }
 
 static void thpool_worker_finish(worker_t* worker) {
@@ -343,7 +384,6 @@ static int thpool_monitor_thread(void* arg) {
             last = now;
 
             const ct_time64_t expiry_time = now - pool->idle_timeout_;
-            const size_t      total_size  = ct_atomic_long_load(&pool->status_.total_size_);
 
             ct_list_t stale_head[1];
             ct_list_init(stale_head);
@@ -359,17 +399,10 @@ static int thpool_monitor_thread(void* arg) {
             }
             ct_mutex_unlock(pool->worker_mutex_);
 
-            size_t stale_size = 0;
             ct_list_foreach_entry_safe(worker, stale_head, worker_t, list_) {
-                ct_thread_join(&worker->thread_, NULL);
+                thpool_thread_join(&worker->thread_);
                 ct_msgqueue_destroy(worker->tasks_);
                 free(worker);
-                ++stale_size;
-            }
-
-            // Wake a worker if every thread expired while tasks are waiting.
-            if ((total_size == 0 || total_size == stale_size) && ct_atomic_long_load(&pool->status_.wait_size_) > 0) {
-                ct_cond_broadcast(pool->worker_cond_);
             }
         }
 
