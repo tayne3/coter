@@ -1,6 +1,6 @@
 /**
  * @file msgbuf_concurrent_test.cpp
- * @brief Dynamic message buffer concurrency tests.
+ * @brief Fixed-capacity message buffer concurrency tests.
  */
 #include <thread>
 
@@ -9,10 +9,12 @@
 #include "coter/sync/mutex.h"
 #include "coter/testing/doctest.h"
 
-static constexpr int num_producer_threads  = 4;
-static constexpr int buffer_size           = 100;
-static constexpr int chunk_size            = 9;
-static constexpr int iterations_per_thread = 1000;
+namespace {
+
+constexpr int num_producer_threads  = 4;
+constexpr int buffer_size           = 100;
+constexpr int chunk_size            = 9;
+constexpr int iterations_per_thread = 1000;
 
 typedef struct {
     ct_list_t  free_buffers_;
@@ -32,7 +34,7 @@ typedef struct {
     bool           test_complete_;
 } test_context_t;
 
-static void msgbuf_init_buffer_pool(buffer_pool_t* pool) {
+void msgbuf_init_buffer_pool(buffer_pool_t* pool) {
     ct_list_init(&pool->free_buffers_);
     ct_list_init(&pool->filled_buffers_);
     ct_mutex_init(&pool->mutex_);
@@ -41,12 +43,12 @@ static void msgbuf_init_buffer_pool(buffer_pool_t* pool) {
     pool->idx_          = 0;
 }
 
-static void msgbuf_destroy_buffer_pool(buffer_pool_t* pool) {
+void msgbuf_destroy_buffer_pool(buffer_pool_t* pool) {
     ct_mutex_destroy(&pool->mutex_);
     ct_cond_destroy(&pool->cond_);
 }
 
-static ct_msgbuf_t* msgbuf_get_free_buffer(buffer_pool_t* pool) {
+ct_msgbuf_t* msgbuf_get_free_buffer(buffer_pool_t* pool) {
     ct_mutex_lock(&pool->mutex_);
     ct_msgbuf_t* buffer;
     if (ct_list_is_empty(&pool->free_buffers_)) {
@@ -59,7 +61,7 @@ static ct_msgbuf_t* msgbuf_get_free_buffer(buffer_pool_t* pool) {
     return buffer;
 }
 
-static void msgbuf_return_filled_buffer(buffer_pool_t* pool, ct_msgbuf_t* buffer) {
+void msgbuf_return_filled_buffer(buffer_pool_t* pool, ct_msgbuf_t* buffer) {
     ct_mutex_lock(&pool->mutex_);
     ct_list_append(&pool->filled_buffers_, buffer->list_);
     ++pool->total_chunks_;
@@ -67,7 +69,7 @@ static void msgbuf_return_filled_buffer(buffer_pool_t* pool, ct_msgbuf_t* buffer
     ct_mutex_unlock(&pool->mutex_);
 }
 
-static void msgbuf_consume_chunks(test_context_t* ctx) {
+void msgbuf_consume_chunks(test_context_t* ctx) {
     ct_mutex_lock(&ctx->filled_pool_->mutex_);
     while (ct_list_is_empty(&ctx->filled_pool_->filled_buffers_) && !ctx->test_complete_) {
         ct_cond_wait(&ctx->filled_pool_->cond_, &ctx->filled_pool_->mutex_);
@@ -92,7 +94,7 @@ static void msgbuf_consume_chunks(test_context_t* ctx) {
     ct_mutex_unlock(&ctx->free_pool_->mutex_);
 }
 
-static void msgbuf_produce_chunk(test_context_t* ctx) {
+void msgbuf_produce_chunk(test_context_t* ctx) {
     const char* write_ptr = ctx->sample_data_;
     size_t      remaining = chunk_size;
     ct_mutex_lock(&ctx->mutex_);
@@ -115,7 +117,7 @@ static void msgbuf_produce_chunk(test_context_t* ctx) {
     ct_mutex_unlock(&ctx->mutex_);
 }
 
-static int msgbuf_producer_thread_func(void* arg) {
+int msgbuf_producer_thread_func(void* arg) {
     test_context_t* ctx = (test_context_t*)arg;
     for (int i = 0; i < iterations_per_thread; ++i) {
         msgbuf_produce_chunk(ctx);
@@ -124,7 +126,7 @@ static int msgbuf_producer_thread_func(void* arg) {
     return 0;
 }
 
-static int msgbuf_consumer_thread_func(void* arg) {
+int msgbuf_consumer_thread_func(void* arg) {
     test_context_t* ctx = (test_context_t*)arg;
     while (!ctx->test_complete_) {
         msgbuf_consume_chunks(ctx);
@@ -133,7 +135,11 @@ static int msgbuf_consumer_thread_func(void* arg) {
     return 0;
 }
 
-TEST_CASE("msgbuf concurrent" * doctest::test_suite("msgbuf") * doctest::test_suite("concurrency")) {
+}  // namespace
+
+TEST_SUITE_BEGIN("msgbuf");
+
+TEST_CASE("msgbuf concurrent") {
     test_context_t ctx;
     buffer_pool_t  free_pool, filled_pool;
     msgbuf_init_buffer_pool(&free_pool);
@@ -165,3 +171,5 @@ TEST_CASE("msgbuf concurrent" * doctest::test_suite("msgbuf") * doctest::test_su
     REQUIRE(filled_pool.total_chunks_ == expected_chunks);
     REQUIRE(free_pool.total_chunks_ == expected_chunks);
 }
+
+TEST_SUITE_END();
