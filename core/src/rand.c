@@ -13,7 +13,7 @@
 
 static uint64_t random_rotl(uint64_t x, int k);
 static uint64_t random_splitmix64(uint64_t* state);
-static uint64_t random_seed_material(void);
+static uint64_t random_seed_material(const void* context);
 static uint64_t random_mix64(uint64_t value);
 static int64_t  random_i64_from_u64(uint64_t value);
 
@@ -21,7 +21,7 @@ static int64_t  random_i64_from_u64(uint64_t value);
 
 void ct_random_init(ct_random_t* self) {
     if (!self) { return; }
-    ct_random_seed(self, random_seed_material());
+    ct_random_seed(self, random_seed_material(self));
 }
 
 void ct_random_seed(ct_random_t* self, uint64_t seed) {
@@ -111,14 +111,15 @@ static uint64_t random_splitmix64(uint64_t* state) {
     return z ^ (z >> 31);
 }
 
-static uint64_t random_seed_material(void) {
+static uint64_t random_seed_material(const void* context) {
     uint64_t seed = (uint64_t)ct_unixtime_sec();
     seed ^= ((uint64_t)ct_unixtime_us() << 7);
     seed ^= ((uint64_t)ct_unixtime_ms() << 17);
     seed ^= ((uint64_t)ct_gettick_ms() << 29);
     seed ^= ((uint64_t)ct_gethrtime_us() << 41);
     seed ^= ((uint64_t)ct_getpid() << 53);
-    seed ^= (uint64_t)(uintptr_t)&seed;
+    seed ^= (uint64_t)(uintptr_t)context;
+
     seed ^= random_rotl(seed, 17);
     return random_mix64(seed);
 }
