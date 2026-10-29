@@ -1,12 +1,12 @@
 /**
  * @file msgbuf_test.cpp
- * @brief Dynamic message buffer tests.
+ * @brief Fixed-capacity message buffer tests.
  */
 #include "coter/bytes/msgbuf.h"
 
+#include <cstdint>
 #include <cstring>
 
-#include "coter/core/strings.h"
 #include "coter/testing/doctest.h"
 
 namespace {
@@ -38,10 +38,14 @@ TEST_CASE("msgbuf lifecycle") {
         ct_msgbuf_t* l = nullptr;
         REQUIRE(s == nullptr);
         REQUIRE(l == nullptr);
-        s = ct_msgbuf_create(16);
-        l = ct_msgbuf_create(1024);
+        s              = ct_msgbuf_create(16);
+        l              = ct_msgbuf_create(1024);
+        ct_msgbuf_t* d = ct_msgbuf_create(0);
         REQUIRE(s != nullptr);
         REQUIRE(l != nullptr);
+        REQUIRE(d != nullptr);
+        REQUIRE(ct_msgbuf_capacity(d) == 1024);
+        REQUIRE(ct_msgbuf_available(d) == 1024);
         REQUIRE(ct_msgbuf_size(s) == 0);
         REQUIRE(ct_msgbuf_size(l) == 0);
         REQUIRE(ct_msgbuf_capacity(s) == 16);
@@ -58,6 +62,7 @@ TEST_CASE("msgbuf lifecycle") {
         REQUIRE(ct_msgbuf_available(l) == 1020);
         ct_msgbuf_destroy(s);
         ct_msgbuf_destroy(l);
+        ct_msgbuf_destroy(d);
     }
 
     SUBCASE("Memory Management") {
@@ -177,10 +182,21 @@ TEST_CASE_FIXTURE(MsgbufFixture, "msgbuf operations") {
         ct_msgbuf_clear(small_bytes_);
         ct_msgbuf_write(small_bytes_, "0123456789", 10);
         ct_bytes_t seg;
+        seg.overflow_ = 1U;
         REQUIRE(ct_msgbuf_seg(small_bytes_, &seg, 2, 8) == 0);
+        REQUIRE_FALSE(ct_bytes_has_error(&seg));
         REQUIRE(ct_bytes_capacity(&seg) == 14);
         REQUIRE(ct_bytes_count(&seg) == 6);
         REQUIRE(ct_bytes_pos(&seg) == 0);
+        REQUIRE(ct_msgbuf_seg(nullptr, &seg, 0, 1) == -1);
+        REQUIRE(ct_msgbuf_seg(small_bytes_, nullptr, 0, 1) == -1);
+#if SIZE_MAX > UINT32_MAX
+        // Avoid allocating a >4 GiB buffer: a fake header is enough to
+        // verify that the 32-bit view range is rejected before it is used.
+        ct_msgbuf_t oversized = {};
+        oversized.cap_        = (size_t)UINT32_MAX + 1U;
+        REQUIRE(ct_msgbuf_seg(&oversized, &seg, 0, 1) == -1);
+#endif
         uint8_t buf[10];
         ct_bytes_take_bytes(&seg, buf, 6);
         REQUIRE(std::memcmp((char*)buf, "234567", 6) == 0);
@@ -209,6 +225,12 @@ TEST_CASE_FIXTURE(MsgbufFixture, "msgbuf operations") {
         size_t prev_size = ct_msgbuf_size(small_bytes_);
         ct_msgbuf_fmt(small_bytes_, nullptr);
         REQUIRE(ct_msgbuf_size(small_bytes_) == prev_size);
+
+        ct_msgbuf_clear(small_bytes_);
+        ct_msgbuf_fmt(small_bytes_, "%s", "this string is too long");
+        REQUIRE(ct_msgbuf_size(small_bytes_) == 15);
+        REQUIRE(byte_buffer[15] == '\0');
+        REQUIRE_FALSE(ct_msgbuf_is_full(small_bytes_));
     }
 }
 

@@ -1,6 +1,6 @@
 /**
  * @file msgbuf.c
- * @brief Implementation of the dynamic message buffer.
+ * @brief Implementation of the fixed-capacity message buffer.
  */
 #include "coter/bytes/msgbuf.h"
 
