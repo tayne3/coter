@@ -4,6 +4,7 @@
  */
 #include "coter/thread/jobpool.h"
 
+#include <atomic>
 #include <thread>
 
 #include "coter/core/time.h"
@@ -246,6 +247,38 @@ TEST_CASE("jobpool_dense_tasks") {
 
     ct_jobpool_destroy(pool);
     ct_mutex_destroy(&mu);
+}
+
+TEST_CASE("jobpool_time_sliced_mixed_tasks") {
+    // Mix fast jobs with slower ones so the adaptive sampler has to adjust.
+    constexpr size_t task_count = 1024;
+
+    ct_jobpool_t* pool = ct_jobpool_create(2, 64, NULL);
+    REQUIRE(pool != nullptr);
+
+    std::atomic<size_t> done{0};
+    for (size_t i = 0; i < task_count; ++i) {
+        if (i % 16 == 0) {
+            REQUIRE(ct_jobpool_submit(
+                        pool,
+                        [](void* arg) {
+                            ct_msleep(1);
+                            static_cast<std::atomic<size_t>*>(arg)->fetch_add(1, std::memory_order_relaxed);
+                        },
+                        &done) == 0);
+        } else {
+            REQUIRE(
+                ct_jobpool_submit(
+                    pool,
+                    [](void* arg) { static_cast<std::atomic<size_t>*>(arg)->fetch_add(1, std::memory_order_relaxed); },
+                    &done) == 0);
+        }
+    }
+
+    for (int i = 0; i < 5000 && done.load(std::memory_order_relaxed) < task_count; ++i) { ct_msleep(1); }
+    REQUIRE(done.load(std::memory_order_relaxed) == task_count);
+
+    ct_jobpool_destroy(pool);
 }
 
 TEST_SUITE_END();
