@@ -15,6 +15,7 @@ static uint64_t random_rotl(uint64_t x, int k);
 static uint64_t random_splitmix64(uint64_t* state);
 static uint64_t random_seed_material(void);
 static uint64_t random_mix64(uint64_t value);
+static int64_t  random_i64_from_u64(uint64_t value);
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
@@ -47,7 +48,7 @@ uint64_t ct_random_u64(ct_random_t* self) {
 }
 
 int64_t ct_random_i64(ct_random_t* self) {
-    return (int64_t)ct_random_u64(self);
+    return random_i64_from_u64(ct_random_u64(self));
 }
 
 uint64_t ct_random_u64_range(ct_random_t* self, uint64_t min, uint64_t max) {
@@ -72,7 +73,7 @@ int64_t ct_random_i64_range(ct_random_t* self, int64_t min, int64_t max) {
     const uint64_t umax   = ((uint64_t)max) ^ offset;
     const uint64_t value  = ct_random_u64_range(self, umin, umax);
 
-    return (int64_t)(value ^ offset);
+    return random_i64_from_u64(value ^ offset);
 }
 
 double ct_random_f64(ct_random_t* self) {
@@ -129,4 +130,9 @@ static uint64_t random_mix64(uint64_t value) {
     value *= 0x94D049BB133111EBull;
     value ^= value >> 31;
     return value;
+}
+
+static int64_t random_i64_from_u64(uint64_t value) {
+    if (value <= (uint64_t)INT64_MAX) { return (int64_t)value; }
+    return -(int64_t)(~value) - 1;
 }
