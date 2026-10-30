@@ -152,7 +152,9 @@ int ct_thread_detach(ct_thread_t* thread) {
 
 int ct_thread_yield(void) {
 #ifdef CT_OS_WIN
-    return SwitchToThread() ? 0 : -1;
+    /* FALSE only means no other thread was runnable, not a failure. */
+    (void)SwitchToThread();
+    return 0;
 #else
     return sched_yield();
 #endif
