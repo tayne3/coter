@@ -92,7 +92,7 @@ CT_INLINE void* ct_memrchr(const void* mem, int byte, size_t count) {
 }
 #endif
 
-#if defined(__cplusplus) && CT_CPLUSPLUS >= CT_CXX_14
+#if CT_CXX_VERSION >= CT_CXX14
 constexpr const char* ct_basename(const char* path) noexcept {
     if (!path) return "(nil)";
     const char* result = path;
@@ -108,18 +108,18 @@ constexpr const char* ct_basename(const char* path) noexcept {
     }
     return result;
 }
-#elif defined(__cplusplus) && CT_CPLUSPLUS >= CT_CXX_11
+#elif CT_CXX_VERSION >= CT_CXX11
 namespace coter {
 namespace detail {
     constexpr const char* ct_basename_impl(const char* cursor, const char* last_sep) noexcept {
 #ifdef CT_OS_WIN
-        return (*cursor == '\0') ? last_sep
-               : (*cursor == '/' || *cursor == '\\') ? ct_basename_impl(cursor + 1, cursor + 1)
-                                                      : ct_basename_impl(cursor + 1, last_sep);
+        return (*cursor == '\0')                   ? last_sep :
+               (*cursor == '/' || *cursor == '\\') ? ct_basename_impl(cursor + 1, cursor + 1) :
+                                                     ct_basename_impl(cursor + 1, last_sep);
 #else
-        return (*cursor == '\0') ? last_sep
-               : (*cursor == '/') ? ct_basename_impl(cursor + 1, cursor + 1)
-                                  : ct_basename_impl(cursor + 1, last_sep);
+        return (*cursor == '\0') ? last_sep :
+               (*cursor == '/')  ? ct_basename_impl(cursor + 1, cursor + 1) :
+                                   ct_basename_impl(cursor + 1, last_sep);
 #endif
     }
 }  // namespace detail
@@ -154,9 +154,9 @@ CT_INLINE CT_ATTR_PURE const char* ct_basename(const char* path) {
 
 // Filename without path.
 #if defined(__clang__) || (defined(__GNUC__) && __GNUC__ >= 12)
-#define CT_FILE_NAME __FILE_NAME__
+#define CT_STRFILE_NAME __FILE_NAME__
 #else
-#define CT_FILE_NAME ct_basename(CT_FILE)
+#define CT_STRFILE_NAME ct_basename(CT_STRFILE)
 #endif
 
 #endif  // COTER_CORE_STRINGS_H

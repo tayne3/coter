@@ -7,12 +7,20 @@
 #include "coter/core/time.h"
 #include "coter/testing/doctest.h"
 
+#ifdef CT_OS_WIN
+#define STR_SEPARATOR "\\"
+#else
+#define STR_SEPARATOR "/"
+#endif
+
+TEST_SUITE_BEGIN("fs");
+
 TEST_CASE("pid_positive") {
     const int pid = ct_getpid();
     REQUIRE(pid > 0);
 }
 
-TEST_CASE("pid_consistent_concurrent" * doctest::test_suite("concurrency")) {
+TEST_CASE("pid_consistent_concurrent") {
     const int                pid     = ct_getpid();
     const int                threads = 4;
     const int                loops   = 50;
@@ -26,7 +34,7 @@ TEST_CASE("pid_consistent_concurrent" * doctest::test_suite("concurrency")) {
     for (auto& th : ts) th.join();
 }
 
-TEST_CASE("mkdir_existing_returns_error" * doctest::test_suite("fs")) {
+TEST_CASE("mkdir_existing_returns_error") {
     const int         pid  = ct_getpid();
     const ct_time64_t salt = ct_gettick_ms();
     std::string       dir  = std::string("ct_tmp_exist_") + std::to_string(pid) + "_" + std::to_string((long long)salt);
@@ -38,7 +46,7 @@ TEST_CASE("mkdir_existing_returns_error" * doctest::test_suite("fs")) {
     ct_rmdir(dir.c_str());
 }
 
-TEST_CASE("fs_stat_and_mkdir" * doctest::test_suite("fs")) {
+TEST_CASE("fs_stat_and_mkdir") {
     const int         pid   = ct_getpid();
     const ct_time64_t salt  = ct_gettick_ms();
     std::string       dir   = std::string("ct_tmp_") + std::to_string(pid) + "_" + std::to_string((long long)salt);
@@ -68,7 +76,7 @@ TEST_CASE("fs_stat_and_mkdir" * doctest::test_suite("fs")) {
     ct_rmdir(dir.c_str());
 }
 
-TEST_CASE("access_permissions" * doctest::test_suite("fs")) {
+TEST_CASE("access_permissions") {
     const int         pid  = ct_getpid();
     const ct_time64_t salt = ct_gettick_ms();
     std::string       dir = std::string("ct_tmp_access_") + std::to_string(pid) + "_" + std::to_string((long long)salt);
@@ -102,3 +110,5 @@ TEST_CASE("access_permissions" * doctest::test_suite("fs")) {
     ct_remove(file.c_str());
     ct_rmdir(dir.c_str());
 }
+
+TEST_SUITE_END();
