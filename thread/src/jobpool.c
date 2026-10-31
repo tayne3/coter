@@ -14,10 +14,8 @@
 
 // -------------------------[STATIC DECLARATION]-------------------------
 
-#define JOBPOOL_YIELD_SLICE_US     ((ct_time64_t)10 * 1000)
-#define JOBPOOL_YIELD_BATCH_MIN_US (JOBPOOL_YIELD_SLICE_US / 16)
-#define JOBPOOL_YIELD_BATCH_MAX_US (JOBPOOL_YIELD_SLICE_US / 4)
-#define JOBPOOL_YIELD_SAMPLE_MAX   ((size_t)512)
+// 10ms
+#define JOBPOOL_YIELD_SLICE_US 10000
 
 // Work item.
 typedef struct job {
@@ -34,14 +32,6 @@ typedef struct unit {
     ct_thread_t    thread_;     // Worker thread handle.
 } unit_t;
 
-// Adaptive time-slice state for one worker.
-typedef struct jobpool_yield {
-    size_t      sample_;       // Jobs to execute before the next time check.
-    size_t      consec_;       // Jobs executed since the last time check.
-    ct_time64_t slice_start_;  // Start of the current yield time slice.
-    ct_time64_t batch_start_;  // Start of the current sampling batch.
-} jobpool_yield_t;
-
 // Job pool.
 struct ct_jobpool {
     job_t*        job_buffer_;       // Work queue storage.
@@ -51,7 +41,7 @@ struct ct_jobpool {
     size_t        job_max_;          // Queue capacity.
 };
 
-static int jobpool_worker_thread(void* arg);
+static int m_worker_thread(void* arg);
 
 // -------------------------[GLOBAL DEFINITION]-------------------------
 
@@ -94,7 +84,7 @@ ct_jobpool_t* ct_jobpool_create(size_t thread_max, size_t job_max, const ct_jobp
         unit->job_queue_ = self->job_queue_;
         ct_list_init(unit->list_);
 
-        const int ret = ct_thread_create(&unit->thread_, &attr, jobpool_worker_thread, unit);
+        const int ret = ct_thread_create(&unit->thread_, &attr, m_worker_thread, unit);
         if (ret != 0) {
             free(unit);
             ct_thread_attr_destroy(&attr);
@@ -151,72 +141,21 @@ size_t ct_jobpool_pending(ct_jobpool_t* self) {
 
 // -------------------------[STATIC DEFINITION]-------------------------
 
-static void jobpool_yield_init(jobpool_yield_t* state) {
-    const ct_time64_t now = ct_gethrtime_us();
-
-    state->sample_      = 1;
-    state->consec_      = 0;
-    state->slice_start_ = now;
-    state->batch_start_ = now;
-}
-
-static void jobpool_yield_after_pop(jobpool_yield_t* state, ct_time64_t wait_start) {
-    const ct_time64_t wait_end = ct_gethrtime_us();
-
-    // Only a real block means the worker already gave up the CPU. A pop that
-    // returns immediately must not reset the slice or the sampling batch.
-    if (wait_end - wait_start >= JOBPOOL_YIELD_SLICE_US / 2) {
-        state->slice_start_ = wait_end;
-        state->batch_start_ = wait_end;
-        state->sample_      = 1;
-        state->consec_      = 0;
-    }
-}
-
-static void jobpool_yield_after_job(jobpool_yield_t* state) {
-    if (state->consec_ < state->sample_) { return; }
-
-    const ct_time64_t now      = ct_gethrtime_us();
-    const ct_time64_t batch_us = now - state->batch_start_;
-    state->consec_             = 0;
-
-    if (now - state->slice_start_ >= JOBPOOL_YIELD_SLICE_US) {
-        ct_thread_yield();
-        state->slice_start_ = ct_gethrtime_us();
-        state->batch_start_ = state->slice_start_;
-    } else {
-        state->batch_start_ = now;
-    }
-
-    // Aim for a sampling batch of slice/16..slice/4 to amortize clock reads.
-    // A step change in job duration is only visible at the next sample.
-    if (batch_us >= JOBPOOL_YIELD_SLICE_US) {
-        state->sample_ = 1;
-    } else if (batch_us < JOBPOOL_YIELD_BATCH_MIN_US) {
-        if (state->sample_ < JOBPOOL_YIELD_SAMPLE_MAX) { state->sample_ *= 2; }
-    } else if (batch_us > JOBPOOL_YIELD_BATCH_MAX_US) {
-        if (state->sample_ > 1) { state->sample_ /= 2; }
-    }
-}
-
-static int jobpool_worker_thread(void* arg) {
-    unit_t* unit = (unit_t*)arg;
-    job_t   job;
-
-    jobpool_yield_t yield_state;
-    jobpool_yield_init(&yield_state);
+static int m_worker_thread(void* arg) {
+    unit_t*     unit          = (unit_t*)arg;
+    ct_time64_t next_yield_us = ct_gethrtime_us() + JOBPOOL_YIELD_SLICE_US;
 
     for (;;) {
+        job_t job;
         if (ct_msgqueue_try_pop(unit->job_queue_, &job) != 0) {
-            const ct_time64_t wait_start = ct_gethrtime_us();
             if (ct_msgqueue_pop(unit->job_queue_, &job) != 0) { break; }
-            jobpool_yield_after_pop(&yield_state, wait_start);
         }
-        ++yield_state.consec_;
-
         if (job.routine_) { job.routine_(job.arg_); }
 
-        jobpool_yield_after_job(&yield_state);
+        if (ct_gethrtime_us() >= next_yield_us) {
+            ct_thread_yield();
+            next_yield_us = ct_gethrtime_us() + JOBPOOL_YIELD_SLICE_US;
+        }
     }
 
     return 0;
