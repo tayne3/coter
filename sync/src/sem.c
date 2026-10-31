@@ -12,10 +12,10 @@ int ct_sem_init(ct_sem_t* sem, uint32_t value) {
 #ifdef CT_OS_WIN
     *sem = CreateSemaphoreA(NULL, (LONG)value, 0x7fffffff, NULL);
     return *sem ? 0 : (int)GetLastError();
-#elif defined(CT_OS_MAC) && defined(CT_COMPILER_CLANG)
+#elif defined(CT_OS_MAC) && defined(__clang__)
     *sem = dispatch_semaphore_create((long)value);
     return *sem ? 0 : ENOMEM;
-#elif defined(CT_OS_MAC) && !defined(CT_COMPILER_CLANG)
+#elif defined(CT_OS_MAC) && !defined(__clang__)
     if (pthread_mutex_init(&sem->mutex_, NULL) != 0) { return EINVAL; }
     if (pthread_cond_init(&sem->cond_, NULL) != 0) {
         pthread_mutex_destroy(&sem->mutex_);
@@ -33,7 +33,7 @@ int ct_sem_destroy(ct_sem_t* sem) {
 
 #ifdef CT_OS_WIN
     return CloseHandle(*sem) ? 0 : (int)GetLastError();
-#elif defined(CT_OS_MAC) && defined(CT_COMPILER_CLANG)
+#elif defined(CT_OS_MAC) && defined(__clang__)
     if (!*sem) { return EINVAL; }
 #if defined(OS_OBJECT_USE_OBJC) && OS_OBJECT_USE_OBJC
     *sem = NULL;
@@ -43,7 +43,7 @@ int ct_sem_destroy(ct_sem_t* sem) {
     *sem = NULL;
     return 0;
 #endif
-#elif defined(CT_OS_MAC) && !defined(CT_COMPILER_CLANG)
+#elif defined(CT_OS_MAC) && !defined(__clang__)
     int ret = pthread_cond_destroy(&sem->cond_);
     if (ret != 0) { return ret == EBUSY ? EBUSY : EINVAL; }
     ret = pthread_mutex_destroy(&sem->mutex_);
@@ -60,10 +60,10 @@ int ct_sem_wait(ct_sem_t* sem) {
     DWORD result = WaitForSingleObject(*sem, INFINITE);
     if (result == WAIT_OBJECT_0) { return 0; }
     return result == WAIT_FAILED ? (int)GetLastError() : EINVAL;
-#elif defined(CT_OS_MAC) && defined(CT_COMPILER_CLANG)
+#elif defined(CT_OS_MAC) && defined(__clang__)
     if (!*sem) { return EINVAL; }
     return dispatch_semaphore_wait(*sem, DISPATCH_TIME_FOREVER) == 0 ? 0 : EINVAL;
-#elif defined(CT_OS_MAC) && !defined(CT_COMPILER_CLANG)
+#elif defined(CT_OS_MAC) && !defined(__clang__)
     if (pthread_mutex_lock(&sem->mutex_) != 0) { return EINVAL; }
 
     while (sem->count_ == 0) {
@@ -90,10 +90,10 @@ int ct_sem_trywait(ct_sem_t* sem) {
     if (result == WAIT_OBJECT_0) { return 0; }
     if (result == WAIT_TIMEOUT) { return EAGAIN; }
     return result == WAIT_FAILED ? (int)GetLastError() : EINVAL;
-#elif defined(CT_OS_MAC) && defined(CT_COMPILER_CLANG)
+#elif defined(CT_OS_MAC) && defined(__clang__)
     if (!*sem) { return EINVAL; }
     return dispatch_semaphore_wait(*sem, DISPATCH_TIME_NOW) == 0 ? 0 : EAGAIN;
-#elif defined(CT_OS_MAC) && !defined(CT_COMPILER_CLANG)
+#elif defined(CT_OS_MAC) && !defined(__clang__)
     if (pthread_mutex_lock(&sem->mutex_) != 0) { return EINVAL; }
 
     if (sem->count_ == 0) {
@@ -112,11 +112,11 @@ int ct_sem_post(ct_sem_t* sem) {
     if (!sem) { return EINVAL; }
 #ifdef CT_OS_WIN
     return ReleaseSemaphore(*sem, 1, NULL) ? 0 : (int)GetLastError();
-#elif defined(CT_OS_MAC) && defined(CT_COMPILER_CLANG)
+#elif defined(CT_OS_MAC) && defined(__clang__)
     if (!*sem) { return EINVAL; }
     dispatch_semaphore_signal(*sem);
     return 0;
-#elif defined(CT_OS_MAC) && !defined(CT_COMPILER_CLANG)
+#elif defined(CT_OS_MAC) && !defined(__clang__)
     if (pthread_mutex_lock(&sem->mutex_) != 0) { return EINVAL; }
 
     ++sem->count_;
@@ -138,11 +138,11 @@ int ct_sem_wait_for(ct_sem_t* sem, uint32_t timeout_ms) {
     if (result == WAIT_OBJECT_0) { return 0; }
     if (result == WAIT_TIMEOUT) { return ETIMEDOUT; }
     return result == WAIT_FAILED ? (int)GetLastError() : EINVAL;
-#elif defined(CT_OS_MAC) && defined(CT_COMPILER_CLANG)
+#elif defined(CT_OS_MAC) && defined(__clang__)
     if (!*sem) { return EINVAL; }
     dispatch_time_t deadline = dispatch_time(DISPATCH_TIME_NOW, (int64_t)timeout_ms * 1000000LL);
     return dispatch_semaphore_wait(*sem, deadline) == 0 ? 0 : ETIMEDOUT;
-#elif defined(CT_OS_MAC) && !defined(CT_COMPILER_CLANG)
+#elif defined(CT_OS_MAC) && !defined(__clang__)
     if (pthread_mutex_lock(&sem->mutex_) != 0) { return EINVAL; }
 
     struct timespec ts;

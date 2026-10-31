@@ -8,9 +8,9 @@
 #include "coter/core/platform.h"
 
 #if defined(CT_OS_WIN)
-#elif defined(CT_OS_MAC) && defined(CT_COMPILER_CLANG)
+#elif defined(CT_OS_MAC) && defined(__clang__)
 #include <dispatch/dispatch.h>
-#elif defined(CT_OS_MAC) && !defined(CT_COMPILER_CLANG)
+#elif defined(CT_OS_MAC) && !defined(__clang__)
 #include <pthread.h>
 #else
 #include <semaphore.h>
@@ -22,9 +22,9 @@ extern "C" {
 
 #ifdef CT_OS_WIN
 typedef void* ct_sem_t;
-#elif defined(CT_OS_MAC) && defined(CT_COMPILER_CLANG)
+#elif defined(CT_OS_MAC) && defined(__clang__)
 typedef dispatch_semaphore_t ct_sem_t;
-#elif defined(CT_OS_MAC) && !defined(CT_COMPILER_CLANG)
+#elif defined(CT_OS_MAC) && !defined(__clang__)
 typedef struct ct_sem {
     pthread_mutex_t mutex_;
     pthread_cond_t  cond_;
