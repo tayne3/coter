@@ -1,9 +1,13 @@
-#include "coter/core/macro.h"
-#include "coter/core/platform.h"
+#include <stdbool.h>
+#include <stdlib.h>
+
 #include "coter/opt/opt.h"
 
-#ifndef CT_OS_WIN
+#ifdef _WIN32
+#include <windows.h>
+#else
 #include <sys/ioctl.h>
+#include <unistd.h>
 #endif
 
 #define OPTIDX_INPUT   4
@@ -23,7 +27,7 @@ static const ct_opt_def_t defs[] = {
     /* ---- General options ---- */
     [7] = {"version", 'v', CT_OPT_NONE, "print version string and exit", NULL},
     [8] = {"help", 'h', CT_OPT_NONE, "display this help message and exit", NULL},
-    {0},
+    CT_OPT_DEF_NULL,
 };
 
 /* Detect terminal width at runtime; returns fallback on failure. */
@@ -64,7 +68,7 @@ static void print_help() {
 }
 
 int main(int argc, char** argv) {
-    CT_UNUSED(argc);
+    (void)argc;
 
     const char* input    = NULL;
     const char* output   = NULL;

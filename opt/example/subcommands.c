@@ -1,16 +1,34 @@
-#include <math.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
-#include "coter/core/time.h"
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <errno.h>
+#endif
+
 #include "coter/opt/opt.h"
+
+static void cmd_msleep(uint32_t ms) {
+#ifdef _WIN32
+    Sleep((DWORD)ms);
+#else
+    struct timespec req;
+    req.tv_sec  = (time_t)(ms / 1000U);
+    req.tv_nsec = (long)((ms % 1000U) * 1000000UL);
+    while (nanosleep(&req, &req) != 0 && errno == EINTR) {}
+#endif
+}
 
 static int cmd_echo(char** argv) {
     static const ct_opt_def_t defs[] = {
         {NULL, 'h', CT_OPT_NONE, NULL, NULL},
         {NULL, 'n', CT_OPT_NONE, NULL, NULL},
-        {0},
+        CT_OPT_DEF_NULL,
     };
 
     int             i, id;
@@ -44,7 +62,7 @@ static int cmd_echo(char** argv) {
 static int cmd_sleep(char** argv) {
     static const ct_opt_def_t defs[] = {
         {NULL, 'h', CT_OPT_NONE, NULL, NULL},
-        {0},
+        CT_OPT_DEF_NULL,
     };
 
     int             i, id;
@@ -65,7 +83,7 @@ static int cmd_sleep(char** argv) {
 
     for (i = 0; argv[i]; ++i) {
         const int seconds = atoi(argv[i]);
-        if (seconds > 0) { ct_msleep(seconds * 1000); }
+        if (seconds > 0) { cmd_msleep(seconds * 1000); }
     }
     return 0;
 }
@@ -75,11 +93,11 @@ static void usage(FILE* f) {
 }
 
 int main(int argc, char** argv) {
-    CT_UNUSED(argc);
+    (void)argc;
 
     static const ct_opt_def_t global_defs[] = {
         {NULL, 'h', CT_OPT_NONE, NULL, NULL},
-        {0},
+        CT_OPT_DEF_NULL,
     };
 
     int             i, id;

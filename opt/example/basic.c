@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -16,11 +17,15 @@ static const ct_opt_def_t defs[] = {
     {"verbose", OPT_VERBOSE, CT_OPT_NONE, "enable verbose output", NULL},
     {"version", 'v', CT_OPT_NONE, "display version information and exit", NULL},
     {"help", 'h', CT_OPT_NONE, "display this help message and exit", NULL},
-    {0},
+    CT_OPT_DEF_NULL,
 };
 
 int main(int argc, char** argv) {
-    CT_UNUSED(argc);
+    if (argc < 2) {
+        fprintf(stderr, "missing parameter\n");
+        ct_opt_usage(stderr, argv[0], defs, -1, NULL);
+        return 1;
+    }
 
     bool        amend   = false;
     bool        brief   = false;
