@@ -11,6 +11,7 @@
 #include <atomic>
 #include <chrono>
 #include <cinttypes>
+#include <cstdio>
 #include <mutex>
 #include <string>
 #include <thread>
@@ -30,22 +31,50 @@ struct counter_t {
     std::mutex mutex_;
 };
 
-struct blocking_task_ctx {
-    std::atomic<bool> started{false};
-    std::atomic<bool> release{false};
-};
-
-void thpool_blocking_task(void* arg) {
-    blocking_task_ctx* ctx = (blocking_task_ctx*)arg;
-    ctx->started.store(true);
-    while (!ctx->release.load()) { std::this_thread::yield(); }
-}
-
 void thpool_sample_task(void* arg) {
     counter_t*                  counter = (counter_t*)arg;
     std::lock_guard<std::mutex> lock(counter->mutex_);
     counter->count_++;
 }
+
+struct gate_task_ctx {
+    std::atomic<int>  started{0};
+    std::atomic<bool> release{false};
+};
+
+void thpool_gate_task(void* arg) {
+    gate_task_ctx* ctx = (gate_task_ctx*)arg;
+    ctx->started.fetch_add(1);
+    while (!ctx->release.load()) { std::this_thread::yield(); }
+}
+
+#ifdef CT_OS_LINUX
+/* Process thread count from /proc/self/status. */
+static int thpool_status_threads(void) {
+    FILE* file = fopen("/proc/self/status", "r");
+    if (!file) { return -1; }
+    char line[256];
+    int  threads = -1;
+    while (fgets(line, sizeof(line), file)) {
+        if (sscanf(line, "Threads: %d", &threads) == 1) { break; }
+    }
+    fclose(file);
+    return threads;
+}
+
+/* Process virtual memory size in kB from /proc/self/status. */
+static long thpool_status_vmsize_kb(void) {
+    FILE* file = fopen("/proc/self/status", "r");
+    if (!file) { return -1; }
+    char line[256];
+    long vmsize_kb = -1;
+    while (fgets(line, sizeof(line), file)) {
+        if (sscanf(line, "VmSize: %ld", &vmsize_kb) == 1) { break; }
+    }
+    fclose(file);
+    return vmsize_kb;
+}
+#endif  // CT_OS_LINUX
 
 ct_tls_key_t      s_worker_tls_key;
 std::atomic<int>  s_worker_first_runs{0};
@@ -173,38 +202,48 @@ TEST_CASE("thread pool handles more tasks than worker threads") {
     ct_thpool_destroy(pool);
 }
 
-TEST_CASE("non-blocking mode rejects submissions when overloaded") {
+TEST_CASE("non-blocking mode rejects submissions when the queue is full") {
     ct_thpool_config_t config;
     ct_thpool_default_config(&config);
     config.non_blocking_ = true;
+    config.idle_timeout_ = 0;
+    config.max_tasks_    = 2;
 
-    ct_thpool_t* pool = ct_thpool_create(3, &config);
+    ct_thpool_t* pool = ct_thpool_create(2, &config);
     REQUIRE(pool != nullptr);
 
-    counter_t counter;
+    gate_task_ctx gate;
+    counter_t     counter;
 
-    counter.mutex_.lock();
+    // Park both workers on the gate so queued tasks stay queued.
+    for (int i = 0; i < 2; ++i) {
+        const int ret = ct_thpool_submit(pool, thpool_gate_task, &gate);
+        REQUIRE(ret == 0);
+    }
+    for (int i = 0; i < 1000 && gate.started.load() < 2; ++i) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    REQUIRE(gate.started.load() == 2);
 
-    for (int i = 0; i < 3; ++i) {
+    // Fill the queue to max_tasks_.
+    for (int i = 0; i < 2; ++i) {
         const int ret = ct_thpool_submit(pool, thpool_sample_task, &counter);
         REQUIRE(ret == 0);
     }
 
-    {
-        const int ret = ct_thpool_submit(pool, thpool_sample_task, &counter);
-        REQUIRE(ret == CT_THPOOL_ERROR_OVERLOAD);
-    }
+    const int ret = ct_thpool_submit(pool, thpool_sample_task, &counter);
+    REQUIRE(ret == CT_THPOOL_ERROR_OVERLOAD);
 
-    counter.mutex_.unlock();
+    gate.release.store(true);
 
     for (int i = 0; i < 100; ++i) {
         {
             std::lock_guard<std::mutex> lock(counter.mutex_);
-            if (counter.count_ == 3) { break; }
+            if (counter.count_ == 2) { break; }
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
-    REQUIRE(counter.count_ == 3);
+    REQUIRE(counter.count_ == 2);
 
     ct_thpool_destroy(pool);
 }
@@ -266,27 +305,32 @@ TEST_CASE("submitting after close returns an error") {
     REQUIRE(counter.count_ == 5);
 }
 
-TEST_CASE("close wakes submitters blocked on a full pool") {
+TEST_CASE("close wakes submitters blocked on a full queue") {
     ct_thpool_config_t config;
     ct_thpool_default_config(&config);
     config.idle_timeout_ = 0;
-    config.max_tasks_    = 0;
+    config.max_tasks_    = 1;
 
     ct_thpool_t* pool = ct_thpool_create(1, &config);
     REQUIRE(pool != nullptr);
 
-    blocking_task_ctx blocker;
-    REQUIRE(ct_thpool_submit(pool, thpool_blocking_task, &blocker) == 0);
-    for (int i = 0; i < 1000 && !blocker.started.load(); ++i) {
+    gate_task_ctx gate;
+    counter_t     counter;
+
+    // Spawn the only worker and park it on the gate.
+    REQUIRE(ct_thpool_submit(pool, thpool_gate_task, &gate) == 0);
+    for (int i = 0; i < 1000 && gate.started.load() < 1; ++i) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
-    REQUIRE(blocker.started.load());
+    REQUIRE(gate.started.load() == 1);
+
+    // Occupy the single queue slot.
+    REQUIRE(ct_thpool_submit(pool, thpool_sample_task, &counter) == 0);
 
     constexpr int                    submitter_count = 8;
     std::array<int, submitter_count> results{};
     std::atomic<int>                 ready{0};
     std::thread                      submitters[submitter_count];
-    counter_t                        counter;
 
     for (int i = 0; i < submitter_count; ++i) {
         submitters[i] = std::thread([&, i]() {
@@ -302,9 +346,11 @@ TEST_CASE("close wakes submitters blocked on a full pool") {
 
     for (int i = 0; i < submitter_count; ++i) { submitters[i].join(); }
 
-    blocker.release.store(true);
+    gate.release.store(true);
     ct_thpool_destroy(pool);
 
+    // The task queued before close was accepted and must still run.
+    REQUIRE(counter.count_ == 1);
     for (int i = 0; i < submitter_count; ++i) { REQUIRE(results[i] == CT_THPOOL_ERROR_CLOSED); }
 }
 
@@ -316,19 +362,21 @@ TEST_CASE("close and destroy with concurrent blocked submitters") {
         ct_thpool_config_t config;
         ct_thpool_default_config(&config);
         config.idle_timeout_ = 0;
-        config.max_tasks_    = 0;
+        config.max_tasks_    = 1;
 
         ct_thpool_t* pool = ct_thpool_create(1, &config);
         REQUIRE(pool != nullptr);
 
-        blocking_task_ctx blocker;
-        REQUIRE(ct_thpool_submit(pool, thpool_blocking_task, &blocker) == 0);
-        while (!blocker.started.load()) { std::this_thread::yield(); }
+        gate_task_ctx gate;
+        counter_t     counter;
+
+        REQUIRE(ct_thpool_submit(pool, thpool_gate_task, &gate) == 0);
+        while (gate.started.load() < 1) { std::this_thread::yield(); }
+        REQUIRE(ct_thpool_submit(pool, thpool_sample_task, &counter) == 0);
 
         std::array<int, submitter_count> results{};
         std::atomic<int>                 ready{0};
         std::thread                      submitters[submitter_count];
-        counter_t                        counter;
 
         for (int i = 0; i < submitter_count; ++i) {
             submitters[i] = std::thread([&, i]() {
@@ -344,11 +392,91 @@ TEST_CASE("close and destroy with concurrent blocked submitters") {
 
         for (int i = 0; i < submitter_count; ++i) { submitters[i].join(); }
 
-        blocker.release.store(true);
+        gate.release.store(true);
         ct_thpool_destroy(pool);
 
+        REQUIRE(counter.count_ == 1);
         for (int i = 0; i < submitter_count; ++i) { REQUIRE(results[i] == CT_THPOOL_ERROR_CLOSED); }
     }
+}
+
+TEST_CASE("submissions queue beyond worker capacity") {
+    ct_thpool_config_t config;
+    ct_thpool_default_config(&config);
+    config.idle_timeout_ = 0;
+    config.max_tasks_    = 0;  // Unlimited queue.
+
+    ct_thpool_t* pool = ct_thpool_create(1, &config);
+    REQUIRE(pool != nullptr);
+
+    gate_task_ctx gate;
+    counter_t     counter;
+
+    REQUIRE(ct_thpool_submit(pool, thpool_gate_task, &gate) == 0);
+    for (int i = 0; i < 1000 && gate.started.load() < 1; ++i) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    REQUIRE(gate.started.load() == 1);
+
+    // The only worker is busy, yet every submission is accepted immediately:
+    // admission is decoupled from the worker count.
+    for (int i = 0; i < 5; ++i) {
+        const int ret = ct_thpool_submit(pool, thpool_sample_task, &counter);
+        REQUIRE(ret == 0);
+    }
+
+    gate.release.store(true);
+
+    for (int i = 0; i < 100; ++i) {
+        {
+            std::lock_guard<std::mutex> lock(counter.mutex_);
+            if (counter.count_ == 5) { break; }
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+    REQUIRE(counter.count_ == 5);
+
+    ct_thpool_destroy(pool);
+}
+
+TEST_CASE("blocked submitters resume when the queue drains") {
+    ct_thpool_config_t config;
+    ct_thpool_default_config(&config);
+    config.idle_timeout_ = 0;
+    config.max_tasks_    = 1;
+
+    ct_thpool_t* pool = ct_thpool_create(1, &config);
+    REQUIRE(pool != nullptr);
+
+    gate_task_ctx gate;
+    counter_t     counter;
+
+    REQUIRE(ct_thpool_submit(pool, thpool_gate_task, &gate) == 0);
+    for (int i = 0; i < 1000 && gate.started.load() < 1; ++i) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    REQUIRE(gate.started.load() == 1);
+    REQUIRE(ct_thpool_submit(pool, thpool_sample_task, &counter) == 0);  // The queue is full now.
+
+    std::atomic<int> result{-1};
+    std::thread      submitter([&]() { result.store(ct_thpool_submit(pool, thpool_sample_task, &counter)); });
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));  // Let it block.
+    gate.release.store(true);                                    // Draining frees a slot.
+
+    submitter.join();
+    REQUIRE(result.load() == 0);
+
+    for (int i = 0; i < 100; ++i) {
+        {
+            std::lock_guard<std::mutex> lock(counter.mutex_);
+            if (counter.count_ == 2) { break; }
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+    REQUIRE(counter.count_ == 2);
+
+    ct_thpool_destroy(pool);
 }
 
 TEST_CASE("workers are reused when the pool reaches capacity") {
@@ -471,6 +599,84 @@ TEST_CASE("idle workers are reclaimed after the idle timeout") {
     ct_thpool_destroy(pool);
     REQUIRE(ct_tls_destroy(s_worker_tls_key) == 0);
 }
+
+#ifdef CT_OS_LINUX
+TEST_CASE("a long-lived pool grows and shrinks without accumulating threads") {
+    constexpr int  cycles             = 10;
+    constexpr int  worker_max         = 4;
+    constexpr int  stack_bytes        = 8 * 1024 * 1024;
+    constexpr long cycles_envelope_kb = 8 * (long)stack_bytes / 1024 + 4 * 1024;
+
+    ct_thread_attr_t attr = CT_THREAD_ATTR_INIT;
+    REQUIRE(ct_thread_attr_set_stack_size(&attr, stack_bytes) == 0);
+
+    ct_thpool_config_t config;
+    ct_thpool_default_config(&config);
+    config.thread_attr_  = &attr;
+    config.idle_timeout_ = 100;
+    config.max_tasks_    = 0;
+
+    ct_thpool_t* pool = ct_thpool_create(worker_max, &config);
+    REQUIRE(pool != nullptr);
+    ct_thread_attr_destroy(&attr);  // The pool keeps its own copy.
+
+    const int  baseline_threads = thpool_status_threads();
+    const long baseline_vmsize  = thpool_status_vmsize_kb();
+    REQUIRE(baseline_threads > 0);
+    REQUIRE(baseline_vmsize > 0);
+
+    gate_task_ctx gate;
+    counter_t     counter;
+
+    for (int cycle = 0; cycle < cycles; ++cycle) {
+        gate.started.store(0);
+        gate.release.store(false);
+
+        for (int i = 0; i < worker_max; ++i) {
+            REQUIRE(ct_thpool_submit(pool, thpool_gate_task, &gate) == 0);
+            const int started_want = i + 1;
+            for (int t = 0; t < 2000 && gate.started.load() < started_want; ++t) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            }
+            REQUIRE(gate.started.load() == started_want);
+        }
+
+        for (int i = 0; i < worker_max; ++i) { REQUIRE(ct_thpool_submit(pool, thpool_sample_task, &counter) == 0); }
+
+        gate.release.store(true);
+
+        const int counted_want = (cycle + 1) * worker_max;
+        for (int t = 0; t < 2000; ++t) {
+            {
+                std::lock_guard<std::mutex> lock(counter.mutex_);
+                if (counter.count_ == counted_want) { break; }
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        REQUIRE(counter.count_ == counted_want);
+
+        int threads_now = -1;
+        for (int t = 0; t < 3000; ++t) {
+            threads_now = thpool_status_threads();
+            if (threads_now == baseline_threads) { break; }
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        REQUIRE(threads_now == baseline_threads);
+
+        const long vmsize_now = thpool_status_vmsize_kb();
+        REQUIRE(vmsize_now > 0);
+        REQUIRE(vmsize_now <= baseline_vmsize + cycles_envelope_kb);
+    }
+
+    ct_thpool_destroy(pool);
+
+    REQUIRE(thpool_status_threads() == baseline_threads);
+
+    const long vmsize_after = thpool_status_vmsize_kb();
+    REQUIRE(vmsize_after > 0);
+    REQUIRE(vmsize_after <= baseline_vmsize + cycles_envelope_kb);
+}
+#endif  // CT_OS_LINUX
 
 TEST_CASE("thread pool outperforms raw thread creation for many tasks") {
     constexpr int num_tasks = 10000;

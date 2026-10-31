@@ -46,8 +46,8 @@ typedef struct ct_thpool ct_thpool_t;
 typedef struct ct_thpool_config {
     ct_thread_attr_t* thread_attr_;   ///< Worker thread attributes; NULL uses defaults. Copied during creation.
     size_t            idle_timeout_;  ///< Idle timeout in milliseconds; 0 keeps idle workers.
-    bool              non_blocking_;  ///< Reject submissions instead of blocking when overloaded.
-    size_t            max_tasks_;     ///< Maximum blocked submitters; 0 means unlimited.
+    bool              non_blocking_;  ///< Reject submissions when the task queue is full instead of blocking.
+    size_t            max_tasks_;     ///< Maximum queued tasks; 0 means unlimited.
 } ct_thpool_config_t;
 
 /**
@@ -77,6 +77,12 @@ CT_API void ct_thpool_destroy(ct_thpool_t* self);
 
 /**
  * @brief Submit a task.
+ *
+ * The task is queued and executed by a worker thread. Workers are created on
+ * demand while the pool is below its worker capacity. When the task queue is
+ * full, this function blocks until space frees unless non-blocking mode is
+ * configured, in which case it returns CT_THPOOL_ERROR_OVERLOAD.
+ *
  * @param self Thread pool.
  * @param routine Routine to execute.
  * @param arg Routine argument.
