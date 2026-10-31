@@ -297,9 +297,9 @@ TEST_CASE("long / short option parsing without optstring") {
         char*    argv[] = {(char*)"app", (char*)"-v", NULL};
         ct_opt_t options;
         ct_opt_init(&options, argv);
-        int             id;
-        ct_opt_status_t r = ct_opt_next(&options, opts, &id);
-        REQUIRE(r == CT_OPT_OK);
+        int            id;
+        ct_opt_error_t r = ct_opt_next(&options, opts, &id);
+        REQUIRE(r == CT_OPT_ERROR_NONE);
         REQUIRE(id == 'v');
     }
 
@@ -307,9 +307,9 @@ TEST_CASE("long / short option parsing without optstring") {
         char*    argv[] = {(char*)"app", (char*)"-o", (char*)"file.txt", NULL};
         ct_opt_t options;
         ct_opt_init(&options, argv);
-        int             id;
-        ct_opt_status_t r = ct_opt_next(&options, opts, &id);
-        REQUIRE(r == CT_OPT_OK);
+        int            id;
+        ct_opt_error_t r = ct_opt_next(&options, opts, &id);
+        REQUIRE(r == CT_OPT_ERROR_NONE);
         REQUIRE(id == 'o');
         REQUIRE(std::string(options.optarg) == "file.txt");
     }
@@ -318,9 +318,9 @@ TEST_CASE("long / short option parsing without optstring") {
         char*    argv[] = {(char*)"app", (char*)"-x", NULL};
         ct_opt_t options;
         ct_opt_init(&options, argv);
-        int             id;
-        ct_opt_status_t r = ct_opt_next(&options, opts, &id);
-        REQUIRE(r == CT_OPT_ERR_INVALID);
+        int            id;
+        ct_opt_error_t r = ct_opt_next(&options, opts, &id);
+        REQUIRE(r == CT_OPT_ERROR_INVALID);
         REQUIRE(std::string(ct_opt_strerror(r)).find("invalid") != std::string::npos);
         REQUIRE(options.optopt == 'x');
     }

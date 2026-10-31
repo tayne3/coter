@@ -1,4 +1,3 @@
-#include <iostream>
 #include <string>
 #include <vector>
 
@@ -28,11 +27,11 @@ TEST_CASE("stress: recursion depth with permutation") {
     ct_opt_t options;
     ct_opt_init(&options, argv.data());
 
-    int             id;
-    ct_opt_status_t result = ct_opt_next(&options, defs, &id);
+    int            id;
+    ct_opt_error_t result = ct_opt_next(&options, defs, &id);
 
     SUBCASE("check result") {
-        REQUIRE(result == CT_OPT_OK);
+        REQUIRE(result == CT_OPT_ERROR_NONE);
         REQUIRE(id == 'a');
         REQUIRE(options.optind == 2);  // 'prog' + '-a'
     }
@@ -52,17 +51,17 @@ TEST_CASE("stress: recursion depth with next") {
 
     const ct_opt_def_t defs[] = {
         {"test", 't', CT_OPT_NONE, NULL, NULL},
-        {nullptr, 0, CT_OPT_NONE, NULL, NULL},
+        CT_OPT_DEF_NULL,
     };
 
     ct_opt_t options;
     ct_opt_init(&options, argv.data());
 
-    int             id     = -1;
-    ct_opt_status_t result = ct_opt_next(&options, defs, &id);
+    int            id     = -1;
+    ct_opt_error_t result = ct_opt_next(&options, defs, &id);
 
     SUBCASE("check result") {
-        REQUIRE(result == CT_OPT_OK);
+        REQUIRE(result == CT_OPT_ERROR_NONE);
         REQUIRE(id == 't');
         REQUIRE(options.optind == 2);
     }

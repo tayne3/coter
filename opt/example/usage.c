@@ -78,31 +78,31 @@ int main(int argc, char** argv) {
     bool        no_hdr   = false;
     bool        quiet    = false;
 
-    ct_opt_t options;
-    ct_opt_init(&options, argv);
+    ct_opt_t opt;
+    ct_opt_init(&opt, argv);
 
-    int             id;
-    ct_opt_status_t status;
-    while ((status = ct_opt_next(&options, defs, &id)) == CT_OPT_OK) {
+    ct_opt_error_t err;
+    int            id;
+    while ((err = ct_opt_next(&opt, defs, &id)) == CT_OPT_ERROR_NONE) {
         switch (id) {
-            case 'i': input = options.optarg; break;
-            case 'f': format = options.optarg; break;
-            case 'e': encoding = options.optarg; break;
+            case 'i': input = opt.optarg; break;
+            case 'f': format = opt.optarg; break;
+            case 'e': encoding = opt.optarg; break;
             case 'H': no_hdr = true; break;
-            case 'o': output = options.optarg; break;
-            case 'n': indent = options.optarg ? atoi(options.optarg) : 2; break;
+            case 'o': output = opt.optarg; break;
+            case 'n': indent = opt.optarg ? atoi(opt.optarg) : 2; break;
             case 'q': quiet = true; break;
             case 'v': printf("opt_usage version 1.0\n"); return EXIT_SUCCESS;
             case 'h': print_help(); return EXIT_SUCCESS;
         }
     }
 
-    if (status != CT_OPT_DONE) {
-        const char* err_msg = ct_opt_strerror(status);
-        if (options.optopt) {
-            fprintf(stderr, "opt_usage: %s: -%c\n", err_msg, options.optopt);
+    if (err != CT_OPT_ERROR_DONE) {
+        const char* err_msg = ct_opt_strerror(err);
+        if (opt.optopt) {
+            fprintf(stderr, "opt_usage: %s: -%c\n", err_msg, opt.optopt);
         } else {
-            fprintf(stderr, "opt_usage: %s: %s\n", err_msg, options.argv[options.optind - 1]);
+            fprintf(stderr, "opt_usage: %s: %s\n", err_msg, opt.argv[opt.optind - 1]);
         }
         return EXIT_FAILURE;
     }
@@ -118,7 +118,7 @@ int main(int argc, char** argv) {
 
     printf("\nRemaining arguments:\n");
     char* arg;
-    while ((arg = ct_opt_shift(&options))) { printf("  %s\n", arg); }
+    while ((arg = ct_opt_arg(&opt))) { printf("  %s\n", arg); }
 
     return EXIT_SUCCESS;
 }
