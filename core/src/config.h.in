@@ -15,6 +15,10 @@
 #cmakedefine01 HAVE_INTTYPES_H
 #endif
 
+#ifndef HAVE_STDINT_H
+#cmakedefine01 HAVE_STDINT_H
+#endif
+
 #ifndef HAVE_STDBOOL_H
 #cmakedefine01 HAVE_STDBOOL_H
 #endif

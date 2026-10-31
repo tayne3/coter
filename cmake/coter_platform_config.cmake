@@ -28,6 +28,7 @@ set(_COTER_SAVED_REQUIRED_LIBRARIES "${CMAKE_REQUIRED_LIBRARIES}")
 set(CMAKE_REQUIRED_LIBRARIES Threads::Threads)
 
 check_include_files("inttypes.h" HAVE_INTTYPES_H)
+check_include_files("stdint.h" HAVE_STDINT_H)
 check_include_files("stdbool.h" HAVE_STDBOOL_H)
 check_include_files("sys/types.h" HAVE_SYS_TYPES_H)
 check_include_files("sys/stat.h" HAVE_SYS_STAT_H)
