@@ -10,6 +10,17 @@
 #include "coter/testing/doctest.h"
 
 namespace {
+// White-box mirrors of ref.c internals; the poison encoding is not public API.
+constexpr uint32_t kRefcountMax       = UINT32_C(0x7fffffff);
+constexpr uint32_t kRefcountSaturated = UINT32_C(0xc0000000);
+
+enum : uint32_t {
+    kRefcountAddNotZeroOverflow = 0,
+    kRefcountAddOverflow,
+    kRefcountAddUseAfterFree,
+    kRefcountSubUseAfterFree,
+};
+
 struct robj {
     ct_ref_t ref_;
     bool     released_;
@@ -52,32 +63,32 @@ TEST_CASE("invalid transitions saturate the reference count") {
 
     SUBCASE("incrementing zero saturates") {
         ct_ref_get(&ref);
-        CHECK(static_cast<uint32_t>(ref.count_.value_) == CT_REFCOUNT_SATURATED + CT_REFCOUNT_ADD_USE_AFTER_FREE);
+        CHECK(static_cast<uint32_t>(ref.count_.value_) == kRefcountSaturated + kRefcountAddUseAfterFree);
         CHECK_FALSE(ct_ref_put(&ref));
-        CHECK(static_cast<uint32_t>(ref.count_.value_) >= CT_REFCOUNT_SATURATED);
+        CHECK(static_cast<uint32_t>(ref.count_.value_) >= kRefcountSaturated);
     }
 
     SUBCASE("decrementing zero saturates") {
         CHECK_FALSE(ct_ref_put(&ref));
-        CHECK(static_cast<uint32_t>(ref.count_.value_) == CT_REFCOUNT_SATURATED + CT_REFCOUNT_SUB_USE_AFTER_FREE);
+        CHECK(static_cast<uint32_t>(ref.count_.value_) == kRefcountSaturated + kRefcountSubUseAfterFree);
     }
 
     SUBCASE("incrementing the maximum count saturates") {
-        ref.count_.value_ = CT_REFCOUNT_MAX;
+        ref.count_.value_ = kRefcountMax;
         ct_ref_get(&ref);
-        CHECK(static_cast<uint32_t>(ref.count_.value_) == CT_REFCOUNT_SATURATED + CT_REFCOUNT_ADD_OVERFLOW);
+        CHECK(static_cast<uint32_t>(ref.count_.value_) == kRefcountSaturated + kRefcountAddOverflow);
         CHECK_FALSE(ct_ref_put(&ref));
-        CHECK(static_cast<uint32_t>(ref.count_.value_) >= CT_REFCOUNT_SATURATED);
+        CHECK(static_cast<uint32_t>(ref.count_.value_) >= kRefcountSaturated);
     }
 
     SUBCASE("get not zero saturates on overflow") {
-        ref.count_.value_ = CT_REFCOUNT_MAX;
+        ref.count_.value_ = kRefcountMax;
         CHECK(ct_ref_get_not_zero(&ref));
-        CHECK(static_cast<uint32_t>(ref.count_.value_) == CT_REFCOUNT_SATURATED + CT_REFCOUNT_ADD_NOT_ZERO_OVERFLOW);
+        CHECK(static_cast<uint32_t>(ref.count_.value_) == kRefcountSaturated + kRefcountAddNotZeroOverflow);
     }
 
     SUBCASE("get not zero preserves an existing poison reason") {
-        const uint32_t poisoned = CT_REFCOUNT_SATURATED + CT_REFCOUNT_SUB_USE_AFTER_FREE;
+        const uint32_t poisoned = kRefcountSaturated + kRefcountSubUseAfterFree;
         ref.count_.value_ = static_cast<uint32_t>(poisoned);
 
         CHECK(ct_ref_get_not_zero(&ref));
@@ -85,20 +96,20 @@ TEST_CASE("invalid transitions saturate the reference count") {
     }
 
     SUBCASE("get not zero repairs a transient overflow state") {
-        ref.count_.value_ = static_cast<uint32_t>(CT_REFCOUNT_MAX + UINT32_C(1));
+        ref.count_.value_ = static_cast<uint32_t>(kRefcountMax + UINT32_C(1));
 
         CHECK(ct_ref_get_not_zero(&ref));
-        CHECK(static_cast<uint32_t>(ref.count_.value_) == CT_REFCOUNT_SATURATED + CT_REFCOUNT_ADD_NOT_ZERO_OVERFLOW);
+        CHECK(static_cast<uint32_t>(ref.count_.value_) == kRefcountSaturated + kRefcountAddNotZeroOverflow);
     }
 
     SUBCASE("mutex put poisons a transient overflow state") {
         ct_mutex_t lock;
         REQUIRE(ct_mutex_init(&lock) == 0);
 
-        ref.count_.value_ = static_cast<uint32_t>(CT_REFCOUNT_MAX + UINT32_C(1));
+        ref.count_.value_ = static_cast<uint32_t>(kRefcountMax + UINT32_C(1));
 
         CHECK_FALSE(ct_refcount_dec_and_mutex_lock(&ref.count_, &lock));
-        const uint32_t poisoned = CT_REFCOUNT_SATURATED + CT_REFCOUNT_SUB_USE_AFTER_FREE;
+        const uint32_t poisoned = kRefcountSaturated + kRefcountSubUseAfterFree;
         CHECK(static_cast<uint32_t>(ref.count_.value_) == poisoned);
         CHECK(ct_ref_get_not_zero(&ref));
         CHECK(static_cast<uint32_t>(ref.count_.value_) == poisoned);
@@ -203,7 +214,7 @@ TEST_CASE("mutex put behavior") {
         REQUIRE(ct_ref_put(&object.ref_));
 
         CHECK(ct_ref_put_mutex(&object.ref_, release_mutex_ref, &object.mutex_) == 0);
-        CHECK(static_cast<uint32_t>(object.ref_.count_.value_) >= CT_REFCOUNT_SATURATED);
+        CHECK(static_cast<uint32_t>(object.ref_.count_.value_) >= kRefcountSaturated);
         CHECK(ct_mutex_trylock(&object.mutex_) == 0);
         CHECK(ct_mutex_unlock(&object.mutex_) == 0);
     }

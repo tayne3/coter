@@ -22,66 +22,34 @@
 extern "C" {
 #endif
 
-/** Largest valid live reference count. */
-#define CT_REFCOUNT_MAX UINT32_C(0x7fffffff)
-
-/** First poison value; the low 2 bits preserve ct_refcount_saturation_type_t. */
-#define CT_REFCOUNT_SATURATED UINT32_C(0xc0000000)
-
-#if CT_ATOMIC_USE_WIN
-typedef volatile long ct_refcount_value_t;
-#else
-typedef volatile uint32_t ct_refcount_value_t;
-#endif
-
 /**
  * @brief Low-level saturating reference counter.
  *
  * Valid states:
  * - 0: dead and releasable
- * - 1..CT_REFCOUNT_MAX: alive
- * - above CT_REFCOUNT_MAX: invalid; operations move the counter to
- *   CT_REFCOUNT_SATURATED + a reason code instead of letting it wrap
+ * - 1..0x7fffffff: alive
+ * - above 0x7fffffff: invalid; operations move the counter to a fixed poison
+ *   value plus a reason code instead of letting it wrap
  *
  * Once saturated, the counter never becomes releasable again. The object leaks
  * rather than being freed while a live pointer may still exist. The reason
  * code is best effort and can be overwritten under concurrent misuse.
  *
- * The gap between CT_REFCOUNT_MAX and CT_REFCOUNT_SATURATED (about a billion)
+ * The gap between 0x7fffffff and the first poison value (about a billion)
  * prevents concurrent invalid operations from wrapping a broken counter back
  * into a valid-looking, releasable count.
  *
- * The `value_` field is public only because the increment/decrement fast paths
- * need to be header-only inline atomics. Treat it as opaque and never inspect
- * or modify it directly.
+ * The struct definition is exposed so callers can embed it by value; every
+ * operation lives in ref.c. Treat `value_` as opaque and never inspect or
+ * modify it directly.
  */
 typedef struct ct_refcount {
-    ct_refcount_value_t value_;
+#if CT_ATOMIC_USE_WIN
+    volatile long value_;
+#else
+    volatile uint32_t value_;
+#endif
 } ct_refcount_t;
-
-CT_STATIC_ASSERT(sizeof(((ct_refcount_t*)0)->value_) == 4);
-
-typedef enum ct_refcount_saturation_type {
-    /** inc_not_zero() observed an overflow. */
-    CT_REFCOUNT_ADD_NOT_ZERO_OVERFLOW,
-    /** inc() observed an overflow or an already-invalid positive state. */
-    CT_REFCOUNT_ADD_OVERFLOW,
-    /** inc() was attempted after the count had reached zero. */
-    CT_REFCOUNT_ADD_USE_AFTER_FREE,
-    /**
-     * dec_and_test() observed zero or another invalid high-bit state;
-     * dec_and_mutex_lock() may report the same during final-lock revalidation.
-     */
-    CT_REFCOUNT_SUB_USE_AFTER_FREE,
-} ct_refcount_saturation_type_t;
-
-/**
- * @internal Pins a damaged counter at CT_REFCOUNT_SATURATED + @p type.
- * Calling this twice just overwrites the previous reason — whoever gets
- * there last wins, so treat the recorded type as a hint, not a history.
- * An out-of-range type falls back to the bare CT_REFCOUNT_SATURATED value.
- */
-CT_API void ct_refcount_saturate(ct_refcount_t* ref, ct_refcount_saturation_type_t type);
 
 /**
  * @brief Initializes an unpublished reference counter with one owned reference.
@@ -107,8 +75,6 @@ CT_API void ct_refcount_init(ct_refcount_t* ref);
  */
 CT_ATTR_NODISCARD CT_API bool ct_refcount_inc_not_zero(ct_refcount_t* ref);
 
-#if !CT_ATOMIC_USE_MUTEX
-
 /**
  * @brief Adds a reference when the caller already owns a live one.
  * @param ref Live counter to increment.
@@ -119,23 +85,7 @@ CT_ATTR_NODISCARD CT_API bool ct_refcount_inc_not_zero(ct_refcount_t* ref);
  * This is a relaxed atomic increment. The legacy __sync backend uses a full
  * barrier because it cannot express relaxed ordering.
  */
-CT_INLINE void ct_refcount_inc(ct_refcount_t* ref) {
-    uint32_t old;
-
-#if CT_ATOMIC_USE_GCC_SYNC
-    old = __sync_fetch_and_add(&ref->value_, UINT32_C(1));
-#elif CT_ATOMIC_USE_GCC_ATOMIC
-    old = __atomic_fetch_add(&ref->value_, UINT32_C(1), __ATOMIC_RELAXED);
-#elif CT_ATOMIC_USE_WIN
-    old = (uint32_t)_InterlockedExchangeAdd(&ref->value_, 1);
-#endif
-
-    if (CT_UNLIKELY(old == 0)) {
-        ct_refcount_saturate(ref, CT_REFCOUNT_ADD_USE_AFTER_FREE);
-    } else if (CT_UNLIKELY(old >= CT_REFCOUNT_MAX)) {
-        ct_refcount_saturate(ref, CT_REFCOUNT_ADD_OVERFLOW);
-    }
-}
+CT_API void ct_refcount_inc(ct_refcount_t* ref);
 
 /**
  * @brief Drops one reference and tests for the final 1 -> 0 transition.
@@ -145,56 +95,7 @@ CT_INLINE void ct_refcount_inc(ct_refcount_t* ref) {
  * uses release ordering and the final 1 -> 0 transition performs an acquire
  * fence before returning true. The legacy __sync backend uses a full barrier.
  */
-CT_ATTR_NODISCARD CT_INLINE bool ct_refcount_dec_and_test(ct_refcount_t* ref) {
-    uint32_t old;
-
-#if CT_ATOMIC_USE_GCC_SYNC
-    old = __sync_fetch_and_sub(&ref->value_, UINT32_C(1));
-#elif CT_ATOMIC_USE_GCC_ATOMIC
-    old = __atomic_fetch_sub(&ref->value_, UINT32_C(1), __ATOMIC_RELEASE);
-#elif CT_ATOMIC_USE_WIN
-    old = (uint32_t)_InterlockedExchangeAdd(&ref->value_, -1);
-#endif
-
-    if (CT_LIKELY(old > 1 && old <= CT_REFCOUNT_MAX)) { return false; }
-
-    if (old == 1) {
-#if CT_ATOMIC_USE_GCC_ATOMIC
-        __atomic_thread_fence(__ATOMIC_ACQUIRE);
-#endif
-        return true;
-    }
-
-    ct_refcount_saturate(ref, CT_REFCOUNT_SUB_USE_AFTER_FREE);
-    return false;
-}
-
-#else
-
-/*
- * Mutex fallback for platforms without a supported atomic backend. All
- * reference-count operations serialize through one process-wide mutex; see
- * ref.c for the scalability trade-off.
- */
-
-/**
- * @brief Adds a reference when the caller already owns a live one.
- * @param ref Live counter to increment.
- *
- * If you're working from a borrowed or concurrently-removable pointer
- * instead, this is the wrong function — use ct_refcount_inc_not_zero().
- */
-CT_API void ct_refcount_inc(ct_refcount_t* ref);
-
-/**
- * @brief Drops one reference and tests for the final 1 -> 0 transition.
- * @return true only when the caller dropped the final reference.
- *
- * Only the thread that gets `true` back may release the object.
- */
 CT_ATTR_NODISCARD CT_API bool ct_refcount_dec_and_test(ct_refcount_t* ref);
-
-#endif
 
 /**
  * @brief Drops a reference, taking @p lock only if this was the last one.
