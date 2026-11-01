@@ -4,6 +4,8 @@
  */
 #include "coter/container/vector.h"
 
+#include <limits.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -23,6 +25,7 @@ bool ct_vector_impl_reserve(void** p_ptr, size_t* p_cap, size_t elem_size, size_
     target_cap |= target_cap >> 32;  // 64-bit systems.
 #endif
     ++target_cap;
+    if (target_cap < new_cap) { return false; }  // Overflow when rounding wraps.
     if (target_cap > CT_VEC_MEMORY_MAX / elem_size) { return false; }
 
     void* new_ptr = realloc(*p_ptr, elem_size * target_cap);
@@ -60,7 +63,11 @@ bool ct_vector_impl_insert(void** p_ptr, size_t* p_size, size_t* p_cap, size_t e
     if (idx < *p_size) {
         memmove(base + ((idx + 1) * elem_size), base + (idx * elem_size), (*p_size - idx) * elem_size);
     }
-    if (data) { memcpy(base + (idx * elem_size), data, elem_size); }
+    if (data) {
+        memcpy(base + (idx * elem_size), data, elem_size);
+    } else {
+        memset(base + (idx * elem_size), 0, elem_size);  // Zero-initialize for the dtor.
+    }
 
     ++(*p_size);
     return true;

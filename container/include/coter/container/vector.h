@@ -58,9 +58,15 @@ extern "C" {
     CT_MAYBE_UNUSED bool NAME##_push(NAME##_t* self, const TYPE* val);               \
     CT_MAYBE_UNUSED bool NAME##_pop(NAME##_t* self);                                 \
     CT_MAYBE_UNUSED bool NAME##_insert(NAME##_t* self, size_t idx, const TYPE* val); \
-    CT_MAYBE_UNUSED bool NAME##_erase(NAME##_t* self, size_t idx);
+    CT_MAYBE_UNUSED bool NAME##_erase(NAME##_t* self, size_t idx);                   \
+    CT_MAYBE_UNUSED bool NAME##_assign(NAME##_t* self, size_t idx, const TYPE* val);
 
-#define CT_VEC_IMPL(TYPE, NAME)                                                                                       \
+/** @brief Vector implementation without an element destructor callback. */
+#define CT_VEC_IMPL(TYPE, NAME) CT_VEC_IMPL_DTOR(TYPE, NAME, NULL)
+
+/** @brief Vector implementation with an element destructor callback. */
+#define CT_VEC_IMPL_DTOR(TYPE, NAME, DTOR)                                                                            \
+    typedef void (*NAME##_dtor_t)(TYPE* elem);                                                                        \
     int NAME##_init(NAME##_t* self, size_t cap) {                                                                     \
         if (!self) { return -1; }                                                                                     \
         self->ptr_  = NULL;                                                                                           \
@@ -71,6 +77,7 @@ extern "C" {
     }                                                                                                                 \
     void NAME##_destroy(NAME##_t* self) {                                                                             \
         if (!self) { return; }                                                                                        \
+        NAME##_clear(self);                                                                                           \
         if (self->ptr_) {                                                                                             \
             free(self->ptr_);                                                                                         \
             self->ptr_ = NULL;                                                                                        \
@@ -78,7 +85,12 @@ extern "C" {
         self->size_ = self->cap_ = 0;                                                                                 \
     }                                                                                                                 \
     void NAME##_clear(NAME##_t* self) {                                                                               \
-        if (self) { self->size_ = 0; }                                                                                \
+        if (!self) { return; }                                                                                        \
+        NAME##_dtor_t dtor = (NAME##_dtor_t)(DTOR);                                                                   \
+        if (dtor && self->ptr_) {                                                                                     \
+            for (size_t i = 0; i < self->size_; ++i) { dtor(&self->ptr_[i]); }                                        \
+        }                                                                                                             \
+        self->size_ = 0;                                                                                              \
     }                                                                                                                 \
     bool NAME##_reserve(NAME##_t* self, size_t cap) {                                                                 \
         if (!self) { return false; }                                                                                  \
@@ -86,6 +98,14 @@ extern "C" {
     }                                                                                                                 \
     bool NAME##_resize(NAME##_t* self, size_t new_size) {                                                             \
         if (!self) { return false; }                                                                                  \
+        NAME##_dtor_t dtor = (NAME##_dtor_t)(DTOR);                                                                   \
+        if (new_size <= self->size_) {                                                                                \
+            if (dtor && self->ptr_) {                                                                                 \
+                for (size_t i = new_size; i < self->size_; ++i) { dtor(&self->ptr_[i]); }                             \
+            }                                                                                                         \
+            self->size_ = new_size;                                                                                   \
+            return true;                                                                                              \
+        }                                                                                                             \
         return ct_vector_impl_resize((void**)&self->ptr_, &self->size_, &self->cap_, sizeof(TYPE), new_size);         \
     }                                                                                                                 \
     bool NAME##_shrink(NAME##_t* self) {                                                                              \
@@ -98,7 +118,9 @@ extern "C" {
     }                                                                                                                 \
     bool NAME##_pop(NAME##_t* self) {                                                                                 \
         if (!self || self->size_ == 0) { return false; }                                                              \
-        self->size_--;                                                                                                \
+        NAME##_dtor_t dtor = (NAME##_dtor_t)(DTOR);                                                                   \
+        if (dtor) { dtor(&self->ptr_[self->size_ - 1]); }                                                             \
+        --self->size_;                                                                                                \
         return true;                                                                                                  \
     }                                                                                                                 \
     bool NAME##_insert(NAME##_t* self, size_t idx, const TYPE* val) {                                                 \
@@ -106,8 +128,18 @@ extern "C" {
         return ct_vector_impl_insert((void**)&self->ptr_, &self->size_, &self->cap_, sizeof(TYPE), idx, val);         \
     }                                                                                                                 \
     bool NAME##_erase(NAME##_t* self, size_t idx) {                                                                   \
-        if (!self) { return false; }                                                                                  \
+        if (!self || idx >= self->size_) { return false; }                                                            \
+        NAME##_dtor_t dtor = (NAME##_dtor_t)(DTOR);                                                                   \
+        if (dtor) { dtor(&self->ptr_[idx]); }                                                                         \
         return ct_vector_impl_erase(self->ptr_, &self->size_, sizeof(TYPE), idx);                                     \
+    }                                                                                                                 \
+    bool NAME##_assign(NAME##_t* self, size_t idx, const TYPE* val) {                                                 \
+        if (!self || idx >= self->size_ || !val) { return false; }                                                    \
+        const TYPE    tmp  = *val;                                                                                    \
+        NAME##_dtor_t dtor = (NAME##_dtor_t)(DTOR);                                                                   \
+        if (dtor) { dtor(&self->ptr_[idx]); }                                                                         \
+        self->ptr_[idx] = tmp;                                                                                        \
+        return true;                                                                                                  \
     }
 
 /*
