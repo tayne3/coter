@@ -9,17 +9,16 @@ A lightweight, modular C foundation library. Each module is self-contained, has 
 
 ## Modules
 
-| Module        | Description                                                                             |
-| ------------- | --------------------------------------------------------------------------------------- |
-| **core**      | Platform macros, strings, filesystem, time primitives, datetime conversion/formatting   |
-| **sync**      | Mutex, cond, rwlock, semaphore, atomic, event, waitgroup, message queue, pub/sub        |
-| **thread**    | Thread create/join, thread pool, job pool, TLS, `once`                                  |
-| **container** | Array, vector, list, stack, queue, priority queue, heap                                 |
-| **bytes**     | Byte buffer, ring buffer, segmented buffer, buffer builder                              |
-| **ini**       | INI config file parser and serializer                                                   |
-| **opt**       | Command-line argument parser                                                            |
-| **encoding**  | Base64, hex, BCD, binary                                                                |
-| **crypto**    | MD5, SHA-1, generic hash interface                                                      |
+| Module        | Description                                                                                                |
+| ------------- | ---------------------------------------------------------------------------------------------------------- |
+| **core**      | Platform macros, strings, filesystem, time, random                                                |
+| **sync**      | Mutex, cond, rwlock, semaphore, atomic, refcount, event, waitgroup, message queue, pub/sub, shutdown signal |
+| **thread**    | Thread create/join, thread pool, job pool, TLS, `once`                                                     |
+| **container** | Array, vector, list, stack, queue, priority queue, heap                                                    |
+| **bytes**     | Byte buffer, ring buffer, message buffer                                                                   |
+| **opt**       | Command-line argument parser and help formatter                                                            |
+| **encoding**  | Base64, hex, BCD, binary                                                                                   |
+| **crypto**    | MD5, SHA-1, common hash algorithms                                                                         |
 
 ## Integration
 
@@ -31,7 +30,7 @@ include(FetchContent)
 FetchContent_Declare(
   coter
   GIT_REPOSITORY https://github.com/tayne3/coter.git
-  GIT_TAG        v0.12.0
+  GIT_TAG        v0.13.0
 )
 FetchContent_MakeAvailable(coter)
 

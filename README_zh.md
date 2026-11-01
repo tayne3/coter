@@ -9,17 +9,16 @@
 
 ## 模块
 
-| 模块          | 说明                                                                         |
-| ------------- | ---------------------------------------------------------------------------- |
-| **core**      | 平台宏、字符串、文件系统、时间原语、日期时间转换与格式化                     |
-| **sync**      | mutex、cond、rwlock、semaphore、atomic、event、waitgroup、消息队列、发布订阅 |
-| **thread**    | 线程创建与等待、线程池、任务池、TLS、`once`                                  |
-| **container** | array、vector、list、stack、queue、优先队列、heap                            |
-| **bytes**     | 字节缓冲、环形缓冲、分段缓冲、缓冲构建器                                     |
-| **ini**       | INI 配置文件解析与序列化                                                     |
-| **opt**       | 命令行参数解析                                                               |
-| **encoding**  | Base64、Hex、BCD、二进制                                                     |
-| **crypto**    | MD5、SHA-1、通用哈希接口                                                     |
+| 模块          | 说明                                                                                            |
+| ------------- | ----------------------------------------------------------------------------------------------- |
+| **core**      | 平台宏、字符串、文件系统、时间、随机数                                                   |
+| **sync**      | mutex、cond、rwlock、semaphore、atomic、引用计数、event、waitgroup、消息队列、发布订阅、关闭信号 |
+| **thread**    | 线程创建与等待、线程池、任务池、TLS、`once`                                                     |
+| **container** | array、vector、list、stack、queue、优先队列、heap                                               |
+| **bytes**     | 字节缓冲、环形缓冲、消息缓冲                                                                    |
+| **opt**       | 命令行参数解析与帮助格式化                                                                      |
+| **encoding**  | Base64、Hex、BCD、二进制                                                                        |
+| **crypto**    | MD5、SHA-1、常见哈希算法                                                                        |
 
 ## 集成
 
@@ -31,7 +30,7 @@ include(FetchContent)
 FetchContent_Declare(
   coter
   GIT_REPOSITORY https://github.com/tayne3/coter.git
-  GIT_TAG        v0.12.0
+  GIT_TAG        v0.13.0
 )
 FetchContent_MakeAvailable(coter)
 
