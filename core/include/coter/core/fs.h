@@ -6,7 +6,6 @@
 #define COTER_CORE_FS_H
 
 #include <stdio.h>
-#include <stdlib.h>
 
 #include "coter/core/macro.h"
 
@@ -48,6 +47,7 @@ typedef struct stat ct_stat_t;
 #endif
 
 CT_API int ct_getpid(void);
+CT_API int ct_chdir(const char* dir);
 CT_API int ct_mkdir(const char* dir);
 CT_API int ct_rmdir(const char* dir);
 CT_API int ct_remove(const char* file);

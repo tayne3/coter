@@ -16,6 +16,14 @@ int ct_getpid(void) {
 #endif
 }
 
+int ct_chdir(const char* dir) {
+#ifdef CT_OS_WIN
+    return _chdir(dir);
+#else
+    return chdir(dir);
+#endif
+}
+
 int ct_mkdir(const char* dir) {
 #ifdef CT_OS_WIN
     return _mkdir(dir);
