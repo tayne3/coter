@@ -1,3 +1,5 @@
+#include <cstddef>
+
 #include "coter/core/macro.h"
 #include "coter/testing/doctest.h"
 
