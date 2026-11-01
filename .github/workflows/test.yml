@@ -282,7 +282,7 @@ jobs:
         run: ctest --test-dir build --output-on-failure
 
   # ═══════════════════════════════════════════════════════════════════════════
-  # macOS - Intel & Apple Silicon Testing
+  # macOS - Apple Silicon Testing
   # ═══════════════════════════════════════════════════════════════════════════
   test-macos:
     name: macOS ${{ matrix.os }} ${{ matrix.compiler }} (${{ matrix.build_type }})
@@ -294,8 +294,6 @@ jobs:
       matrix:
         include:
           # AppleClang - Apple Silicon (arm64)
-          - { os: macos-14, compiler: appleclang, build_type: Release }
-          - { os: macos-14, compiler: appleclang, build_type: Debug }
           - { os: macos-15, compiler: appleclang, build_type: Release }
           - { os: macos-15, compiler: appleclang, build_type: Debug }
           - { os: macos-26, compiler: appleclang, build_type: Release }
