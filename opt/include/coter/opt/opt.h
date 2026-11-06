@@ -80,7 +80,7 @@ CT_API void ct_opt_init(ct_opt_t* self, char** argv);
  * Useful for stepping past sub-commands before resuming option parsing.
  *
  * @param self  Parser state.
- * @return Next argument string, or NULL if none remain.
+ * @return NULL if none remain, or if a short-option cluster is only partially consumed.
  */
 CT_API char* ct_opt_arg(ct_opt_t* self);
 

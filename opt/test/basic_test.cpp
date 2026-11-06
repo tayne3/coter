@@ -445,6 +445,29 @@ TEST_CASE("edge options") {
         REQUIRE(args == expected);
     }
 
+    SUBCASE("arg() during a short cluster leaves parser state intact") {
+        Argv av{"foo", "-ab"};
+        auto o = av.to_opts();
+        REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_ERROR_NONE);
+        REQUIRE(id == 'a');
+        REQUIRE(ct_opt_arg(&o) == nullptr);
+        REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_ERROR_NONE);
+        REQUIRE(id == 'b');
+        REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_ERROR_DONE);
+        auto args     = unconsumed_args(&o);
+        auto expected = std::vector<std::string>{"foo"};
+        REQUIRE(args == expected);
+    }
+
+    SUBCASE("arg() after '--' returns option-looking operands") {
+        Argv av{"--", "-a"};
+        auto o = av.to_opts();
+        REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_ERROR_DONE);
+        auto args     = unconsumed_args(&o);
+        auto expected = std::vector<std::string>{"-a"};
+        REQUIRE(args == expected);
+    }
+
     SUBCASE("re-initialise resets state") {
         Argv av{"-a", "-b"};
         auto o = av.to_opts();

@@ -141,8 +141,9 @@ void ct_opt_init(ct_opt_t* self, char** argv) {
 }
 
 char* ct_opt_arg(ct_opt_t* self) {
-    char* arg    = self->argv[self->optind];
-    self->subind = 0;
+    if (self->subind != 0) { return NULL; }
+
+    char* arg = self->argv[self->optind];
     if (arg) { ++self->optind; }
     return arg;
 }
