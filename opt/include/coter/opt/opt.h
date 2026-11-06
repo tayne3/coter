@@ -102,7 +102,7 @@ CT_API int ct_opt_narg(const ct_opt_t* self);
  * @param defs    Option descriptors, terminated by {0,0,CT_OPT_NONE,NULL}.
  * @param out_id  Receives the matched option's shortname; may be NULL.
  * @return CT_OPT_ERROR_NONE on success, CT_OPT_ERROR_DONE when finished, or an error code.
- *         On error, self->optopt holds the offending option character.
+ *         On error, self->optopt identifies the offending option (0 for unknown long options).
  */
 CT_API ct_opt_error_t ct_opt_next(ct_opt_t* self, const ct_opt_def_t* defs, int* out_id);
 

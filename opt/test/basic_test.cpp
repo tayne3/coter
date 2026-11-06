@@ -156,6 +156,7 @@ TEST_CASE("short options") {
         auto o = av.to_opts();
         REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_ERROR_INVALID);
         REQUIRE(o.optopt == 'z');
+        REQUIRE(id == -1);
     }
 
     SUBCASE("invalid option in cluster discards the rest") {
@@ -163,8 +164,10 @@ TEST_CASE("short options") {
         auto o = av.to_opts();
         REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_ERROR_NONE);
         REQUIRE(id == 'a');
+        id = -1;
         REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_ERROR_INVALID);
         REQUIRE(o.optopt == 'z');
+        REQUIRE(id == -1);
         REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_ERROR_DONE);
     }
 
@@ -173,6 +176,7 @@ TEST_CASE("short options") {
         auto o = av.to_opts();
         REQUIRE(ct_opt_next(&o, kShortDefs, &id) == CT_OPT_ERROR_MISSING);
         REQUIRE(o.optopt == 'c');
+        REQUIRE(id == 'c');
     }
 
     SUBCASE("repeated flag increments count") {
@@ -244,6 +248,7 @@ TEST_CASE("long options") {
         auto o = av.to_opts();
         REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_ERROR_MISSING);
         REQUIRE(o.optopt == 'd');
+        REQUIRE(id == 'd');
     }
 
     SUBCASE("unknown option returns INVALID") {
@@ -251,6 +256,7 @@ TEST_CASE("long options") {
         auto o = av.to_opts();
         REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_ERROR_INVALID);
         REQUIRE(o.optopt == 0);  // Unknown long opts set optopt to 0
+        REQUIRE(id == -1);
     }
 
     SUBCASE("TOOMANY when flag given an argument") {
@@ -258,6 +264,7 @@ TEST_CASE("long options") {
         auto o = av.to_opts();
         REQUIRE(ct_opt_next(&o, kDefs, &id) == CT_OPT_ERROR_TOOMANY);
         REQUIRE(o.optopt == 'a');
+        REQUIRE(id == 'a');
     }
 
     SUBCASE("long-only option (shortname > 127)") {

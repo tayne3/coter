@@ -57,7 +57,6 @@ static ct_opt_error_t opt_parse_short(ct_opt_t* self, const ct_opt_def_t* defs, 
 
     option += self->subind + 1;
     self->optopt = option[0];
-    if (out_id) { *out_id = option[0]; } /* record before returning */
 
     char* next = self->argv[self->optind + 1];
 
@@ -67,6 +66,7 @@ static ct_opt_error_t opt_parse_short(ct_opt_t* self, const ct_opt_def_t* defs, 
             if (defs[i].shortname == (int)option[0]) { type = (int)defs[i].argtype; }
         }
     }
+    if (type != -1 && out_id) { *out_id = option[0]; }
 
     switch (type) {
         case CT_OPT_NONE:

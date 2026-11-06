@@ -53,14 +53,18 @@ TEST_CASE("error handling") {
         Option(),
     };
 
+    int id = 0x5A5A;
+
     // Invalid option
-    REQUIRE(parser.next(defs) == Error::Invalid);
+    REQUIRE(parser.next(defs, &id) == Error::Invalid);
     REQUIRE(parser.optopt() == 'z');
+    REQUIRE(id == 0x5A5A);
     REQUIRE(std::string(Parser::strerror(Error::Invalid)) == "invalid option");
 
     // Missing argument
-    REQUIRE(parser.next(defs) == Error::Missing);
+    REQUIRE(parser.next(defs, &id) == Error::Missing);
     REQUIRE(parser.optopt() == 'd');
+    REQUIRE(id == 'd');
     REQUIRE(std::string(Parser::strerror(Error::Missing)) == "option requires an argument");
 
     REQUIRE(parser.next(defs) == Error::Done);
