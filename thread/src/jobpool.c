@@ -5,7 +5,6 @@
 #include "coter/thread/jobpool.h"
 
 #include <stdlib.h>
-#include <string.h>
 
 #include "coter/container/list.h"
 #include "coter/core/macro.h"
@@ -66,19 +65,21 @@ ct_jobpool_t* ct_jobpool_create(size_t thread_max, size_t job_max, const ct_jobp
     }
     ct_list_init(self->regular_list_);
 
-    ct_thread_attr_t attr = CT_THREAD_ATTR_INIT;
-    if (config && config->thread_attr_) {
-        memcpy(&attr, config->thread_attr_, sizeof(ct_thread_attr_t));
+    ct_jobpool_config_t cfg;
+    if (config) {
+        cfg = *config;
     } else {
-        ct_thread_attr_set_stack_size(&attr, 1 * 1024 * 1024);
+        ct_jobpool_default_config(&cfg);
     }
+
+    ct_thread_attr_t attr = CT_THREAD_ATTR_INIT;
+    attr.stack_size_      = cfg.stack_size_;
 
     for (size_t i = 0; i < thread_max; ++i) {
         unit_t* unit = (unit_t*)malloc(sizeof(unit_t));
         if (!unit) {
-            ct_thread_attr_destroy(&attr);
             ct_jobpool_destroy(self);
-            return NULL;  // Treat allocation failure as total failure.
+            return NULL;
         }
 
         unit->job_queue_ = self->job_queue_;
@@ -87,24 +88,20 @@ ct_jobpool_t* ct_jobpool_create(size_t thread_max, size_t job_max, const ct_jobp
         const int ret = ct_thread_create(&unit->thread_, &attr, m_worker_thread, unit);
         if (ret != 0) {
             free(unit);
-            ct_thread_attr_destroy(&attr);
             ct_jobpool_destroy(self);
-            return NULL;  // Treat thread creation failure as total failure.
+            return NULL;
         }
         ct_list_append(self->regular_list_, unit->list_);
     }
 
-    ct_thread_attr_destroy(&attr);
     return self;
 }
 
 void ct_jobpool_destroy(ct_jobpool_t* self) {
     if (!self) { return; }
 
-    // Close the queue and wake all blocked workers.
     ct_msgqueue_close(self->job_queue_);
 
-    // Wait for every worker to exit.
     ct_list_foreach_entry_safe(unit, self->regular_list_, unit_t, list_) {
         ct_thread_join(&unit->thread_, NULL);
         ct_list_remove(unit->list_);
@@ -142,8 +139,8 @@ size_t ct_jobpool_pending(ct_jobpool_t* self) {
 // -------------------------[STATIC DEFINITION]-------------------------
 
 static int m_worker_thread(void* arg) {
-    unit_t*     unit          = (unit_t*)arg;
-    ct_time64_t next_yield_us = ct_gethrtime_us() + JOBPOOL_YIELD_SLICE_US;
+    unit_t*     unit    = (unit_t*)arg;
+    ct_time64_t next_us = ct_gethrtime_us() + JOBPOOL_YIELD_SLICE_US;
 
     for (;;) {
         job_t job;
@@ -152,9 +149,9 @@ static int m_worker_thread(void* arg) {
         }
         if (job.routine_) { job.routine_(job.arg_); }
 
-        if (ct_gethrtime_us() >= next_yield_us) {
+        if (ct_gethrtime_us() >= next_us) {
             ct_thread_yield();
-            next_yield_us = ct_gethrtime_us() + JOBPOOL_YIELD_SLICE_US;
+            next_us = ct_gethrtime_us() + JOBPOOL_YIELD_SLICE_US;
         }
     }
 

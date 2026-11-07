@@ -123,7 +123,7 @@ TEST_CASE("jobpool_create_invalid_params") {
 
 TEST_CASE("jobpool_config_init") {
     ct_jobpool_config_t config = CT_JOBPOOL_CONFIG_INIT;
-    REQUIRE(config.thread_attr_ == nullptr);
+    REQUIRE(config.stack_size_ == 0);
 
     ct_jobpool_t* pool = ct_jobpool_create(2, 8, &config);
     REQUIRE(pool != nullptr);
@@ -131,11 +131,10 @@ TEST_CASE("jobpool_config_init") {
 }
 
 TEST_CASE("jobpool_create_with_config_stack_size") {
-    ct_thread_attr_t attr = CT_THREAD_ATTR_INIT;
-    ct_thread_attr_set_stack_size(&attr, 512 * 1024);  // 512 KiB stack.
+    ct_jobpool_config_t config = CT_JOBPOOL_CONFIG_INIT;
+    config.stack_size_         = 512 * 1024;  // 512 KiB stack.
 
-    ct_jobpool_config_t config = {&attr};
-    ct_jobpool_t*       pool   = ct_jobpool_create(2, 8, &config);
+    ct_jobpool_t* pool = ct_jobpool_create(2, 8, &config);
     REQUIRE(pool != nullptr);
     ct_jobpool_destroy(pool);
 }

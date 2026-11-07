@@ -167,7 +167,7 @@ TEST_CASE("submitting a null task returns an error") {
 
     const int ret = ct_thpool_submit(pool, nullptr, nullptr);
     REQUIRE(ret != 0);
-    REQUIRE(ret == CT_THPOOL_ERROR_TASK_NULL);
+    REQUIRE(ret == CT_THPOOL_ERROR_INVALID_ARG);
 
     ct_thpool_destroy(pool);
 }
@@ -607,18 +607,14 @@ TEST_CASE("a long-lived pool grows and shrinks without accumulating threads") {
     constexpr int  stack_bytes        = 8 * 1024 * 1024;
     constexpr long cycles_envelope_kb = 8 * (long)stack_bytes / 1024 + 4 * 1024;
 
-    ct_thread_attr_t attr = CT_THREAD_ATTR_INIT;
-    REQUIRE(ct_thread_attr_set_stack_size(&attr, stack_bytes) == 0);
-
     ct_thpool_config_t config;
     ct_thpool_default_config(&config);
-    config.thread_attr_  = &attr;
+    config.stack_size_   = stack_bytes;
     config.idle_timeout_ = 100;
     config.max_tasks_    = 0;
 
     ct_thpool_t* pool = ct_thpool_create(worker_max, &config);
     REQUIRE(pool != nullptr);
-    ct_thread_attr_destroy(&attr);  // The pool keeps its own copy.
 
     const int  baseline_threads = thpool_status_threads();
     const long baseline_vmsize  = thpool_status_vmsize_kb();
