@@ -1,6 +1,6 @@
 /**
  * @file thread.h
- * @brief Cross-platform thread management.
+ * @brief Cross-platform thread creation and management.
  */
 #ifndef COTER_THREAD_THREAD_H
 #define COTER_THREAD_THREAD_H
@@ -17,34 +17,35 @@ typedef DWORD ct_tid_t;
 typedef pthread_t ct_tid_t;
 #endif
 
-/**
- * @brief Thread creation attributes.
- */
 typedef struct ct_thread_attr {
-    size_t stack_size_;  ///< Stack size in bytes; 0 selects the platform default.
+    size_t stack_size_; /**< Thread stack size in bytes; 0 uses the platform default. */
+    bool   detached_;   /**< If true, create the thread detached so it cannot be joined. */
 } ct_thread_attr_t;
 
-#define CT_THREAD_ATTR_INIT {0}
+/** @brief Default attribute initializer. */
+#define CT_THREAD_ATTR_INIT {0, false}
 
-/**
- * @brief Initializes thread attributes to default values.
- * @param attr Pointer to the attributes to initialize.
- */
+/** @brief Initialize @p attr with defaults; does nothing if @p attr is NULL. */
 CT_API void ct_thread_attr_init(ct_thread_attr_t* attr);
 
-/**
- * @brief Destroys thread attributes.
- * @param attr Pointer to the attributes to destroy.
- */
+/** @brief Destroy a thread attribute object; does nothing if @p attr is NULL. */
 CT_API void ct_thread_attr_destroy(ct_thread_attr_t* attr);
 
 /**
- * @brief Sets the desired stack size for the thread.
- * @param attr Pointer to the thread attributes.
- * @param stack_size The stack size in bytes. 0 indicates the platform default.
- * @return 0 on success, non-zero error code on failure.
+ * @brief Set the thread stack size.
+ * @param attr Attribute object.
+ * @param stack_size Stack size in bytes; 0 uses the platform default.
+ * @return 0 on success, or EINVAL if @p attr is NULL.
  */
 CT_API int ct_thread_attr_set_stack_size(ct_thread_attr_t* attr, size_t stack_size);
+
+/**
+ * @brief Set whether the thread is created detached.
+ * @param attr Attribute object.
+ * @param detached True to create a detached thread that cannot be joined.
+ * @return 0 on success, or EINVAL if @p attr is NULL.
+ */
+CT_API int ct_thread_attr_set_detached(ct_thread_attr_t* attr, bool detached);
 
 #ifdef CT_OS_WIN
 typedef struct ct_thread {
@@ -55,89 +56,71 @@ typedef struct ct_thread {
 typedef pthread_t ct_thread_t;
 #endif
 
-/**
- * @brief Thread execution routine signature.
- * @return Thread exit code.
- */
+/** @brief Thread entry point; its return value can be collected by ct_thread_join(). */
 typedef int (*ct_thread_routine_t)(void*);
 
 /**
- * @brief Creates a new thread of execution.
- * @param thread Output pointer to the created thread handle.
- * @param attr Optional thread attributes. Can be NULL for defaults.
- * @param routine The function to execute in the new thread.
- * @param arg Argument passed to the routine.
- * @return 0 on success, non-zero error code on failure.
+ * @brief Create and start a thread that runs @p routine with @p arg.
+ * @param thread Output handle for the new thread.
+ * @param attr Optional attributes; NULL uses defaults.
+ * @param routine Thread entry point.
+ * @param arg Argument passed to @p routine.
+ * @return 0 on success, or a non-zero error code on failure.
  */
 CT_API int ct_thread_create(ct_thread_t* thread, const ct_thread_attr_t* attr, ct_thread_routine_t routine, void* arg);
 
 /**
- * @brief Waits for a thread to terminate and cleans up its resources.
- *
- * On success, the native thread resource has been consumed and the thread
- * handle is zeroed. On failure, the thread handle is left unchanged so that
- * a later join may be attempted, except when the wait succeeded but the exit
- * code could not be read; the thread has then already terminated and the
- * handle is released instead.
- *
- * @param thread Pointer to the thread handle.
- * @param result Optional pointer to store the thread's exit code.
- * @return 0 on success, non-zero error code on failure.
+ * @brief Wait for a joinable thread to finish and collect its return value.
+ * @param thread Thread to join; the handle is invalidated on success.
+ * @param result Optional; receives the value returned by the thread routine.
+ * @return 0 on success, or a non-zero error code on failure.
+ * @note A detached thread cannot be joined.
  */
 CT_API int ct_thread_join(ct_thread_t* thread, int* result);
 
 /**
- * @brief Detaches a thread, allowing it to execute independently.
- *
- * Its resources will be automatically released upon termination.
- * To prevent dangling pointers, the thread handle is zeroed out.
- *
- * @param thread Pointer to the thread handle. Will be zeroed out.
- * @return 0 on success, non-zero error code on failure.
+ * @brief Detach a thread so its resources are reclaimed when it exits.
+ * @param thread Thread to detach; the handle is invalidated on success.
+ * @return 0 on success, or a non-zero error code on failure.
+ * @note A detached thread cannot be joined.
  */
 CT_API int ct_thread_detach(ct_thread_t* thread);
 
 /**
- * @brief Voluntarily yields the current thread's time slice to the scheduler.
- * @return 0 on success, non-zero error code on failure.
+ * @brief Yield the CPU to other runnable threads.
+ * @return 0 on success, or non-zero on failure.
  */
 CT_API int ct_thread_yield(void);
 
 #ifdef CT_OS_WIN
 /**
- * @brief Sets the priority for a Windows thread.
- * @param thread The target thread handle.
- * @param priority The priority level to set.
- * @return 0 on success, non-zero error code on failure.
+ * @brief Set the priority of a Windows thread.
+ * @param thread Thread handle.
+ * @param priority Win32 priority value, such as THREAD_PRIORITY_NORMAL.
+ * @return 0 on success, or a non-zero error code on failure.
  */
 CT_API int ct_thread_set_win_priority(ct_thread_t thread, int priority);
 #else
 /**
- * @brief Sets the POSIX scheduling policy and priority.
- * @param thread The target thread handle.
- * @param policy The scheduling policy (e.g., SCHED_FIFO, SCHED_RR).
- * @param priority The priority level to set.
- * @return 0 on success, non-zero error code on failure.
+ * @brief Set the scheduling policy and priority of a POSIX thread.
+ * @param thread Thread handle.
+ * @param policy Scheduling policy (SCHED_*).
+ * @param priority Scheduling priority for the selected policy.
+ * @return 0 on success, or a non-zero error code on failure.
  */
 CT_API int ct_thread_set_posix_sched(ct_thread_t thread, int policy, int priority);
 #endif
 
-/**
- * @brief Retrieves the handle of the calling thread.
- * @return The current thread handle.
- */
+/** @brief Get a handle to the calling thread. */
 CT_API ct_thread_t ct_thread_self(void);
 
-/**
- * @brief Retrieves the ID of the calling thread.
- * @return The current thread ID.
- */
+/** @brief Get the platform identifier of the calling thread. */
 CT_API ct_tid_t ct_thread_current_id(void);
 
 /**
- * @brief Retrieves the ID of a given thread.
- * @param thread The target thread handle.
- * @return The thread ID.
+ * @brief Get the platform identifier from a thread handle.
+ * @param thread Thread handle.
+ * @return The corresponding platform thread ID.
  */
 CT_INLINE ct_tid_t ct_thread_get_id(ct_thread_t thread) {
 #ifdef CT_OS_WIN
@@ -148,10 +131,8 @@ CT_INLINE ct_tid_t ct_thread_get_id(ct_thread_t thread) {
 }
 
 /**
- * @brief Compares two thread handles for equality.
- * @param left First thread handle.
- * @param right Second thread handle.
- * @return 1 if they represent the same thread, 0 otherwise.
+ * @brief Compare two thread handles.
+ * @return Non-zero if both refer to the same thread; otherwise 0.
  */
 CT_INLINE int ct_thread_equal(ct_thread_t left, ct_thread_t right) {
 #ifdef CT_OS_WIN
@@ -162,9 +143,8 @@ CT_INLINE int ct_thread_equal(ct_thread_t left, ct_thread_t right) {
 }
 
 /**
- * @brief Checks if a given thread is the calling thread.
- * @param thread The thread handle to check.
- * @return 1 if the thread is the calling thread, 0 otherwise.
+ * @brief Check whether a thread handle refers to the calling thread.
+ * @return Non-zero if @p thread is the calling thread; otherwise 0.
  */
 CT_INLINE int ct_thread_is_self(ct_thread_t thread) {
     return ct_thread_equal(thread, ct_thread_self());

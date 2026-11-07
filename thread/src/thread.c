@@ -31,7 +31,7 @@ static unsigned __stdcall thread_win32_entry(void* data) {
 
 void ct_thread_attr_init(ct_thread_attr_t* attr) {
     if (!attr) { return; }
-    memset(attr, 0, sizeof(*attr));
+    memset(attr, 0, sizeof(ct_thread_attr_t));
 }
 
 void ct_thread_attr_destroy(ct_thread_attr_t* attr) {
@@ -44,13 +44,20 @@ int ct_thread_attr_set_stack_size(ct_thread_attr_t* attr, size_t stack_size) {
     return 0;
 }
 
+int ct_thread_attr_set_detached(ct_thread_attr_t* attr, bool detached) {
+    if (!attr) { return EINVAL; }
+    attr->detached_ = detached;
+    return 0;
+}
+
 int ct_thread_create(ct_thread_t* thread, const ct_thread_attr_t* attr, ct_thread_routine_t routine, void* arg) {
     if (!thread || !routine) { return EINVAL; }
     memset(thread, 0, sizeof(ct_thread_t));
 
 #ifdef CT_OS_WIN
-    unsigned thread_id  = 0;
-    unsigned stack_size = (unsigned)(attr ? attr->stack_size_ : 0);
+    unsigned   thread_id  = 0;
+    unsigned   stack_size = (unsigned)(attr ? attr->stack_size_ : 0);
+    const bool detached   = attr ? attr->detached_ : false;
 
     errno = 0;
 #ifdef CT_OS_WIN32
@@ -74,6 +81,11 @@ int ct_thread_create(ct_thread_t* thread, const ct_thread_attr_t* attr, ct_threa
 #endif
 
     thread->id_ = (DWORD)thread_id;
+
+    if (detached) {
+        (void)CloseHandle(thread->handle_);
+        thread->handle_ = NULL;
+    }
     return 0;
 #else
     pthread_attr_t  thread_attr;
@@ -85,6 +97,13 @@ int ct_thread_create(ct_thread_t* thread, const ct_thread_attr_t* attr, ct_threa
         attr_ptr = &thread_attr;
         if (attr->stack_size_ > 0) {
             ret = pthread_attr_setstacksize(&thread_attr, attr->stack_size_);
+            if (ret != 0) {
+                pthread_attr_destroy(&thread_attr);
+                return ret;
+            }
+        }
+        if (attr->detached_) {
+            ret = pthread_attr_setdetachstate(&thread_attr, PTHREAD_CREATE_DETACHED);
             if (ret != 0) {
                 pthread_attr_destroy(&thread_attr);
                 return ret;
