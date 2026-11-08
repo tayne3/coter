@@ -6,8 +6,10 @@ Establishes the core compiler environment, standards enforcement, and global
 build policies for the project.
 #]=======================================================================]
 
+include_guard(GLOBAL)
+
 include(CheckCCompilerFlag)
-include(CheckCXXCompilerFlag)
+include(GNUInstallDirs)
 
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
   set(CMAKE_C_STANDARD 99)
@@ -53,11 +55,6 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
   if(NOT DEFINED CMAKE_VISIBILITY_INLINES_HIDDEN)
     set(CMAKE_VISIBILITY_INLINES_HIDDEN ON CACHE BOOL "Whether to add a compile flag to hide symbols of inline functions")
   endif()
-
-  include(GNUInstallDirs)
-  if(APPLE)
-    set(CMAKE_MACOSX_RPATH ON)
-  endif()
 endif()
 
 add_library(coter_internal_options INTERFACE)
@@ -79,8 +76,8 @@ if(WIN32)
     target_compile_definitions(coter_internal_options INTERFACE __USE_MINGW_ANSI_STDIO=1)
   endif()
 else()
-  # Enable GNU extensions on Linux/Unix systems (covers glibc, musl, etc.)
-  if((UNIX AND NOT APPLE) OR CMAKE_SYSTEM_NAME MATCHES "Linux|GNU")
+  # Enable GNU extensions on Linux/Unix systems (glibc, musl; *BSD ignore it).
+  if(UNIX AND NOT APPLE)
     target_compile_definitions(coter_internal_options INTERFACE 
       _GNU_SOURCE=1
       _TIME_BITS=64
@@ -93,14 +90,14 @@ endif()
 # In certain edge environments/older CMake versions,
 # the MSVC variable alone fails to reliably identify clang-cl.
 if(MSVC)
-  set(COTER_IS_MSVC_LIKE TRUE)
+  set(CT_IS_MSVC_LIKE TRUE)
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
-  set(COTER_IS_MSVC_LIKE TRUE)
+  set(CT_IS_MSVC_LIKE TRUE)
 else()
-  set(COTER_IS_MSVC_LIKE FALSE)
+  set(CT_IS_MSVC_LIKE FALSE)
 endif()
 
-if(COTER_IS_MSVC_LIKE)
+if(CT_IS_MSVC_LIKE)
   target_compile_options(coter_internal_options INTERFACE
     # Fix MSVC __cplusplus always reporting 199711L
     "$<$<COMPILE_LANGUAGE:CXX>:/Zc:__cplusplus>"
@@ -129,11 +126,12 @@ else()
   )
 
   # Prevent local developer paths from leaking into compiled binaries.
-  check_c_compiler_flag("-fmacro-prefix-map=${CMAKE_SOURCE_DIR}/=/" HAVE_MACRO_PREFIX_MAP)
+  get_filename_component(_ct_source_dir "${CMAKE_CURRENT_LIST_DIR}/.." ABSOLUTE)
+  check_c_compiler_flag("-fmacro-prefix-map=${_ct_source_dir}/=" HAVE_MACRO_PREFIX_MAP)
   if(HAVE_MACRO_PREFIX_MAP)
     target_compile_options(coter_internal_options INTERFACE
-      "$<$<COMPILE_LANGUAGE:C>:-fmacro-prefix-map=${CMAKE_SOURCE_DIR}/=/>"
-      "$<$<COMPILE_LANGUAGE:CXX>:-fmacro-prefix-map=${CMAKE_SOURCE_DIR}/=/>"
+      "$<$<COMPILE_LANGUAGE:C>:-fmacro-prefix-map=${_ct_source_dir}/=>"
+      "$<$<COMPILE_LANGUAGE:CXX>:-fmacro-prefix-map=${_ct_source_dir}/=>"
     )
   endif()
 
@@ -160,15 +158,11 @@ endif()
 # Enable Link-Time Optimization (LTO/IPO)
 if(COTER_ENABLE_LTO)
   include(CheckIPOSupported)
-  check_ipo_supported(RESULT _lto_supported LANGUAGES C CXX)
-  if(_lto_supported)
+  check_ipo_supported(RESULT _ct_lto_supported LANGUAGES C CXX)
+  if(_ct_lto_supported)
     set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
     set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELWITHDEBINFO TRUE)
     set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_MINSIZEREL TRUE)
-
-    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "7.0")
-      target_compile_options(coter_internal_options INTERFACE $<$<NOT:$<CONFIG:Debug>>:-falign-functions=32>)
-    endif()
   else()
     message(WARNING "Link-Time Optimization was requested but is not supported by the current compiler.")
   endif()
