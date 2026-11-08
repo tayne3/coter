@@ -9,12 +9,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "coter/core/macro.h"
+#include "coter/core/time.h"
+
 #if HAVE_INTTYPES_H
 #include <inttypes.h>
 #endif
-
-#include "coter/core/macro.h"
-#include "coter/core/time.h"
 
 // clang-format off
 #ifdef CT_OS_WIN

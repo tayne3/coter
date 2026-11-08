@@ -10,44 +10,15 @@
 #cmakedefine01 CT_ATOMIC_USE_WIN
 #cmakedefine01 CT_ATOMIC_USE_MUTEX
 
-#ifndef HAVE_INTTYPES_H
 #cmakedefine01 HAVE_INTTYPES_H
-#endif
-
-#ifndef HAVE_STDINT_H
 #cmakedefine01 HAVE_STDINT_H
-#endif
-
-#ifndef HAVE_STDBOOL_H
 #cmakedefine01 HAVE_STDBOOL_H
-#endif
-
-#ifndef HAVE_SYS_TYPES_H
 #cmakedefine01 HAVE_SYS_TYPES_H
-#endif
-
-#ifndef HAVE_SYS_STAT_H
 #cmakedefine01 HAVE_SYS_STAT_H
-#endif
-
-#ifndef HAVE_MEMRCHR
 #cmakedefine01 HAVE_MEMRCHR
-#endif
-
-#ifndef HAVE_CLOCK_GETTIME
 #cmakedefine01 HAVE_CLOCK_GETTIME
-#endif
-
-#ifndef HAVE_PTHREAD_COND_CLOCKWAIT
 #cmakedefine01 HAVE_PTHREAD_COND_CLOCKWAIT
-#endif
-
-#ifndef HAVE_PTHREAD_RWLOCK
 #cmakedefine01 HAVE_PTHREAD_RWLOCK
-#endif
-
-#ifndef HAVE_SEM_TIMEDWAIT
 #cmakedefine01 HAVE_SEM_TIMEDWAIT
-#endif
 
 #endif /* COTER_CORE_CONFIG_H */
