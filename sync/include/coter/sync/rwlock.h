@@ -29,7 +29,7 @@ CT_API int ct_rwlock_rdunlock(ct_rwlock_t* lock);
 CT_API int ct_rwlock_wrunlock(ct_rwlock_t* lock);
 #elif HAVE_PTHREAD_RWLOCK
 typedef pthread_rwlock_t ct_rwlock_t;
-#define CT_RWLOCK_INITIALIZER  PTHREAD_RWLOCK_INITIALIZER
+#define CT_RWLOCK_INITIALIZER      PTHREAD_RWLOCK_INITIALIZER
 #define ct_rwlock_init(lock_)      pthread_rwlock_init(lock_, NULL)
 #define ct_rwlock_destroy(lock_)   pthread_rwlock_destroy(lock_)
 #define ct_rwlock_rdlock(lock_)    pthread_rwlock_rdlock(lock_)
