@@ -70,23 +70,14 @@ CT_API void* ct_reverse_memcpy(void* dest, const void* src, size_t count);
 /// @note Copies src[0..count-1] to dest[count-1..0]; safe for overlapping buffers
 CT_API void* ct_reverse_memmove(void* dest, const void* src, size_t count);
 
-#if HAVE_MEMRCHR
-#define ct_memrchr memrchr
-#else
 /// @brief Search memory for a byte in reverse order
 /// @param mem Memory block to search
 /// @param byte Byte value to find
 /// @param count Number of bytes to examine
 /// @return Pointer to last occurrence of byte, or NULL if not found
-/// @note Fallback implementation when system memrchr unavailable
-CT_INLINE void* ct_memrchr(const void* mem, int byte, size_t count) {
-    const uint8_t* cursor = (const uint8_t*)mem + count;
-    while (count--) {
-        if (*--cursor == (uint8_t)byte) { return (void*)cursor; }
-    }
-    return NULL;
-}
-#endif
+/// @note Exported function: callers do not need _GNU_SOURCE or any other
+///       feature-test macro for this to be declared.
+CT_API void* ct_memrchr(const void* mem, int byte, size_t count);
 
 #ifdef __cplusplus
 }

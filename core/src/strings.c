@@ -135,3 +135,16 @@ void* ct_reverse_memmove(void* dest, const void* src, size_t count) {
 
     return dest;
 }
+
+void* ct_memrchr(const void* mem, int byte, size_t count) {
+    if (!mem || count == 0) { return NULL; }
+#if HAVE_MEMRCHR
+    return memrchr(mem, byte, count);
+#else
+    const uint8_t* cursor = (const uint8_t*)mem + count;
+    while (count--) {
+        if (*--cursor == (uint8_t)byte) { return (void*)cursor; }
+    }
+    return NULL;
+#endif
+}
