@@ -6,7 +6,7 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
   )
 endif()
 
-project(coter VERSION 0.13.2)
+project(coter VERSION 0.13.3)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/coter_compiler_options.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/coter_platform_config.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/coter_atomic_checks.cmake)
